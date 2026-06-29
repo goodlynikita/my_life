@@ -567,7 +567,9 @@ window.Screens.training = function (mount) {
           ${role === 'owner' ? '<button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>' : ''}
           <p class="tr-title">Тренировки</p>
         </div>
-        ${role === 'coach' ? '<span class="tr-role-badge">Тренер</span>' : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
+        ${role === 'coach'
+          ? `<span style="display:flex; align-items:center; gap:8px;"><span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button></span>`
+          : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
       </div>
       <div class="tr-plan-bar">
         <select class="tr-plan-select" id="tr-plan-select"></select>
@@ -593,7 +595,26 @@ window.Screens.training = function (mount) {
     ).join('');
   }
 
-  let collapsedWeeks = [];
+  function collapsedWeeksKey(planId) {
+    return `nik_collapsed_weeks_${planId}`;
+  }
+
+  function loadCollapsedWeeks(planId) {
+    try {
+      const raw = localStorage.getItem(collapsedWeeksKey(planId));
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCollapsedWeeks(planId, weeks) {
+    try {
+      localStorage.setItem(collapsedWeeksKey(planId), JSON.stringify(weeks));
+    } catch (e) { /* ignore */ }
+  }
+
+  let collapsedWeeks = loadCollapsedWeeks(currentPlanId);
 
   function bindPlanEvents(plan) {
     content.querySelectorAll('.tr-exercise').forEach(btn => {
@@ -633,6 +654,7 @@ window.Screens.training = function (mount) {
         const idx = collapsedWeeks.indexOf(w);
         if (idx === -1) collapsedWeeks.push(w);
         else collapsedWeeks.splice(idx, 1);
+        saveCollapsedWeeks(currentPlanId, collapsedWeeks);
         renderTab('plan');
       });
     });
@@ -688,6 +710,7 @@ window.Screens.training = function (mount) {
 
   planSelect.addEventListener('change', () => {
     currentPlanId = planSelect.value;
+    collapsedWeeks = loadCollapsedWeeks(currentPlanId);
     mount.querySelectorAll('.tr-tab').forEach(t => t.classList.remove('active'));
     mount.querySelector('[data-tab="plan"]').classList.add('active');
     renderTab('plan');
@@ -698,6 +721,7 @@ window.Screens.training = function (mount) {
     newPlanBtn.addEventListener('click', () => {
       if (!confirm('Текущий план переходит в архив, начинаем новый план на 8 недель. Продолжить?')) return;
       currentPlanId = trCreateNextPlan();
+      collapsedWeeks = [];
       populatePlanSelect();
       renderTab('plan');
     });

@@ -71,8 +71,7 @@ const FirebaseSync = (() => {
   async function pullIntoStore() {
     const remote = await fetchRemote();
     if (remote === FETCH_ERROR) {
-      // Network/config problem — don't touch local data, don't push either.
-      return true; // treat as "remote presumed to have data" to avoid overwriting it
+      return 'error';
     }
     const nodeExists = remote !== null && remote !== undefined;
     if (nodeExists) {

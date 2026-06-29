@@ -48,6 +48,14 @@
 }
 .tr-back:hover { color: var(--tr-bone); }
 
+.tr-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .tr-title {
   font-size: 15px;
   font-weight: 600;

@@ -31,6 +31,11 @@ const Store = (() => {
   }
 
   async function load() {
+    // This only loads a local cache synchronously, for the rare case
+    // FirebaseSync isn't configured or available. When Firebase IS
+    // configured (the normal case), app.js takes full control: it asks
+    // Firebase first, and only falls back to this local copy or the
+    // seeded data.json if Firebase has nothing or is unreachable.
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) {
@@ -40,19 +45,18 @@ const Store = (() => {
     } catch (e) {
       console.error('Store load failed', e);
     }
-    // No local data yet — try to seed from data.json shipped in the repo.
+    data = null;
+    return data;
+  }
+
+  async function loadSeedFromRepo() {
     try {
       const res = await fetch('data.json', { cache: 'no-store' });
-      if (res.ok) {
-        data = await res.json();
-        persistLocal();
-        return data;
-      }
+      if (res.ok) return await res.json();
     } catch (e) {
       console.error('Store seed fetch failed', e);
     }
-    data = defaultData();
-    return data;
+    return null;
   }
 
   function persistLocal() {
@@ -64,7 +68,7 @@ const Store = (() => {
   }
 
   function get() {
-    if (!data) load();
+    if (!data) data = defaultData();
     return data;
   }
 
@@ -88,5 +92,5 @@ const Store = (() => {
     persistLocal();
   }
 
-  return { get, set, replaceAll, load, defaultData };
+  return { get, set, replaceAll, load, loadSeedFromRepo, defaultData };
 })();

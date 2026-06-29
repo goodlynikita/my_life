@@ -2,8 +2,10 @@
    FIREBASE SYNC
    Reads and writes one node in a Firebase Realtime Database using
    the Firebase REST API directly (no SDK needed, plain fetch).
-   Config (project URL + secret) is stored in this browser's
-   localStorage after being entered once in the settings screen.
+   The database URL comes from window.FIREBASE_CONFIG (config.js),
+   baked into the app — every device uses the same database with
+   zero manual setup. localStorage override only exists as a
+   fallback for advanced use, not needed in normal operation.
    ============================================================ */
 
 const FirebaseSync = (() => {
@@ -12,6 +14,9 @@ const FirebaseSync = (() => {
   let statusEl = null;
 
   function getConfig() {
+    if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL) {
+      return window.FIREBASE_CONFIG;
+    }
     try {
       const raw = localStorage.getItem(CFG_KEY);
       return raw ? JSON.parse(raw) : null;
@@ -46,27 +51,35 @@ const FirebaseSync = (() => {
     statusEl.style.color = isError ? 'var(--danger)' : 'var(--bone-faint)';
   }
 
+  const FETCH_ERROR = Symbol('fetch-error');
+
   async function fetchRemote() {
     const cfg = getConfig();
-    if (!cfg) return null;
+    if (!cfg) return FETCH_ERROR;
     try {
       const res = await fetch(dataUrl());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
-      return json;
+      return json; // null is a valid Firebase response meaning "node is empty"
     } catch (e) {
       console.error('FirebaseSync.fetchRemote failed', e);
       setStatus('Не удалось загрузить данные с Firebase', true);
-      return null;
+      return FETCH_ERROR;
     }
   }
 
   async function pullIntoStore() {
     const remote = await fetchRemote();
-    if (remote) {
+    if (remote === FETCH_ERROR) {
+      // Network/config problem — don't touch local data, don't push either.
+      return true; // treat as "remote presumed to have data" to avoid overwriting it
+    }
+    const nodeExists = remote !== null && remote !== undefined;
+    if (nodeExists) {
       Store.replaceAll(remote);
       setStatus('Данные загружены');
     }
+    return nodeExists;
   }
 
   async function pushNow() {

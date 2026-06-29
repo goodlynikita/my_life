@@ -245,6 +245,10 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     return `<span class="tr-day-tag has-session" style="background:${c}22; color:${c}; border-color:${c}55;">${g}</span>`;
   }).join('');
 
+  const actionBtn = isRest
+    ? `<button class="tr-day-add tr-day-clear" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Удалить отдых" title="Сбросить день"><i class="ti ti-trash"></i></button>`
+    : `<button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить"><i class="ti ti-plus"></i></button>`;
+
   return `
     <div class="tr-day">
       <div class="tr-day-head">
@@ -252,27 +256,28 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
         ${hasSession
           ? `<span class="tr-day-tag has-session" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${day.type}</span>${groupTags}`
           : `<span class="tr-day-tag">не задано</span>`}
-        ${isRest ? '' : `<button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить"><i class="ti ti-plus"></i></button>`}
+        ${actionBtn}
       </div>
       ${isRest ? '<div class="tr-day-empty">День отдыха</div>' : exercisesHtml}
       ${(!isRest && day.exercises.length === 0) ? '<div class="tr-day-empty">Нет упражнений</div>' : ''}
     </div>`;
 }
 
-function trRenderWeek(week, plan, weekIndex) {
+function trRenderWeek(week, plan, weekIndex, collapsed) {
   const days = week.days.map((d, dayIdx) => trRenderDay(d, plan, weekIndex, dayIdx)).join('');
   return `
     <div class="tr-week">
-      <div class="tr-week-head">
+      <button class="tr-week-head tr-week-toggle" data-week="${weekIndex}">
+        <i class="ti ti-chevron-${collapsed ? 'right' : 'down'}"></i>
         <span class="tr-week-label">Неделя ${week.weekNum}</span>
         <span class="tr-week-range">${week.range}</span>
-      </div>
-      ${days}
+      </button>
+      <div class="tr-week-body" style="${collapsed ? 'display:none;' : ''}">${days}</div>
     </div>`;
 }
 
-function trRenderPlanTab(plan) {
-  return plan.weeks.map((w, i) => trRenderWeek(w, plan, i)).join('');
+function trRenderPlanTab(plan, collapsedWeeks) {
+  return plan.weeks.map((w, i) => trRenderWeek(w, plan, i, (collapsedWeeks || []).includes(i))).join('');
 }
 
 function trAnimateBars(scope) {
@@ -353,11 +358,12 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, exIdx, onSave) {
 
 function trBuildExerciseSelect(selectedGroups) {
   const list = trExercisesForGroups(selectedGroups);
+  const customOption = `<option value="__custom__">— своё название —</option>`;
   if (list.length === 0) {
-    return `<select id="m-name"><option value="">— выбери группу мышц —</option></select>`;
+    return `<select id="m-name"><option value="">— выбери группу мышц —</option>${customOption}</select>`;
   }
   const options = list.map(name => `<option value="${name}">${name}</option>`).join('');
-  return `<select id="m-name" class="tr-color-select">${options}</select>`;
+  return `<select id="m-name" class="tr-color-select">${options}${customOption}</select>`;
 }
 
 function trBuildGroupCheckboxes(selected) {
@@ -461,11 +467,24 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       cb.addEventListener('change', () => {
         const groups = selectedGroupsNow();
         const wrap = overlay.querySelector('#m-name-wrap');
-        if (wrap) wrap.innerHTML = trBuildExerciseSelect(groups);
+        if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
       });
     });
   }
   bindGroupCheckboxes();
+
+  function bindNameSelect() {
+    const sel = overlay.querySelector('#m-name-wrap select#m-name');
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      if (sel.value === '__custom__') {
+        const wrap = overlay.querySelector('#m-name-wrap');
+        wrap.innerHTML = `<input type="text" id="m-name" placeholder="Название упражнения">`;
+        wrap.querySelector('#m-name').focus();
+      }
+    });
+  }
+  bindNameSelect();
 
   if (needsSetup) {
     overlay.querySelector('#m-type').addEventListener('change', refreshFields);
@@ -548,7 +567,7 @@ window.Screens.training = function (mount) {
           ${role === 'owner' ? '<button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>' : ''}
           <p class="tr-title">Тренировки</p>
         </div>
-        ${role === 'coach' ? '<span class="tr-role-badge">Тренер · просмотр</span>' : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
+        ${role === 'coach' ? '<span class="tr-role-badge">Тренер</span>' : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
       </div>
       <div class="tr-plan-bar">
         <select class="tr-plan-select" id="tr-plan-select"></select>
@@ -557,9 +576,8 @@ window.Screens.training = function (mount) {
       <div class="tr-tabs">
         <button class="tr-tab active" data-tab="plan">План</button>
         <button class="tr-tab" data-tab="working-weight">Рабочий вес</button>
-        <button class="tr-tab" data-tab="summary">Итоги 8 недель</button>
+        <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
-        <button class="tr-tab" data-tab="measure">Замеры</button>
       </div>
       <div class="tr-body" id="tr-content"></div>
     </div>
@@ -575,9 +593,10 @@ window.Screens.training = function (mount) {
     ).join('');
   }
 
+  let collapsedWeeks = [];
+
   function bindPlanEvents(plan) {
     content.querySelectorAll('.tr-exercise').forEach(btn => {
-      if (role === 'coach') { btn.style.cursor = 'default'; return; }
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
         const d = parseInt(btn.dataset.day, 10);
@@ -589,14 +608,32 @@ window.Screens.training = function (mount) {
       });
     });
     content.querySelectorAll('.tr-day-add').forEach(btn => {
-      if (role === 'coach') { btn.style.display = 'none'; return; }
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
         const d = parseInt(btn.dataset.day, 10);
+        if (btn.classList.contains('tr-day-clear')) {
+          if (!confirm('Сбросить этот день обратно в «не задано»?')) return;
+          const day = plan.weeks[w].days[d];
+          day.type = null;
+          day.groups = [];
+          day.exercises = [];
+          trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
+          renderTab('plan');
+          return;
+        }
         trOpenAddModal(plan, w, d, () => {
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
         });
+      });
+    });
+    content.querySelectorAll('.tr-week-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const w = parseInt(btn.dataset.week, 10);
+        const idx = collapsedWeeks.indexOf(w);
+        if (idx === -1) collapsedWeeks.push(w);
+        else collapsedWeeks.splice(idx, 1);
+        renderTab('plan');
       });
     });
   }
@@ -604,13 +641,28 @@ window.Screens.training = function (mount) {
   function renderTab(tab) {
     const plan = getPlan();
     if (tab === 'plan') {
-      content.innerHTML = trRenderPlanTab(plan);
+      content.innerHTML = trRenderPlanTab(plan, collapsedWeeks);
       trAnimateBars(content);
       bindPlanEvents(plan);
     } else if (tab === 'working-weight') {
       content.innerHTML = trRenderWorkingWeight(plan);
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
+      const addBtn = document.getElementById('tr-add-measure');
+      if (addBtn) {
+        if (role === 'coach') {
+          addBtn.style.display = 'none';
+        } else {
+          addBtn.addEventListener('click', () => trOpenMeasureModal(() => renderTab('summary')));
+        }
+      }
+      content.querySelectorAll('.tr-measure-delete').forEach(btn => {
+        if (role === 'coach') { btn.style.display = 'none'; return; }
+        btn.addEventListener('click', () => {
+          if (!confirm('Удалить этот замер?')) return;
+          trDeleteMeasurement(parseInt(btn.dataset.idx, 10), () => renderTab('summary'));
+        });
+      });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);
       const editBtn = document.getElementById('tr-edit-nutrition');
@@ -622,16 +674,6 @@ window.Screens.training = function (mount) {
             trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
             renderTab('nutrition');
           }));
-        }
-      }
-    } else if (tab === 'measure') {
-      content.innerHTML = trRenderMeasurements();
-      const addBtn = document.getElementById('tr-add-measure');
-      if (addBtn) {
-        if (role === 'coach') {
-          addBtn.style.display = 'none';
-        } else {
-          addBtn.addEventListener('click', () => trOpenMeasureModal(() => renderTab('measure')));
         }
       }
     }
@@ -818,63 +860,122 @@ function trOpenNutritionModal(plan, onSave) {
 }
 
 const MEASURE_FIELDS = [
-  'Вес', 'Грудь', 'Талия (по пупку)', 'Бедро',
-  'Нога (напряж.) левая', 'Нога (напряж.) правая', 'Бицепс',
-  '% жира', 'Мышечная масса', 'Оценка InBody'
+  'Талия', 'Плечи', 'Грудь', 'Лев рука', 'Прав рука',
+  'Лев нога', 'Прав нога', 'Бедро', 'Вес', 'Мышечная масса',
+  '% жира', 'Оценка InBody'
 ];
 
+function trCollectExerciseHistory(plan, exerciseName) {
+  // returns { first: {ex, weekIndex}, last: {ex, weekIndex} } across the whole plan
+  let first = null;
+  let last = null;
+  plan.weeks.forEach((week, weekIndex) => {
+    week.days.forEach(day => {
+      const found = day.exercises.find(e => e.name === exerciseName);
+      if (found) {
+        if (!first) first = { ex: found, weekIndex };
+        last = { ex: found, weekIndex };
+      }
+    });
+  });
+  return { first, last };
+}
+
+function trWasNowLabel(ex, metricLabelFn) {
+  if (ex.kind === 'cardio') return `${ex.distance} км`;
+  if (ex.kind === 'time_calorie') return `${ex.calories} ккал`;
+  if (ex.kind === 'steps') return `${ex.steps.toLocaleString('ru-RU')} шагов`;
+  return `${trTonnage(ex).toLocaleString('ru-RU')} кг`;
+}
+
+function trRenderWasNowRow(exerciseName, plan) {
+  const { first, last } = trCollectExerciseHistory(plan, exerciseName);
+  if (!first || !last) return '';
+  const sameRecord = first.weekIndex === last.weekIndex;
+  const wasVal = trMetricFor(first.ex);
+  const nowVal = trMetricFor(last.ex);
+  let pct = 0;
+  if (wasVal === 0) {
+    pct = nowVal === 0 ? 0 : 100;
+  } else {
+    pct = Math.round(((nowVal - wasVal) / wasVal) * 100);
+  }
+  const dir = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '–';
+  const sign = pct > 0 ? '+' : '';
+
+  if (sameRecord) {
+    return `
+      <div class="tr-exercise" style="cursor:default">
+        <div class="tr-ex-top">
+          <div class="tr-ex-name">${exerciseName}</div>
+          <div class="tr-ex-stats"><span class="tr-ex-weight num">${trWasNowLabel(last.ex)}</span></div>
+        </div>
+        <div class="tr-ex-bottom"><div class="tr-ex-meta num">только одна запись</div></div>
+      </div>`;
+  }
+
+  return `
+    <div class="tr-exercise" style="cursor:default">
+      <div class="tr-ex-top">
+        <div class="tr-ex-name">${exerciseName}</div>
+        <div class="tr-ex-stats"><span class="tr-progress ${dir}">${sign}${pct}% ${arrow}</span></div>
+      </div>
+      <div class="tr-ex-bottom"><div class="tr-ex-meta num">было ${trWasNowLabel(first.ex)} → стало ${trWasNowLabel(last.ex)}</div></div>
+    </div>`;
+}
+
 function trRenderSummary(plan) {
-  const weekIndex = trLastFilledWeekIndex(plan);
-  const sections = {};
-  plan.weeks[weekIndex].days.forEach((day, dayIdx) => {
-    if (!day.type || day.type === 'Отдых') return;
-    const label = trIsGymType(day.type) && day.groups && day.groups.length
-      ? day.groups.join(' + ')
-      : day.type;
-    if (!sections[label]) sections[label] = [];
-    day.exercises.forEach((ex, exIdx) => {
-      sections[label].push(trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx));
+  const exerciseGroups = {}; // label -> Set of exercise names, by where they last appeared
+  plan.weeks.forEach(week => {
+    week.days.forEach(day => {
+      if (!day.type || day.type === 'Отдых') return;
+      const label = trIsGymType(day.type) && day.groups && day.groups.length
+        ? day.groups.join(' + ')
+        : day.type;
+      if (!exerciseGroups[label]) exerciseGroups[label] = new Set();
+      day.exercises.forEach(ex => exerciseGroups[label].add(ex.name));
     });
   });
 
-  const labels = Object.keys(sections).filter(label => sections[label].length > 0);
+  const labels = Object.keys(exerciseGroups).filter(l => exerciseGroups[l].size > 0);
   const exercisesHtml = labels.length === 0
-    ? `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Сводка по упражнениям появится здесь после заполнения плана.</div>`
-    : labels.map(label => `
-      <div class="tr-group-card">
-        <div class="tr-group-title">${label} <span class="tr-group-range">· неделя ${weekIndex + 1}</span></div>
-        <div class="tr-day" style="pointer-events:none;">${sections[label].join('')}</div>
-      </div>`).join('');
+    ? `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Сводка «было → стало» появится здесь после заполнения плана.</div>`
+    : labels.map(label => {
+        const rows = Array.from(exerciseGroups[label]).map(name => trRenderWasNowRow(name, plan)).join('');
+        return `
+          <div class="tr-group-card">
+            <div class="tr-group-title">${label} <span class="tr-group-range">· было → стало</span></div>
+            <div class="tr-day">${rows}</div>
+          </div>`;
+      }).join('');
 
-  const measureList = Store.get().training.measurements || [];
-  const latestMeasure = measureList.length ? measureList[measureList.length - 1] : null;
-  const measureHtml = latestMeasure ? `
-    <div class="tr-measure-card">
-      <div class="tr-measure-date">Замеры · ${latestMeasure.date}</div>
-      <div class="tr-measure-grid">
-        ${MEASURE_FIELDS.filter(f => latestMeasure.values[f] !== undefined && latestMeasure.values[f] !== '').map(f => `
-          <div class="tr-measure-item"><span>${f}</span><span>${latestMeasure.values[f]}</span></div>
-        `).join('')}
-      </div>
-    </div>` : `<div class="tr-empty-state"><i class="ti ti-ruler-2"></i>Замеры тела появятся здесь после первой записи во вкладке «Замеры».</div>`;
-
-  return exercisesHtml + measureHtml;
+  return exercisesHtml + trRenderMeasurementsBlock();
 }
 
-function trRenderMeasurements() {
+function trRenderMeasurementsBlock() {
   const list = Store.get().training.measurements || [];
-  const empty = list.length === 0
-    ? `<div class="tr-empty-state"><i class="ti ti-ruler-2"></i>Пока нет замеров. Добавь первый.</div>`
-    : list.slice().reverse().map(m => `
-      <div class="tr-measure-card">
-        <div class="tr-measure-date">${m.date}</div>
-        <div class="tr-measure-grid">
-          ${MEASURE_FIELDS.filter(f => m.values[f] !== undefined && m.values[f] !== '').map(f => `
-            <div class="tr-measure-item"><span>${f}</span><span>${m.values[f]}</span></div>
-          `).join('')}
-        </div>
-      </div>`).join('');
-  return `${empty}<button class="tr-fab" id="tr-add-measure" aria-label="Добавить замер"><i class="ti ti-plus"></i></button>`;
+  const rowsHtml = list.length === 0
+    ? `<div class="tr-empty-state"><i class="ti ti-ruler-2"></i>Замеры тела появятся здесь после первой записи.</div>`
+    : list.slice().reverse().map((m, idx) => {
+        const realIdx = list.length - 1 - idx;
+        const fields = MEASURE_FIELDS.filter(f => m.values[f] !== undefined && m.values[f] !== '');
+        return `
+          <div class="tr-measure-card">
+            <div class="tr-measure-date-row">
+              <span class="tr-measure-date">${m.date}</span>
+              <button class="tr-measure-delete" data-idx="${realIdx}" aria-label="Удалить замер"><i class="ti ti-trash"></i></button>
+            </div>
+            <div class="tr-measure-grid">
+              ${fields.map(f => `<div class="tr-measure-item"><span>${f}</span><span>${m.values[f]}</span></div>`).join('')}
+            </div>
+          </div>`;
+      }).join('');
+  return `
+    <div class="tr-group-card">
+      <div class="tr-group-title">Замеры <button class="tr-measure-add-inline" id="tr-add-measure"><i class="ti ti-plus"></i> Добавить</button></div>
+      ${rowsHtml}
+    </div>`;
 }
 
 function trOpenMeasureModal(onSave) {
@@ -885,11 +986,11 @@ function trOpenMeasureModal(onSave) {
   overlay.innerHTML = `
     <div class="tr-modal" style="max-height:80vh; overflow-y:auto;">
       <p class="tr-modal-title">Новый замер · ${dateStr}</p>
-      ${MEASURE_FIELDS.map(f => `
-        <div class="tr-modal-row">
-          <label style="flex:1 1 100%">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="—"></label>
-        </div>
-      `).join('')}
+      <div class="tr-measure-form-grid">
+        ${MEASURE_FIELDS.map(f => `
+          <label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="—"></label>
+        `).join('')}
+      </div>
       <div class="tr-modal-actions">
         <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
         <button class="tr-modal-btn-primary" id="m-save">Сохранить</button>
@@ -909,4 +1010,11 @@ function trOpenMeasureModal(onSave) {
     overlay.remove();
     onSave();
   });
+}
+
+function trDeleteMeasurement(idx, onSave) {
+  const list = Store.get().training.measurements || [];
+  list.splice(idx, 1);
+  Store.set('training.measurements', list);
+  onSave();
 }

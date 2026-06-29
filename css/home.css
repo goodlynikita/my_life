@@ -209,11 +209,12 @@ html, body {
   margin-top: 12px;
 }
 
-/* training tile — ember room */
-.tile-training { background: var(--void-card); border-color: var(--steel-line2); }
-.tile-training .tile-icon { color: var(--ember); }
-.tile-training .tile-rule { background: var(--ember-deep); }
-.tile-training:hover { border-color: var(--ember-deep); }
+/* training tile — points into the training section, which has its
+   own dark+blue theme; this preview chip echoes that on the home grid */
+.tile-training { background: var(--tr-void-card); border-color: var(--tr-steel-line); }
+.tile-training .tile-icon { color: var(--tr-accent); }
+.tile-training .tile-rule { background: var(--tr-accent-dim); }
+.tile-training:hover { border-color: var(--tr-accent-dim); }
 
 /* finance tile — deep navy vault, brass + muted green accent */
 .tile-finance { background: var(--navy-card); border-color: var(--navy-line); }

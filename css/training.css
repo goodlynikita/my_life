@@ -3,17 +3,34 @@
    ============================================================ */
 
 .theme-dark {
-  background: var(--void);
-  color: var(--bone);
+  background: var(--tr-void);
+  color: var(--tr-bone);
   min-height: 100vh;
+  font-family: var(--tr-font-sans);
+}
+.theme-dark .tr-title, .theme-dark .tr-week-label, .theme-dark .tr-group-title {
+  font-family: var(--tr-font-display);
+}
+.theme-dark button, .theme-dark .tr-exercise, .theme-dark .tr-tab {
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
+}
+.theme-dark button:active, .theme-dark .tr-exercise:active {
+  transform: scale(0.97);
+}
+@keyframes tr-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,124,255,0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(74,124,255,0); }
+}
+.theme-dark .tr-plan-new:hover {
+  animation: tr-pulse 1.4s ease-out infinite;
 }
 
 .tr-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--void);
-  border-bottom: 0.5px solid var(--steel-line2);
+  background: var(--tr-void);
+  border-bottom: 0.5px solid var(--tr-steel-line);
   padding: 14px 16px 12px;
   display: flex;
   align-items: center;
@@ -23,20 +40,20 @@
 .tr-back {
   background: none;
   border: none;
-  color: var(--bone-soft);
+  color: var(--tr-bone-soft);
   font-size: 20px;
   padding: 4px;
   cursor: pointer;
   line-height: 1;
 }
-.tr-back:hover { color: var(--bone); }
+.tr-back:hover { color: var(--tr-bone); }
 
 .tr-title {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--bone);
+  color: var(--tr-bone);
   margin: 0;
 }
 
@@ -44,8 +61,8 @@
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ember);
-  border: 0.5px solid var(--ember-deep);
+  color: var(--tr-accent);
+  border: 0.5px solid var(--tr-accent-dim);
   border-radius: 4px;
   padding: 3px 7px;
 }
@@ -54,15 +71,15 @@
   display: flex;
   gap: 4px;
   padding: 10px 12px;
-  background: var(--void);
-  border-bottom: 0.5px solid var(--steel-line2);
+  background: var(--tr-void);
+  border-bottom: 0.5px solid var(--tr-steel-line);
   overflow-x: auto;
 }
 
 .tr-tab {
   background: none;
-  border: 0.5px solid var(--steel-line2);
-  color: var(--bone-soft);
+  border: 0.5px solid var(--tr-steel-line);
+  color: var(--tr-bone-soft);
   font-size: 12.5px;
   font-weight: 500;
   padding: 8px 14px;
@@ -72,8 +89,8 @@
   transition: all var(--dur-base) var(--ease);
 }
 .tr-tab.active {
-  background: var(--ember);
-  border-color: var(--ember);
+  background: var(--tr-accent);
+  border-color: var(--tr-accent);
   color: #1A0700;
 }
 
@@ -95,28 +112,42 @@
 
 .tr-week-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
   margin-bottom: 8px;
-  padding: 0 2px;
+  padding: 6px 2px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
 }
+.tr-week-head i {
+  font-size: 14px;
+  color: var(--tr-bone-faint);
+  flex-shrink: 0;
+}
+.tr-week-head:hover .tr-week-label { color: var(--tr-accent-bright); }
 
 .tr-week-label {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--ember);
+  color: var(--tr-accent);
   text-transform: uppercase;
 }
 
 .tr-week-range {
   font-size: 11.5px;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
+  margin-left: auto;
 }
 
 .tr-day {
-  background: var(--void-card);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void-card);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius);
   padding: 12px 14px;
   margin-bottom: 6px;
@@ -133,7 +164,7 @@
 .tr-day-date {
   font-size: 13px;
   font-weight: 600;
-  color: var(--bone);
+  color: var(--tr-bone);
   min-width: 64px;
 }
 
@@ -142,14 +173,14 @@
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--steel);
-  color: var(--bone-soft);
+  background: var(--tr-steel);
+  color: var(--tr-bone-soft);
   border: 0.5px solid transparent;
 }
 
 .tr-day-empty {
   font-size: 12px;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
 }
 
 .tr-plan-bar {
@@ -157,16 +188,16 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border-bottom: 0.5px solid var(--steel-line2);
+  border-bottom: 0.5px solid var(--tr-steel-line);
 }
 
 .tr-plan-select {
   flex: 1;
   height: 38px;
-  background: var(--void-card);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void-card);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius-sm);
-  color: var(--bone);
+  color: var(--tr-bone);
   font-size: 13px;
   font-weight: 500;
   padding: 0 10px;
@@ -179,38 +210,39 @@
   height: 38px;
   padding: 0 14px;
   background: none;
-  border: 0.5px solid var(--ember-deep);
+  border: 0.5px solid var(--tr-accent-dim);
   border-radius: var(--radius-sm);
-  color: var(--ember);
+  color: var(--tr-accent);
   font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
-.tr-plan-new:hover { background: var(--ember-dim); }
+.tr-plan-new:hover { background: var(--tr-accent-wash); }
 
 .tr-day-add {
   margin-left: auto;
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 0.5px solid var(--steel-line2);
+  border: 0.5px solid var(--tr-steel-line);
   background: none;
-  color: var(--bone-soft);
+  color: var(--tr-bone-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 14px;
 }
-.tr-day-add:hover { background: var(--steel); color: var(--bone); }
+.tr-day-add:hover { background: var(--tr-steel); color: var(--tr-bone); }
+.tr-day-clear:hover { background: rgba(255,92,92,0.15); color: var(--tr-danger); border-color: var(--tr-danger); }
 
 .tr-exercise {
   width: 100%;
   text-align: left;
   background: none;
   border: none;
-  border-top: 0.5px solid var(--steel-line2);
+  border-top: 0.5px solid var(--tr-steel-line);
   display: block;
   cursor: pointer;
   padding: 10px 0;
@@ -233,8 +265,8 @@
 .tr-modal {
   width: 100%;
   max-width: 360px;
-  background: var(--void-card);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void-card);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
 }
@@ -242,7 +274,7 @@
 .tr-modal-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--bone);
+  color: var(--tr-bone);
   margin: 0 0 1rem;
 }
 
@@ -256,7 +288,7 @@
 .tr-modal-row label {
   flex: 1;
   font-size: 11px;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -264,26 +296,26 @@
 
 .tr-modal-row input {
   height: 40px;
-  background: var(--void);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius-sm);
-  color: var(--bone);
+  color: var(--tr-bone);
   font-size: 14px;
   padding: 0 10px;
 }
-.tr-modal-row input:focus { outline: none; border-color: var(--ember-deep); }
+.tr-modal-row input:focus { outline: none; border-color: var(--tr-accent-dim); }
 
 .tr-color-select {
   height: 40px;
   width: 100%;
-  background: var(--void);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius-sm);
-  color: var(--bone);
+  color: var(--tr-bone);
   font-size: 14px;
   padding: 0 10px;
 }
-.tr-color-select:focus { outline: none; border-color: var(--ember-deep); }
+.tr-color-select:focus { outline: none; border-color: var(--tr-accent-dim); }
 
 .tr-modal-actions {
   display: flex;
@@ -301,7 +333,7 @@
 }
 
 .tr-modal-btn-primary {
-  background: var(--ember);
+  background: var(--tr-accent);
   border: none;
   color: #1A0700;
 }
@@ -309,10 +341,10 @@
 
 .tr-modal-btn-secondary {
   background: none;
-  border: 0.5px solid var(--steel-line2);
-  color: var(--bone-soft);
+  border: 0.5px solid var(--tr-steel-line);
+  color: var(--tr-bone-soft);
 }
-.tr-modal-btn-secondary:hover { color: var(--danger); border-color: var(--danger); }
+.tr-modal-btn-secondary:hover { color: var(--tr-danger); border-color: var(--tr-danger); }
 
 .tr-ex-top {
   display: flex;
@@ -324,7 +356,7 @@
 .tr-ex-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--bone);
+  color: var(--tr-bone);
 }
 
 .tr-ex-stats {
@@ -337,15 +369,15 @@
 .tr-ex-weight {
   font-size: 17px;
   font-weight: 700;
-  color: var(--bone);
+  color: var(--tr-bone);
 }
 
 .tr-progress {
   font-size: 12.5px;
   font-weight: 600;
 }
-.tr-progress.up { color: var(--ember); }
-.tr-progress.flat { color: var(--bone-faint); }
+.tr-progress.up { color: var(--tr-accent); }
+.tr-progress.flat { color: var(--tr-bone-faint); }
 .tr-progress.down { color: #7FB3D9; }
 
 .tr-ex-bottom {
@@ -354,20 +386,20 @@
 
 .tr-ex-meta {
   font-size: 11.5px;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
 }
 
 .tr-progress-bar-track {
   width: 100%;
   height: 3px;
-  background: var(--steel);
+  background: var(--tr-steel);
   border-radius: 2px;
   overflow: hidden;
   margin-top: 4px;
 }
 .tr-progress-bar-fill {
   height: 100%;
-  background: var(--ember);
+  background: var(--tr-accent);
   border-radius: 2px;
   width: 0%;
   transition: width 600ms var(--ease);
@@ -375,20 +407,52 @@
 
 /* measurements */
 .tr-measure-card {
-  background: var(--void-card);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void-card);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius);
   padding: 14px;
   margin-bottom: 10px;
 }
 
+.tr-measure-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .tr-measure-date {
   font-size: 12px;
-  color: var(--gold-dark);
+  color: var(--tr-accent-bright);
   font-weight: 600;
-  margin-bottom: 8px;
   letter-spacing: 0.02em;
 }
+
+.tr-measure-delete {
+  background: none;
+  border: none;
+  color: var(--tr-bone-faint);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.tr-measure-delete:hover { color: var(--tr-danger); }
+
+.tr-measure-add-inline {
+  margin-left: auto;
+  background: none;
+  border: 0.5px solid var(--tr-accent-dim);
+  color: var(--tr-accent-bright);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tr-measure-add-inline:hover { background: var(--tr-accent-wash); }
 
 .tr-measure-grid {
   display: grid;
@@ -400,14 +464,39 @@
   display: flex;
   justify-content: space-between;
   font-size: 12.5px;
-  color: var(--bone-soft);
-  border-bottom: 0.5px dashed var(--steel-line2);
+  color: var(--tr-bone-soft);
+  border-bottom: 0.5px dashed var(--tr-steel-line);
   padding-bottom: 4px;
 }
 .tr-measure-item span:last-child {
-  color: var(--bone);
+  color: var(--tr-bone);
   font-weight: 600;
 }
+
+.tr-measure-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-bottom: 4px;
+}
+
+.tr-measure-form-field {
+  font-size: 11px;
+  color: var(--tr-bone-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tr-measure-form-field input {
+  height: 38px;
+  background: var(--tr-void);
+  border: 0.5px solid var(--tr-steel-line);
+  border-radius: var(--radius-sm);
+  color: var(--tr-bone);
+  font-size: 13px;
+  padding: 0 9px;
+}
+.tr-measure-form-field input:focus { outline: none; border-color: var(--tr-accent); }
 
 /* summary by muscle group (Результат план) */
 .tr-group-card {
@@ -419,7 +508,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--bone);
+  color: var(--tr-bone);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -429,7 +518,7 @@
   content: '';
   width: 3px;
   height: 14px;
-  background: var(--ember);
+  background: var(--tr-accent);
   border-radius: 2px;
 }
 
@@ -439,7 +528,7 @@
 
 .tr-group-range {
   font-size: 11px;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
   font-weight: 400;
   text-transform: none;
 }
@@ -455,7 +544,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--bone);
+  color: var(--tr-bone);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -465,7 +554,7 @@
   content: '';
   width: 3px;
   height: 13px;
-  background: var(--ember);
+  background: var(--tr-accent);
   border-radius: 2px;
 }
 .tr-ww-group-label.fb-accent::before {
@@ -475,8 +564,8 @@
 .tr-ww-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--void-card);
-  border: 0.5px solid var(--steel-line2);
+  background: var(--tr-void-card);
+  border: 0.5px solid var(--tr-steel-line);
   border-radius: var(--radius);
   overflow: hidden;
   font-size: 12.5px;
@@ -488,40 +577,40 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
   padding: 9px 10px;
-  border-bottom: 0.5px solid var(--steel-line2);
-  background: var(--void-raised);
+  border-bottom: 0.5px solid var(--tr-steel-line);
+  background: var(--tr-void-raised);
 }
 .tr-ww-table thead th:not(:first-child) { text-align: right; }
 
 .tr-ww-table tbody tr:not(:last-child) td {
-  border-bottom: 0.5px solid var(--steel-line2);
+  border-bottom: 0.5px solid var(--tr-steel-line);
 }
 
 .tr-ww-name {
   padding: 9px 10px;
-  color: var(--bone);
+  color: var(--tr-bone);
   font-weight: 500;
 }
 
 .tr-ww-num {
   padding: 9px 10px;
   text-align: right;
-  color: var(--bone-soft);
+  color: var(--tr-bone-soft);
 }
 
 .tr-ww-weight {
-  color: var(--bone);
+  color: var(--tr-bone);
   font-weight: 600;
 }
 
 .tr-empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: var(--bone-faint);
+  color: var(--tr-bone-faint);
 }
-.tr-empty-state i { font-size: 32px; color: var(--steel-line2); margin-bottom: 10px; display: block; }
+.tr-empty-state i { font-size: 32px; color: var(--tr-steel-line); margin-bottom: 10px; display: block; }
 
 .tr-fab {
   position: fixed;
@@ -530,7 +619,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--ember);
+  background: var(--tr-accent);
   border: none;
   color: #1A0700;
   font-size: 22px;

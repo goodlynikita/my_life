@@ -1,11 +1,13 @@
 /* ============================================================
    NIK · SYSTEM — design tokens
-   Theme = private club / captain's study (dark, brass, navy room for finance)
-   Dark  = ember/discipline (Training)
+   Theme = private club / captain's study (dark, brass, navy room
+   for finance) for Home/Habits/Finance/Goals.
+   Training section uses its OWN separate dark+blue theme below —
+   do not reuse these brass/navy tokens inside training.css.
    ============================================================ */
 
 :root {
-  /* ---- base: dark study / yacht cabin ---- */
+  /* ---- base: dark study / yacht cabin (Home, Habits, Goals) ---- */
   --hull: #14151A;
   --hull-deep: #0C0D10;
   --teak: #1C1E24;
@@ -31,21 +33,29 @@
   --navy-gold: #C9A25A;
   --navy-gold-bright: #E2C284;
 
-  /* ---- training room: ember / discipline ---- */
-  --void: #0B0B0C;
-  --void-card: #161617;
-  --void-raised: #1E1E20;
-  --steel: #2B2B2D;
-  --steel-line2: #353537;
-  --ember: #FF4A1F;
-  --ember-deep: #B8300F;
-  --ember-dim: #5C2615;
-  --gold-dark: #C9A24B;
+  /* ---- TRAINING ONLY: dark graphite + electric blue ---- */
+  --tr-void: #11141C;
+  --tr-void-card: #1A1E2A;
+  --tr-void-raised: #232838;
+  --tr-steel: #232838;
+  --tr-steel-line: rgba(74, 124, 255, 0.16);
+  --tr-steel-line-strong: rgba(74, 124, 255, 0.30);
+  --tr-bone: #F2F4F8;
+  --tr-bone-soft: #A0A7BC;
+  --tr-bone-faint: #686F85;
+  --tr-accent: #4A7CFF;
+  --tr-accent-bright: #6E94FF;
+  --tr-accent-dim: #1F3A8F;
+  --tr-accent-wash: #16264F;
+  --tr-danger: #FF5C5C;
 
   /* ---- type ---- */
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  /* training section uses its own sport-grotesk type, see below */
+  --tr-font-display: 'Archivo', 'Inter', -apple-system, sans-serif;
+  --tr-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* ---- layout ---- */
   --radius-sm: 6px;
@@ -60,6 +70,7 @@
 
   /* ---- motion ---- */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 140ms;
   --dur-base: 240ms;
   --dur-slow: 420ms;
@@ -86,6 +97,16 @@ button { font-family: inherit; }
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.92) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slide-fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .sr-only {

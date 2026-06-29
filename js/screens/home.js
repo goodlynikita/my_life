@@ -89,8 +89,6 @@ window.Screens.home = function (mount) {
         </button>
       </div>
       <div class="home-footer">
-        <button class="logout-link" id="sync-settings-btn">Настройки синхронизации</button>
-        <span style="margin: 0 8px; color: var(--bone-faint);">·</span>
         <button class="logout-link" id="logout-btn">Выйти</button>
         <div id="sync-status" style="margin-top:8px; font-size:11px;"></div>
       </div>
@@ -103,38 +101,5 @@ window.Screens.home = function (mount) {
   document.getElementById('logout-btn').addEventListener('click', () => {
     Auth.logout();
     Router.go('/login');
-  });
-  document.getElementById('sync-settings-btn').addEventListener('click', () => {
-    Screens.openSyncSettings();
-  });
-};
-
-Screens.openSyncSettings = function () {
-  const cfg = FirebaseSync.getConfig() || { databaseURL: '' };
-  const overlay = document.createElement('div');
-  overlay.className = 'tr-modal-overlay';
-  overlay.innerHTML = `
-    <div class="tr-modal" style="max-width:400px;">
-      <p class="tr-modal-title">Синхронизация с Firebase</p>
-      <p style="font-size:12px; color:var(--bone-faint); margin:-6px 0 14px;">
-        Вставь адрес базы данных из Firebase (Realtime Database → вкладка "Data" → ссылка вида https://имя-проекта-default-rtdb.firebaseio.com).
-      </p>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Адрес базы данных<input type="text" id="cfg-url" value="${cfg.databaseURL}" placeholder="https://nik-tracker-default-rtdb.firebaseio.com"></label>
-      </div>
-      <div class="tr-modal-actions">
-        <button class="tr-modal-btn-secondary" id="cfg-cancel">Отмена</button>
-        <button class="tr-modal-btn-primary" id="cfg-save">Сохранить</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  overlay.querySelector('#cfg-cancel').addEventListener('click', () => overlay.remove());
-  overlay.querySelector('#cfg-save').addEventListener('click', async () => {
-    const databaseURL = overlay.querySelector('#cfg-url').value.trim();
-    if (!databaseURL) return;
-    FirebaseSync.setConfig({ databaseURL });
-    overlay.remove();
-    await FirebaseSync.pullIntoStore();
   });
 };

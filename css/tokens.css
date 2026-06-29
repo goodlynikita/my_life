@@ -1,0 +1,104 @@
+/* ============================================================
+   NIK · SYSTEM — design tokens
+   Theme = private club / captain's study (dark, brass, navy room for finance)
+   Dark  = ember/discipline (Training)
+   ============================================================ */
+
+:root {
+  /* ---- base: dark study / yacht cabin ---- */
+  --hull: #14151A;
+  --hull-deep: #0C0D10;
+  --teak: #1C1E24;
+  --teak-raised: #24262E;
+  --brass: #B08D4F;
+  --brass-bright: #D4AF6A;
+  --brass-dim: #6B5530;
+  --steel-line: rgba(176, 141, 79, 0.16);
+  --steel-line-strong: rgba(176, 141, 79, 0.28);
+  --bone: #ECE8DF;
+  --bone-soft: #9D9A92;
+  --bone-faint: #686661;
+  --success: #5C8A6B;
+  --success-bg: #1A241C;
+  --danger: #C24A3D;
+  --danger-bg: #281916;
+
+  /* ---- finance room: deep navy + gold, like a private vault ---- */
+  --navy: #0E1B33;
+  --navy-deep: #081223;
+  --navy-card: #142745;
+  --navy-line: rgba(201, 162, 90, 0.22);
+  --navy-gold: #C9A25A;
+  --navy-gold-bright: #E2C284;
+
+  /* ---- training room: ember / discipline ---- */
+  --void: #0B0B0C;
+  --void-card: #161617;
+  --void-raised: #1E1E20;
+  --steel: #2B2B2D;
+  --steel-line2: #353537;
+  --ember: #FF4A1F;
+  --ember-deep: #B8300F;
+  --ember-dim: #5C2615;
+  --gold-dark: #C9A24B;
+
+  /* ---- type ---- */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* ---- layout ---- */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 18px;
+  --container: 1080px;
+  --gap-xs: 6px;
+  --gap-sm: 10px;
+  --gap-md: 16px;
+  --gap-lg: 28px;
+  --gap-xl: 48px;
+
+  /* ---- motion ---- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button { font-family: inherit; }
+
+/* Scrollbar — minimal, theme aware */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--steel-line-strong); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* numeric tabular display used across the app for any figure */
+.num {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.01em;
+}

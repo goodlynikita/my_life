@@ -183,13 +183,15 @@ function trActivePlan() {
 }
 
 function trEnsureSeedPlan() {
+  /* НЕ создаёт и НЕ сохраняет план. Возвращает id активного (или последнего)
+     плана, либо null, если планов нет вообще. Создание плана — только через
+     явную кнопку «Новый план». Раньше эта функция при пустом списке создавала
+     пустой план и СОХРАНЯЛА его — что во время гонки данных затирало реальные
+     данные в Firebase пустотой. Это и был корень «пустых тренировок». */
   const plans = trGetPlans();
-  if (plans.length === 0) {
-    const seeded = trBuildEmptyPlan(1, new Date());
-    trSavePlans([seeded]);
-    return seeded.id;
-  }
-  return trActivePlan() ? trActivePlan().id : plans[0].id;
+  if (plans.length === 0) return null;
+  const active = trActivePlan();
+  return active ? active.id : plans[0].id;
 }
 
 function trCreateNextPlan() {
@@ -960,14 +962,33 @@ window.Screens.training = function (mount) {
     refreshUndoState();
     let plan = getPlan();
 
-    /* Если plan не найден — данные ещё не загрузились из Firebase.
-       Показываем индикатор загрузки и перезапрашиваем данные. */
+    /* Выбранный план не найден, но другие планы есть — переключаемся на
+       активный/последний (без создания и записи чего-либо). */
+    if (!plan) {
+      const fallbackId = trEnsureSeedPlan();
+      if (fallbackId) {
+        currentPlanId = fallbackId;
+        populatePlanSelect();
+        plan = getPlan();
+      }
+    }
+
     if (!plan || !plan.weeks) {
+      const hasAnyPlan = trGetPlans().length > 0;
+      if (!hasAnyPlan) {
+        /* Планов нет вообще. Ничего не пишем в хранилище — просто показываем
+           понятное состояние. Данные восстанавливаются из data.json (см. app.js),
+           либо владелец создаёт план кнопкой «Новый план». */
+        content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;line-height:1.7;letter-spacing:0.02em;">
+          Планов пока нет.${role === 'owner' ? '<br>Нажми «Новый план», чтобы создать первый.' : ''}
+        </div>`;
+        return;
+      }
+      /* Планы есть, но данные ещё не догрузились — одна попытка перезагрузки. */
       content.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;letter-spacing:0.03em;">Загрузка данных…</div>';
       if (window.FirebaseSync && FirebaseSync.isConfigured()) {
         FirebaseSync.pullIntoStore().then(() => {
-          /* После загрузки пересчитываем currentPlanId из свежих данных */
-          currentPlanId = trEnsureSeedPlan();
+          currentPlanId = trEnsureSeedPlan() || currentPlanId;
           populatePlanSelect();
           renderTab(tab);
         });

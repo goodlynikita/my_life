@@ -18,6 +18,13 @@ const FirebaseSync = (() => {
   let hideTimer = null;
   let fbApp = null;
   let db = null;
+  /* Пока не завершена ПЕРВАЯ загрузка данных из Firebase, любые записи
+     заблокированы. Это защищает от ситуации, когда экран успевает
+     отрендериться и что-то «сохранить» (например пустой план) ДО того,
+     как реальные данные пришли — и затереть их пустотой. Флаг ставится
+     в true в конце pullIntoStore (успех или ошибка — неважно, после
+     этого пользователь уже работает с реальными/кэшированными данными). */
+  let ready = false;
 
   function getConfig() {
     if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL) {
@@ -68,7 +75,7 @@ const FirebaseSync = (() => {
 
   async function pullIntoStore() {
     const database = ensureInitialized();
-    if (!database) return 'error';
+    if (!database) { ready = true; return 'error'; }
     try {
       const snap = await get(ref(database, 'nik-data'));
       const remote = snap.exists() ? snap.val() : null;
@@ -82,6 +89,8 @@ const FirebaseSync = (() => {
       console.error('FirebaseSync.pullIntoStore failed', e);
       setStatus('Не удалось загрузить данные с Firebase', true);
       return 'error';
+    } finally {
+      ready = true;
     }
   }
 
@@ -99,6 +108,11 @@ const FirebaseSync = (() => {
   }
 
   function scheduleSave() {
+    /* Не сохраняем, пока не завершилась первая загрузка — иначе ранний
+       рендер может затереть реальные данные пустотой. Данные при этом
+       уже лежат в localStorage (Store.persistLocal), так что ничего не
+       теряется: после загрузки реальные данные перезапишут Store. */
+    if (!ready) return;
     setStatus('Сохранение…');
     pushNow();
   }

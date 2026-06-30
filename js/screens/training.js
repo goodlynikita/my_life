@@ -19,6 +19,13 @@ function trAddDays(date, n) {
   return d;
 }
 
+function trTodayLabel() {
+  const today = new Date();
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const dow = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'][today.getDay()];
+  return `<i class="ti ti-calendar"></i> Сегодня: ${today.getDate()} ${months[today.getMonth()]} · ${dow}`;
+}
+
 function trUid() {
   return Math.random().toString(36).slice(2, 9);
 }
@@ -106,9 +113,7 @@ function trBuildEmptyPlan(number, startDate) {
       days.push({
         date: trFormatDate(date),
         dow: DOW_NAMES[d],
-        type: null,
-        groups: [],
-        exercises: []
+        sessions: []
       });
     }
     weeks.push({
@@ -131,6 +136,41 @@ function trGetPlans() {
   return Store.get().training.plans || [];
 }
 
+const TR_UNDO_KEY = 'nik_tr_undo_stack';
+const TR_UNDO_MAX = 20;
+
+function trSnapshotBeforeChange() {
+  try {
+    const stack = JSON.parse(sessionStorage.getItem(TR_UNDO_KEY) || '[]');
+    const snapshot = JSON.parse(JSON.stringify(Store.get().training));
+    stack.push(snapshot);
+    if (stack.length > TR_UNDO_MAX) stack.shift();
+    sessionStorage.setItem(TR_UNDO_KEY, JSON.stringify(stack));
+  } catch (e) { /* ignore */ }
+}
+
+function trUndoAvailable() {
+  try {
+    const stack = JSON.parse(sessionStorage.getItem(TR_UNDO_KEY) || '[]');
+    return stack.length > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
+function trUndoLastChange() {
+  try {
+    const stack = JSON.parse(sessionStorage.getItem(TR_UNDO_KEY) || '[]');
+    if (stack.length === 0) return false;
+    const previous = stack.pop();
+    sessionStorage.setItem(TR_UNDO_KEY, JSON.stringify(stack));
+    Store.set('training', previous);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function trSavePlans(plans) {
   Store.set('training.plans', plans);
 }
@@ -151,6 +191,7 @@ function trEnsureSeedPlan() {
 }
 
 function trCreateNextPlan() {
+  trSnapshotBeforeChange();
   const plans = trGetPlans();
   plans.forEach(p => { if (p.status === 'active') p.status = 'archived'; });
   const maxNumber = plans.reduce((m, p) => Math.max(m, p.number), 0);
@@ -179,18 +220,27 @@ function trMetricFor(ex) {
   return trTonnage(ex);
 }
 
+function trDayAllExercises(day) {
+  trMigrateDayToSessions(day);
+  const list = [];
+  day.sessions.forEach((session, sessionIdx) => {
+    session.exercises.forEach((ex, exIdx) => list.push({ ex, sessionIdx, exIdx }));
+  });
+  return list;
+}
+
 function trCalcProgress(plan, weekIndex, exerciseName) {
   const week1 = plan.weeks[0];
   let baseline = null;
   for (const day of week1.days) {
-    const found = day.exercises.find(e => e.name === exerciseName);
-    if (found) { baseline = trMetricFor(found); break; }
+    const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
+    if (found) { baseline = trMetricFor(found.ex); break; }
   }
   const currentWeek = plan.weeks[weekIndex];
   let current = null;
   for (const day of currentWeek.days) {
-    const found = day.exercises.find(e => e.name === exerciseName);
-    if (found) { current = trMetricFor(found); break; }
+    const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
+    if (found) { current = trMetricFor(found.ex); break; }
   }
   if (baseline === null || current === null) return { pct: 0, dir: 'flat' };
   if (baseline === 0) {
@@ -201,7 +251,7 @@ function trCalcProgress(plan, weekIndex, exerciseName) {
   return { pct, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
 }
 
-function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx) {
+function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const progress = trCalcProgress(plan, weekIndex, ex.name);
   const barPct = Math.min(100, Math.max(6, 50 + progress.pct / 2));
   const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
@@ -209,7 +259,7 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx) {
   const progressBadge = `<span class="tr-progress ${progress.dir}">${arrow} ${sign}${progress.pct}%</span>`;
   const bar = `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" data-fill="${barPct}"></div></div>`;
   const wrap = (headline, meta) => `
-    <button class="tr-exercise" data-week="${weekIndex}" data-day="${dayIdx}" data-ex="${exIdx}">
+    <button class="tr-exercise" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" data-ex="${exIdx}">
       <div class="tr-ex-top">
         <div class="tr-ex-name">${ex.name}</div>
         <div class="tr-ex-stats">
@@ -235,31 +285,57 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx) {
   return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${ex.sets} × ${ex.reps} × ${ex.weight} кг`);
 }
 
-function trRenderDay(day, plan, weekIndex, dayIdx) {
-  const hasSession = !!day.type;
-  const isRest = day.type === 'Отдых';
-  const exercisesHtml = day.exercises.map((ex, exIdx) => trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx)).join('');
-  const typeColor = hasSession ? trBadgeColor(TRAINING_TYPES, day.type) : null;
-  const groupTags = (day.groups || []).map(g => {
-    const c = trBadgeColor(MUSCLE_GROUPS, g);
-    return `<span class="tr-day-tag has-session" style="background:${c}22; color:${c}; border-color:${c}55;">${g}</span>`;
-  }).join('');
+function trMigrateDayToSessions(day) {
+  // Backward compat: old days had { type, groups, exercises } directly.
+  // New days have { sessions: [{ type, groups, exercises }] }.
+  if (day.sessions) return day;
+  if (day.type) {
+    day.sessions = [{ type: day.type, groups: day.groups || [], exercises: day.exercises || [] }];
+  } else {
+    day.sessions = [];
+  }
+  delete day.type;
+  delete day.groups;
+  delete day.exercises;
+  return day;
+}
 
-  const actionBtn = isRest
-    ? `<button class="tr-day-add tr-day-clear" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Удалить отдых" title="Сбросить день"><i class="ti ti-trash"></i></button>`
-    : `<button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить"><i class="ti ti-plus"></i></button>`;
+function trRenderDay(day, plan, weekIndex, dayIdx) {
+  trMigrateDayToSessions(day);
+  const sessions = day.sessions;
+  const hasAnySession = sessions.length > 0;
+
+  const sessionsHtml = sessions.map((session, sessionIdx) => {
+    const isRest = session.type === 'Отдых';
+    const typeColor = trBadgeColor(TRAINING_TYPES, session.type);
+    const groupTags = (session.groups || []).map(g => {
+      const c = trBadgeColor(MUSCLE_GROUPS, g);
+      return `<span class="tr-day-tag has-session" style="background:${c}22; color:${c}; border-color:${c}55;">${g}</span>`;
+    }).join('');
+    const exercisesHtml = session.exercises.map((ex, exIdx) => trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx)).join('');
+
+    return `
+      <div class="tr-session">
+        <div class="tr-session-head">
+          <span class="tr-day-tag has-session" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${session.type}</span>${groupTags}
+          <span class="tr-session-actions">
+            ${!isRest ? `<button class="tr-day-add tr-session-add-ex" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Добавить упражнение" title="Добавить упражнение в эту тренировку"><i class="ti ti-plus"></i></button>` : ''}
+            <button class="tr-day-add tr-day-clear" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Удалить тренировку" title="Удалить эту тренировку"><i class="ti ti-trash"></i></button>
+          </span>
+        </div>
+        ${isRest ? '<div class="tr-day-empty">День отдыха</div>' : exercisesHtml}
+        ${(!isRest && session.exercises.length === 0) ? '<div class="tr-day-empty">Нет упражнений</div>' : ''}
+      </div>`;
+  }).join('');
 
   return `
     <div class="tr-day">
       <div class="tr-day-head">
         <span class="tr-day-date">${day.date} ${day.dow}</span>
-        ${hasSession
-          ? `<span class="tr-day-tag has-session" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${day.type}</span>${groupTags}`
-          : `<span class="tr-day-tag">не задано</span>`}
-        ${actionBtn}
+        ${!hasAnySession ? `<span class="tr-day-tag">не задано</span>` : ''}
+        <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
       </div>
-      ${isRest ? '<div class="tr-day-empty">День отдыха</div>' : exercisesHtml}
-      ${(!isRest && day.exercises.length === 0) ? '<div class="tr-day-empty">Нет упражнений</div>' : ''}
+      ${sessionsHtml}
     </div>`;
 }
 
@@ -289,8 +365,8 @@ function trAnimateBars(scope) {
   });
 }
 
-function trOpenExerciseModal(plan, weekIndex, dayIdx, exIdx, onSave) {
-  const ex = plan.weeks[weekIndex].days[dayIdx].exercises[exIdx];
+function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave) {
+  const ex = plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises[exIdx];
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
 
@@ -313,12 +389,16 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, exIdx, onSave) {
         <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" value="${ex.steps}" inputmode="numeric"></label>
       </div>`;
   } else {
+    const hint = trWeightHint(plan, ex.name);
     fieldsHtml = `
       <div class="tr-modal-row">
         <label>Подходы<input type="number" id="m-sets" value="${ex.sets}" inputmode="numeric"></label>
         <label>Повторы<input type="number" id="m-reps" value="${ex.reps}" inputmode="numeric"></label>
         <label>Вес, кг<input type="number" id="m-weight" value="${ex.weight}" inputmode="numeric"></label>
-      </div>`;
+      </div>
+      ${hint ? `<p class="tr-hint">${hint}</p>` : ''}
+      <button type="button" class="tr-link-btn" id="m-toggle-sets">${ex.setDetails ? 'Скрыть' : 'Записать каждый подход отдельно'}</button>
+      <div id="m-set-details-wrap">${ex.setDetails ? trBuildSetDetailsRows(ex.setDetails) : ''}</div>`;
   }
 
   overlay.innerHTML = `
@@ -332,6 +412,45 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, exIdx, onSave) {
     </div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  const toggleBtn = overlay.querySelector('#m-toggle-sets');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const wrap = overlay.querySelector('#m-set-details-wrap');
+      if (wrap.innerHTML.trim()) {
+        wrap.innerHTML = '';
+        toggleBtn.textContent = 'Записать каждый подход отдельно';
+      } else {
+        const setsCount = parseInt(overlay.querySelector('#m-sets').value, 10) || 3;
+        wrap.innerHTML = trBuildSetDetailsRows(ex.setDetails || Array.from({ length: setsCount }, () => ({ reps: ex.reps, weight: ex.weight })));
+        toggleBtn.textContent = 'Скрыть';
+      }
+    });
+  }
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target.classList.contains('tr-set-add')) {
+      const details = overlay.querySelector('.tr-set-details');
+      const addBtn = details.querySelector('.tr-set-add');
+      const row = document.createElement('div');
+      row.className = 'tr-set-detail-row';
+      const num = details.querySelectorAll('.tr-set-detail-row').length + 1;
+      row.innerHTML = `
+        <span class="tr-set-num">${num}</span>
+        <input type="number" class="m-set-reps" value="" placeholder="повт." inputmode="numeric">
+        <span class="tr-set-x">×</span>
+        <input type="number" class="m-set-weight" value="" placeholder="кг" inputmode="decimal" step="0.5">
+        <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>`;
+      details.insertBefore(row, addBtn);
+    }
+    if (e.target.classList.contains('tr-set-remove')) {
+      e.target.closest('.tr-set-detail-row').remove();
+      overlay.querySelectorAll('.tr-set-detail-row').forEach((row, i) => {
+        row.querySelector('.tr-set-num').textContent = i + 1;
+      });
+    }
+  });
+
   overlay.querySelector('#m-save').addEventListener('click', () => {
     if (ex.kind === 'cardio') {
       ex.distance = parseFloat(overlay.querySelector('#m-distance').value) || 0;
@@ -342,18 +461,54 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, exIdx, onSave) {
     } else if (ex.kind === 'steps') {
       ex.steps = parseInt(overlay.querySelector('#m-steps').value, 10) || 0;
     } else {
-      ex.sets = parseInt(overlay.querySelector('#m-sets').value, 10) || 0;
-      ex.reps = parseInt(overlay.querySelector('#m-reps').value, 10) || 0;
-      ex.weight = parseFloat(overlay.querySelector('#m-weight').value) || 0;
+      const detailRows = overlay.querySelectorAll('.tr-set-detail-row');
+      if (detailRows.length > 0) {
+        const setDetails = Array.from(detailRows).map(row => ({
+          reps: parseInt(row.querySelector('.m-set-reps').value, 10) || 0,
+          weight: parseFloat(row.querySelector('.m-set-weight').value) || 0
+        }));
+        ex.setDetails = setDetails;
+        ex.sets = setDetails.length;
+        ex.reps = Math.round(setDetails.reduce((s, d) => s + d.reps, 0) / setDetails.length) || 0;
+        ex.weight = Math.round((setDetails.reduce((s, d) => s + d.weight, 0) / setDetails.length) * 10) / 10 || 0;
+      } else {
+        ex.sets = parseInt(overlay.querySelector('#m-sets').value, 10) || 0;
+        ex.reps = parseInt(overlay.querySelector('#m-reps').value, 10) || 0;
+        ex.weight = parseFloat(overlay.querySelector('#m-weight').value) || 0;
+        delete ex.setDetails;
+      }
     }
     overlay.remove();
     onSave();
   });
   overlay.querySelector('#m-delete').addEventListener('click', () => {
-    plan.weeks[weekIndex].days[dayIdx].exercises.splice(exIdx, 1);
+    plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises.splice(exIdx, 1);
     overlay.remove();
     onSave();
   });
+}
+
+function trBuildSetDetailsRows(setDetails) {
+  return `
+    <div class="tr-set-details">
+      ${setDetails.map((d, i) => `
+        <div class="tr-set-detail-row">
+          <span class="tr-set-num">${i + 1}</span>
+          <input type="number" class="m-set-reps" value="${d.reps}" placeholder="повт." inputmode="numeric">
+          <span class="tr-set-x">×</span>
+          <input type="number" class="m-set-weight" value="${d.weight}" placeholder="кг" inputmode="decimal" step="0.5">
+          <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>
+        </div>
+      `).join('')}
+      <button type="button" class="tr-link-btn tr-set-add">+ Добавить подход</button>
+    </div>`;
+}
+
+function trWeightHint(plan, exerciseName) {
+  const { last } = trCollectExerciseHistory(plan, exerciseName);
+  if (!last || last.ex.kind !== 'strength') return null;
+  const suggested = Math.round((last.ex.weight + last.ex.weight * 0.05) * 2) / 2;
+  return `Последний раз: ${last.ex.sets} × ${last.ex.reps} × ${last.ex.weight} кг. Можно попробовать ~${suggested} кг.`;
 }
 
 function trBuildExerciseSelect(selectedGroups) {
@@ -375,9 +530,9 @@ function trBuildGroupCheckboxes(selected) {
   `).join('');
 }
 
-function trBuildFormFields(typeName, selectedGroups) {
+function trBuildFormFields(typeName, selectedGroups, plan) {
   if (trIsRestType(typeName)) {
-    return `<p style="font-size:13px; color:var(--bone-faint); margin:4px 0 0;">День отмечен как отдых. Упражнения не нужны.</p>`;
+    return `<p style="font-size:13px; color:var(--tr-bone-faint); margin:4px 0 0;">День отмечен как отдых. Упражнения не нужны.</p>`;
   }
   if (trIsGymType(typeName)) {
     return `
@@ -393,7 +548,8 @@ function trBuildFormFields(typeName, selectedGroups) {
         <label>Подходы<input type="number" id="m-sets" placeholder="—" inputmode="numeric"></label>
         <label>Повторы<input type="number" id="m-reps" placeholder="—" inputmode="numeric"></label>
         <label>Вес, кг<input type="number" id="m-weight" placeholder="—" inputmode="numeric"></label>
-      </div>`;
+      </div>
+      <p class="tr-hint" id="m-weight-hint"></p>`;
   }
   if (trIsCardioType(typeName)) {
     return `
@@ -421,45 +577,38 @@ function trBuildFormFields(typeName, selectedGroups) {
   return '';
 }
 
-function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
+function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, onSave) {
   const day = plan.weeks[weekIndex].days[dayIdx];
-  const needsSetup = !day.type;
-  const initialType = day.type || TRAINING_TYPES[0].name;
-  const initialGroups = day.groups || [];
+  const session = day.sessions[sessionIdx];
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
   overlay.innerHTML = `
     <div class="tr-modal">
-      <p class="tr-modal-title">${day.date} ${day.dow}</p>
-      ${needsSetup ? `
-        <div class="tr-modal-row">
-          <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', TRAINING_TYPES, initialType)}</label>
-        </div>
-      ` : ''}
-      <div id="m-fields-wrap">${trBuildFormFields(initialType, initialGroups)}</div>
+      <p class="tr-modal-title">${day.date} ${day.dow} · ${session.type}</p>
+      <div id="m-fields-wrap">${trBuildFormFields(session.type, session.groups, plan)}</div>
       <div class="tr-modal-actions">
         <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
-        <button class="tr-modal-btn-primary" id="m-save">${trIsRestType(initialType) ? 'Отметить отдых' : 'Добавить'}</button>
+        <button class="tr-modal-btn-primary" id="m-save">Добавить</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
 
-  function currentType() {
-    const sel = overlay.querySelector('#m-type');
-    return sel ? sel.value : day.type;
-  }
-
   function selectedGroupsNow() {
-    return Array.from(overlay.querySelectorAll('.m-group-cb:checked')).map(cb => cb.value);
+    const checked = Array.from(overlay.querySelectorAll('.m-group-cb:checked')).map(cb => cb.value);
+    return checked.length ? checked : session.groups;
   }
 
-  function refreshFields() {
-    const type = currentType();
-    overlay.querySelector('#m-fields-wrap').innerHTML = trBuildFormFields(type, []);
-    overlay.querySelector('#m-save').textContent = trIsRestType(type) ? 'Отметить отдых' : 'Добавить';
-    bindGroupCheckboxes();
+  function updateWeightHint() {
+    const hintEl = overlay.querySelector('#m-weight-hint');
+    const nameEl = overlay.querySelector('#m-name-wrap #m-name');
+    if (!hintEl || !nameEl || !nameEl.value || nameEl.value === '__custom__') {
+      if (hintEl) hintEl.textContent = '';
+      return;
+    }
+    const hint = trWeightHint(plan, nameEl.value);
+    hintEl.textContent = hint || '';
   }
 
   function bindGroupCheckboxes() {
@@ -481,24 +630,135 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
         const wrap = overlay.querySelector('#m-name-wrap');
         wrap.innerHTML = `<input type="text" id="m-name" placeholder="Название упражнения">`;
         wrap.querySelector('#m-name').focus();
+      } else {
+        updateWeightHint();
       }
     });
+    updateWeightHint();
   }
   bindNameSelect();
 
-  if (needsSetup) {
-    overlay.querySelector('#m-type').addEventListener('change', refreshFields);
+  overlay.querySelector('#m-save').addEventListener('click', () => {
+    const type = session.type;
+    if (trIsGymType(type)) {
+      const groups = selectedGroupsNow();
+      const name = overlay.querySelector('#m-name').value.trim();
+      if (!name) return;
+      session.groups = groups;
+      session.exercises.push({
+        kind: 'strength',
+        name,
+        sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
+        reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
+        weight: parseFloat(overlay.querySelector('#m-weight').value) || 0
+      });
+    } else if (trIsCardioType(type)) {
+      const direction = overlay.querySelector('#m-cardio-dir').value;
+      session.exercises.push({
+        kind: 'cardio', name: direction,
+        distance: parseFloat(overlay.querySelector('#m-distance').value) || 0,
+        duration: parseFloat(overlay.querySelector('#m-duration').value) || 0
+      });
+    } else if (trIsTimeCalorieType(type)) {
+      session.exercises.push({
+        kind: 'time_calorie', name: type,
+        duration: parseFloat(overlay.querySelector('#m-duration').value) || 0,
+        calories: parseFloat(overlay.querySelector('#m-calories').value) || 0
+      });
+    } else if (trIsStepsType(type)) {
+      session.exercises.push({
+        kind: 'steps', name: type,
+        steps: parseInt(overlay.querySelector('#m-steps').value, 10) || 0
+      });
+    }
+    overlay.remove();
+    onSave();
+  });
+}
+
+function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
+  const day = plan.weeks[weekIndex].days[dayIdx];
+  trMigrateDayToSessions(day);
+  const initialType = TRAINING_TYPES[0].name;
+  const overlay = document.createElement('div');
+  overlay.className = 'tr-modal-overlay';
+  overlay.innerHTML = `
+    <div class="tr-modal">
+      <p class="tr-modal-title">${day.date} ${day.dow}${day.sessions.length > 0 ? ' · новая тренировка' : ''}</p>
+      <div class="tr-modal-row">
+        <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', TRAINING_TYPES, initialType)}</label>
+      </div>
+      <div id="m-fields-wrap">${trBuildFormFields(initialType, [], plan)}</div>
+      <div class="tr-modal-actions">
+        <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
+        <button class="tr-modal-btn-primary" id="m-save">${trIsRestType(initialType) ? 'Отметить отдых' : 'Добавить'}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
+
+  function currentType() {
+    return overlay.querySelector('#m-type').value;
   }
+
+  function selectedGroupsNow() {
+    return Array.from(overlay.querySelectorAll('.m-group-cb:checked')).map(cb => cb.value);
+  }
+
+  function updateWeightHint() {
+    const hintEl = overlay.querySelector('#m-weight-hint');
+    const nameEl = overlay.querySelector('#m-name-wrap #m-name');
+    if (!hintEl || !nameEl || !nameEl.value || nameEl.value === '__custom__') {
+      if (hintEl) hintEl.textContent = '';
+      return;
+    }
+    const hint = trWeightHint(plan, nameEl.value);
+    hintEl.textContent = hint || '';
+  }
+
+  function refreshFields() {
+    const type = currentType();
+    overlay.querySelector('#m-fields-wrap').innerHTML = trBuildFormFields(type, [], plan);
+    overlay.querySelector('#m-save').textContent = trIsRestType(type) ? 'Отметить отдых' : 'Добавить';
+    bindGroupCheckboxes();
+    bindNameSelect();
+  }
+
+  function bindGroupCheckboxes() {
+    overlay.querySelectorAll('.m-group-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const groups = selectedGroupsNow();
+        const wrap = overlay.querySelector('#m-name-wrap');
+        if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
+      });
+    });
+  }
+  bindGroupCheckboxes();
+
+  function bindNameSelect() {
+    const sel = overlay.querySelector('#m-name-wrap select#m-name');
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      if (sel.value === '__custom__') {
+        const wrap = overlay.querySelector('#m-name-wrap');
+        wrap.innerHTML = `<input type="text" id="m-name" placeholder="Название упражнения">`;
+        wrap.querySelector('#m-name').focus();
+      } else {
+        updateWeightHint();
+      }
+    });
+    updateWeightHint();
+  }
+  bindNameSelect();
+
+  overlay.querySelector('#m-type').addEventListener('change', refreshFields);
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
     const type = currentType();
-    if (needsSetup) {
-      day.type = type;
-    }
 
     if (trIsRestType(type)) {
-      day.groups = [];
-      day.exercises = [];
+      day.sessions.push({ type, groups: [], exercises: [] });
       overlay.remove();
       onSave();
       return;
@@ -509,13 +769,15 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       if (groups.length === 0) return;
       const name = overlay.querySelector('#m-name').value.trim();
       if (!name) return;
-      day.groups = groups;
-      day.exercises.push({
-        kind: 'strength',
-        name,
-        sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
-        reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-        weight: parseFloat(overlay.querySelector('#m-weight').value) || 0
+      day.sessions.push({
+        type, groups,
+        exercises: [{
+          kind: 'strength',
+          name,
+          sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
+          reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
+          weight: parseFloat(overlay.querySelector('#m-weight').value) || 0
+        }]
       });
       overlay.remove();
       onSave();
@@ -526,7 +788,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
       const distance = parseFloat(overlay.querySelector('#m-distance').value) || 0;
       const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
-      day.exercises.push({ kind: 'cardio', name: direction, distance, duration });
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'cardio', name: direction, distance, duration }] });
       overlay.remove();
       onSave();
       return;
@@ -535,7 +797,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     if (trIsTimeCalorieType(type)) {
       const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
       const calories = parseFloat(overlay.querySelector('#m-calories').value) || 0;
-      day.exercises.push({ kind: 'time_calorie', name: type, duration, calories });
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: type, duration, calories }] });
       overlay.remove();
       onSave();
       return;
@@ -543,7 +805,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
 
     if (trIsStepsType(type)) {
       const steps = parseInt(overlay.querySelector('#m-steps').value, 10) || 0;
-      day.exercises.push({ kind: 'steps', name: type, steps });
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'steps', name: type, steps }] });
       overlay.remove();
       onSave();
       return;
@@ -567,10 +829,14 @@ window.Screens.training = function (mount) {
           ${role === 'owner' ? '<button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>' : ''}
           <p class="tr-title">Тренировки</p>
         </div>
-        ${role === 'coach'
-          ? `<span style="display:flex; align-items:center; gap:8px;"><span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button></span>`
-          : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
+        <span style="display:flex; align-items:center; gap:8px;">
+          <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
+          ${role === 'coach'
+            ? `<span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button>`
+            : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
+        </span>
       </div>
+      <div class="tr-date-strip">${trTodayLabel()}</div>
       <div class="tr-plan-bar">
         <select class="tr-plan-select" id="tr-plan-select"></select>
         ${role === 'owner' ? '<button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>' : ''}
@@ -621,27 +887,44 @@ window.Screens.training = function (mount) {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
         const d = parseInt(btn.dataset.day, 10);
+        const s = parseInt(btn.dataset.session, 10);
         const ex = parseInt(btn.dataset.ex, 10);
-        trOpenExerciseModal(plan, w, d, ex, () => {
+        trSnapshotBeforeChange();
+        trOpenExerciseModal(plan, w, d, s, ex, () => {
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
         });
       });
     });
-    content.querySelectorAll('.tr-day-add').forEach(btn => {
+    content.querySelectorAll('.tr-session-add-ex').forEach(btn => {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
         const d = parseInt(btn.dataset.day, 10);
-        if (btn.classList.contains('tr-day-clear')) {
-          if (!confirm('Сбросить этот день обратно в «не задано»?')) return;
-          const day = plan.weeks[w].days[d];
-          day.type = null;
-          day.groups = [];
-          day.exercises = [];
+        const s = parseInt(btn.dataset.session, 10);
+        trSnapshotBeforeChange();
+        trOpenAddExerciseToSessionModal(plan, w, d, s, () => {
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
-          return;
-        }
+        });
+      });
+    });
+    content.querySelectorAll('.tr-day-clear').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const w = parseInt(btn.dataset.week, 10);
+        const d = parseInt(btn.dataset.day, 10);
+        const s = parseInt(btn.dataset.session, 10);
+        if (!confirm('Удалить эту тренировку из дня?')) return;
+        trSnapshotBeforeChange();
+        plan.weeks[w].days[d].sessions.splice(s, 1);
+        trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
+        renderTab('plan');
+      });
+    });
+    content.querySelectorAll('.tr-day-add:not(.tr-day-clear):not(.tr-session-add-ex)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const w = parseInt(btn.dataset.week, 10);
+        const d = parseInt(btn.dataset.day, 10);
+        trSnapshotBeforeChange();
         trOpenAddModal(plan, w, d, () => {
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
@@ -660,7 +943,15 @@ window.Screens.training = function (mount) {
     });
   }
 
+  const undoBtn = document.getElementById('tr-undo');
+  function refreshUndoState() {
+    if (!undoBtn) return;
+    undoBtn.disabled = !trUndoAvailable();
+    undoBtn.style.opacity = trUndoAvailable() ? '1' : '0.35';
+  }
+
   function renderTab(tab) {
+    refreshUndoState();
     const plan = getPlan();
     if (tab === 'plan') {
       content.innerHTML = trRenderPlanTab(plan, collapsedWeeks);
@@ -685,6 +976,12 @@ window.Screens.training = function (mount) {
           trDeleteMeasurement(parseInt(btn.dataset.idx, 10), () => renderTab('summary'));
         });
       });
+      content.querySelectorAll('.tr-measure-edit').forEach(btn => {
+        if (role === 'coach') { btn.style.display = 'none'; return; }
+        btn.addEventListener('click', () => {
+          trOpenMeasureModal(() => renderTab('summary'), parseInt(btn.dataset.idx, 10));
+        });
+      });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);
       const editBtn = document.getElementById('tr-edit-nutrition');
@@ -692,10 +989,13 @@ window.Screens.training = function (mount) {
         if (role === 'coach') {
           editBtn.style.display = 'none';
         } else {
-          editBtn.addEventListener('click', () => trOpenNutritionModal(plan, () => {
-            trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
-            renderTab('nutrition');
-          }));
+          editBtn.addEventListener('click', () => {
+            trSnapshotBeforeChange();
+            trOpenNutritionModal(plan, () => {
+              trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
+              renderTab('nutrition');
+            });
+          });
         }
       }
     }
@@ -740,6 +1040,18 @@ window.Screens.training = function (mount) {
   const logoutBtn = document.getElementById('tr-logout');
   if (logoutBtn) logoutBtn.addEventListener('click', () => { Auth.logout(); Router.go('/login'); });
 
+  if (undoBtn) {
+    undoBtn.addEventListener('click', () => {
+      if (!confirm('Отменить последнее изменение?')) return;
+      const ok = trUndoLastChange();
+      if (ok) {
+        populatePlanSelect();
+        refreshUndoState();
+        renderTab(document.querySelector('.tr-tab.active')?.dataset.tab || 'plan');
+      }
+    });
+  }
+
   renderTab('plan');
 };
 
@@ -755,15 +1067,20 @@ function trCollectGymExercises(plan) {
   const latest = {};
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach((day, dayIdx) => {
-      if (!trIsGymType(day.type)) return;
-      day.exercises.forEach((ex, exIdx) => {
-        if (ex.kind !== 'strength') return;
-        latest[ex.name] = { ex, weekIndex, dayIdx, exIdx, groups: day.groups || [] };
+      trMigrateDayToSessions(day);
+      day.sessions.forEach((session, sessionIdx) => {
+        if (!trIsGymType(session.type)) return;
+        session.exercises.forEach((ex, exIdx) => {
+          if (ex.kind !== 'strength') return;
+          latest[ex.name] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups: session.groups || [] };
+        });
       });
     });
   });
   return latest;
 }
+
+const WORKING_WEIGHT_CATEGORIES = ['Грудь', 'Спина', 'Ноги', 'Руки', 'Плечи'];
 
 function trRenderWorkingWeight(plan) {
   const latest = trCollectGymExercises(plan);
@@ -772,15 +1089,19 @@ function trRenderWorkingWeight(plan) {
     return `<div class="tr-empty-state"><i class="ti ti-weight"></i>Рабочий вес появится здесь после первой записи в зале.</div>`;
   }
 
-  const byGroup = {};
+  const byCategory = {};
+  WORKING_WEIGHT_CATEGORIES.forEach(cat => { byCategory[cat] = []; });
+
   names.forEach(name => {
-    const label = latest[name].groups.length ? latest[name].groups.join(' + ') : 'Без группы';
-    if (!byGroup[label]) byGroup[label] = [];
-    byGroup[label].push(name);
+    const groups = latest[name].groups || [];
+    const expanded = groups.includes('FULL BODY') ? WORKING_WEIGHT_CATEGORIES : groups;
+    expanded.forEach(g => {
+      if (byCategory[g] && !byCategory[g].includes(name)) byCategory[g].push(name);
+    });
   });
 
-  const rows = Object.keys(byGroup).map(label => {
-    const exerciseRows = byGroup[label].map(name => {
+  const rows = WORKING_WEIGHT_CATEGORIES.filter(cat => byCategory[cat].length > 0).map(cat => {
+    const exerciseRows = byCategory[cat].map(name => {
       const { ex, weekIndex } = latest[name];
       const progress = trCalcProgress(plan, weekIndex, name);
       const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
@@ -796,7 +1117,7 @@ function trRenderWorkingWeight(plan) {
     }).join('');
     return `
       <div class="tr-ww-group">
-        <div class="tr-ww-group-label fb-accent">${label}</div>
+        <div class="tr-ww-group-label fb-accent">${cat}</div>
         <table class="tr-ww-table">
           <thead>
             <tr>
@@ -895,10 +1216,10 @@ function trCollectExerciseHistory(plan, exerciseName) {
   let last = null;
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach(day => {
-      const found = day.exercises.find(e => e.name === exerciseName);
+      const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
       if (found) {
-        if (!first) first = { ex: found, weekIndex };
-        last = { ex: found, weekIndex };
+        if (!first) first = { ex: found.ex, weekIndex };
+        last = { ex: found.ex, weekIndex };
       }
     });
   });
@@ -912,9 +1233,41 @@ function trWasNowLabel(ex, metricLabelFn) {
   return `${trTonnage(ex).toLocaleString('ru-RU')} кг`;
 }
 
+function trSumMetricAcrossPlan(plan, exerciseName, kind) {
+  let sum = 0;
+  let count = 0;
+  plan.weeks.forEach(week => {
+    week.days.forEach(day => {
+      trDayAllExercises(day).forEach(({ ex }) => {
+        if (ex.name !== exerciseName) return;
+        if (kind === 'time_calorie') sum += ex.calories || 0;
+        if (kind === 'steps') sum += ex.steps || 0;
+        count++;
+      });
+    });
+  });
+  return { sum, count };
+}
+
 function trRenderWasNowRow(exerciseName, plan) {
   const { first, last } = trCollectExerciseHistory(plan, exerciseName);
   if (!first || !last) return '';
+
+  // Calories and steps are summed across the whole plan, not "was -> now"
+  if (first.ex.kind === 'time_calorie' || first.ex.kind === 'steps') {
+    const kind = first.ex.kind;
+    const { sum, count } = trSumMetricAcrossPlan(plan, exerciseName, kind);
+    const label = kind === 'time_calorie' ? `${sum.toLocaleString('ru-RU')} ккал всего` : `${sum.toLocaleString('ru-RU')} шагов всего`;
+    return `
+      <div class="tr-exercise" style="cursor:default">
+        <div class="tr-ex-top">
+          <div class="tr-ex-name">${exerciseName}</div>
+          <div class="tr-ex-stats"><span class="tr-ex-weight num">${label}</span></div>
+        </div>
+        <div class="tr-ex-bottom"><div class="tr-ex-meta num">${count} ${count === 1 ? 'запись' : 'записей'}</div></div>
+      </div>`;
+  }
+
   const sameRecord = first.weekIndex === last.weekIndex;
   const wasVal = trMetricFor(first.ex);
   const nowVal = trMetricFor(last.ex);
@@ -953,12 +1306,15 @@ function trRenderSummary(plan) {
   const exerciseGroups = {}; // label -> Set of exercise names, by where they last appeared
   plan.weeks.forEach(week => {
     week.days.forEach(day => {
-      if (!day.type || day.type === 'Отдых') return;
-      const label = trIsGymType(day.type) && day.groups && day.groups.length
-        ? day.groups.join(' + ')
-        : day.type;
-      if (!exerciseGroups[label]) exerciseGroups[label] = new Set();
-      day.exercises.forEach(ex => exerciseGroups[label].add(ex.name));
+      trMigrateDayToSessions(day);
+      day.sessions.forEach(session => {
+        if (!session.type || session.type === 'Отдых') return;
+        const label = trIsGymType(session.type) && session.groups && session.groups.length
+          ? session.groups.join(' + ')
+          : session.type;
+        if (!exerciseGroups[label]) exerciseGroups[label] = new Set();
+        session.exercises.forEach(ex => exerciseGroups[label].add(ex.name));
+      });
     });
   });
 
@@ -988,7 +1344,10 @@ function trRenderMeasurementsBlock() {
           <div class="tr-measure-card">
             <div class="tr-measure-date-row">
               <span class="tr-measure-date">${m.date}</span>
-              <button class="tr-measure-delete" data-idx="${realIdx}" aria-label="Удалить замер"><i class="ti ti-trash"></i></button>
+              <span style="display:flex; gap:4px;">
+                <button class="tr-measure-edit" data-idx="${realIdx}" aria-label="Редактировать замер"><i class="ti ti-edit"></i></button>
+                <button class="tr-measure-delete" data-idx="${realIdx}" aria-label="Удалить замер"><i class="ti ti-trash"></i></button>
+              </span>
             </div>
             <div class="tr-measure-grid">
               ${fields.map(f => `<div class="tr-measure-item"><span>${f}</span><span>${m.values[f]}</span></div>`).join('')}
@@ -1002,41 +1361,64 @@ function trRenderMeasurementsBlock() {
     </div>`;
 }
 
-function trOpenMeasureModal(onSave) {
+function trOpenMeasureModal(onSave, existingIdx) {
+  const list = Store.get().training.measurements || [];
+  const isEdit = existingIdx !== undefined && existingIdx !== null;
+  const existing = isEdit ? list[existingIdx] : null;
   const today = new Date();
-  const dateStr = `${trFormatDate(today)}.${today.getFullYear()}`;
+  const defaultDate = `${trFormatDate(today)}.${today.getFullYear()}`;
+  const dateValue = existing ? existing.date : defaultDate;
+  const values = existing ? existing.values : {};
+
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
   overlay.innerHTML = `
     <div class="tr-modal" style="max-height:80vh; overflow-y:auto;">
-      <p class="tr-modal-title">Новый замер · ${dateStr}</p>
+      <p class="tr-modal-title">${isEdit ? 'Редактировать замер' : 'Новый замер'}</p>
+      <div class="tr-modal-row">
+        <label style="flex:1 1 100%">Дата (ДД.ММ.ГГГГ)<input type="text" id="m-measure-date" value="${dateValue}" placeholder="29.06.2026"></label>
+      </div>
       <div class="tr-measure-form-grid">
         ${MEASURE_FIELDS.map(f => `
-          <label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="—"></label>
+          <label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="—" value="${values[f] !== undefined ? values[f] : ''}"></label>
         `).join('')}
       </div>
       <div class="tr-modal-actions">
-        <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
+        ${isEdit ? '<button class="tr-modal-btn-secondary" id="m-delete">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>'}
         <button class="tr-modal-btn-primary" id="m-save">Сохранить</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
+  const cancelBtn = overlay.querySelector('#m-cancel');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => overlay.remove());
+  const deleteBtn = overlay.querySelector('#m-delete');
+  if (deleteBtn) deleteBtn.addEventListener('click', () => {
+    if (!confirm('Удалить этот замер?')) return;
+    trDeleteMeasurement(existingIdx, onSave);
+    overlay.remove();
+  });
   overlay.querySelector('#m-save').addEventListener('click', () => {
-    const values = {};
+    const newValues = {};
     overlay.querySelectorAll('input[data-field]').forEach(input => {
-      if (input.value.trim() !== '') values[input.dataset.field] = input.value.trim();
+      if (input.value.trim() !== '') newValues[input.dataset.field] = input.value.trim();
     });
-    const list = Store.get().training.measurements || [];
-    list.push({ date: dateStr, values });
-    Store.set('training.measurements', list);
+    const newDate = overlay.querySelector('#m-measure-date').value.trim() || defaultDate;
+    trSnapshotBeforeChange();
+    const freshList = Store.get().training.measurements || [];
+    if (isEdit) {
+      freshList[existingIdx] = { date: newDate, values: newValues };
+    } else {
+      freshList.push({ date: newDate, values: newValues });
+    }
+    Store.set('training.measurements', freshList);
     overlay.remove();
     onSave();
   });
 }
 
 function trDeleteMeasurement(idx, onSave) {
+  trSnapshotBeforeChange();
   const list = Store.get().training.measurements || [];
   list.splice(idx, 1);
   Store.set('training.measurements', list);

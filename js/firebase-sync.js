@@ -44,11 +44,28 @@ const FirebaseSync = (() => {
     return `${base}/nik-data.json`;
   }
 
+  let hideTimer = null;
+
   function setStatus(text, isError) {
-    if (!statusEl) statusEl = document.getElementById('sync-status');
-    if (!statusEl) return;
+    /* Раньше statusEl кэшировался один раз и больше не перепроверялся —
+       если элемент #sync-status ещё не существовал в DOM в момент первого
+       вызова, статус никогда не показывался вообще, и ошибки сохранения
+       проходили незамеченными. Теперь ищем элемент заново при каждом
+       вызове, это надёжнее и почти ничего не стоит по производительности. */
+    statusEl = document.getElementById('sync-status');
+    if (!statusEl) {
+      console.warn('FirebaseSync: #sync-status element not found in DOM, status not shown:', text);
+      return;
+    }
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     statusEl.textContent = text;
-    statusEl.style.color = isError ? 'var(--danger)' : 'var(--bone-faint)';
+    statusEl.style.color = isError ? '#FF5C5C' : '#9D9A92';
+    statusEl.style.opacity = '1';
+    if (!isError) {
+      hideTimer = setTimeout(() => {
+        if (statusEl) statusEl.style.opacity = '0';
+      }, 2500);
+    }
   }
 
   const FETCH_ERROR = Symbol('fetch-error');
@@ -57,7 +74,7 @@ const FirebaseSync = (() => {
     const cfg = getConfig();
     if (!cfg) return FETCH_ERROR;
     try {
-      const res = await fetch(dataUrl());
+      const res = await fetch(dataUrl(), { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
       return json; // null is a valid Firebase response meaning "node is empty"
@@ -88,6 +105,7 @@ const FirebaseSync = (() => {
     try {
       const res = await fetch(dataUrl(), {
         method: 'PUT',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(Store.get())
       });

@@ -14,18 +14,10 @@ window.AUTH_CONFIG = {
 
 /* ============================================================
    FIREBASE CONFIG
-   Полный конфиг проекта nik-track для официального Firebase SDK.
-   Этот объект используется firebase-sync.js напрямую через SDK,
-   а не через самописный fetch к REST API.
+   This URL is shared by every device automatically — no manual
+   setup needed in the app's settings screen anymore.
    ============================================================ */
 
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCYu9GKmo8Yuj0mWpZ31Exz01_cpjKW8mU",
-  authDomain: "nik-track.firebaseapp.com",
-  databaseURL: "https://nik-track-default-rtdb.firebaseio.com",
-  projectId: "nik-track",
-  storageBucket: "nik-track.firebasestorage.app",
-  messagingSenderId: "736205367588",
-  appId: "1:736205367588:web:3c0759060b677d3e2aebb1"
+  databaseURL: 'https://nik-track-default-rtdb.firebaseio.com'
 };
-

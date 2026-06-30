@@ -958,7 +958,23 @@ window.Screens.training = function (mount) {
 
   function renderTab(tab) {
     refreshUndoState();
-    const plan = getPlan();
+    let plan = getPlan();
+
+    /* Если plan не найден — данные ещё не загрузились из Firebase.
+       Показываем индикатор загрузки и перезапрашиваем данные. */
+    if (!plan || !plan.weeks) {
+      content.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;letter-spacing:0.03em;">Загрузка данных…</div>';
+      if (window.FirebaseSync && FirebaseSync.isConfigured()) {
+        FirebaseSync.pullIntoStore().then(() => {
+          /* После загрузки пересчитываем currentPlanId из свежих данных */
+          currentPlanId = trEnsureSeedPlan();
+          populatePlanSelect();
+          renderTab(tab);
+        });
+      }
+      return;
+    }
+
     if (tab === 'plan') {
       content.innerHTML = trRenderPlanTab(plan, collapsedWeeks);
       trAnimateBars(content);

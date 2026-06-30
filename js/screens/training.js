@@ -19,11 +19,10 @@ function trAddDays(date, n) {
   return d;
 }
 
-function trTodayLabel() {
+function trIsToday(dateStr) {
   const today = new Date();
-  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-  const dow = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'][today.getDay()];
-  return `<i class="ti ti-calendar"></i> Сегодня: ${today.getDate()} ${months[today.getMonth()]} · ${dow}`;
+  const todayStr = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}`;
+  return dateStr === todayStr;
 }
 
 function trUid() {
@@ -304,6 +303,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
   trMigrateDayToSessions(day);
   const sessions = day.sessions;
   const hasAnySession = sessions.length > 0;
+  const isToday = trIsToday(day.date);
 
   const sessionsHtml = sessions.map((session, sessionIdx) => {
     const isRest = session.type === 'Отдых';
@@ -329,9 +329,10 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
   }).join('');
 
   return `
-    <div class="tr-day">
+    <div class="tr-day${isToday ? ' tr-day-today' : ''}">
       <div class="tr-day-head">
         <span class="tr-day-date">${day.date} ${day.dow}</span>
+        ${isToday ? '<span class="tr-today-badge">Сегодня</span>' : ''}
         ${!hasAnySession ? `<span class="tr-day-tag">не задано</span>` : ''}
         <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
       </div>
@@ -836,7 +837,6 @@ window.Screens.training = function (mount) {
             : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
         </span>
       </div>
-      <div class="tr-date-strip">${trTodayLabel()}</div>
       <div class="tr-plan-bar">
         <select class="tr-plan-select" id="tr-plan-select"></select>
         ${role === 'owner' ? '<button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>' : ''}

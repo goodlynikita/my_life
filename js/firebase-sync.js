@@ -101,9 +101,29 @@ const FirebaseSync = (() => {
 
   function scheduleSave() {
     if (saveTimer) clearTimeout(saveTimer);
-    setStatus('Изменения не сохранены…');
-    saveTimer = setTimeout(() => { pushNow(); }, 2500);
+    setStatus('Сохранение…');
+    pushNow();
   }
+
+  function pushBeacon() {
+    // Fired on page hide/unload — keepalive lets this PUT survive even if
+    // the tab closes right after, unlike a regular fetch which gets aborted.
+    const cfg = getConfig();
+    if (!cfg) return;
+    try {
+      fetch(dataUrl(), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Store.get()),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) { /* best effort, ignore */ }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') pushBeacon();
+  });
+  window.addEventListener('pagehide', pushBeacon);
 
   return { getConfig, setConfig, clearConfig, isConfigured, pullIntoStore, pushNow, scheduleSave };
 })();

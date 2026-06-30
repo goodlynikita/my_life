@@ -25,29 +25,43 @@ function waitForFirebaseSync(maxWaitMs) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await waitForFirebaseSync(2000);
-  const firebaseReady = window.FirebaseSync && FirebaseSync.isConfigured();
+  try {
+    await waitForFirebaseSync(2000);
+    const firebaseReady = window.FirebaseSync && FirebaseSync.isConfigured();
 
-  if (firebaseReady) {
-    const remoteResult = await FirebaseSync.pullIntoStore();
-    // remoteResult === true  -> real data was found and loaded into Store
-    // remoteResult === false -> Firebase node is genuinely empty (null)
-    // remoteResult === 'error' -> network/config problem, Firebase unreachable
-    if (remoteResult === false) {
-      const seed = await Store.loadSeedFromRepo();
-      Store.replaceAll(seed || Store.defaultData());
-      await FirebaseSync.pushNow();
-    } else if (remoteResult === 'error') {
+    if (firebaseReady) {
+      const remoteResult = await FirebaseSync.pullIntoStore();
+      // remoteResult === true  -> real data was found and loaded into Store
+      // remoteResult === false -> Firebase node is genuinely empty (null)
+      // remoteResult === 'error' -> network/config problem OR timeout
+      if (remoteResult === false) {
+        const seed = await Store.loadSeedFromRepo();
+        Store.replaceAll(seed || Store.defaultData());
+        await FirebaseSync.pushNow();
+      } else if (remoteResult === 'error') {
+        // Firebase недоступен/таймаут. Берём локальный кэш; если в нём нет
+        // планов — восстанавливаем из data.json, чтобы экран не был пустым.
+        const cached = await Store.load();
+        const hasPlans = cached && cached.training && Array.isArray(cached.training.plans) && cached.training.plans.length > 0;
+        if (!hasPlans) {
+          const seed = await Store.loadSeedFromRepo();
+          if (seed) Store.replaceAll(seed);
+          else if (!cached) Store.replaceAll(Store.defaultData());
+        }
+      }
+    } else {
       const cached = await Store.load();
-      if (!cached) Store.replaceAll(Store.defaultData());
+      if (!cached) {
+        const seed = await Store.loadSeedFromRepo();
+        Store.replaceAll(seed || Store.defaultData());
+      }
     }
-  } else {
-    const cached = await Store.load();
-    if (!cached) {
-      const seed = await Store.loadSeedFromRepo();
-      Store.replaceAll(seed || Store.defaultData());
-    }
+  } catch (e) {
+    /* Что бы ни пошло не так при загрузке — приложение всё равно должно
+       нарисоваться. Гарантируем хотя бы дефолтные данные. */
+    console.error('App boot error', e);
+    try { if (!Store.get().training) Store.replaceAll(Store.defaultData()); } catch (_) {}
+  } finally {
+    Router.render();
   }
-
-  Router.render();
 });

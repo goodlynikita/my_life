@@ -44,7 +44,16 @@ const Router = (() => {
     }
 
     const handler = routes[path] || routes['/login'];
-    handler();
+    try {
+      handler();
+    } catch (e) {
+      console.error('Screen render error on', path, e);
+      const el = mount();
+      if (el) {
+        el.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-family:sans-serif;font-size:13px;line-height:1.7;">'
+          + 'Не удалось открыть раздел.<br>Обнови страницу (Cmd+Shift+R).</div>';
+      }
+    }
     window.scrollTo(0, 0);
   }
 

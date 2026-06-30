@@ -77,7 +77,15 @@ const FirebaseSync = (() => {
     const database = ensureInitialized();
     if (!database) { ready = true; return 'error'; }
     try {
-      const snap = await get(ref(database, 'nik-data'));
+      /* get() может зависнуть навсегда, если соединение с Firebase
+         не устанавливается (блокировка websocket, App Check, сеть).
+         Ограничиваем ожидание — иначе весь запуск приложения повисает
+         и экран остаётся чёрным. По таймауту считаем Firebase недоступным
+         и грузим данные из кэша / data.json. */
+      const snap = await Promise.race([
+        get(ref(database, 'nik-data')),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('firebase-timeout')), 6000))
+      ]);
       const remote = snap.exists() ? snap.val() : null;
       const nodeExists = remote !== null && remote !== undefined;
       if (nodeExists) {
@@ -87,7 +95,7 @@ const FirebaseSync = (() => {
       return nodeExists;
     } catch (e) {
       console.error('FirebaseSync.pullIntoStore failed', e);
-      setStatus('Не удалось загрузить данные с Firebase', true);
+      setStatus('Firebase недоступен — данные из локальной копии', true);
       return 'error';
     } finally {
       ready = true;

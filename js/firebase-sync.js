@@ -1,57 +1,55 @@
 /* ============================================================
    FIREBASE SYNC
    Reads and writes one node in a Firebase Realtime Database using
-   the Firebase REST API directly (no SDK needed, plain fetch).
-   The database URL comes from window.FIREBASE_CONFIG (config.js),
-   baked into the app — every device uses the same database with
-   zero manual setup. localStorage override only exists as a
-   fallback for advanced use, not needed in normal operation.
+   the OFFICIAL Firebase SDK (loaded as an ES module), not a
+   hand-rolled fetch() against the REST API. This is the same
+   proven approach used in the "Бегу к себе" tracker, which syncs
+   reliably across every device.
+   The full firebaseConfig comes from window.FIREBASE_CONFIG
+   (config.js), baked into the app — every device uses the same
+   project automatically, no manual setup needed.
    ============================================================ */
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
 const FirebaseSync = (() => {
-  const CFG_KEY = 'nik_firebase_cfg_v1';
-  let saveTimer = null;
   let statusEl = null;
+  let hideTimer = null;
+  let fbApp = null;
+  let db = null;
 
   function getConfig() {
     if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL) {
       return window.FIREBASE_CONFIG;
     }
-    try {
-      const raw = localStorage.getItem(CFG_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      return null;
-    }
+    return null;
   }
 
-  function setConfig(cfg) {
-    localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  function setConfig() {
+    /* Конфиг теперь всегда берётся из config.js (window.FIREBASE_CONFIG),
+       поэтому ручная настройка через localStorage больше не используется.
+       Функция оставлена только для совместимости интерфейса. */
   }
 
   function clearConfig() {
-    localStorage.removeItem(CFG_KEY);
+    /* см. setConfig выше */
   }
 
   function isConfigured() {
-    const cfg = getConfig();
-    return !!(cfg && cfg.databaseURL);
+    return !!getConfig();
   }
 
-  function dataUrl() {
+  function ensureInitialized() {
+    if (db) return db;
     const cfg = getConfig();
-    let base = cfg.databaseURL.replace(/\/$/, '');
-    return `${base}/nik-data.json`;
+    if (!cfg) return null;
+    fbApp = initializeApp(cfg);
+    db = getDatabase(fbApp);
+    return db;
   }
-
-  let hideTimer = null;
 
   function setStatus(text, isError) {
-    /* Раньше statusEl кэшировался один раз и больше не перепроверялся —
-       если элемент #sync-status ещё не существовал в DOM в момент первого
-       вызова, статус никогда не показывался вообще, и ошибки сохранения
-       проходили незамеченными. Теперь ищем элемент заново при каждом
-       вызове, это надёжнее и почти ничего не стоит по производительности. */
     statusEl = document.getElementById('sync-status');
     if (!statusEl) {
       console.warn('FirebaseSync: #sync-status element not found in DOM, status not shown:', text);
@@ -68,73 +66,53 @@ const FirebaseSync = (() => {
     }
   }
 
-  const FETCH_ERROR = Symbol('fetch-error');
-
-  async function fetchRemote() {
-    const cfg = getConfig();
-    if (!cfg) return FETCH_ERROR;
-    try {
-      const res = await fetch(dataUrl(), { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
-      return json; // null is a valid Firebase response meaning "node is empty"
-    } catch (e) {
-      console.error('FirebaseSync.fetchRemote failed', e);
-      setStatus('Не удалось загрузить данные с Firebase', true);
-      return FETCH_ERROR;
-    }
-  }
-
   async function pullIntoStore() {
-    const remote = await fetchRemote();
-    if (remote === FETCH_ERROR) {
+    const database = ensureInitialized();
+    if (!database) return 'error';
+    try {
+      const snap = await get(ref(database, 'nik-data'));
+      const remote = snap.exists() ? snap.val() : null;
+      const nodeExists = remote !== null && remote !== undefined;
+      if (nodeExists) {
+        Store.replaceAll(remote);
+        setStatus('Данные загружены');
+      }
+      return nodeExists;
+    } catch (e) {
+      console.error('FirebaseSync.pullIntoStore failed', e);
+      setStatus('Не удалось загрузить данные с Firebase', true);
       return 'error';
     }
-    const nodeExists = remote !== null && remote !== undefined;
-    if (nodeExists) {
-      Store.replaceAll(remote);
-      setStatus('Данные загружены');
-    }
-    return nodeExists;
   }
 
   async function pushNow() {
-    const cfg = getConfig();
-    if (!cfg) return;
+    const database = ensureInitialized();
+    if (!database) return;
     setStatus('Сохранение…');
     try {
-      const res = await fetch(dataUrl(), {
-        method: 'PUT',
-        cache: 'no-store',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Store.get())
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      await set(ref(database, 'nik-data'), Store.get());
       setStatus('Сохранено');
     } catch (e) {
       console.error('FirebaseSync.pushNow failed', e);
-      setStatus('Ошибка сохранения. Проверь адрес базы данных и правила доступа.', true);
+      setStatus('Ошибка сохранения. Проверь правила доступа Firebase.', true);
     }
   }
 
   function scheduleSave() {
-    if (saveTimer) clearTimeout(saveTimer);
     setStatus('Сохранение…');
     pushNow();
   }
 
   function pushBeacon() {
-    // Fired on page hide/unload — keepalive lets this PUT survive even if
-    // the tab closes right after, unlike a regular fetch which gets aborted.
-    const cfg = getConfig();
-    if (!cfg) return;
+    /* SDK не поддерживает keepalive-запросы при закрытии вкладки так же
+       просто, как fetch. На практике scheduleSave() уже сохраняет данные
+       сразу при каждом изменении (без задержки), так что к моменту
+       закрытия вкладки данные обычно уже записаны. Дополнительная
+       попытка здесь не помешает, но не гарантирована. */
+    const database = ensureInitialized();
+    if (!database) return;
     try {
-      fetch(dataUrl(), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Store.get()),
-        keepalive: true
-      }).catch(() => {});
+      set(ref(database, 'nik-data'), Store.get()).catch(() => {});
     } catch (e) { /* best effort, ignore */ }
   }
 
@@ -145,3 +123,5 @@ const FirebaseSync = (() => {
 
   return { getConfig, setConfig, clearConfig, isConfigured, pullIntoStore, pushNow, scheduleSave };
 })();
+
+window.FirebaseSync = FirebaseSync;

@@ -1,0 +1,1304 @@
+{
+  "meta": {
+    "createdAt": "2026-06-29T16:00:33.529Z",
+    "version": 1
+  },
+  "training": {
+    "plans": [
+      {
+        "id": "plan-4-imported",
+        "number": 4,
+        "startDate": "2026-03-09T00:00:00.000Z",
+        "status": "archived",
+        "nutrition": {
+          "protein": 0,
+          "fat": 0,
+          "carbs": 0,
+          "totalKcal": 0
+        },
+        "weeks": [
+          {
+            "weekNum": 1,
+            "range": "09.03 – 15.03",
+            "days": [
+              {
+                "date": "09.03",
+                "dow": "пн",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "10.03",
+                "dow": "вт",
+                "type": "Зал",
+                "groups": [
+                  "FULL BODY"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "11.03",
+                "dow": "ср",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "12.03",
+                "dow": "чт",
+                "type": "Зал",
+                "groups": [
+                  "Ноги"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Гакк",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Жим ногами",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 130
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Разгибания",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 55
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Сгибания",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 25
+                  }
+                ]
+              },
+              {
+                "date": "13.03",
+                "dow": "пт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "14.03",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "15.03",
+                "dow": "вс",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 2,
+            "range": "16.03 – 22.03",
+            "days": [
+              {
+                "date": "16.03",
+                "dow": "пн",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "17.03",
+                "dow": "вт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "18.03",
+                "dow": "ср",
+                "type": "Зал",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Жим гантели",
+                    "sets": 3,
+                    "reps": 8,
+                    "weight": 20
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Жим штанга",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Брусья",
+                    "sets": 3,
+                    "reps": 7,
+                    "weight": 0
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Кроссовер сверху",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 15
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Кроссовер снизу",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 10
+                  }
+                ]
+              },
+              {
+                "date": "19.03",
+                "dow": "чт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "20.03",
+                "dow": "пт",
+                "type": "Зал",
+                "groups": [
+                  "Ноги"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Гакк",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 50
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Жим ногами",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 150
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Пресс",
+                    "sets": 0,
+                    "reps": 0,
+                    "weight": 0
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Разгибания",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 55
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Сгибания",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 45
+                  }
+                ]
+              },
+              {
+                "date": "21.03",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "22.03",
+                "dow": "вс",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 3,
+            "range": "23.03 – 29.03",
+            "days": [
+              {
+                "date": "23.03",
+                "dow": "пн",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "24.03",
+                "dow": "вт",
+                "type": "Зал",
+                "groups": [
+                  "Спина"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Подтягивания",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 0
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга штанги",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 60
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга верхнего блока",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 45
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга нижнего блока",
+                    "sets": 3,
+                    "reps": 10,
+                    "weight": 45
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Гиперэкстензия",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 0
+                  }
+                ]
+              },
+              {
+                "date": "25.03",
+                "dow": "ср",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "26.03",
+                "dow": "чт",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Ноги"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Гакк",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 50
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Жим ногами",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 150
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Пресс",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 0
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Разгибания",
+                    "sets": 4,
+                    "reps": 12,
+                    "weight": 62
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Присяд штанга",
+                    "sets": 4,
+                    "reps": 12,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Сгибания",
+                    "sets": 3,
+                    "reps": 12,
+                    "weight": 50
+                  }
+                ]
+              },
+              {
+                "date": "27.03",
+                "dow": "пт",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "28.03",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "29.03",
+                "dow": "вс",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 4,
+            "range": "30.03 – 05.04",
+            "days": [
+              {
+                "date": "30.03",
+                "dow": "пн",
+                "type": "Зал",
+                "groups": [
+                  "FULL BODY"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "31.03",
+                "dow": "вт",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Спина"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "01.04",
+                "dow": "ср",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "02.04",
+                "dow": "чт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "03.04",
+                "dow": "пт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "04.04",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "05.04",
+                "dow": "вс",
+                "type": "Зал",
+                "groups": [
+                  "Ноги"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Разгибания",
+                    "sets": 4,
+                    "reps": 8,
+                    "weight": 65
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Жим ногами",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 200
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Сгибания",
+                    "sets": 4,
+                    "reps": 12,
+                    "weight": 55
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Присяд штанга",
+                    "sets": 4,
+                    "reps": 12,
+                    "weight": 50
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "weekNum": 5,
+            "range": "06.04 – 12.04",
+            "days": [
+              {
+                "date": "06.04",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "07.04",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "08.04",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "09.04",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "10.04",
+                "dow": "пт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "11.04",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "12.04",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 6,
+            "range": "13.04 – 19.04",
+            "days": [
+              {
+                "date": "13.04",
+                "dow": "пн",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "FULL BODY"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "14.04",
+                "dow": "вт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "15.04",
+                "dow": "ср",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "16.04",
+                "dow": "чт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "17.04",
+                "dow": "пт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "18.04",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "19.04",
+                "dow": "вс",
+                "type": "Зал",
+                "groups": [
+                  "Спина",
+                  "Руки"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Тяга верхнего блока",
+                    "sets": 4,
+                    "reps": 6,
+                    "weight": 60
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга нижнего блока",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга штанги",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Пуловер",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 30
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Французский жим",
+                    "sets": 4,
+                    "reps": 6,
+                    "weight": 20
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Разгибания канаты",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 20
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "weekNum": 7,
+            "range": "20.04 – 26.04",
+            "days": [
+              {
+                "date": "20.04",
+                "dow": "пн",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "21.04",
+                "dow": "вт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "22.04",
+                "dow": "ср",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "23.04",
+                "dow": "чт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "24.04",
+                "dow": "пт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "25.04",
+                "dow": "сб",
+                "type": "Зал",
+                "groups": [
+                  "Ноги"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "26.04",
+                "dow": "вс",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 8,
+            "range": "27.04 – 03.05",
+            "days": [
+              {
+                "date": "27.04",
+                "dow": "пн",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "28.04",
+                "dow": "вт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "29.04",
+                "dow": "ср",
+                "type": "Кардио",
+                "groups": [],
+                "exercises": [
+                  {
+                    "kind": "cardio",
+                    "name": "Велосипед",
+                    "distance": 7.35,
+                    "duration": 60
+                  }
+                ]
+              },
+              {
+                "date": "30.04",
+                "dow": "чт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "01.05",
+                "dow": "пт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "02.05",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "03.05",
+                "dow": "вс",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "plan-5-imported",
+        "number": 5,
+        "startDate": "2026-06-01T00:00:00.000Z",
+        "status": "active",
+        "nutrition": {
+          "protein": 0,
+          "fat": 0,
+          "carbs": 0,
+          "totalKcal": 0
+        },
+        "weeks": [
+          {
+            "weekNum": 1,
+            "range": "01.06 – 07.06",
+            "days": [
+              {
+                "date": "01.06",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "02.06",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "03.06",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "04.06",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "05.06",
+                "dow": "пт",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "06.06",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "07.06",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 2,
+            "range": "08.06 – 14.06",
+            "days": [
+              {
+                "date": "08.06",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "09.06",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "10.06",
+                "dow": "ср",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "11.06",
+                "dow": "чт",
+                "type": "Зал",
+                "groups": [
+                  "Спина",
+                  "Руки"
+                ],
+                "exercises": [
+                  {
+                    "kind": "strength",
+                    "name": "Тяга верхнего блока",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 60
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга нижнего блока",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Тяга штанги",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 40
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Пуловер",
+                    "sets": 4,
+                    "reps": 7,
+                    "weight": 30
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Бицепс наклон",
+                    "sets": 4,
+                    "reps": 10,
+                    "weight": 10
+                  },
+                  {
+                    "kind": "strength",
+                    "name": "Молотки стоя",
+                    "sets": 3,
+                    "reps": 8,
+                    "weight": 12.5
+                  }
+                ]
+              },
+              {
+                "date": "12.06",
+                "dow": "пт",
+                "type": "Теннис",
+                "groups": [],
+                "exercises": [
+                  {
+                    "kind": "time_calorie",
+                    "name": "Теннис",
+                    "duration": 120,
+                    "calories": 0
+                  }
+                ]
+              },
+              {
+                "date": "13.06",
+                "dow": "сб",
+                "type": "Теннис",
+                "groups": [],
+                "exercises": [
+                  {
+                    "kind": "time_calorie",
+                    "name": "Теннис",
+                    "duration": 120,
+                    "calories": 0
+                  }
+                ]
+              },
+              {
+                "date": "14.06",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 3,
+            "range": "15.06 – 21.06",
+            "days": [
+              {
+                "date": "15.06",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "16.06",
+                "dow": "вт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "17.06",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "18.06",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "19.06",
+                "dow": "пт",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "20.06",
+                "dow": "сб",
+                "type": "Отдых",
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "21.06",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 4,
+            "range": "22.06 – 28.06",
+            "days": [
+              {
+                "date": "22.06",
+                "dow": "пн",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "23.06",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "24.06",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "25.06",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "26.06",
+                "dow": "пт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "27.06",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "28.06",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 5,
+            "range": "29.06 – 05.07",
+            "days": [
+              {
+                "date": "29.06",
+                "dow": "пн",
+                "type": "Зал ТРЕН",
+                "groups": [
+                  "Грудь"
+                ],
+                "exercises": []
+              },
+              {
+                "date": "30.06",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "01.07",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "02.07",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "03.07",
+                "dow": "пт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "04.07",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "05.07",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 6,
+            "range": "06.07 – 12.07",
+            "days": [
+              {
+                "date": "06.07",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "07.07",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "08.07",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "09.07",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "10.07",
+                "dow": "пт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "11.07",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "12.07",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 7,
+            "range": "13.07 – 19.07",
+            "days": [
+              {
+                "date": "13.07",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "14.07",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "15.07",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "16.07",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "17.07",
+                "dow": "пт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "18.07",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "19.07",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          },
+          {
+            "weekNum": 8,
+            "range": "20.07 – 26.07",
+            "days": [
+              {
+                "date": "20.07",
+                "dow": "пн",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "21.07",
+                "dow": "вт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "22.07",
+                "dow": "ср",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "23.07",
+                "dow": "чт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "24.07",
+                "dow": "пт",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "25.07",
+                "dow": "сб",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              },
+              {
+                "date": "26.07",
+                "dow": "вс",
+                "type": null,
+                "groups": [],
+                "exercises": []
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "measurements": [
+      {
+        "date": "05.06.2026",
+        "values": {
+          "Вес": 0,
+          "Грудь": 104,
+          "Талия (по пупку)": 90,
+          "Бедро": 106,
+          "Нога (напряж.) левая": 36,
+          "Нога (напряж.) правая": 35,
+          "Бицепс": 0,
+          "% жира": 0,
+          "Мышечная масса": 0,
+          "Оценка InBody": 0
+        }
+      }
+    ]
+  },
+  "habits": {
+    "months": {}
+  },
+  "finance": {
+    "years": {}
+  },
+  "goals": {
+    "directions": [],
+    "upcoming": [],
+    "monthlyBase": []
+  }
+}

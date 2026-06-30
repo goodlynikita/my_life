@@ -109,9 +109,12 @@ function trBuildEmptyPlan(number, startDate) {
     const days = [];
     for (let d = 0; d < 7; d++) {
       const date = trAddDays(weekStart, d);
+      /* getDay() возвращает 0=вс, 1=пн...6=сб — переводим в нашу систему пн=0...вс=6 */
+      const jsDay = date.getDay(); // 0=вс,1=пн,2=вт,...,6=сб
+      const ruDay = jsDay === 0 ? 6 : jsDay - 1; // вс=6, пн=0, вт=1...
       days.push({
         date: trFormatDate(date),
-        dow: DOW_NAMES[d],
+        dow: DOW_NAMES[ruDay],
         sessions: []
       });
     }
@@ -354,6 +357,9 @@ function trRenderWeek(week, plan, weekIndex, collapsed) {
 }
 
 function trRenderPlanTab(plan, collapsedWeeks) {
+  if (!plan || !plan.weeks) {
+    return '<div style="padding:40px 20px;text-align:center;color:#9D9A92;font-size:13px;">Загрузка плана…</div>';
+  }
   return plan.weeks.map((w, i) => trRenderWeek(w, plan, i, (collapsedWeeks || []).includes(i))).join('');
 }
 

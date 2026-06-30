@@ -6,7 +6,26 @@
    used only when neither of the above is reachable (offline).
    ============================================================ */
 
+function waitForFirebaseSync(maxWaitMs) {
+  /* firebase-sync.js загружается как ES-модуль (type="module"), который
+     по спецификации откладывается до DOMContentLoaded — теоретически
+     это гарантирует готовность window.FirebaseSync к этому моменту.
+     На практике в некоторых браузерах/условиях сети это поведение может
+     отличаться, поэтому на всякий случай дожидаемся явно, с коротким
+     лимитом, чтобы не зависнуть навсегда, если модуль реально не грузится. */
+  return new Promise((resolve) => {
+    const start = Date.now();
+    function check() {
+      if (window.FirebaseSync) { resolve(true); return; }
+      if (Date.now() - start > maxWaitMs) { resolve(false); return; }
+      setTimeout(check, 30);
+    }
+    check();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  await waitForFirebaseSync(2000);
   const firebaseReady = window.FirebaseSync && FirebaseSync.isConfigured();
 
   if (firebaseReady) {

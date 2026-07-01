@@ -87,8 +87,21 @@ const Store = (() => {
     }
   }
 
+  function ensureShape(d) {
+    const base = defaultData();
+    if (!d || typeof d !== 'object') return base;
+    d.meta = d.meta || base.meta;
+    d.training = d.training || base.training;
+    if (!Array.isArray(d.training.plans)) d.training.plans = [];
+    if (!Array.isArray(d.training.measurements)) d.training.measurements = [];
+    d.habits = d.habits || base.habits;
+    d.finance = d.finance || base.finance;
+    d.goals = d.goals || base.goals;
+    return d;
+  }
+
   function replaceAll(newData) {
-    data = newData;
+    data = ensureShape(newData);
     persistLocal();
   }
 

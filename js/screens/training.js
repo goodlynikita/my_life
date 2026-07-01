@@ -109,9 +109,12 @@ function trBuildEmptyPlan(number, startDate) {
     const days = [];
     for (let d = 0; d < 7; d++) {
       const date = trAddDays(weekStart, d);
+      /* getDay() возвращает 0=вс, 1=пн...6=сб — переводим в нашу систему пн=0...вс=6 */
+      const jsDay = date.getDay(); // 0=вс,1=пн,2=вт,...,6=сб
+      const ruDay = jsDay === 0 ? 6 : jsDay - 1; // вс=6, пн=0, вт=1...
       days.push({
         date: trFormatDate(date),
-        dow: DOW_NAMES[d],
+        dow: DOW_NAMES[ruDay],
         sessions: []
       });
     }
@@ -180,13 +183,15 @@ function trActivePlan() {
 }
 
 function trEnsureSeedPlan() {
+  /* НЕ создаёт и НЕ сохраняет план. Возвращает id активного (или последнего)
+     плана, либо null, если планов нет вообще. Создание плана — только через
+     явную кнопку «Новый план». Раньше эта функция при пустом списке создавала
+     пустой план и СОХРАНЯЛА его — что во время гонки данных затирало реальные
+     данные в Firebase пустотой. Это и был корень «пустых тренировок». */
   const plans = trGetPlans();
-  if (plans.length === 0) {
-    const seeded = trBuildEmptyPlan(1, new Date());
-    trSavePlans([seeded]);
-    return seeded.id;
-  }
-  return trActivePlan() ? trActivePlan().id : plans[0].id;
+  if (plans.length === 0) return null;
+  const active = trActivePlan();
+  return active ? active.id : plans[0].id;
 }
 
 function trCreateNextPlan() {
@@ -354,6 +359,9 @@ function trRenderWeek(week, plan, weekIndex, collapsed) {
 }
 
 function trRenderPlanTab(plan, collapsedWeeks) {
+  if (!plan || !plan.weeks) {
+    return '<div style="padding:40px 20px;text-align:center;color:#9D9A92;font-size:13px;">Загрузка плана…</div>';
+  }
   return plan.weeks.map((w, i) => trRenderWeek(w, plan, i, (collapsedWeeks || []).includes(i))).join('');
 }
 
@@ -952,7 +960,42 @@ window.Screens.training = function (mount) {
 
   function renderTab(tab) {
     refreshUndoState();
-    const plan = getPlan();
+    let plan = getPlan();
+
+    /* Выбранный план не найден, но другие планы есть — переключаемся на
+       активный/последний (без создания и записи чего-либо). */
+    if (!plan) {
+      const fallbackId = trEnsureSeedPlan();
+      if (fallbackId) {
+        currentPlanId = fallbackId;
+        populatePlanSelect();
+        plan = getPlan();
+      }
+    }
+
+    if (!plan || !plan.weeks) {
+      const hasAnyPlan = trGetPlans().length > 0;
+      if (!hasAnyPlan) {
+        /* Планов нет вообще. Ничего не пишем в хранилище — просто показываем
+           понятное состояние. Данные восстанавливаются из data.json (см. app.js),
+           либо владелец создаёт план кнопкой «Новый план». */
+        content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;line-height:1.7;letter-spacing:0.02em;">
+          Планов пока нет.${role === 'owner' ? '<br>Нажми «Новый план», чтобы создать первый.' : ''}
+        </div>`;
+        return;
+      }
+      /* Планы есть, но данные ещё не догрузились — одна попытка перезагрузки. */
+      content.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;letter-spacing:0.03em;">Загрузка данных…</div>';
+      if (window.FirebaseSync && FirebaseSync.isConfigured()) {
+        FirebaseSync.pullIntoStore().then(() => {
+          currentPlanId = trEnsureSeedPlan() || currentPlanId;
+          populatePlanSelect();
+          renderTab(tab);
+        });
+      }
+      return;
+    }
+
     if (tab === 'plan') {
       content.innerHTML = trRenderPlanTab(plan, collapsedWeeks);
       trAnimateBars(content);

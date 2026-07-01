@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Генератор хэша пароля</title>
+<style>
+  body {
+    font-family: -apple-system, sans-serif;
+    background: #14151A;
+    color: #ECE8DF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+  }
+  .box {
+    width: 100%;
+    max-width: 420px;
+    background: #1C1E24;
+    border: 0.5px solid rgba(176,141,79,0.2);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  h1 { font-size: 18px; font-weight: 500; margin: 0 0 6px; }
+  p { font-size: 13px; color: #9D9A92; line-height: 1.5; }
+  input {
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+    background: #0C0D10;
+    border: 0.5px solid rgba(176,141,79,0.25);
+    border-radius: 8px;
+    color: #ECE8DF;
+    padding: 0 12px;
+    font-size: 15px;
+    margin: 14px 0;
+  }
+  button {
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: 8px;
+    background: #B08D4F;
+    color: #0C0D10;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .result {
+    margin-top: 16px;
+    padding: 12px;
+    background: #0C0D10;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 12.5px;
+    word-break: break-all;
+    color: #D4AF6A;
+    min-height: 20px;
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>Генератор хэша пароля</h1>
+    <p>Введи новый пароль, скопируй получившийся хэш и вставь его в js/config.js (ownerHash или coachHash). Эта страница ничего никуда не отправляет — всё считается прямо в браузере.</p>
+    <input type="text" id="pwd" placeholder="Новый пароль">
+    <button id="go">Сгенерировать хэш</button>
+    <div class="result" id="result"></div>
+  </div>
+  <script>
+    async function hash(text) {
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    document.getElementById('go').addEventListener('click', async () => {
+      const pwd = document.getElementById('pwd').value;
+      if (!pwd) return;
+      document.getElementById('result').textContent = await hash(pwd);
+    });
+  </script>
+</body>
+</html>

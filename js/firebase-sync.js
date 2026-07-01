@@ -47,6 +47,23 @@ const FirebaseSync = (() => {
     return !!getConfig();
   }
 
+  /* Firebase запрещает символы . # $ / [ ] в НАЗВАНИЯХ ключей. Если такой
+     ключ попадёт в данные (например, название поля замера с точкой), Firebase
+     отклонит ВСЮ запись целиком, и синхронизация молча перестанет работать.
+     Поэтому перед каждой записью рекурсивно чистим ключи на копии данных. */
+  function sanitizeKeys(value) {
+    if (Array.isArray(value)) return value.map(sanitizeKeys);
+    if (value && typeof value === 'object') {
+      const out = {};
+      for (const key of Object.keys(value)) {
+        const safeKey = key.replace(/[.#$/\[\]]/g, '');
+        out[safeKey] = sanitizeKeys(value[key]);
+      }
+      return out;
+    }
+    return value;
+  }
+
   function ensureInitialized() {
     if (db) return db;
     const cfg = getConfig();
@@ -121,7 +138,7 @@ const FirebaseSync = (() => {
     }
     setStatus('Сохранение…');
     try {
-      await set(ref(database, 'nik-data'), d);
+      await set(ref(database, 'nik-data'), sanitizeKeys(d));
       setStatus('Сохранено');
     } catch (e) {
       console.error('FirebaseSync.pushNow failed', e);
@@ -148,7 +165,7 @@ const FirebaseSync = (() => {
     const database = ensureInitialized();
     if (!database) return;
     try {
-      set(ref(database, 'nik-data'), Store.get()).catch(() => {});
+      set(ref(database, 'nik-data'), sanitizeKeys(Store.get())).catch(() => {});
     } catch (e) { /* best effort, ignore */ }
   }
 

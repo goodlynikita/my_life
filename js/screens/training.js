@@ -1430,6 +1430,15 @@ function trLastFilledWeekIndex(plan) {
   return 0;
 }
 
+function trExerciseCanonicalGroups(exName) {
+  /* Определяем группу упражнения по каноническому списку.
+     Если упражнение в нескольких группах — берём первую. */
+  for (const [group, list] of Object.entries(MUSCLE_BLOCK_EXERCISES)) {
+    if (list.includes(exName)) return [group];
+  }
+  return null; /* кастомное — определится по сессии */
+}
+
 function trCollectGymExercises(plan) {
   const latest = {};
   plan.weeks.forEach((week, weekIndex) => {
@@ -1439,7 +1448,10 @@ function trCollectGymExercises(plan) {
         if (!trIsGymType(session.type)) return;
         session.exercises.forEach((ex, exIdx) => {
           if (ex.kind !== 'strength') return;
-          latest[ex.name] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups: session.groups || [] };
+          /* Группа: сначала ищем в каноническом списке, иначе берём из сессии */
+          const canonical = trExerciseCanonicalGroups(ex.name);
+          const groups = canonical || session.groups || [];
+          latest[ex.name] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
         });
       });
     });
@@ -1482,14 +1494,9 @@ function trRenderWorkingWeight(plan) {
       const progress = trCalcProgress(plan, weekIndex, name);
       const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
       const sign = progress.pct > 0 ? '+' : '';
-      const wClamp = Math.min(50, Math.abs(progress.pct) / 2);
-      const wColor = progress.dir === 'up' ? '#A8C97F' : progress.dir === 'down' ? '#FF5C5C' : '#3A3D45';
-      const wLeft = progress.dir === 'down' ? (50 - wClamp) + '%' : '50%';
-      const wWidth = wClamp > 0 ? wClamp + '%' : '0%';
-      const miniBar = `<div class="tr-progress-bar-track" style="margin-top:4px;"><div class="tr-progress-bar-fill" style="left:${wLeft}; width:${wWidth}; background:${wColor};"></div></div>`;
       return `
         <tr>
-          <td class="tr-ww-name">${ex.name}<br>${miniBar}</td>
+          <td class="tr-ww-name">${ex.name}</td>
           <td class="tr-ww-num num">${ex.sets}</td>
           <td class="tr-ww-num num">${ex.reps}</td>
           <td class="tr-ww-num num tr-ww-weight">${ex.weight} кг</td>
@@ -1824,10 +1831,11 @@ function nutrRenderDay(dateKey, plan, onUpdate) {
       <div class="nutr-food-item">
         <div class="nutr-food-left">
           <div class="nutr-food-name">${item.name}</div>
-          <div class="nutr-food-meta">${item.grams}г · Б${Math.round(item.protein * item.grams / 100 * 10)/10} Ж${Math.round(item.fat * item.grams / 100 * 10)/10} У${Math.round(item.carbs * item.grams / 100 * 10)/10}</div>
+          <div class="nutr-food-meta">Б${Math.round(item.protein * item.grams / 100 * 10)/10} · Ж${Math.round(item.fat * item.grams / 100 * 10)/10} · У${Math.round(item.carbs * item.grams / 100 * 10)/10}</div>
         </div>
         <div class="nutr-food-right">
-          <span class="nutr-food-kcal">${Math.round(item.kcal * item.grams / 100)} ккал</span>
+          <input class="nutr-grams-inline" type="number" value="${item.grams}" min="1" data-meal="${meal}" data-idx="${idx}" style="width:52px; text-align:center; background:#0F1117; border:0.5px solid #2A2D35; border-radius:6px; color:#E8E5DC; font-size:12px; padding:3px 4px;">
+          <span class="nutr-food-kcal" id="kcal-${meal}-${idx}">${Math.round(item.kcal * item.grams / 100)} ккал</span>
           <button class="nutr-delete-btn" data-meal="${meal}" data-idx="${idx}" title="Удалить"><i class="ti ti-trash"></i></button>
         </div>
       </div>`).join('');
@@ -1889,13 +1897,30 @@ function trRenderNutrition(plan) {
         renderAll();
       });
     });
+
+    /* Inline редактирование граммов */
+    wrap.querySelectorAll('.nutr-grams-inline').forEach(input => {
+      input.addEventListener('change', () => {
+        const meal = input.dataset.meal;
+        const idx = parseInt(input.dataset.idx);
+        const newGrams = parseFloat(input.value) || 100;
+        const dayData = nutrGetDay(getDateKey());
+        dayData[meal][idx].grams = newGrams;
+        nutrSaveDay(getDateKey(), dayData);
+        /* Обновляем только ккал без полного перерендера */
+        const item = dayData[meal][idx];
+        const kcalEl = wrap.querySelector('#kcal-' + meal + '-' + idx);
+        if (kcalEl) kcalEl.textContent = Math.round(item.kcal * newGrams / 100) + ' ккал';
+      });
+    });
   }
 
-  /* Цель питания — план */
-  const targetHtml = `
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
     <div class="tr-group-card" style="margin-bottom:12px;">
-      <div class="tr-group-title fb-accent">Цель · план №${plan.number}
-        <button id="tr-edit-nutrition" style="margin-left:auto; background:none; border:none; color:#9D9A92; cursor:pointer; font-size:13px;"><i class="ti ti-edit"></i></button>
+      <div class="tr-group-title fb-accent" style="display:flex; align-items:center;">
+        Цель · план №${plan.number}
+        <button class="nutr-edit-goal-btn" style="margin-left:auto; background:none; border:0.5px solid #2A2D35; border-radius:6px; color:#9D9A92; cursor:pointer; font-size:12px; padding:3px 8px;"><i class="ti ti-edit"></i> Изменить</button>
       </div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
         <span style="font-size:13px; color:#2E7FD4;">${n.totalKcal} ккал</span>
@@ -1906,20 +1931,16 @@ function trRenderNutrition(plan) {
     </div>
     <div id="nutr-wrap"></div>`;
 
-  setTimeout(() => {
-    const editBtn = document.getElementById('tr-edit-nutrition');
-    if (editBtn) editBtn.addEventListener('click', () => {
-      trOpenNutritionModal(plan, () => {
-        const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
-        Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
-        /* Перерисовываем всю вкладку питания */
-        content.innerHTML = trRenderNutrition(plan);
-      });
+  wrap.querySelector('.nutr-edit-goal-btn').addEventListener('click', () => {
+    trOpenNutritionModal(plan, () => {
+      const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
+      Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
+      content.innerHTML = trRenderNutrition(plan);
     });
-    renderAll();
-  }, 50);
+  });
 
-  return targetHtml;
+  setTimeout(() => renderAll(), 0);
+  return wrap.innerHTML;
 }
 
 

@@ -395,6 +395,129 @@ function trCalcProgress(plan, weekIndex, exerciseName) {
   return { pct, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
 }
 
+
+const EXERCISE_PROGRESSION = {
+  /* ГРУДЬ */
+  'Жим гантели':        { min: 8,  max: 12, step: 2 },
+  'Жим штанга':         { min: 6,  max: 10, step: 2.5 },
+  'Жим гантели наклон': { min: 8,  max: 12, step: 2 },
+  'Жим штанга наклон':  { min: 6,  max: 10, step: 2.5 },
+  'Кроссовер сверху':   { min: 12, max: 15, step: 2.5 },
+  'Кроссовер снизу':    { min: 12, max: 15, step: 2.5 },
+  'Разведения':         { min: 12, max: 15, step: 2 },
+  'Бабочка':            { min: 12, max: 15, step: 5 },
+  'Брусья':             { min: 8,  max: 12, step: 2.5 },
+  /* СПИНА */
+  'Пуловер':            { min: 10, max: 12, step: 2.5 },
+  'Тяга штанги':        { min: 8,  max: 10, step: 2.5 },
+  'Тяга верхнего блока':{ min: 8,  max: 12, step: 5 },
+  'Тяга нижнего блока': { min: 8,  max: 12, step: 5 },
+  'Гиперэкстензия':     { min: 12, max: 15, step: 2.5 },
+  'Тяга гантелей':      { min: 8,  max: 12, step: 2 },
+  'Подтягивания':       { min: 6,  max: 10, step: 2.5 },
+  /* РУКИ */
+  'Подъём штанги':            { min: 8,  max: 12, step: 2.5 },
+  'Французский жим':          { min: 8,  max: 12, step: 2.5 },
+  'Молотки гантель':          { min: 8,  max: 12, step: 2 },
+  'Подъём гантель':           { min: 8,  max: 12, step: 2 },
+  'Разгибания канаты':        { min: 10, max: 12, step: 2.5 },
+  'Разгибания из-за головы':  { min: 10, max: 12, step: 2.5 },
+  'Бицепс наклон':            { min: 10, max: 12, step: 2 },
+  'Молотки стоя':             { min: 8,  max: 12, step: 2 },
+  /* НОГИ */
+  'Присяд штанга': { min: 6,  max: 10, step: 5 },
+  'Присяд гакк':   { min: 8,  max: 12, step: 5 },
+  'Жим ногами':    { min: 10, max: 12, step: 10 },
+  'Пресс':         { min: 15, max: 20, step: 0 },
+  'Разгибания':    { min: 10, max: 12, step: 5 },
+  'Сгибания':      { min: 10, max: 12, step: 5 },
+  /* ПЛЕЧИ */
+  'Махи':        { min: 12, max: 15, step: 2 },
+  'Жим':         { min: 8,  max: 12, step: 2 },
+};
+
+function trGetProgression(exName) {
+  return EXERCISE_PROGRESSION[exName] || null;
+}
+
+function trGetLastSession(plan, exName) {
+  /* Ищем последнюю запись этого упражнения по всем неделям */
+  let last = null;
+  plan.weeks.forEach(week => {
+    week.days.forEach(day => {
+      trMigrateDayToSessions(day);
+      day.sessions.forEach(session => {
+        session.exercises.forEach(ex => {
+          if (ex.name === exName && ex.kind === 'strength') last = ex;
+        });
+      });
+    });
+  });
+  return last;
+}
+
+function trProgressionHint(plan, exName) {
+  const prog = trGetProgression(exName);
+  if (!prog) return null;
+
+  const last = trGetLastSession(plan, exName);
+
+  if (!last) {
+    return {
+      type: 'first',
+      html: `<div class="tr-prog-hint tr-prog-first">
+        <i class="ti ti-info-circle"></i>
+        <span>Первый раз — начни с комфортного веса и нащупай свой рабочий</span>
+      </div>`
+    };
+  }
+
+  const { sets, reps, weight } = last;
+  const lastLine = `${sets} × ${reps} × ${weight} кг`;
+
+  if (prog.step === 0) {
+    /* Пресс — только повторы */
+    const target = reps < prog.max ? `${sets} × ${Math.min(reps + 2, prog.max)} повторов` : `усложни упражнение`;
+    return {
+      type: 'reps',
+      html: `<div class="tr-prog-hint tr-prog-ok">
+        <div class="tr-prog-last">Последний раз: ${lastLine}</div>
+        <div class="tr-prog-target"><i class="ti ti-target"></i> Цель сегодня: ${target}</div>
+      </div>`
+    };
+  }
+
+  if (reps >= prog.max) {
+    /* Закрыл все повторы — поднимаем вес */
+    const newWeight = weight + prog.step;
+    return {
+      type: 'increase',
+      html: `<div class="tr-prog-hint tr-prog-up">
+        <div class="tr-prog-last">Последний раз: ${lastLine} ✅</div>
+        <div class="tr-prog-target"><i class="ti ti-trending-up"></i> Поднимай до <strong>${newWeight} кг</strong>, цель ${sets} × ${prog.min}</div>
+      </div>`
+    };
+  } else if (reps >= prog.min) {
+    /* В диапазоне — держим вес, добавляем повторы */
+    return {
+      type: 'hold',
+      html: `<div class="tr-prog-hint tr-prog-hold">
+        <div class="tr-prog-last">Последний раз: ${lastLine}</div>
+        <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${weight} кг</strong>, цель — дойти до ${sets} × ${prog.max}</div>
+      </div>`
+    };
+  } else {
+    /* Ниже минимума — работаем над повторами */
+    return {
+      type: 'work',
+      html: `<div class="tr-prog-hint tr-prog-low">
+        <div class="tr-prog-last">Последний раз: ${lastLine}</div>
+        <div class="tr-prog-target"><i class="ti ti-refresh"></i> Оставь <strong>${weight} кг</strong>, работай над повторами (цель ${prog.min}–${prog.max})</div>
+      </div>`
+    };
+  }
+}
+
 function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const progress = trCalcProgress(plan, weekIndex, ex.name);
   const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
@@ -564,14 +687,15 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
         <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" value="${ex.steps}" inputmode="numeric"></label>
       </div>`;
   } else {
-    const hint = trWeightHint(plan, ex.name);
+    const hint = trProgressionHint(plan, ex.name);
+    const hintHtml = hint ? hint.html : '';
     fieldsHtml = `
+      ${hintHtml}
       <div class="tr-modal-row">
         <label>Подходы<input type="number" id="m-sets" value="${ex.sets}" inputmode="numeric"></label>
         <label>Повторы<input type="number" id="m-reps" value="${ex.reps}" inputmode="numeric"></label>
         <label>Вес, кг<input type="number" id="m-weight" value="${ex.weight}" inputmode="numeric"></label>
       </div>
-      ${hint ? `<p class="tr-hint">${hint}</p>` : ''}
       <button type="button" class="tr-link-btn" id="m-toggle-sets">${ex.setDetails ? 'Скрыть' : 'Записать каждый подход отдельно'}</button>
       <div id="m-set-details-wrap">${ex.setDetails ? trBuildSetDetailsRows(ex.setDetails) : ''}</div>`;
   }
@@ -779,11 +903,11 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
     const hintEl = overlay.querySelector('#m-weight-hint');
     const nameEl = overlay.querySelector('#m-name-wrap #m-name');
     if (!hintEl || !nameEl || !nameEl.value || nameEl.value === '__custom__') {
-      if (hintEl) hintEl.textContent = '';
+      if (hintEl) hintEl.innerHTML = '';
       return;
     }
-    const hint = trWeightHint(plan, nameEl.value);
-    hintEl.textContent = hint || '';
+    const hint = trProgressionHint(plan, nameEl.value);
+    hintEl.innerHTML = hint ? hint.html : '';
   }
 
   function bindGroupCheckboxes() {
@@ -885,11 +1009,11 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     const hintEl = overlay.querySelector('#m-weight-hint');
     const nameEl = overlay.querySelector('#m-name-wrap #m-name');
     if (!hintEl || !nameEl || !nameEl.value || nameEl.value === '__custom__') {
-      if (hintEl) hintEl.textContent = '';
+      if (hintEl) hintEl.innerHTML = '';
       return;
     }
-    const hint = trWeightHint(plan, nameEl.value);
-    hintEl.textContent = hint || '';
+    const hint = trProgressionHint(plan, nameEl.value);
+    hintEl.innerHTML = hint ? hint.html : '';
   }
 
   function refreshFields() {

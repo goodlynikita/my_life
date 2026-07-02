@@ -1010,3 +1010,51 @@
 .nutr-result-name { font-size: 13px; font-weight: 500; }
 .nutr-result-meta { font-size: 11px; color: #9D9A92; margin-top: 2px; }
 .nutr-result-kcal { font-size: 12px; color: #2E7FD4; margin-top: 2px; }
+
+/* ── Прогрессия нагрузки ───────────────────────────── */
+.tr-prog-hint {
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.tr-prog-last {
+  color: #9D9A92;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.tr-prog-target {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tr-prog-target strong { font-weight: 600; }
+.tr-prog-up {
+  background: #1A2A1A;
+  border: 0.5px solid #A8C97F55;
+}
+.tr-prog-up .tr-prog-target { color: #A8C97F; }
+.tr-prog-hold {
+  background: #1A1E2A;
+  border: 0.5px solid #2E7FD455;
+}
+.tr-prog-hold .tr-prog-target { color: #7FAEBF; }
+.tr-prog-low {
+  background: #2A1A1A;
+  border: 0.5px solid #FF5C5C55;
+}
+.tr-prog-low .tr-prog-target { color: #FF7F7F; }
+.tr-prog-first {
+  background: #1C1E24;
+  border: 0.5px solid #2A2D35;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9D9A92;
+}
+.tr-prog-ok {
+  background: #1A2A1A;
+  border: 0.5px solid #A8C97F33;
+}
+.tr-prog-ok .tr-prog-target { color: #A8C97F; }

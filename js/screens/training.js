@@ -485,6 +485,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
         <div class="tr-session-head">
           <span class="tr-day-tag has-session" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${session.type}</span>${groupTags}
           <span class="tr-session-actions">
+            <button class="tr-day-add tr-session-move" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день"><i class="ti ti-calendar-share"></i></button>
             ${!isRest ? `<button class="tr-day-add tr-session-add-ex" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Добавить упражнение" title="Добавить упражнение в эту тренировку"><i class="ti ti-plus"></i></button>` : ''}
             <button class="tr-day-add tr-day-clear" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Удалить тренировку" title="Удалить эту тренировку"><i class="ti ti-trash"></i></button>
           </span>
@@ -1055,6 +1056,58 @@ window.Screens.training = function (mount) {
 
   let collapsedWeeks = loadCollapsedWeeks(currentPlanId);
 
+  function trOpenMoveModal(plan, srcWeek, srcDay, srcSession, onSave) {
+    /* Строим список всех дней плана для выбора */
+    const options = [];
+    plan.weeks.forEach((w, wi) => {
+      w.days.forEach((d, di) => {
+        if (wi === srcWeek && di === srcDay) return; /* пропускаем текущий */
+        options.push({ wi, di, label: `Неделя ${wi+1} · ${d.date} ${d.dow}` });
+      });
+    });
+
+    const overlay = document.createElement('div');
+    overlay.className = 'tr-modal-overlay';
+    overlay.innerHTML = `
+      <div class="tr-modal" style="max-height:70vh; overflow-y:auto;">
+        <p class="tr-modal-title"><i class="ti ti-calendar-share"></i> Перенести тренировку</p>
+        <p style="font-size:13px; color:#9D9A92; margin-bottom:12px;">Выберите день назначения:</p>
+        <div id="move-day-list">
+          ${options.map((o, i) => `
+            <button class="tr-move-day-opt" data-wi="${o.wi}" data-di="${o.di}" style="width:100%; text-align:left; padding:10px 12px; background:#1C1E24; border:0.5px solid #2A2D35; border-radius:8px; color:#E8E5DC; font-size:13px; cursor:pointer; margin-bottom:6px;">
+              ${o.label}
+            </button>`).join('')}
+        </div>
+        <div class="tr-modal-actions">
+          <button class="tr-modal-btn-secondary" id="move-cancel">Отмена</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#move-cancel').addEventListener('click', () => overlay.remove());
+
+    overlay.querySelectorAll('.tr-move-day-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tgtW = parseInt(btn.dataset.wi);
+        const tgtD = parseInt(btn.dataset.di);
+        trSnapshotBeforeChange();
+
+        /* Вырезаем сессию из источника */
+        const srcSessions = plan.weeks[srcWeek].days[srcDay].sessions;
+        const [movedSession] = srcSessions.splice(srcSession, 1);
+
+        /* Вставляем в целевой день */
+        trMigrateDayToSessions(plan.weeks[tgtW].days[tgtD]);
+        plan.weeks[tgtW].days[tgtD].sessions.push(movedSession);
+
+        trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
+        overlay.remove();
+        onSave();
+      });
+    });
+  }
+
   function bindPlanEvents(plan) {
     /* Комментарий к дню */
     content.querySelectorAll('.tr-day-comment-btn').forEach(btn => {
@@ -1210,6 +1263,15 @@ window.Screens.training = function (mount) {
         });
       });
     });
+    content.querySelectorAll('.tr-session-move').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const w = parseInt(btn.dataset.week, 10);
+        const d = parseInt(btn.dataset.day, 10);
+        const s = parseInt(btn.dataset.session, 10);
+        trOpenMoveModal(plan, w, d, s, () => renderTab('plan'));
+      });
+    });
+
     content.querySelectorAll('.tr-session-add-ex').forEach(btn => {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);

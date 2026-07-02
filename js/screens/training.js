@@ -485,7 +485,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
         <div class="tr-session-head">
           <span class="tr-day-tag has-session" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${session.type}</span>${groupTags}
           <span class="tr-session-actions">
-            <button class="tr-day-add tr-session-move" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день"><i class="ti ti-calendar-share"></i></button>
+            <button class="tr-session-move" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день" style="background:none; border:none; cursor:pointer; color:#9D9A92; padding:4px 6px; font-size:15px;"><i class="ti ti-calendar-share"></i></button>
             ${!isRest ? `<button class="tr-day-add tr-session-add-ex" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Добавить упражнение" title="Добавить упражнение в эту тренировку"><i class="ti ti-plus"></i></button>` : ''}
             <button class="tr-day-add tr-day-clear" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Удалить тренировку" title="Удалить эту тренировку"><i class="ti ti-trash"></i></button>
           </span>
@@ -1039,10 +1039,43 @@ window.Screens.training = function (mount) {
     return `nik_collapsed_weeks_${planId}`;
   }
 
-  function loadCollapsedWeeks(planId) {
+  function findCurrentWeekIndex(plan) {
+    /* Определяем индекс текущей недели по дате */
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < plan.weeks.length; i++) {
+      const week = plan.weeks[i];
+      if (!week.range) continue;
+      /* range формат: "01.07 – 07.07" */
+      const parts = week.range.split(' – ');
+      if (parts.length < 2) continue;
+      /* Парсим дату конца недели */
+      const endParts = parts[1].split('.');
+      if (endParts.length < 2) continue;
+      const endDay = parseInt(endParts[0]);
+      const endMonth = parseInt(endParts[1]) - 1;
+      const endYear = today.getFullYear();
+      const weekEnd = new Date(endYear, endMonth, endDay);
+      weekEnd.setHours(23, 59, 59);
+      /* Парсим дату начала */
+      const startParts = parts[0].split('.');
+      const startDay = parseInt(startParts[0]);
+      const startMonth = parseInt(startParts[1]) - 1;
+      const weekStart = new Date(endYear, startMonth, startDay);
+      weekStart.setHours(0, 0, 0, 0);
+      if (today >= weekStart && today <= weekEnd) return i;
+    }
+    return -1; /* не найдена */
+  }
+
+  function loadCollapsedWeeks(planId, plan) {
     try {
       const raw = localStorage.getItem(collapsedWeeksKey(planId));
-      return raw ? JSON.parse(raw) : [];
+      if (raw) return JSON.parse(raw);
+      /* Первый раз: сворачиваем все кроме текущей недели */
+      if (!plan) return [];
+      const currentIdx = findCurrentWeekIndex(plan);
+      return plan.weeks.map((_, i) => i).filter(i => i !== currentIdx);
     } catch (e) {
       return [];
     }
@@ -1054,7 +1087,7 @@ window.Screens.training = function (mount) {
     } catch (e) { /* ignore */ }
   }
 
-  let collapsedWeeks = loadCollapsedWeeks(currentPlanId);
+  let collapsedWeeks = loadCollapsedWeeks(currentPlanId, trGetPlans().find(p => p.id === currentPlanId));
 
   function trOpenMoveModal(plan, srcWeek, srcDay, srcSession, onSave) {
     /* Строим список всех дней плана для выбора */
@@ -1397,6 +1430,21 @@ window.Screens.training = function (mount) {
       });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);
+      /* Кнопка цели — вешаем здесь где content доступен */
+      const goalBtn = content.querySelector('.nutr-edit-goal-btn');
+      if (goalBtn) {
+        if (role === 'coach') {
+          goalBtn.style.display = 'none';
+        } else {
+          goalBtn.addEventListener('click', () => {
+            trOpenNutritionModal(plan, () => {
+              const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
+              Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
+              renderTab('nutrition');
+            });
+          });
+        }
+      }
       const editBtn = document.getElementById('tr-edit-nutrition');
       if (editBtn) {
         if (role === 'coach') {
@@ -1423,7 +1471,7 @@ window.Screens.training = function (mount) {
 
   planSelect.addEventListener('change', () => {
     currentPlanId = planSelect.value;
-    collapsedWeeks = loadCollapsedWeeks(currentPlanId);
+    collapsedWeeks = loadCollapsedWeeks(currentPlanId, trGetPlans().find(p => p.id === currentPlanId));
     mount.querySelectorAll('.tr-tab').forEach(t => t.classList.remove('active'));
     mount.querySelector('[data-tab="plan"]').classList.add('active');
     renderTab('plan');
@@ -1721,14 +1769,17 @@ function nutrOpenAddModal(dateKey, meal, onSave) {
 
       <div id="nutr-frequent-wrap"></div>
 
-      <details style="margin-top:8px;">
+      <div class="tr-modal-row" style="margin-top:8px;">
+        <label style="flex:1 1 100%;">Граммы<input type="number" id="nutr-grams" value="100" inputmode="numeric"></label>
+      </div>
+
+      <details style="margin-top:4px;">
         <summary style="font-size:12px; color:#555; cursor:pointer; padding:6px 0;">+ добавить вручную</summary>
         <div style="margin-top:8px;">
           <div class="tr-modal-row">
             <label style="flex:1 1 100%">Название<input type="text" id="nutr-name" placeholder="Название продукта"></label>
           </div>
           <div class="tr-modal-row">
-            <label>Граммы<input type="number" id="nutr-grams" value="100" inputmode="numeric"></label>
             <label>Ккал/100г<input type="number" id="nutr-kcal" inputmode="numeric"></label>
           </div>
           <div class="tr-modal-row">
@@ -1993,14 +2044,6 @@ function trRenderNutrition(plan) {
     </div>
     <div id="nutr-wrap"></div>`;
 
-  wrap.querySelector('.nutr-edit-goal-btn').addEventListener('click', () => {
-    trOpenNutritionModal(plan, () => {
-      const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
-      Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
-      content.innerHTML = trRenderNutrition(plan);
-    });
-  });
-
   setTimeout(() => renderAll(), 0);
   return wrap.innerHTML;
 }
@@ -2104,57 +2147,117 @@ function trRenderWasNowRow(exerciseName, plan) {
     </div>`;
 }
 
-function trRenderSummary(plan) {
-  /* Собираем упражнения по группам мышц (зал) и по типу (остальное) */
-  /* Для зала: ключ = название группы мышц, порядок = MUSCLE_BLOCK_EXERCISES */
-  /* Для остального: ключ = тип тренировки */
-
-  const gymByGroup = {}; // groupName -> Set of exercise names
-  const otherByType = {}; // typeName -> Set of exercise names
-  const GYM_ORDER = WORKING_WEIGHT_CATEGORIES; // ['Грудь','Спина','Ноги','Руки','Плечи']
-
-  plan.weeks.forEach(week => {
+function trRenderWasNowWeightRow(exerciseName, plan) {
+  /* Показываем прогрессию рабочего веса: неделя 1 → текущая */
+  let first = null, last = null;
+  plan.weeks.forEach((week, wi) => {
     week.days.forEach(day => {
       trMigrateDayToSessions(day);
       day.sessions.forEach(session => {
-        if (!session.type || session.type === 'Отдых') return;
-        if (trIsGymType(session.type)) {
-          const groups = session.groups && session.groups.length ? session.groups : ['FULL BODY'];
-          const expanded = groups.includes('FULL BODY') ? GYM_ORDER : groups;
-          expanded.forEach(g => {
-            if (!gymByGroup[g]) gymByGroup[g] = new Set();
-            session.exercises.forEach(ex => { if (ex.name) gymByGroup[g].add(ex.name); });
-          });
-        } else {
-          const t = session.type;
-          if (!otherByType[t]) otherByType[t] = new Set();
-          session.exercises.forEach(ex => { if (ex.name) otherByType[t].add(ex.name); });
-        }
+        if (!trIsGymType(session.type)) return;
+        session.exercises.forEach(ex => {
+          if (ex.name !== exerciseName || ex.kind !== 'strength') return;
+          if (!first) first = { ex, wi };
+          last = { ex, wi };
+        });
       });
     });
   });
 
-  /* Зал: секции в порядке групп мышц, упражнения в каноническом порядке */
+  if (!first) return '';
+
+  const w1 = first.ex.weight;
+  const wN = last.ex.weight;
+  const diff = wN - w1;
+  const pct = w1 > 0 ? Math.round((diff / w1) * 100) : 0;
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
+  const color = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#9D9A92';
+  const sign = diff > 0 ? '+' : '';
+
+  /* Прогресс-бар */
+  const clamp = Math.min(50, Math.abs(pct) / 2);
+  const barColor = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#3A3D45';
+  const barLeft = diff < 0 ? (50 - clamp) + '%' : '50%';
+  const barWidth = clamp > 0 ? clamp + '%' : '0%';
+  const bar = `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${barLeft}; width:${barWidth}; background:${barColor};"></div></div>`;
+
+  return `
+    <div class="tr-exercise" style="cursor:default;">
+      <div class="tr-ex-top">
+        <div class="tr-ex-name">${exerciseName}</div>
+        <div class="tr-ex-stats">
+          <span class="tr-ex-weight num" style="color:${color};">${sign}${diff} кг ${arrow} ${sign}${pct}%</span>
+        </div>
+      </div>
+      <div class="tr-ex-bottom">
+        <div class="tr-ex-meta num" style="display:flex; gap:8px; align-items:center;">
+          <span style="color:#9D9A92;">Нед.${first.wi+1}: ${first.ex.sets}×${first.ex.reps}×${w1}кг</span>
+          <span style="color:#555;">→</span>
+          <span style="color:#E8E5DC;">Нед.${last.wi+1}: ${last.ex.sets}×${last.ex.reps}×${wN}кг</span>
+        </div>
+      </div>
+      ${bar}
+    </div>`;
+}
+
+function trRenderSummary(plan) {
+  const GYM_ORDER = WORKING_WEIGHT_CATEGORIES;
+
+  /* Собираем упражнения зала по каноническим группам */
+  const gymByGroup = {};
+  plan.weeks.forEach(week => {
+    week.days.forEach(day => {
+      trMigrateDayToSessions(day);
+      day.sessions.forEach(session => {
+        if (!trIsGymType(session.type)) return;
+        session.exercises.forEach(ex => {
+          if (!ex.name || ex.kind !== 'strength') return;
+          const canonical = trExerciseCanonicalGroups(ex.name);
+          const groups = canonical || (session.groups && session.groups.length ? session.groups : ['FULL BODY']);
+          const expanded = groups.includes('FULL BODY') ? GYM_ORDER : groups;
+          expanded.forEach(g => {
+            if (!gymByGroup[g]) gymByGroup[g] = new Set();
+            gymByGroup[g].add(ex.name);
+          });
+        });
+      });
+    });
+  });
+
+  /* Зал: прогрессия рабочего веса по группам */
   const gymHtml = GYM_ORDER.filter(g => gymByGroup[g] && gymByGroup[g].size > 0).map(g => {
     const canonical = MUSCLE_BLOCK_EXERCISES[g] || [];
     const inOrder = canonical.filter(name => gymByGroup[g].has(name));
     const custom = Array.from(gymByGroup[g]).filter(name => !canonical.includes(name));
     const allNames = [...inOrder, ...custom];
-    const rows = allNames.map(name => trRenderWasNowRow(name, plan)).join('');
+    const rows = allNames.map(name => trRenderWasNowWeightRow(name, plan)).join('');
+    if (!rows) return '';
     return `
       <div class="tr-group-card">
-        <div class="tr-group-title">${g} <span class="tr-group-range">· было → стало</span></div>
+        <div class="tr-group-title">${g} <span class="tr-group-range">· прогрессия веса</span></div>
         <div class="tr-day">${rows}</div>
       </div>`;
-  }).join('');
+  }).filter(Boolean).join('');
 
-  /* Остальное: Теннис, Кардио, Бокс и тд */
+  /* Остальное: кардио/теннис по объёму */
+  const otherByType = {};
+  plan.weeks.forEach(week => {
+    week.days.forEach(day => {
+      trMigrateDayToSessions(day);
+      day.sessions.forEach(session => {
+        if (trIsGymType(session.type) || session.type === 'Отдых') return;
+        if (!otherByType[session.type]) otherByType[session.type] = new Set();
+        session.exercises.forEach(ex => { if (ex.name) otherByType[session.type].add(ex.name); });
+      });
+    });
+  });
+
   const TYPE_ORDER = ['Теннис', 'Кардио', 'Бокс', '10k', 'Лыжи'];
   const orderedTypes = [
     ...TYPE_ORDER.filter(t => otherByType[t]),
     ...Object.keys(otherByType).filter(t => !TYPE_ORDER.includes(t))
   ];
-  const otherHtml = orderedTypes.filter(t => otherByType[t].size > 0).map(t => {
+  const otherHtml = orderedTypes.filter(t => otherByType[t] && otherByType[t].size > 0).map(t => {
     const rows = Array.from(otherByType[t]).map(name => trRenderWasNowRow(name, plan)).join('');
     return `
       <div class="tr-group-card">
@@ -2166,7 +2269,7 @@ function trRenderSummary(plan) {
   const allHtml = gymHtml + otherHtml;
   const exercisesHtml = allHtml
     ? allHtml
-    : `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Сводка «было → стало» появится здесь после заполнения плана.</div>`;
+    : `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Прогрессия появится здесь после нескольких недель тренировок.</div>`;
 
   return exercisesHtml + trRenderMeasurementsBlock();
 }

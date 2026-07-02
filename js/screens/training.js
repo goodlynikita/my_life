@@ -1110,6 +1110,23 @@ window.Screens.training = function (mount) {
   }
 
   renderTab('plan');
+
+  /* Realtime sync от Firebase (тренер добавил тренировку с другого устройства) */
+  function _onSyncUpdate() {
+    populatePlanSelect();
+    renderTab(document.querySelector('.tr-tab.active')?.dataset.tab || 'plan');
+    /* данные уже синхронизированы, FirebaseSync показал статус */
+  }
+  window.addEventListener('firebase-sync-update', _onSyncUpdate);
+
+  /* Отписываемся при уходе с экрана (router перерисует другой экран) */
+  const _observer = new MutationObserver(() => {
+    if (!document.contains(mount)) {
+      window.removeEventListener('firebase-sync-update', _onSyncUpdate);
+      _observer.disconnect();
+    }
+  });
+  if (mount.parentElement) _observer.observe(mount.parentElement, { childList: true });
 };
 
 function trLastFilledWeekIndex(plan) {

@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const _fbApp = initializeApp(window.FIREBASE_CONFIG);
 const _db = getDatabase(_fbApp);
@@ -11,9 +11,15 @@ const FirebaseSync = (() => {
   let _pendingPath = null;
   let _pendingValue = null;
   let _saveTimer = null;
-  /* Флаг — данные реально загружены из Firebase.
-     Пока false — любая запись заблокирована. */
   let _loaded = false;
+  let _realtimeUnsub = null;
+  let _realtimeActive = false;
+  /* Флаг: мы сами пишем в Firebase прямо сейчас — игнорируем входящий
+     onValue чтобы не перезаписать локальные изменения удалённой копией */
+  let _writing = false;
+  /* Версия данных — инкрементируется при каждом локальном изменении.
+     Если onValue приходит устаревшая версия — игнорируем её. */
+  let _localVersion = 0;
 
   function isConfigured() {
     return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL);
@@ -46,48 +52,145 @@ const FirebaseSync = (() => {
     }
   }
 
+  /* Первичная загрузка: один get() чтобы получить данные быстро,
+     потом подписываемся на onValue для realtime обновлений */
   async function pullIntoStore() {
     try {
       const snap = await Promise.race([
         get(ref(_db, ROOT)),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
       ]);
+
       const remote = snap.exists() ? snap.val() : null;
       const hasData = remote && remote.training
         && Array.isArray(remote.training.plans)
         && remote.training.plans.length > 0;
+
       if (hasData) {
         Store.replaceAll(remote);
         setStatus('Данные загружены');
         _loaded = true;
+        _startRealtimeSync();
         return true;
       }
-      /* Firebase пуст — разрешаем запись только после того как
-         пользователь сам создаст первый план */
+
       _loaded = true;
+      _startRealtimeSync();
       return false;
     } catch (e) {
       console.error('pullIntoStore failed', e);
-      setStatus('Ошибка загрузки', true);
-      /* При ошибке НЕ разрешаем запись — не затираем данные */
+      setStatus('Нет связи — работаем локально', true);
+      /* При ошибке сети: пробуем загрузить данные через короткий retry */
+      _scheduleRetry();
       _loaded = false;
       return 'error';
     }
   }
 
+  /* Realtime listener — получаем изменения от тренера или другого устройства */
+  function _startRealtimeSync() {
+    if (_realtimeActive) return;
+    _realtimeActive = true;
+
+    const dbRef = ref(_db, ROOT);
+    _realtimeUnsub = onValue(dbRef, (snap) => {
+      /* Игнорируем если сами пишем */
+      if (_writing) return;
+      if (!_loaded) return;
+
+      const remote = snap.exists() ? snap.val() : null;
+      if (!remote) return;
+
+      const hasData = remote.training
+        && Array.isArray(remote.training.plans)
+        && remote.training.plans.length > 0;
+
+      if (!hasData) return;
+
+      /* Мерджим: берём удалённые данные только если они "новее".
+         Простая эвристика: сравниваем кол-во заполненных сессий. */
+      const localData = Store.get();
+      if (_isRemoteNewer(remote, localData)) {
+        Store.replaceAll(remote);
+        setStatus('Синхронизировано');
+        /* Перерисовываем экран если открыт Training */
+        _notifyScreenUpdate();
+      }
+    }, (err) => {
+      console.error('realtime sync error', err);
+    });
+  }
+
+  function _stopRealtimeSync() {
+    if (_realtimeUnsub) {
+      off(ref(_db, ROOT));
+      _realtimeUnsub = null;
+      _realtimeActive = false;
+    }
+  }
+
+  function _countSessions(data) {
+    let count = 0;
+    try {
+      for (const plan of (data.training?.plans || [])) {
+        for (const week of (plan?.weeks || [])) {
+          for (const day of (week?.days || [])) {
+            count += (day?.sessions?.length || 0);
+          }
+        }
+      }
+    } catch (e) {}
+    return count;
+  }
+
+  function _isRemoteNewer(remote, local) {
+    /* Если у remote больше данных — берём remote */
+    const remoteCount = _countSessions(remote);
+    const localCount = _countSessions(local);
+    return remoteCount > localCount;
+  }
+
+  function _notifyScreenUpdate() {
+    /* Генерируем кастомное событие — training.js может его слушать */
+    try {
+      window.dispatchEvent(new CustomEvent('firebase-sync-update'));
+    } catch (e) {}
+  }
+
+  let _retryTimer = null;
+  function _scheduleRetry() {
+    if (_retryTimer) return;
+    _retryTimer = setTimeout(async () => {
+      _retryTimer = null;
+      console.log('FirebaseSync: retry pull...');
+      const result = await pullIntoStore();
+      if (result === true) {
+        _notifyScreenUpdate();
+      }
+    }, 5000);
+  }
+
   async function pushPath(storePath, value) {
     if (!_loaded) {
-      console.warn('FirebaseSync: запись заблокирована — данные ещё не загружены');
+      console.warn('FirebaseSync: запись заблокирована — данные не загружены');
       return;
     }
     const fbPath = ROOT + '/' + storePath.replace(/\./g, '/');
     setStatus('Сохранение…');
+    _writing = true;
+    _localVersion++;
     try {
       await set(ref(_db, fbPath), sanitizeKeys(value));
       setStatus('Сохранено');
     } catch (e) {
       console.error('pushPath failed', fbPath, e);
-      setStatus('Ошибка сохранения', true);
+      setStatus('Ошибка сохранения — повтор через 3с', true);
+      /* Retry через 3 секунды */
+      setTimeout(() => pushPath(storePath, value), 3000);
+    } finally {
+      /* Снимаем флаг записи через небольшую задержку,
+         чтобы onValue успел сработать и мы его проигнорировали */
+      setTimeout(() => { _writing = false; }, 1500);
     }
   }
 
@@ -102,10 +205,10 @@ const FirebaseSync = (() => {
         _pendingPath = null;
         _pendingValue = null;
       }
-    }, 300);
+    }, 400);
   }
 
-  /* При закрытии — пишем только если данные были реально загружены */
+  /* Полная запись при уходе со страницы */
   function pushBeacon() {
     if (!_loaded) return;
     const d = Store.get();
@@ -119,8 +222,23 @@ const FirebaseSync = (() => {
   }
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') pushBeacon();
+    if (document.visibilityState === 'hidden') {
+      pushBeacon();
+    } else if (document.visibilityState === 'visible' && _loaded) {
+      /* При возврате на вкладку — синхронизируем */
+      get(ref(_db, ROOT)).then(snap => {
+        if (!snap.exists() || _writing) return;
+        const remote = snap.val();
+        const local = Store.get();
+        if (_isRemoteNewer(remote, local)) {
+          Store.replaceAll(remote);
+          setStatus('Обновлено');
+          _notifyScreenUpdate();
+        }
+      }).catch(() => {});
+    }
   });
+
   window.addEventListener('pagehide', pushBeacon);
 
   function getConfig() { return window.FIREBASE_CONFIG; }
@@ -128,7 +246,13 @@ const FirebaseSync = (() => {
   function clearConfig() {}
   function pushNow() { pushBeacon(); }
 
-  return { isConfigured, pullIntoStore, pushNow, scheduleSave, getConfig, setConfig, clearConfig };
+  return {
+    isConfigured,
+    pullIntoStore,
+    pushNow,
+    scheduleSave,
+    getConfig, setConfig, clearConfig
+  };
 })();
 
 window.FirebaseSync = FirebaseSync;

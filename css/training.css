@@ -780,3 +780,219 @@
   cursor: pointer;
   z-index: 20;
 }
+
+/* ── Комментарии к дню ─────────────────────────────── */
+.tr-day-comment {
+  font-size: 12px;
+  color: #7FAEBF;
+  padding: 4px 12px 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-style: italic;
+  background: #1A2A35;
+  border-radius: 6px;
+  margin: 0 0 6px;
+}
+
+/* ── Редактор упражнений ───────────────────────────── */
+.tr-ex-edit-group {
+  margin-bottom: 16px;
+}
+.tr-ex-edit-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2E7FD4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.tr-ex-edit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #2A2D3520;
+}
+.tr-ex-edit-name {
+  font-size: 13px;
+  color: #E8E5DC;
+}
+.tr-ex-edit-rename, .tr-ex-edit-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9D9A92;
+  padding: 2px 4px;
+  font-size: 13px;
+}
+.tr-ex-edit-rename:hover { color: #2E7FD4; }
+.tr-ex-edit-delete:hover { color: #FF5C5C; }
+
+/* ── Drag-and-drop упражнений ──────────────────────── */
+.tr-exercise-wrap {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+.tr-exercise-wrap .tr-exercise {
+  flex: 1;
+  width: 100%;
+}
+.tr-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  cursor: grab;
+  color: #3A3D45;
+  font-size: 16px;
+  transition: color 0.15s;
+  user-select: none;
+  touch-action: none;
+}
+.tr-drag-handle:hover {
+  color: #2E7FD4;
+}
+.tr-drag-handle:active {
+  cursor: grabbing;
+}
+.tr-exercise-wrap.tr-dragging {
+  opacity: 0.4;
+}
+.tr-exercise-wrap.tr-drag-over {
+  border-top: 2px solid #2E7FD4;
+}
+
+/* ── Дневник питания ───────────────────────────────── */
+.nutr-date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 12px;
+}
+.nutr-date-nav button {
+  background: none;
+  border: 0.5px solid #2A2D35;
+  color: #E8E5DC;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nutr-date-nav button:disabled { opacity: 0.3; cursor: default; }
+.nutr-date-label { font-size: 14px; font-weight: 500; }
+
+.nutr-macros-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.nutr-macro-card {
+  background: #1C1E24;
+  border: 0.5px solid #2A2D35;
+  border-radius: 10px;
+  padding: 10px 10px 8px;
+}
+.nutr-macro-label { font-size: 10px; color: #9D9A92; margin-bottom: 3px; }
+.nutr-macro-val { font-size: 15px; font-weight: 600; }
+.nutr-macro-sub { font-size: 10px; color: #555; margin-top: 1px; margin-bottom: 5px; }
+.nutr-bar-wrap {
+  height: 3px;
+  background: #2A2D35;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.nutr-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+.nutr-meal-block {
+  background: #1C1E24;
+  border: 0.5px solid #2A2D35;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.nutr-meal-head {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 0.5px solid #2A2D3560;
+  gap: 8px;
+}
+.nutr-meal-title { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; flex: 1; }
+.nutr-meal-kcal { font-size: 13px; color: #2E7FD4; font-weight: 500; }
+.nutr-add-meal-btn {
+  background: #2E7FD420;
+  border: 0.5px solid #2E7FD4;
+  color: #2E7FD4;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+.nutr-empty-meal { padding: 10px 14px; font-size: 12px; color: #555; }
+
+.nutr-food-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-bottom: 0.5px solid #2A2D3530;
+}
+.nutr-food-item:last-child { border-bottom: none; }
+.nutr-food-name { font-size: 13px; }
+.nutr-food-meta { font-size: 11px; color: #9D9A92; margin-top: 2px; }
+.nutr-food-right { display: flex; align-items: center; gap: 8px; }
+.nutr-food-kcal { font-size: 13px; color: #9D9A92; white-space: nowrap; }
+.nutr-delete-btn {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  padding: 2px;
+  font-size: 13px;
+}
+.nutr-delete-btn:hover { color: #FF5C5C; }
+
+/* Поиск в модалке */
+.nutr-search-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.nutr-search-row input {
+  flex: 1;
+  background: #1C1E24;
+  border: 0.5px solid #2A2D35;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #E8E5DC;
+  font-size: 13px;
+  outline: none;
+}
+.nutr-search-row input:focus { border-color: #2E7FD4; }
+.nutr-result-item {
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 0.5px solid transparent;
+  margin-bottom: 4px;
+  background: #1C1E24;
+}
+.nutr-result-item:hover, .nutr-result-item.selected {
+  border-color: #2E7FD4;
+  background: #1A2A3A;
+}
+.nutr-result-name { font-size: 13px; font-weight: 500; }
+.nutr-result-meta { font-size: 11px; color: #9D9A92; margin-top: 2px; }
+.nutr-result-kcal { font-size: 12px; color: #2E7FD4; margin-top: 2px; }

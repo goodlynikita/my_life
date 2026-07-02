@@ -17,6 +17,8 @@ const Store = (() => {
         plans: [],
         measurements: []
       },
+      nutrition: {},
+      nutritionFoods: [],
       habits: {
         months: {}
       },
@@ -116,6 +118,8 @@ const Store = (() => {
     d.habits = d.habits || base.habits;
     d.finance = d.finance || base.finance;
     d.goals = d.goals || base.goals;
+    d.nutrition = d.nutrition || base.nutrition;
+    d.nutritionFoods = d.nutritionFoods || base.nutritionFoods;
     return d;
   }
 

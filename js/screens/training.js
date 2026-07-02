@@ -71,13 +71,139 @@ function trIsStepsType(typeName) {
   return typeName === '10k';
 }
 
-const MUSCLE_BLOCK_EXERCISES = {
+const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
   'Грудь': ['Жим гантели', 'Жим штанга', 'Жим гантели наклон', 'Жим штанга наклон', 'Кроссовер сверху', 'Кроссовер снизу', 'Разведения', 'Бабочка', 'Брусья'],
   'Спина': ['Пуловер', 'Тяга штанги', 'Тяга верхнего блока', 'Тяга нижнего блока', 'Гиперэкстензия', 'Тяга гантелей', 'Подтягивания'],
   'Руки': ['Подъём штанги', 'Французский жим', 'Молотки гантель', 'Подъём гантель', 'Разгибания канаты', 'Разгибания из-за головы', 'Бицепс наклон', 'Молотки стоя'],
   'Ноги': ['Присяд штанга', 'Присяд гакк', 'Жим ногами', 'Пресс', 'Разгибания', 'Сгибания'],
   'Плечи': ['Махи', 'Жим', 'Разведения']
 };
+
+function trLoadExercises() {
+  try {
+    const saved = localStorage.getItem('nik_exercises_v1');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(MUSCLE_BLOCK_EXERCISES_DEFAULT));
+}
+
+function trSaveExercises(data) {
+  try { localStorage.setItem('nik_exercises_v1', JSON.stringify(data)); } catch(e) {}
+}
+
+const MUSCLE_BLOCK_EXERCISES = trLoadExercises();
+
+function trOpenExerciseEditor() {
+  const overlay = document.createElement('div');
+  overlay.className = 'tr-modal-overlay';
+  
+  function buildHtml() {
+    const groupsHtml = Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT).map(group => {
+      const exercises = MUSCLE_BLOCK_EXERCISES[group] || [];
+      return `
+        <div class="tr-ex-edit-group" data-group="${group}">
+          <div class="tr-ex-edit-group-title">${group}</div>
+          <div class="tr-ex-edit-list">
+            ${exercises.map((ex, i) => `
+              <div class="tr-ex-edit-item" data-idx="${i}">
+                <span class="tr-ex-edit-name">${ex}</span>
+                <span style="display:flex; gap:4px;">
+                  <button class="tr-ex-edit-rename" data-group="${group}" data-idx="${i}" title="Переименовать"><i class="ti ti-pencil"></i></button>
+                  <button class="tr-ex-edit-delete" data-group="${group}" data-idx="${i}" title="Удалить"><i class="ti ti-trash"></i></button>
+                </span>
+              </div>
+            `).join('')}
+          </div>
+          <div style="margin-top:6px; display:flex; gap:6px;">
+            <input type="text" class="tr-ex-edit-input" data-group="${group}" placeholder="Новое упражнение…" style="flex:1; padding:6px 8px; border-radius:6px; border:1px solid #2A2D35; background:#0F1117; color:#E8E5DC; font-size:13px;">
+            <button class="tr-ex-edit-add" data-group="${group}" style="padding:6px 10px; border-radius:6px; background:#2E7FD4; color:#fff; border:none; cursor:pointer; font-size:13px;">+</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="tr-modal" style="max-height:80vh; overflow-y:auto; width:100%; max-width:420px;">
+        <p class="tr-modal-title">Редактор упражнений</p>
+        ${groupsHtml}
+        <div class="tr-modal-actions" style="margin-top:16px;">
+          <button class="tr-modal-btn-secondary" id="tr-ex-reset">Сбросить</button>
+          <button class="tr-modal-btn-primary" id="tr-ex-close">Готово</button>
+        </div>
+      </div>`;
+  }
+
+  overlay.innerHTML = buildHtml();
+  document.body.appendChild(overlay);
+
+  function rebind() {
+    overlay.innerHTML = buildHtml();
+    bindEvents();
+  }
+
+  function bindEvents() {
+    overlay.querySelector('#tr-ex-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#tr-ex-reset').addEventListener('click', () => {
+      if (!confirm('Сбросить все упражнения к стандартным?')) return;
+      Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT).forEach(g => {
+        MUSCLE_BLOCK_EXERCISES[g] = [...MUSCLE_BLOCK_EXERCISES_DEFAULT[g]];
+      });
+      trSaveExercises(MUSCLE_BLOCK_EXERCISES);
+      rebind();
+    });
+
+    overlay.querySelectorAll('.tr-ex-edit-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = btn.dataset.group, i = parseInt(btn.dataset.idx);
+        MUSCLE_BLOCK_EXERCISES[g].splice(i, 1);
+        trSaveExercises(MUSCLE_BLOCK_EXERCISES);
+        rebind();
+      });
+    });
+
+    overlay.querySelectorAll('.tr-ex-edit-rename').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = btn.dataset.group, i = parseInt(btn.dataset.idx);
+        const newName = prompt('Новое название:', MUSCLE_BLOCK_EXERCISES[g][i]);
+        if (newName && newName.trim()) {
+          MUSCLE_BLOCK_EXERCISES[g][i] = newName.trim();
+          trSaveExercises(MUSCLE_BLOCK_EXERCISES);
+          rebind();
+        }
+      });
+    });
+
+    overlay.querySelectorAll('.tr-ex-edit-add').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = btn.dataset.group;
+        const input = overlay.querySelector(`.tr-ex-edit-input[data-group="${g}"]`);
+        const val = input.value.trim();
+        if (!val) return;
+        if (!MUSCLE_BLOCK_EXERCISES[g]) MUSCLE_BLOCK_EXERCISES[g] = [];
+        MUSCLE_BLOCK_EXERCISES[g].push(val);
+        trSaveExercises(MUSCLE_BLOCK_EXERCISES);
+        input.value = '';
+        rebind();
+      });
+    });
+
+    overlay.querySelectorAll('.tr-ex-edit-input').forEach(input => {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const g = input.dataset.group;
+          const val = input.value.trim();
+          if (!val) return;
+          if (!MUSCLE_BLOCK_EXERCISES[g]) MUSCLE_BLOCK_EXERCISES[g] = [];
+          MUSCLE_BLOCK_EXERCISES[g].push(val);
+          trSaveExercises(MUSCLE_BLOCK_EXERCISES);
+          input.value = '';
+          rebind();
+        }
+      });
+    });
+  }
+
+  bindEvents();
+}
 
 function trExercisesForGroups(groupNames) {
   const set = new Set();
@@ -275,17 +401,20 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const progressBadge = `<span class="tr-progress ${progress.dir}">${arrow} ${sign}${progress.pct}%</span>`;
   const bar = `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" data-fill="${barPct}"></div></div>`;
   const wrap = (headline, meta) => `
-    <button class="tr-exercise" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" data-ex="${exIdx}">
-      <div class="tr-ex-top">
-        <div class="tr-ex-name">${ex.name}</div>
-        <div class="tr-ex-stats">
-          <span class="tr-ex-weight num">${headline}</span>
-          ${progressBadge}
+    <div class="tr-exercise-wrap" draggable="false" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" data-ex="${exIdx}">
+      <div class="tr-drag-handle" title="Перетащить"><i class="ti ti-grip-vertical"></i></div>
+      <button class="tr-exercise" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" data-ex="${exIdx}">
+        <div class="tr-ex-top">
+          <div class="tr-ex-name">${ex.name}</div>
+          <div class="tr-ex-stats">
+            <span class="tr-ex-weight num">${headline}</span>
+            ${progressBadge}
+          </div>
         </div>
-      </div>
-      <div class="tr-ex-bottom"><div class="tr-ex-meta num">${meta}</div></div>
-      ${bar}
-    </button>`;
+        <div class="tr-ex-bottom"><div class="tr-ex-meta num">${meta}</div></div>
+        ${bar}
+      </button>
+    </div>`;
 
   if (ex.kind === 'cardio') {
     const pace = trPace(ex);
@@ -359,14 +488,23 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
       </div>`;
   }).join('');
 
+  const comment = day.comment || '';
+  const commentHtml = comment
+    ? `<div class="tr-day-comment"><i class="ti ti-message-circle" style="font-size:12px;"></i> ${comment}</div>`
+    : '';
+
   return `
     <div class="tr-day${isToday ? ' tr-day-today' : ''}">
       <div class="tr-day-head">
         <span class="tr-day-date">${day.date} ${day.dow}</span>
         ${isToday ? '<span class="tr-today-badge">Сегодня</span>' : ''}
         ${!hasAnySession ? `<span class="tr-day-tag">не задано</span>` : ''}
-        <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
+        <span style="display:flex; gap:4px; margin-left:auto;">
+          <button class="tr-day-comment-btn" data-week="${weekIndex}" data-day="${dayIdx}" title="${comment ? 'Изменить заметку' : 'Добавить заметку'}" style="background:none; border:none; cursor:pointer; color:${comment ? '#2E7FD4' : '#555'}; padding:2px 4px;"><i class="ti ti-message-circle"></i></button>
+          <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
+        </span>
       </div>
+      ${commentHtml}
       ${sessionsHtml}
     </div>`;
 }
@@ -881,6 +1019,9 @@ window.Screens.training = function (mount) {
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
       </div>
+      <div style="padding:0 16px 8px; display:flex; justify-content:flex-end;">
+        <button id="tr-edit-exercises" style="font-size:11px; color:#9D9A92; background:none; border:1px solid #2A2D35; border-radius:6px; padding:4px 10px; cursor:pointer;">⚙ Упражнения</button>
+      </div>
       <div class="tr-body" id="tr-content"></div>
     </div>
   `;
@@ -917,6 +1058,83 @@ window.Screens.training = function (mount) {
   let collapsedWeeks = loadCollapsedWeeks(currentPlanId);
 
   function bindPlanEvents(plan) {
+    /* Комментарий к дню */
+    content.querySelectorAll('.tr-day-comment-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const w = parseInt(btn.dataset.week, 10), d = parseInt(btn.dataset.day, 10);
+        const day = plan.weeks[w].days[d];
+        const current = day.comment || '';
+        const newComment = prompt('Заметка к дню (оставь пустым чтобы удалить):', current);
+        if (newComment === null) return;
+        trSnapshotBeforeChange();
+        day.comment = newComment.trim();
+        const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
+        Store.set('training.plans.' + planIdx + '.weeks.' + w + '.days.' + d + '.comment', day.comment);
+        renderTab('plan');
+      });
+    });
+
+    /* ── Drag-and-drop сортировка упражнений ───────────────── */
+    let _dragSrc = null;
+
+    content.querySelectorAll('.tr-drag-handle').forEach(handle => {
+      const wrap = handle.closest('.tr-exercise-wrap');
+      handle.addEventListener('mousedown', () => { wrap.draggable = true; });
+      handle.addEventListener('touchstart', () => { wrap.draggable = true; }, { passive: true });
+    });
+
+    content.querySelectorAll('.tr-exercise-wrap').forEach(wrap => {
+      wrap.addEventListener('dragstart', (e) => {
+        _dragSrc = wrap;
+        wrap.classList.add('tr-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      wrap.addEventListener('dragend', () => {
+        wrap.draggable = false;
+        wrap.classList.remove('tr-dragging');
+        content.querySelectorAll('.tr-exercise-wrap').forEach(w => w.classList.remove('tr-drag-over'));
+        _dragSrc = null;
+      });
+
+      wrap.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!_dragSrc || _dragSrc === wrap) return;
+        const srcW = parseInt(_dragSrc.dataset.week, 10);
+        const srcD = parseInt(_dragSrc.dataset.day, 10);
+        const srcS = parseInt(_dragSrc.dataset.session, 10);
+        const tgtW = parseInt(wrap.dataset.week, 10);
+        const tgtD = parseInt(wrap.dataset.day, 10);
+        const tgtS = parseInt(wrap.dataset.session, 10);
+        /* Только внутри одной сессии */
+        if (srcW !== tgtW || srcD !== tgtD || srcS !== tgtS) return;
+        e.dataTransfer.dropEffect = 'move';
+        content.querySelectorAll('.tr-exercise-wrap').forEach(w => w.classList.remove('tr-drag-over'));
+        wrap.classList.add('tr-drag-over');
+      });
+
+      wrap.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (!_dragSrc || _dragSrc === wrap) return;
+        const srcW = parseInt(_dragSrc.dataset.week, 10);
+        const srcD = parseInt(_dragSrc.dataset.day, 10);
+        const srcS = parseInt(_dragSrc.dataset.session, 10);
+        const srcEx = parseInt(_dragSrc.dataset.ex, 10);
+        const tgtW = parseInt(wrap.dataset.week, 10);
+        const tgtD = parseInt(wrap.dataset.day, 10);
+        const tgtS = parseInt(wrap.dataset.session, 10);
+        const tgtEx = parseInt(wrap.dataset.ex, 10);
+        if (srcW !== tgtW || srcD !== tgtD || srcS !== tgtS) return;
+
+        trSnapshotBeforeChange();
+        const exercises = plan.weeks[srcW].days[srcD].sessions[srcS].exercises;
+        const [moved] = exercises.splice(srcEx, 1);
+        exercises.splice(tgtEx, 0, moved);
+        trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
+        renderTab('plan');
+      });
+    });
+
     content.querySelectorAll('.tr-exercise').forEach(btn => {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
@@ -1077,6 +1295,10 @@ window.Screens.training = function (mount) {
     if (newBtn) newBtn.remove();
   }
 
+  document.getElementById('tr-edit-exercises').addEventListener('click', () => {
+    trOpenExerciseEditor();
+  });
+
   planSelect.addEventListener('change', () => {
     currentPlanId = planSelect.value;
     collapsedWeeks = loadCollapsedWeeks(currentPlanId);
@@ -1174,19 +1396,28 @@ function trRenderWorkingWeight(plan) {
     return `<div class="tr-empty-state"><i class="ti ti-weight"></i>Рабочий вес появится здесь после первой записи в зале.</div>`;
   }
 
-  const byCategory = {};
-  WORKING_WEIGHT_CATEGORIES.forEach(cat => { byCategory[cat] = []; });
+  /* Строим секции строго по порядку MUSCLE_BLOCK_EXERCISES.
+     Упражнение попадает в секцию если:
+     1) оно есть в каноническом списке группы, ИЛИ
+     2) оно было записано с этой группой (для кастомных упражнений) */
+  const rows = WORKING_WEIGHT_CATEGORIES.map(cat => {
+    const canonicalList = MUSCLE_BLOCK_EXERCISES[cat] || [];
 
-  names.forEach(name => {
-    const groups = latest[name].groups || [];
-    const expanded = groups.includes('FULL BODY') ? WORKING_WEIGHT_CATEGORIES : groups;
-    expanded.forEach(g => {
-      if (byCategory[g] && !byCategory[g].includes(name)) byCategory[g].push(name);
+    /* Упражнения этой группы в каноническом порядке */
+    const inOrder = canonicalList.filter(name => latest[name]);
+
+    /* Кастомные упражнения записанные с этой группой но не в каноническом списке */
+    const custom = names.filter(name => {
+      if (canonicalList.includes(name)) return false;
+      const groups = latest[name].groups || [];
+      const expanded = groups.includes('FULL BODY') ? WORKING_WEIGHT_CATEGORIES : groups;
+      return expanded.includes(cat);
     });
-  });
 
-  const rows = WORKING_WEIGHT_CATEGORIES.filter(cat => byCategory[cat].length > 0).map(cat => {
-    const exerciseRows = byCategory[cat].map(name => {
+    const allForCat = [...inOrder, ...custom];
+    if (allForCat.length === 0) return '';
+
+    const exerciseRows = allForCat.map(name => {
       const { ex, weekIndex } = latest[name];
       const progress = trCalcProgress(plan, weekIndex, name);
       const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
@@ -1200,94 +1431,369 @@ function trRenderWorkingWeight(plan) {
           <td class="tr-ww-num num tr-progress ${progress.dir}">${sign}${progress.pct}% ${arrow}</td>
         </tr>`;
     }).join('');
+
     return `
       <div class="tr-ww-group">
         <div class="tr-ww-group-label fb-accent">${cat}</div>
         <table class="tr-ww-table">
-          <thead>
-            <tr>
-              <th>Упражнение</th><th>Подх.</th><th>Повт.</th><th>Вес</th><th>Прогресс</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Упражнение</th><th>Подх.</th><th>Повт.</th><th>Вес</th><th>Прогресс</th></tr></thead>
           <tbody>${exerciseRows}</tbody>
         </table>
       </div>`;
-  }).join('');
+  }).filter(Boolean).join('');
 
-  return `<div class="tr-ww-wrap">${rows}</div>`;
+  return `<div class="tr-ww-wrap">${rows || '<div class="tr-empty-state">Нет данных</div>'}</div>`;
 }
 
-function trRenderNutrition(plan) {
-  const n = plan.nutrition || { protein: 0, fat: 0, carbs: 0, totalKcal: 0 };
-  return `
-    <div class="tr-group-card">
-      <div class="tr-group-title fb-accent">Питание <span class="tr-group-range">· план №${plan.number}</span></div>
-      <div class="sec-metric-grid" style="margin-bottom:14px;">
-        <div class="sec-metric" style="background:var(--void-card); border:0.5px solid #2E7FD455;">
-          <div class="sec-metric-label">Общие ккал</div>
-          <div class="sec-metric-value num" style="color:#5B9FE0;">${n.totalKcal} ккал</div>
-        </div>
-      </div>
-      <div class="tr-day">
-        <div class="tr-exercise" style="cursor:default;">
-          <div class="tr-ex-top">
-            <div class="tr-ex-name">Белки</div>
-            <div class="tr-ex-stats"><span class="tr-ex-weight num">${n.protein} г</span></div>
-          </div>
-        </div>
-        <div class="tr-exercise" style="cursor:default;">
-          <div class="tr-ex-top">
-            <div class="tr-ex-name">Жиры</div>
-            <div class="tr-ex-stats"><span class="tr-ex-weight num">${n.fat} г</span></div>
-          </div>
-        </div>
-        <div class="tr-exercise" style="cursor:default;">
-          <div class="tr-ex-top">
-            <div class="tr-ex-name">Угли</div>
-            <div class="tr-ex-stats"><span class="tr-ex-weight num">${n.carbs} г</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <button class="tr-plan-new" id="tr-edit-nutrition" style="width:100%; justify-content:center; margin-top:4px;">
-      <i class="ti ti-edit"></i> Изменить
-    </button>`;
+/* ═══════════════════════════════════════════════════════
+   ДНЕВНИК ПИТАНИЯ
+   Структура в Firebase: nik-data/nutrition/{YYYY-MM-DD}/{meal}/{idx}
+   Приёмы: breakfast, lunch, dinner, snack
+   ═══════════════════════════════════════════════════════ */
+
+const MEAL_NAMES = {
+  breakfast: { ru: 'Завтрак', icon: 'ti-sun' },
+  lunch:     { ru: 'Обед',    icon: 'ti-sun-high' },
+  dinner:    { ru: 'Ужин',    icon: 'ti-moon' },
+  snack:     { ru: 'Перекус', icon: 'ti-apple' }
+};
+const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+function nutrTodayKey() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
 }
 
-function trOpenNutritionModal(plan, onSave) {
-  const n = plan.nutrition || { protein: 0, fat: 0, carbs: 0, totalKcal: 0 };
+function nutrDateKey(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0, 10);
+}
+
+function nutrFormatDate(key) {
+  const [y, m, day] = key.split('-');
+  const days = ['вс','пн','вт','ср','чт','пт','сб'];
+  const d = new Date(parseInt(y), parseInt(m)-1, parseInt(day));
+  return `${day}.${m}, ${days[d.getDay()]}`;
+}
+
+function nutrGetLog() {
+  return Store.get().nutrition || {};
+}
+
+function nutrGetDay(dateKey) {
+  const log = nutrGetLog();
+  return log[dateKey] || { breakfast:[], lunch:[], dinner:[], snack:[] };
+}
+
+function nutrSaveDay(dateKey, dayData) {
+  Store.set('nutrition.' + dateKey, dayData);
+}
+
+function nutrCalc(items) {
+  return items.reduce((acc, item) => {
+    const factor = (item.grams || 100) / 100;
+    acc.kcal += Math.round((item.kcal || 0) * factor);
+    acc.protein += Math.round((item.protein || 0) * factor * 10) / 10;
+    acc.fat += Math.round((item.fat || 0) * factor * 10) / 10;
+    acc.carbs += Math.round((item.carbs || 0) * factor * 10) / 10;
+    return acc;
+  }, { kcal: 0, protein: 0, fat: 0, carbs: 0 });
+}
+
+function nutrDayTotal(dayData) {
+  const all = MEAL_ORDER.flatMap(m => dayData[m] || []);
+  return nutrCalc(all);
+}
+
+/* Поиск: сначала своя база (Firebase), потом Open Food Facts */
+async function nutrSearch(query) {
+  const results = [];
+
+  /* 1. Своя база */
+  const custom = Store.get().nutritionFoods || [];
+  const lq = query.toLowerCase();
+  custom.filter(f => f.name.toLowerCase().includes(lq)).forEach(f => {
+    results.push({ ...f, source: 'custom' });
+  });
+
+  /* 2. Open Food Facts */
+  try {
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&lc=ru&cc=ru`;
+    const res = await fetch(url);
+    const data = await res.json();
+    (data.products || []).forEach(p => {
+      const n = p.nutriments || {};
+      const kcal = Math.round(n['energy-kcal_100g'] || n['energy_100g'] / 4.184 || 0);
+      if (!kcal || !p.product_name) return;
+      results.push({
+        name: p.product_name_ru || p.product_name,
+        kcal,
+        protein: Math.round((n.proteins_100g || 0) * 10) / 10,
+        fat: Math.round((n.fat_100g || 0) * 10) / 10,
+        carbs: Math.round((n.carbohydrates_100g || 0) * 10) / 10,
+        source: 'off'
+      });
+    });
+  } catch(e) { /* тихо */ }
+
+  return results.slice(0, 8);
+}
+
+function nutrSaveToCustom(product) {
+  const foods = Store.get().nutritionFoods || [];
+  if (!foods.find(f => f.name === product.name)) {
+    foods.push({ name: product.name, kcal: product.kcal, protein: product.protein, fat: product.fat, carbs: product.carbs });
+    Store.set('nutritionFoods', foods);
+  }
+}
+
+function nutrOpenAddModal(dateKey, meal, onSave) {
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
   overlay.innerHTML = `
-    <div class="tr-modal">
-      <p class="tr-modal-title">Питание · план №${plan.number}</p>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Общие ккал<input type="number" id="m-total-kcal" value="${n.totalKcal || ''}" inputmode="numeric"></label>
+    <div class="tr-modal" style="max-height:85vh; overflow-y:auto;">
+      <p class="tr-modal-title"><i class="ti ${MEAL_NAMES[meal].icon}"></i> ${MEAL_NAMES[meal].ru}</p>
+      <div class="nutr-search-row">
+        <input type="text" id="nutr-q" placeholder="Поиск продукта…" autocomplete="off">
+        <button id="nutr-search-btn" class="tr-modal-btn-primary" style="white-space:nowrap;">Найти</button>
       </div>
-      <div class="tr-modal-row">
-        <label>Белки, г<input type="number" id="m-protein" value="${n.protein || ''}" inputmode="numeric"></label>
-        <label>Жиры, г<input type="number" id="m-fat" value="${n.fat || ''}" inputmode="numeric"></label>
-        <label>Угли, г<input type="number" id="m-carbs" value="${n.carbs || ''}" inputmode="numeric"></label>
+      <div id="nutr-results"></div>
+      <div id="nutr-manual-wrap">
+        <div style="text-align:center; margin:10px 0; font-size:12px; color:#555;">или добавить вручную</div>
+        <div class="tr-modal-row">
+          <label style="flex:1 1 100%">Название<input type="text" id="nutr-name" placeholder="Название продукта"></label>
+        </div>
+        <div class="tr-modal-row">
+          <label>Граммы<input type="number" id="nutr-grams" value="100" inputmode="numeric"></label>
+          <label>Ккал/100г<input type="number" id="nutr-kcal" inputmode="numeric"></label>
+        </div>
+        <div class="tr-modal-row">
+          <label>Белки<input type="number" id="nutr-prot" inputmode="decimal" step="0.1"></label>
+          <label>Жиры<input type="number" id="nutr-fat" inputmode="decimal" step="0.1"></label>
+          <label>Углев<input type="number" id="nutr-carbs" inputmode="decimal" step="0.1"></label>
+        </div>
       </div>
       <div class="tr-modal-actions">
-        <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
-        <button class="tr-modal-btn-primary" id="m-save">Сохранить</button>
+        <button class="tr-modal-btn-secondary" id="nutr-cancel">Отмена</button>
+        <button class="tr-modal-btn-primary" id="nutr-add">Добавить</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
-  overlay.querySelector('#m-save').addEventListener('click', () => {
-    plan.nutrition = {
-      totalKcal: parseFloat(overlay.querySelector('#m-total-kcal').value) || 0,
-      protein: parseFloat(overlay.querySelector('#m-protein').value) || 0,
-      fat: parseFloat(overlay.querySelector('#m-fat').value) || 0,
-      carbs: parseFloat(overlay.querySelector('#m-carbs').value) || 0
-    };
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#nutr-cancel').addEventListener('click', () => overlay.remove());
+
+  let selectedProduct = null;
+
+  function fillManual(p, grams) {
+    overlay.querySelector('#nutr-name').value = p.name;
+    overlay.querySelector('#nutr-grams').value = grams || 100;
+    overlay.querySelector('#nutr-kcal').value = p.kcal;
+    overlay.querySelector('#nutr-prot').value = p.protein;
+    overlay.querySelector('#nutr-fat').value = p.fat;
+    overlay.querySelector('#nutr-carbs').value = p.carbs;
+    selectedProduct = p;
+  }
+
+  async function doSearch() {
+    const q = overlay.querySelector('#nutr-q').value.trim();
+    if (!q) return;
+    const resultsEl = overlay.querySelector('#nutr-results');
+    resultsEl.innerHTML = '<div style="padding:8px; font-size:13px; color:#9D9A92;">Ищем…</div>';
+    const res = await nutrSearch(q);
+    if (res.length === 0) {
+      resultsEl.innerHTML = '<div style="padding:8px; font-size:13px; color:#9D9A92;">Не найдено — добавьте вручную</div>';
+      return;
+    }
+    resultsEl.innerHTML = res.map((p, i) => `
+      <div class="nutr-result-item" data-idx="${i}">
+        <div class="nutr-result-name">${p.name}${p.source === 'custom' ? ' <span style="color:#A8C97F; font-size:10px;">★ своя</span>' : ''}</div>
+        <div class="nutr-result-meta">Б ${p.protein}г · Ж ${p.fat}г · У ${p.carbs}г · на 100г</div>
+        <div class="nutr-result-kcal">${p.kcal} ккал</div>
+      </div>`).join('');
+    resultsEl.querySelectorAll('.nutr-result-item').forEach((el, i) => {
+      el.addEventListener('click', () => {
+        fillManual(res[i], 100);
+        resultsEl.querySelectorAll('.nutr-result-item').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+    });
+  }
+
+  overlay.querySelector('#nutr-search-btn').addEventListener('click', doSearch);
+  overlay.querySelector('#nutr-q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  overlay.querySelector('#nutr-add').addEventListener('click', () => {
+    const name = overlay.querySelector('#nutr-name').value.trim();
+    const grams = parseFloat(overlay.querySelector('#nutr-grams').value) || 100;
+    const kcal = parseFloat(overlay.querySelector('#nutr-kcal').value) || 0;
+    const protein = parseFloat(overlay.querySelector('#nutr-prot').value) || 0;
+    const fat = parseFloat(overlay.querySelector('#nutr-fat').value) || 0;
+    const carbs = parseFloat(overlay.querySelector('#nutr-carbs').value) || 0;
+    if (!name) return;
+    const item = { name, grams, kcal, protein, fat, carbs };
+    if (selectedProduct) nutrSaveToCustom(selectedProduct);
+    const dayData = nutrGetDay(dateKey);
+    dayData[meal] = [...(dayData[meal] || []), item];
+    nutrSaveDay(dateKey, dayData);
     overlay.remove();
     onSave();
   });
 }
+
+function nutrRenderMacroBar(value, target, color) {
+  const pct = target > 0 ? Math.min(100, Math.round(value / target * 100)) : 0;
+  const low = target > 0 && pct < 80;
+  return `<div class="nutr-bar-wrap">
+    <div class="nutr-bar-fill" style="width:${pct}%; background:${color};"></div>
+    ${low ? '<div class="nutr-bar-low"></div>' : ''}
+  </div>`;
+}
+
+function nutrRenderDay(dateKey, plan, onUpdate) {
+  const dayData = nutrGetDay(dateKey);
+  const total = nutrDayTotal(dayData);
+  const target = plan.nutrition || { totalKcal: 0, protein: 0, fat: 0, carbs: 0 };
+  const isToday = dateKey === nutrTodayKey();
+
+  const kcalPct = target.totalKcal > 0 ? Math.round(total.kcal / target.totalKcal * 100) : 0;
+  const kcalLeft = target.totalKcal - total.kcal;
+  const kcalColor = kcalLeft < 0 ? '#FF5C5C' : kcalLeft < 200 ? '#E0B873' : '#2E7FD4';
+
+  const macrosHtml = `
+    <div class="nutr-macros-grid">
+      <div class="nutr-macro-card">
+        <div class="nutr-macro-label">Калории</div>
+        <div class="nutr-macro-val" style="color:${kcalColor}">${total.kcal}</div>
+        <div class="nutr-macro-sub">${target.totalKcal > 0 ? `из ${target.totalKcal}` : 'цель не задана'}</div>
+        ${nutrRenderMacroBar(total.kcal, target.totalKcal, kcalColor)}
+      </div>
+      <div class="nutr-macro-card">
+        <div class="nutr-macro-label">Белки</div>
+        <div class="nutr-macro-val" style="color:#A8C97F">${total.protein}г</div>
+        <div class="nutr-macro-sub">${target.protein > 0 ? `из ${target.protein}г` : '—'}</div>
+        ${nutrRenderMacroBar(total.protein, target.protein, '#A8C97F')}
+      </div>
+      <div class="nutr-macro-card">
+        <div class="nutr-macro-label">Жиры</div>
+        <div class="nutr-macro-val" style="color:#E0B873">${total.fat}г</div>
+        <div class="nutr-macro-sub">${target.fat > 0 ? `из ${target.fat}г` : '—'}</div>
+        ${nutrRenderMacroBar(total.fat, target.fat, '#E0B873')}
+      </div>
+      <div class="nutr-macro-card">
+        <div class="nutr-macro-label">Углеводы</div>
+        <div class="nutr-macro-val" style="color:#B6A4D9">${total.carbs}г</div>
+        <div class="nutr-macro-sub">${target.carbs > 0 ? `из ${target.carbs}г` : '—'}</div>
+        ${nutrRenderMacroBar(total.carbs, target.carbs, '#B6A4D9')}
+      </div>
+    </div>`;
+
+  const mealsHtml = MEAL_ORDER.map(meal => {
+    const items = dayData[meal] || [];
+    const mealTotal = nutrCalc(items);
+    const itemsHtml = items.map((item, idx) => `
+      <div class="nutr-food-item">
+        <div class="nutr-food-left">
+          <div class="nutr-food-name">${item.name}</div>
+          <div class="nutr-food-meta">${item.grams}г · Б${Math.round(item.protein * item.grams / 100 * 10)/10} Ж${Math.round(item.fat * item.grams / 100 * 10)/10} У${Math.round(item.carbs * item.grams / 100 * 10)/10}</div>
+        </div>
+        <div class="nutr-food-right">
+          <span class="nutr-food-kcal">${Math.round(item.kcal * item.grams / 100)} ккал</span>
+          <button class="nutr-delete-btn" data-meal="${meal}" data-idx="${idx}" title="Удалить"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`).join('');
+
+    return `
+      <div class="nutr-meal-block">
+        <div class="nutr-meal-head">
+          <span class="nutr-meal-title"><i class="ti ${MEAL_NAMES[meal].icon}"></i> ${MEAL_NAMES[meal].ru}</span>
+          <span class="nutr-meal-kcal">${mealTotal.kcal} ккал</span>
+          <button class="nutr-add-meal-btn" data-meal="${meal}"><i class="ti ti-plus"></i></button>
+        </div>
+        ${itemsHtml || '<div class="nutr-empty-meal">Нет записей</div>'}
+      </div>`;
+  }).join('');
+
+  return { macrosHtml, mealsHtml, total, target };
+}
+
+function trRenderNutrition(plan) {
+  const n = plan.nutrition || { protein: 0, fat: 0, carbs: 0, totalKcal: 0 };
+
+  /* Текущий день и навигация */
+  let dayOffset = 0;
+
+  function getDateKey() { return nutrDateKey(dayOffset); }
+
+  function renderAll() {
+    const dateKey = getDateKey();
+    const { macrosHtml, mealsHtml } = nutrRenderDay(dateKey, plan, renderAll);
+    const wrap = document.getElementById('nutr-wrap');
+    if (!wrap) return;
+
+    wrap.innerHTML = `
+      <div class="nutr-date-nav">
+        <button id="nutr-prev"><i class="ti ti-chevron-left"></i></button>
+        <span class="nutr-date-label">${dayOffset === 0 ? 'Сегодня' : nutrFormatDate(dateKey)}</span>
+        <button id="nutr-next" ${dayOffset >= 0 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button>
+      </div>
+      ${macrosHtml}
+      ${mealsHtml}`;
+
+    wrap.querySelector('#nutr-prev').addEventListener('click', () => { dayOffset--; renderAll(); });
+    const nextBtn = wrap.querySelector('#nutr-next');
+    if (nextBtn) nextBtn.addEventListener('click', () => { dayOffset++; renderAll(); });
+
+    wrap.querySelectorAll('.nutr-add-meal-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        nutrOpenAddModal(getDateKey(), btn.dataset.meal, renderAll);
+      });
+    });
+
+    wrap.querySelectorAll('.nutr-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const meal = btn.dataset.meal;
+        const idx = parseInt(btn.dataset.idx);
+        const dayData = nutrGetDay(getDateKey());
+        dayData[meal].splice(idx, 1);
+        nutrSaveDay(getDateKey(), dayData);
+        renderAll();
+      });
+    });
+  }
+
+  /* Цель питания — план */
+  const targetHtml = `
+    <div class="tr-group-card" style="margin-bottom:12px;">
+      <div class="tr-group-title fb-accent">Цель · план №${plan.number}
+        <button id="tr-edit-nutrition" style="margin-left:auto; background:none; border:none; color:#9D9A92; cursor:pointer; font-size:13px;"><i class="ti ti-edit"></i></button>
+      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+        <span style="font-size:13px; color:#2E7FD4;">${n.totalKcal} ккал</span>
+        <span style="font-size:13px; color:#A8C97F;">Б ${n.protein}г</span>
+        <span style="font-size:13px; color:#E0B873;">Ж ${n.fat}г</span>
+        <span style="font-size:13px; color:#B6A4D9;">У ${n.carbs}г</span>
+      </div>
+    </div>
+    <div id="nutr-wrap"></div>`;
+
+  setTimeout(() => {
+    const editBtn = document.getElementById('tr-edit-nutrition');
+    if (editBtn) editBtn.addEventListener('click', () => {
+      trOpenNutritionModal(plan, () => {
+        const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
+        Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
+        document.querySelector('[data-tab="nutrition"]') && renderAll();
+        const wrap = document.getElementById('nutr-wrap');
+        if (wrap) { const p = wrap.closest('.tr-body'); if(p) p.innerHTML = trRenderNutrition(plan); }
+      });
+    });
+    renderAll();
+  }, 0);
+
+  return targetHtml;
+}
+
 
 const MEASURE_FIELDS = [
   'Талия', 'Плечи', 'Грудь', 'Лев рука', 'Прав рука',
@@ -1388,32 +1894,68 @@ function trRenderWasNowRow(exerciseName, plan) {
 }
 
 function trRenderSummary(plan) {
-  const exerciseGroups = {}; // label -> Set of exercise names, by where they last appeared
+  /* Собираем упражнения по группам мышц (зал) и по типу (остальное) */
+  /* Для зала: ключ = название группы мышц, порядок = MUSCLE_BLOCK_EXERCISES */
+  /* Для остального: ключ = тип тренировки */
+
+  const gymByGroup = {}; // groupName -> Set of exercise names
+  const otherByType = {}; // typeName -> Set of exercise names
+  const GYM_ORDER = WORKING_WEIGHT_CATEGORIES; // ['Грудь','Спина','Ноги','Руки','Плечи']
+
   plan.weeks.forEach(week => {
     week.days.forEach(day => {
       trMigrateDayToSessions(day);
       day.sessions.forEach(session => {
         if (!session.type || session.type === 'Отдых') return;
-        const label = trIsGymType(session.type) && session.groups && session.groups.length
-          ? session.groups.join(' + ')
-          : session.type;
-        if (!exerciseGroups[label]) exerciseGroups[label] = new Set();
-        session.exercises.forEach(ex => exerciseGroups[label].add(ex.name));
+        if (trIsGymType(session.type)) {
+          const groups = session.groups && session.groups.length ? session.groups : ['FULL BODY'];
+          const expanded = groups.includes('FULL BODY') ? GYM_ORDER : groups;
+          expanded.forEach(g => {
+            if (!gymByGroup[g]) gymByGroup[g] = new Set();
+            session.exercises.forEach(ex => { if (ex.name) gymByGroup[g].add(ex.name); });
+          });
+        } else {
+          const t = session.type;
+          if (!otherByType[t]) otherByType[t] = new Set();
+          session.exercises.forEach(ex => { if (ex.name) otherByType[t].add(ex.name); });
+        }
       });
     });
   });
 
-  const labels = Object.keys(exerciseGroups).filter(l => exerciseGroups[l].size > 0);
-  const exercisesHtml = labels.length === 0
-    ? `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Сводка «было → стало» появится здесь после заполнения плана.</div>`
-    : labels.map(label => {
-        const rows = Array.from(exerciseGroups[label]).map(name => trRenderWasNowRow(name, plan)).join('');
-        return `
-          <div class="tr-group-card">
-            <div class="tr-group-title">${label} <span class="tr-group-range">· было → стало</span></div>
-            <div class="tr-day">${rows}</div>
-          </div>`;
-      }).join('');
+  /* Зал: секции в порядке групп мышц, упражнения в каноническом порядке */
+  const gymHtml = GYM_ORDER.filter(g => gymByGroup[g] && gymByGroup[g].size > 0).map(g => {
+    const canonical = MUSCLE_BLOCK_EXERCISES[g] || [];
+    const inOrder = canonical.filter(name => gymByGroup[g].has(name));
+    const custom = Array.from(gymByGroup[g]).filter(name => !canonical.includes(name));
+    const allNames = [...inOrder, ...custom];
+    const rows = allNames.map(name => trRenderWasNowRow(name, plan)).join('');
+    return `
+      <div class="tr-group-card">
+        <div class="tr-group-title">${g} <span class="tr-group-range">· было → стало</span></div>
+        <div class="tr-day">${rows}</div>
+      </div>`;
+  }).join('');
+
+  /* Остальное: Теннис, Кардио, Бокс и тд */
+  const TYPE_ORDER = ['Теннис', 'Кардио', 'Бокс', '10k', 'Лыжи'];
+  const orderedTypes = [
+    ...TYPE_ORDER.filter(t => otherByType[t]),
+    ...Object.keys(otherByType).filter(t => !TYPE_ORDER.includes(t))
+  ];
+  const otherHtml = orderedTypes.filter(t => otherByType[t].size > 0).map(t => {
+    const rows = Array.from(otherByType[t]).map(name => trRenderWasNowRow(name, plan)).join('');
+    return `
+      <div class="tr-group-card">
+        <div class="tr-group-title">${t} <span class="tr-group-range">· было → стало</span></div>
+        <div class="tr-day">${rows}</div>
+      </div>`;
+  }).join('');
+
+  const allHtml = gymHtml + otherHtml;
+  const exercisesHtml = allHtml
+    ? allHtml
+    : `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Сводка «было → стало» появится здесь после заполнения плана.</div>`;
 
   return exercisesHtml + trRenderMeasurementsBlock();
 }

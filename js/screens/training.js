@@ -204,7 +204,14 @@ function trCreateNextPlan() {
   const plans = trGetPlans();
   plans.forEach(p => { if (p.status === 'active') p.status = 'archived'; });
   const maxNumber = plans.reduce((m, p) => Math.max(m, p.number), 0);
-  const newPlan = trBuildEmptyPlan(maxNumber + 1, new Date());
+  /* Начинаем план с понедельника текущей недели */
+  const _today = new Date();
+  const _dow = _today.getDay(); // 0=вс, 1=пн, ..., 6=сб
+  const _daysFromMon = _dow === 0 ? 6 : _dow - 1; // вс — это конец недели, отматываем 6 дней
+  const _planStart = new Date(_today);
+  _planStart.setDate(_today.getDate() - _daysFromMon);
+  _planStart.setHours(0, 0, 0, 0);
+  const newPlan = trBuildEmptyPlan(maxNumber + 1, _planStart);
   plans.push(newPlan);
   trSavePlans(plans);
   return newPlan.id;

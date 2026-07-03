@@ -20,6 +20,7 @@ const Store = (() => {
       nutrition: {},
       nutritionFoods: [],
       habits: {
+        list: [],
         months: {}
       },
       finance: {
@@ -117,6 +118,7 @@ const Store = (() => {
     d.training = normalizeTraining(d.training, base);
     d.habits = d.habits || base.habits;
     d.finance = d.finance || base.finance;
+    if (!d.finance.years) d.finance.years = {};
     d.goals = d.goals || base.goals;
     d.nutrition = d.nutrition || base.nutrition;
     d.nutritionFoods = d.nutritionFoods || base.nutritionFoods;

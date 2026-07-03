@@ -51,7 +51,7 @@
 
   /* ---- type ---- */
   --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
   /* training section uses its own sport-grotesk type, see below */
   --tr-font-display: 'Archivo', 'Inter', -apple-system, sans-serif;
@@ -83,6 +83,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'lnum' 1, 'tnum' 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 button { font-family: inherit; }

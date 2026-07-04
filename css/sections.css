@@ -1,0 +1,927 @@
+/* ============================================================
+   SHARED SECTION SHELL — graphite + brass (Habits, Goals)
+   ============================================================ */
+
+.sec-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--hull);
+  border-bottom: 0.5px solid var(--steel-line);
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sec-back {
+  background: none;
+  border: none;
+  color: var(--bone-soft);
+  font-size: 20px;
+  padding: 4px;
+  cursor: pointer;
+  line-height: 1;
+}
+.sec-back:hover { color: var(--bone); }
+
+.sec-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  margin: 0;
+}
+
+.sec-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--hull);
+  border-bottom: 0.5px solid var(--steel-line);
+  overflow-x: auto;
+}
+
+.sec-tab {
+  background: none;
+  border: 0.5px solid var(--steel-line);
+  color: var(--bone-soft);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease);
+}
+.sec-tab.active {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: var(--hull-deep);
+}
+
+.sec-body {
+  padding: 16px;
+  padding-bottom: 60px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.sec-card {
+  background: var(--teak);
+  border: 0.5px solid var(--steel-line);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 14px;
+}
+
+.sec-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bone);
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sec-card-title::before {
+  content: '';
+  width: 3px;
+  height: 13px;
+  background: var(--brass);
+  border-radius: 2px;
+}
+
+.sec-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin: 0 0 4px;
+}
+
+.sec-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.sec-metric {
+  background: var(--teak-raised);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+}
+
+.sec-metric-label {
+  font-size: 11.5px;
+  color: var(--bone-faint);
+  margin-bottom: 4px;
+}
+
+.sec-metric-value {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--bone);
+}
+.sec-metric-value.accent { color: var(--brass-bright); }
+
+/* habit grid */
+.habit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.habit-row-label {
+  text-align: left;
+  padding: 8px 10px 8px 0;
+  color: var(--bone);
+  font-weight: 500;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.habit-cell {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.habit-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 0.5px solid var(--steel-line-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--teak-raised);
+  color: var(--bone-faint);
+}
+.habit-mark.done { background: var(--brass); border-color: var(--brass); color: var(--hull-deep); }
+.habit-mark.missed { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+.habit-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.habit-progress-track {
+  flex: 1;
+  height: 6px;
+  background: var(--teak-raised);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 12px;
+}
+
+.habit-progress-fill {
+  height: 100%;
+  background: var(--brass);
+  border-radius: 3px;
+}
+
+.habit-progress-pct {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brass-bright);
+  min-width: 38px;
+  text-align: right;
+}
+
+/* ── Habit cells v2 ────────────────────────────── */
+.hab-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 0.5px solid #2A2D35;
+  background: #1C1E24;
+  cursor: default;
+  font-size: 12px;
+}
+.hab-cell.hab-active {
+  cursor: pointer;
+}
+.hab-cell.hab-active:hover {
+  border-color: #2E7FD4;
+}
+.hab-cell.done {
+  background: #1A2A1A;
+  border-color: #A8C97F55;
+}
+.hab-cell.missed {
+  background: #2A1A1A;
+  border-color: #FF5C5C55;
+}
+.hab-cell.hab-today {
+  border-color: #2E7FD4 !important;
+  box-shadow: 0 0 0 1px #2E7FD455;
+}
+.hab-cell-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #2A2D35;
+}
+
+/* ── Goals v2 ───────────────────────────────────── */
+.goals-tabs { overflow-x: auto; }
+
+.goals-hero {
+  background: #1C1E24;
+  border: 0.5px solid #2A2D35;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.goals-hero-all {
+  background: linear-gradient(135deg, #1C1E24, #16181E);
+  border-color: #C8A84B55;
+}
+.goals-hero-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.goals-hero-label {
+  font-size: 12px;
+  color: #9D9A92;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.goals-hero-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #E8E5DC;
+}
+.goals-hero-sub {
+  font-size: 12px;
+  color: #9D9A92;
+  margin-top: 6px;
+}
+
+/* Кольцо прогресса */
+.goals-pct-ring {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: conic-gradient(var(--color) calc(var(--pct) * 1%), #2A2D35 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.goals-pct-ring::before {
+  content: '';
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #1C1E24;
+}
+.goals-pct-ring span {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 700;
+  color: #E8E5DC;
+}
+
+.goals-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.goals-stat {
+  background: #16181E;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.goals-stat-label { font-size: 10px; color: #555; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+.goals-stat-val { font-size: 14px; font-weight: 700; color: #E8E5DC; }
+
+.goals-progress-bar {
+  height: 4px;
+  background: #2A2D35;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+/* Категория */
+.goals-cat-card {
+  background: #1C1E24;
+  border: 0.5px solid #2A2D35;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.goals-cat-goal {
+  border-color: #C8A84B55;
+  background: linear-gradient(135deg, #1C1E24, #1A1C22);
+}
+.goals-cat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #2A2D35;
+}
+.goals-cat-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #E8E5DC;
+}
+.goals-cat-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: #C8A84B;
+}
+
+/* Строка цели */
+.goals-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid #2A2D3540;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.goals-item:hover { background: #ffffff08; }
+.goals-item.goals-done { opacity: 0.5; }
+.goals-item-name {
+  font-size: 13px;
+  color: #E8E5DC;
+}
+.goals-done .goals-item-name { text-decoration: line-through; }
+.goals-item-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9D9A92;
+  white-space: nowrap;
+}
+.goals-done .goals-item-amount { color: #A8C97F; }
+
+/* Чекбокс */
+.goals-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 0.5px solid #3A3D45;
+  background: #16181E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.goals-check.checked {
+  background: #A8C97F;
+  border-color: #A8C97F;
+  color: #000;
+}
+
+/* Добавить */
+.goals-add-item {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+.goals-add-item:hover { color: #9D9A92; }
+
+.goals-new-cat-btn {
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 0.5px dashed #2A2D35;
+  background: none;
+  color: #9D9A92;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* ── Goals v3 ───────────────────────────────────── */
+.goals-screen {
+  background: #F8F9FA;
+  min-height: 100vh;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-header {
+  background: #fff;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #E5E7EB;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.goals-screen-title { font-size: 18px; font-weight: 800; color: #111; }
+.goals-back { background: none; border: none; color: #6B7280; cursor: pointer; font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.goals-back:hover { background: #F3F4F6; }
+
+.goals-season-tabs {
+  display: flex;
+  overflow-x: auto;
+  background: #fff;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 0 12px;
+  position: sticky;
+  top: 53px;
+  z-index: 10;
+  gap: 4px;
+}
+.goals-season-tab {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s;
+}
+.goals-season-tab.active {
+  color: var(--season-color);
+  border-bottom-color: var(--season-color);
+}
+.goals-body { padding: 12px 16px 40px; }
+
+/* Hero ALL */
+.goals-hero-all {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.goals-hero-all::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: var(--season-color);
+  opacity: 0.1;
+}
+.goals-hero-eyebrow { font-size: 10px; color: #9CA3AF; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+.goals-hero-big { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -1px; margin-bottom: 4px; }
+.goals-hero-sub { font-size: 12px; color: #9CA3AF; margin-bottom: 14px; }
+.goals-all-progress { height: 4px; background: #ffffff22; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
+.goals-all-bar { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.goals-all-stats { display: flex; justify-content: space-between; font-size: 12px; color: #9CA3AF; font-weight: 600; }
+
+/* Hero SEASON */
+.goals-hero-season {
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  border: 1px solid;
+}
+.goals-hero-season-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.goals-season-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.goals-hero-season-amount { font-size: 26px; font-weight: 800; }
+.goals-season-sub { font-size: 12px; margin-top: 4px; }
+.goals-ring {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: conic-gradient(var(--c) calc(var(--pct) * 1%), #E5E7EB 0);
+  display: flex; align-items: center; justify-content: center; position: relative;
+}
+.goals-ring::before { content:''; position:absolute; width:42px; height:42px; border-radius:50%; background:#fff; }
+.goals-ring span { position:relative; z-index:1; font-size:12px; font-weight:800; }
+
+.goals-season-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.goals-season-stat { background: #fff; border-radius: 8px; padding: 10px 12px; }
+.goals-sstat-label { font-size: 10px; color: #9CA3AF; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+.goals-sstat-val { font-size: 14px; font-weight: 800; color: #111; }
+.goals-season-bar-track { height: 4px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
+
+/* Category card */
+.goals-cat-v3 {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid #F3F4F6;
+  border-top: 3px solid var(--cat-color);
+}
+.goals-cat-main { border-top-width: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.goals-cat-v3-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid #F9FAFB;
+}
+.goals-cat-v3-title { font-size: 13px; font-weight: 700; color: #111; }
+.goals-cat-v3-total { font-size: 14px; font-weight: 700; }
+
+/* Item */
+.goals-item-v3 {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-bottom: 1px solid #F9FAFB;
+  cursor: pointer; transition: background 0.15s;
+}
+.goals-item-v3:hover { background: #FAFAFA; }
+.goals-item-v3.done { opacity: 0.7; }
+.goals-check-v3 {
+  width: 22px; height: 22px; border-radius: 6px; border: 2px solid #E5E7EB;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+}
+.goals-check-v3.checked { box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.goals-item-v3-name { flex: 1; font-size: 13px; color: #374151; }
+.goals-item-v3.done .goals-item-v3-name { text-decoration: line-through; color: #9CA3AF; }
+.goals-item-v3-amt { font-size: 13px; font-weight: 600; color: #6B7280; white-space: nowrap; }
+
+.goals-add-v3 {
+  width: 100%; padding: 8px; background: none; border: none;
+  color: #9CA3AF; font-size: 12px; cursor: pointer; text-align: center;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-add-v3:hover { color: #6B7280; }
+.goals-new-v3 {
+  width: 100%; margin-top: 8px; padding: 12px; border-radius: 10px;
+  border: 2px dashed #E5E7EB; background: #fff; color: #9CA3AF;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Montserrat', sans-serif; display: flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.goals-new-v3:hover { border-color: var(--season-color); color: var(--season-color); }
+
+/* ── Habits motivating design ───────────────────── */
+.hab-screen {
+  background: #F0FDF4;
+  min-height: 100vh;
+  font-family: 'Montserrat', sans-serif;
+}
+.hab-header {
+  background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.hab-screen-title { font-size: 20px; font-weight: 800; color: #fff; }
+.hab-back-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.hab-back-btn:hover { background: #ffffff22; }
+
+.hab-tabs {
+  display: flex;
+  background: #fff;
+  border-bottom: 2px solid #DCFCE7;
+}
+.hab-tab {
+  flex: 1; padding: 12px; border: none; background: none;
+  color: #6B7280; font-size: 14px; font-weight: 600; cursor: pointer;
+  border-bottom: 2px solid transparent; font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s;
+}
+.hab-tab.active { color: #16A34A; border-bottom-color: #16A34A; }
+
+.hab-body { padding: 12px 16px 40px; }
+
+/* Override sec-card for habits */
+.hab-body .sec-card {
+  background: #fff;
+  border: 1px solid #DCFCE7;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.hab-body .sec-card-title { color: #166534; font-weight: 700; }
+.hab-body .sec-metric-value.accent { color: #16A34A; }
+.hab-body .sec-metric { background: #F0FDF4; }
+
+/* Habit table */
+.habit-table { border-collapse: collapse; }
+.habit-row-label { font-size: 12px; color: #374151; font-weight: 600; padding: 6px 8px; }
+.hab-body .habit-mark { border-color: #D1FAE5; background: #F0FDF4; }
+.hab-body .habit-mark.done { background: #DCFCE7; border-color: #86EFAC; }
+.hab-body .habit-mark.done i { color: #16A34A; }
+.hab-body .habit-mark.missed { background: #FEF2F2; border-color: #FECACA; }
+.hab-body .habit-mark.missed i { color: #EF4444; }
+.hab-body .habit-mark.hab-today { border-color: #16A34A !important; box-shadow: 0 0 0 2px #16A34A44; }
+.hab-body .habit-progress-fill { background: #16A34A !important; }
+
+/* History in habits */
+.hab-body .sec-card table td, .hab-body .sec-card table th { color: #374151; }
+
+/* ── Wheel of Life ──────────────────────────────── */
+.wheel-screen { padding-bottom: 20px; }
+
+.wheel-current-card {
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+}
+.wheel-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #F3F4F6;
+}
+.wheel-card-eyebrow { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+.wheel-card-title { font-size: 16px; font-weight: 700; color: #111; }
+.wheel-fill-btn {
+  background: #9333EA22;
+  border: 1px solid #9333EA44;
+  color: #9333EA;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+}
+.wheel-fill-btn:hover { background: #9333EA33; }
+.wheel-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 13px;
+}
+.wheel-comment {
+  padding: 8px 20px 16px;
+  font-size: 13px;
+  color: #6B7280;
+  font-style: italic;
+  text-align: center;
+}
+
+.wheel-history { background: #fff; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; }
+.wheel-history-title {
+  padding: 14px 20px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid #F3F4F6;
+}
+.wheel-hist-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid #F9FAFB;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.wheel-hist-row:last-child { border-bottom: none; }
+.wheel-hist-row:hover { background: #FAFAFA; }
+.wheel-hist-month { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 2px; }
+.wheel-hist-comment { font-size: 12px; color: #9CA3AF; font-style: italic; }
+.wheel-hist-avg {
+  font-size: 22px;
+  font-weight: 800;
+  color: #9333EA;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Sliders */
+.wheel-slider-row { margin-bottom: 10px; }
+.wheel-slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.wheel-slider-val {
+  font-weight: 800;
+  color: #9333EA;
+  min-width: 20px;
+  text-align: right;
+}
+.wheel-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #9333EA var(--val, 50%), #E5E7EB var(--val, 50%));
+  outline: none;
+}
+.wheel-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #9333EA;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* ── Goals dark theme ───────────────────────────── */
+.goals-screen { background: #0F1117; }
+.goals-header { background: #0F1117; border-bottom: 0.5px solid #2A2D35; }
+.goals-screen-title { color: #F0EDE5; }
+.goals-back { color: #9D9A92; }
+.goals-back:hover { background: #1C1E24; }
+.goals-season-tabs { background: #0F1117; border-bottom: 0.5px solid #2A2D35; }
+.goals-season-tab { color: #9D9A92; }
+.goals-season-tab.active { color: var(--season-color); }
+.goals-body { background: #0F1117; }
+
+/* Dark cat cards */
+.goals-cat-v3 {
+  background: #1C1E24;
+  border-color: #2A2D35;
+  border-top-color: var(--cat-color);
+}
+.goals-cat-main { box-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+.goals-cat-v3-head { border-bottom-color: #2A2D35; }
+.goals-cat-v3-title { color: #F0EDE5; }
+.goals-item-v3 { border-bottom-color: #2A2D3540; }
+.goals-item-v3:hover { background: #ffffff08; }
+.goals-item-v3-name { color: #D0CCC4; font-size: 14px; }
+.goals-item-v3.done .goals-item-v3-name { color: #555; }
+.goals-check-v3 { background: #16181E; }
+.goals-add-v3 { color: #444; }
+.goals-add-v3:hover { color: #9D9A92; }
+.goals-new-v3 { background: #1C1E24; border-color: #2A2D35; color: #9D9A92; }
+
+/* Dark hero season */
+.goals-hero-season {
+  background: var(--season-bg, #1C1E24) !important;
+  border-color: var(--season-color) !important;
+  border-width: 1px;
+}
+.goals-season-stat { background: #16181E; }
+.goals-sstat-label { color: #555; }
+.goals-sstat-val { color: #F0EDE5; }
+.goals-season-bar-track { background: #2A2D35; }
+
+/* ── Habits dark theme ───────────────────────────── */
+.hab-dark { background: #0F1117 !important; }
+.hab-dark .hab-body { background: #0F1117; }
+.hab-dark .sec-card {
+  background: #1C1E24 !important;
+  border-color: #2A2D35 !important;
+}
+.hab-dark .sec-card-title { color: #A8C97F !important; }
+.hab-dark .sec-metric { background: #16181E !important; }
+.hab-dark .sec-metric-label { color: #555 !important; }
+.hab-dark .sec-metric-value { color: #F0EDE5 !important; }
+.hab-dark .sec-metric-value.accent { color: #A8C97F !important; }
+.hab-dark .habit-row-label { color: #D0CCC4 !important; }
+.hab-dark .habit-mark {
+  background: #16181E !important;
+  border-color: #2A2D35 !important;
+}
+.hab-dark .habit-mark.done { background: #1A2A1A !important; border-color: #3A6A3A !important; }
+.hab-dark .habit-mark.done i { color: #A8C97F !important; }
+.hab-dark .habit-mark.missed { background: #2A1A1A !important; border-color: #6A2A2A !important; }
+.hab-dark .habit-mark.missed i { color: #FF7F7F !important; }
+.hab-dark .habit-mark.hab-today { border-color: #A8C97F !important; box-shadow: 0 0 0 2px #A8C97F44 !important; }
+.hab-dark table th { color: #666 !important; }
+.hab-dark .hab-tab { color: #9D9A92 !important; background: #1C1E24 !important; border-color: #2A2D35 !important; }
+.hab-dark .hab-tab.active { color: #A8C97F !important; border-bottom-color: #A8C97F !important; background: #1C1E24 !important; }
+.hab-dark .hab-tabs { background: #1C1E24 !important; border-bottom-color: #2A2D35 !important; }
+.hab-dark #hab-add { border-color: #2A2D35 !important; color: #9D9A92 !important; }
+
+/* Habit progress in dark */
+.hab-dark .habit-progress-row span { color: #555 !important; }
+.hab-dark .habit-progress-track { background: #2A2D35 !important; }
+.hab-dark .habit-progress-fill { background: #A8C97F !important; }
+
+/* ── Habits bigger cells ─────────────────────────── */
+.hab-cell {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+}
+.hab-cell i { font-size: 14px !important; }
+.habit-table th { min-width: 28px !important; }
+
+@media (max-width: 480px) {
+  .hab-cell { width: 26px !important; height: 26px !important; }
+}
+
+/* ── Habits modal style ──────────────────────────── */
+.hab-modal {
+  background: #1A2A1A !important;
+  border: 1px solid #3A6A3A !important;
+}
+.hab-modal .tr-modal-title { color: #A8C97F !important; }
+.hab-modal label { color: #D0CCC4 !important; }
+.hab-modal input, .hab-modal select {
+  background: #16181E !important;
+  border-color: #3A6A3A !important;
+  color: #F0EDE5 !important;
+}
+.hab-modal input:focus, .hab-modal select:focus {
+  border-color: #A8C97F !important;
+  box-shadow: 0 0 0 2px #A8C97F22 !important;
+}
+.hab-modal .tr-modal-btn-primary {
+  background: #A8C97F !important;
+  color: #111 !important;
+}
+.hab-modal .tr-modal-btn-secondary {
+  border-color: #3A6A3A !important;
+  color: #A8C97F !important;
+}
+.hab-modal .hab-icon-btn { background: #16181E !important; border-color: #2A2D35 !important; }
+
+/* ── Habits readability fix ──────────────────────── */
+.hab-dark .habit-table th,
+.hab-dark .habit-table td { color: #B0ACA4 !important; }
+.hab-dark .habit-row-label span { color: #D8D5CC !important; font-size: 13px !important; }
+.hab-dark .sec-metric-value { color: #F0EDE5 !important; font-size: 18px !important; }
+.hab-dark .sec-metric-label { color: #777 !important; }
+.hab-dark .hab-cell { border-color: #2A2D35 !important; }
+.hab-dark .hab-cell.done { background: #162A16 !important; border-color: #2A5A2A !important; }
+.hab-dark .hab-cell.missed { background: #2A1616 !important; border-color: #5A2A2A !important; }
+
+/* ── Goals readability fix ───────────────────────── */
+.goals-item-v3-name { font-size: 14px !important; color: #C8C5BC !important; }
+.goals-item-v3.done .goals-item-v3-name { color: #4A4840 !important; }
+.goals-item-v3-amt { font-size: 13px !important; font-weight: 700 !important; color: #9D9A92 !important; }
+.goals-cat-v3-title { font-size: 14px !important; font-weight: 800 !important; color: #F0EDE5 !important; }
+.goals-cat-v3-total { font-size: 15px !important; }
+.goals-hero-big { font-size: 30px !important; }
+.goals-sstat-val { font-size: 16px !important; font-weight: 800 !important; }
+
+/* ── Global animations ───────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.sec-card, .fin2-card, .fin2-hero, .tochka-list,
+.goals-cat-v3, .goals-hero-all, .goals-hero-season,
+.bal-hero, .bal-reserve-card, .wheel-current-card {
+  animation: fadeIn 0.3s ease both;
+}
+
+/* Stagger cards */
+.home2-goals-card { animation: slideUp 0.4s ease both; }
+.home2-tile:nth-child(1) { animation: slideUp 0.35s 0.05s ease both; }
+.home2-tile:nth-child(2) { animation: slideUp 0.35s 0.10s ease both; }
+.home2-tile:nth-child(3) { animation: slideUp 0.35s 0.15s ease both; }
+.home2-tile:nth-child(4) { animation: slideUp 0.35s 0.20s ease both; }
+
+.goals-cat-v3:nth-child(1) { animation-delay: 0.05s; }
+.goals-cat-v3:nth-child(2) { animation-delay: 0.10s; }
+.goals-cat-v3:nth-child(3) { animation-delay: 0.15s; }
+.goals-cat-v3:nth-child(4) { animation-delay: 0.20s; }
+.goals-cat-v3:nth-child(5) { animation-delay: 0.25s; }
+
+/* Checkbox pulse on check */
+.goals-check-v3.checked { animation: scaleIn 0.2s cubic-bezier(.34,1.56,.64,1); }
+.hab-cell.done { transition: all 0.2s cubic-bezier(.34,1.56,.64,1); }
+
+/* Finance entry hover */
+.tochka-row { transition: background 0.15s, transform 0.15s; }
+.tochka-row:hover { transform: translateX(4px); }
+
+/* Tab switch animation */
+.sec-body, .hab-body, .goals-body, .tochka-body, .fin2-body {
+  animation: fadeIn 0.25s ease;
+}

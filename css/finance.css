@@ -802,3 +802,46 @@
   border-top: 2px solid #E5E7EB;
   background: #F9FAFB;
 }
+
+/* ── Expenses two-column ─────────────────────────── */
+.exp-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+}
+.exp-header-drag { width: 28px; flex-shrink: 0; }
+.exp-header-col { font-size: 10px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.06em; }
+.exp-header-left { flex: 1; }
+.exp-header-right { min-width: 90px; text-align: right; }
+.exp-header-divider { width: 1px; height: 16px; background: #E5E7EB; margin: 0 12px; }
+
+.exp-row2 {
+  display: flex;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid #F3F4F6;
+  background: #fff;
+  transition: background 0.15s;
+}
+.exp-row2:last-child { border-bottom: none; }
+.exp-row2.exp-dragging { opacity: 0.4; }
+.exp-row2.exp-drag-over { background: #F0FDF4; border-top: 2px solid #16A34A; }
+
+.exp-cell-left { flex: 1; cursor: pointer; min-width: 0; }
+.exp-cell-left .exp-name { font-size: 13px; font-weight: 500; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exp-cell-right { min-width: 90px; text-align: right; cursor: pointer; flex-shrink: 0; }
+.exp-divider-v { width: 1px; height: 28px; background: #E5E7EB; margin: 0 12px; flex-shrink: 0; }
+
+.exp-amt-red { font-size: 13px; font-weight: 700; color: #EF4444; }
+.exp-amt-green { font-size: 13px; font-weight: 700; color: #16A34A; }
+
+.exp-total2 {
+  display: flex;
+  align-items: center;
+  padding: 13px 16px;
+  border-top: 2px solid #E5E7EB;
+  background: #F9FAFB;
+  font-size: 14px;
+}

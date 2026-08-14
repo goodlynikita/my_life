@@ -348,212 +348,136 @@ window.Screens.finance = function(mount) {
 
     const stored = Store.get().finance?.balance || {};
     const DEFAULT_CATS = [
-      { id:'b1', name:'Оплата КВ + Ком',  minAmt:24000, color:'#7C3AED' },
-      { id:'b2', name:'Продукты / Рест',   minAmt:30000, color:'#0EA5E9' },
-      { id:'b3', name:'Спорт / Здоровье',  minAmt:18000, color:'#16A34A' },
-      { id:'b4', name:'Подписки / Работа', minAmt:10000, color:'#F59E0B' },
-      { id:'b5', name:'Разное / Бытовые',  minAmt:10000, color:'#EF4444' },
-      { id:'b6', name:'Машина',            minAmt:5000,  color:'#6B7280' },
+      { id:'b1', name:'Оплата КВ + Ком',  pct:25, color:'#7C3AED' },
+      { id:'b2', name:'Продукты / Рест',   pct:31, color:'#0EA5E9' },
+      { id:'b3', name:'Спорт / Здоровье',  pct:19, color:'#16A34A' },
+      { id:'b4', name:'Подписки / Работа', pct:11, color:'#F59E0B' },
+      { id:'b5', name:'Разное / Бытовые',  pct:11, color:'#EF4444' },
+      { id:'b6', name:'Машина',            pct:6,  color:'#6B7280' },
     ];
-    /* Подушка/Цели — это остаток, не редактируется */
-    const cats = (stored.categories || DEFAULT_CATS).map((c,i) => ({
-      ...c, color: c.color || DEFAULT_CATS[i]?.color || '#6B7280'
+    const cats = stored.categories || DEFAULT_CATS;
+    const totalPct = cats.reduce((s,c) => s + (c.pct||0), 0);
+    const cushionPct = Math.max(0, 100 - totalPct);
+
+    const rows = cats.map(c => ({
+      ...c,
+      allocated: Math.round(monthIncome * (c.pct||0) / 100),
     }));
+    const totalAllocated = rows.reduce((s,r) => s + r.allocated, 0);
+    const cushion = monthIncome - totalAllocated;
 
-    const mmKey = String(now.getMonth()+1).padStart(2,'0');
-    const expenses = stored.expenses?.[now.getFullYear()]?.[mmKey] || {};
-
-    const totalMin = cats.reduce((s,c)=>s+c.minAmt,0);
-    const totalSpent = cats.reduce((s,c)=>s+(expenses[c.id]||0),0);
-
-    /* Логика кассового разрыва:
-       - Нужно отложить = сумма всех МИН по незакрытым категориям
-       - Остаток = доход − уже потрачено − ещё нужно отложить
-       - Подушка = то что осталось сверх минимумов */
-    const alreadySpent = totalSpent;
-    const stillNeed = cats.reduce((s,c) => {
-      const spent = expenses[c.id]||0;
-      return s + Math.max(0, c.minAmt - spent);
-    }, 0);
-    const cushion = monthIncome - totalMin; // свободные деньги сверх минимумов
-    const toSet = monthIncome > 0 ? Math.max(0, totalMin - alreadySpent) : 0; // сколько ещё отложить
-
-    function pct(amt) {
-      return monthIncome>0 ? Math.round(amt/monthIncome*100) : 0;
-    }
-
-    /* Прогресс-бар расходов */
-    const segs = cats.map(c => {
-      const spent = expenses[c.id]||0;
-      const w = monthIncome>0 ? Math.min(100, spent/monthIncome*100) : 0;
-      return `<div class="bal-seg" style="flex:${w};background:${c.color};" title="${c.name}: ${finFmtFull(spent)}"></div>`;
-    }).join('');
-    const usedPct = monthIncome>0 ? Math.min(100, Math.round(alreadySpent/monthIncome*100)) : 0;
+    const segs = rows.map(r =>
+      `<div style="flex:${r.pct||1};height:100%;background:${r.color};" title="${r.name}: ${r.pct}%"></div>`
+    ).join('') + (cushionPct > 0
+      ? `<div style="flex:${cushionPct};height:100%;background:#DCFCE7;" title="Подушка: ${cushionPct}%"></div>`
+      : '');
 
     content.innerHTML = `
       <div class="bal-hero">
         <div class="bal-hero-row">
           <div>
-            <div class="bal-label">Доход месяца</div>
+            <div class="bal-label">ДОХОД МЕСЯЦА</div>
             <div class="bal-income">${finFmtFull(monthIncome)}</div>
           </div>
           <div style="text-align:right;">
-            <div class="bal-label">Подушка / Цели</div>
+            <div class="bal-label">ПОДУШКА / ЦЕЛИ</div>
             <div class="bal-cushion-big ${cushion>=0?'pos':'neg'}">${finFmtFull(cushion)}</div>
           </div>
         </div>
-
         <div class="bal-progress-track2">
-          <div class="bal-progress-used" style="width:${usedPct}%;display:flex;">
-            ${segs}
-          </div>
+          <div style="width:100%;height:100%;display:flex;overflow:hidden;">${segs}</div>
         </div>
         <div class="bal-progress-labels">
-          <span>Потрачено: ${finFmtFull(alreadySpent)} (${usedPct}%)</span>
-          <span>Мин: ${finFmtFull(totalMin)}</span>
+          <span>${totalPct}% распределено</span>
+          <span>Подушка: ${cushionPct}%</span>
         </div>
-      </div>
-
-      <div class="bal-reserve-card ${toSet>0?'':'bal-reserve-ok'}">
-        <div class="bal-reserve-icon">${toSet>0?'💰':'✅'}</div>
-        <div style="flex:1;">
-          <div class="bal-reserve-title">${toSet>0?'Нужно отложить от текущих приходов':'Минимум покрыт'}</div>
-          <div class="bal-reserve-amt" style="${toSet>0?'':'color:#16A34A;'}">${toSet>0?finFmtFull(toSet):finFmtFull(cushion)}</div>
-          <div class="bal-reserve-sub">${toSet>0
-            ? `из ${finFmtFull(monthIncome)} дохода · остаток: ${finFmtFull(monthIncome-totalMin)}`
-            : `свободных сверх минимума (${finFmtFull(totalMin)})`
-          }</div>
-        </div>
-        ${toSet>0 ? `<div style="text-align:right;font-size:12px;color:#9CA3AF;">
-          каждый приход<br>
-          <strong style="font-size:16px;color:#F59E0B;">${pct(totalMin)}%</strong>
-        </div>` : ''}
       </div>
 
       <div class="bal-table-wrap">
         <table class="bal-table">
           <thead>
             <tr>
-              <th>Категория</th>
-              <th style="text-align:right;">% дох.</th>
-              <th style="text-align:right;">Мин.</th>
-              <th style="text-align:right;">Факт</th>
-              <th style="text-align:right;">Δ</th>
+              <th>Вид расхода</th>
+              <th style="text-align:right;">%</th>
+              <th style="text-align:right;">Приход</th>
+              <th style="text-align:right;">Мин. сумма</th>
+              <th style="text-align:right;">Баланс</th>
             </tr>
           </thead>
           <tbody>
-            ${cats.map((c,ci)=>{
-              const spent = expenses[c.id]||0;
-              const spentPct = pct(spent);
-              const delta = spent - c.minAmt;
-              const deltaColor = delta >= 0 ? '#EF4444' : '#16A34A';
-              const deltaSign = delta >= 0 ? '+' : '';
-              return `<tr>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="width:10px;height:10px;border-radius:3px;background:${c.color};flex-shrink:0;"></div>
-                    <span class="bal-cat-name">${c.name}</span>
-                  </div>
-                </td>
-                <td class="bal-pct">${spentPct}%</td>
-                <td class="bal-min">${finFmtFull(c.minAmt)}</td>
-                <td class="bal-spent">
-                  <button class="bal-add-expense" data-ci="${ci}" data-cid="${c.id}" style="color:${spent>0?'#111827':'#9CA3AF'};">
-                    ${spent>0 ? finFmtFull(spent) : '+ Добавить'}
-                  </button>
-                </td>
-                <td style="font-weight:700;color:${deltaColor};text-align:right;">${spent>0?deltaSign+finFmtFull(delta):'—'}</td>
-              </tr>`;
-            }).join('')}
+            ${rows.map(r => `
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:10px;height:10px;border-radius:3px;background:${r.color};flex-shrink:0;"></div>
+                  <span class="bal-cat-name">${r.name}</span>
+                </div></td>
+                <td style="text-align:right;color:#6B7280;">${r.pct}%</td>
+                <td style="text-align:right;font-weight:500;">${monthIncome>0?finFmtFull(monthIncome):''}</td>
+                <td style="text-align:right;color:#6B7280;">${finFmtFull(Math.round(97000*r.pct/100))}</td>
+                <td style="text-align:right;font-weight:700;">${finFmtFull(r.allocated)}</td>
+              </tr>`).join('')}
+            <tr style="background:#F0FDF4;">
+              <td style="color:#16A34A;font-weight:600;">Подушка / Цели</td>
+              <td style="text-align:right;color:#16A34A;">${cushionPct}%</td>
+              <td></td>
+              <td style="text-align:right;color:#9CA3AF;">—</td>
+              <td style="text-align:right;font-weight:700;color:${cushion>=0?'#16A34A':'#EF4444'};">${finFmtFull(cushion)}</td>
+            </tr>
           </tbody>
           <tfoot>
-            <tr style="background:#F9FAFB;">
-              <td style="color:#6B7280;font-size:12px;padding:10px 16px;">Подушка / Цели</td>
-              <td style="color:#6B7280;font-size:12px;text-align:right;">${pct(cushion)}%</td>
-              <td style="color:#6B7280;font-size:12px;text-align:right;">???</td>
-              <td style="text-align:right;"></td>
-              <td style="font-weight:700;color:${cushion>=0?'#16A34A':'#EF4444'};text-align:right;">${finFmtFull(cushion)}</td>
-            </tr>
             <tr class="bal-total-row">
               <td>Итого</td>
-              <td>${pct(totalSpent)}%</td>
-              <td>${finFmtFull(totalMin)}</td>
-              <td>${finFmtFull(totalSpent)}</td>
-              <td style="color:${totalSpent<=totalMin?'#16A34A':'#EF4444'};font-weight:800;">
-                ${totalSpent<=totalMin ? '✓' : '+'+finFmtFull(totalSpent-totalMin)}
-              </td>
+              <td style="text-align:right;">${totalPct}%</td>
+              <td style="text-align:right;">${finFmtFull(monthIncome)}</td>
+              <td style="text-align:right;">97 000₽</td>
+              <td style="text-align:right;">${finFmtFull(monthIncome)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
 
       <button id="bal-edit-cats" class="bal-edit-btn">
-        <i class="ti ti-settings"></i> Настроить категории и минимумы
+        <i class="ti ti-settings"></i> Настроить % категорий
       </button>`;
 
-    content.querySelectorAll('.bal-add-expense').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        e.stopPropagation();
-        const ci=parseInt(btn.dataset.ci), cid=btn.dataset.cid, cat=cats[ci];
-        const current=expenses[cid]||0;
-        const overlay=document.createElement('div');
-        overlay.className='tr-modal-overlay';
-        overlay.innerHTML=`
-          <div class="tr-modal">
-            <p class="tr-modal-title">${cat.name}</p>
-            <div style="margin-bottom:12px;padding:12px;background:#F9FAFB;border-radius:8px;font-size:13px;color:#6B7280;">
-              Мин. сумма: <strong style="color:#111;">${finFmtFull(cat.minAmt)}</strong>
-            </div>
-            <div class="tr-modal-row">
-              <label style="flex:1 1 100%">Реальный расход за месяц, ₽
-                <input type="number" id="bal-exp-amt" value="${current||''}" inputmode="numeric" placeholder="0">
-              </label>
-            </div>
-            <div class="tr-modal-actions">
-              <button class="tr-modal-btn-secondary" id="bal-exp-cancel">Отмена</button>
-              <button class="tr-modal-btn-primary" id="bal-exp-save">Сохранить</button>
-            </div>
-          </div>`;
-        document.body.appendChild(overlay);
-        overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-        overlay.querySelector('#bal-exp-cancel').addEventListener('click',()=>overlay.remove());
-        overlay.querySelector('#bal-exp-save').addEventListener('click',()=>{
-          const amt=parseFloat(overlay.querySelector('#bal-exp-amt').value)||0;
-          Store.set(`finance.balance.expenses.${now.getFullYear()}.${mmKey}.${cid}`, amt);
-          overlay.remove(); renderBalance();
-        });
-        setTimeout(()=>overlay.querySelector('#bal-exp-amt').focus(),100);
-      });
-    });
-
-    document.getElementById('bal-edit-cats').addEventListener('click',()=>{
-      const overlay=document.createElement('div');
-      overlay.className='tr-modal-overlay';
-      overlay.innerHTML=`
+    document.getElementById('bal-edit-cats').addEventListener('click', () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'tr-modal-overlay';
+      overlay.innerHTML = `
         <div class="tr-modal" style="max-height:80vh;overflow-y:auto;">
-          <p class="tr-modal-title">Категории и минимумы</p>
-          ${cats.map((c,i)=>`
+          <p class="tr-modal-title">% распределения дохода</p>
+          <p style="font-size:12px;color:#9CA3AF;margin-bottom:12px;">Итого должно быть ≤ 100%. Остаток → подушка/цели.</p>
+          ${cats.map((c,i) => `
             <div class="tr-modal-row" style="gap:8px;align-items:flex-end;">
-              <label style="flex:1;">Категория<input type="text" class="bal-cat-name-inp" data-i="${i}" value="${c.name}"></label>
-              <label style="width:110px;">Мин. сумма<input type="number" class="bal-cat-min-inp" data-i="${i}" value="${c.minAmt}" inputmode="numeric"></label>
+              <label style="flex:1;">Категория<input type="text" class="bal-n" data-i="${i}" value="${c.name}"></label>
+              <label style="width:70px;">%<input type="number" class="bal-p" data-i="${i}" value="${c.pct||0}" min="0" max="100" inputmode="numeric"></label>
             </div>`).join('')}
+          <div id="bal-tot" style="text-align:right;font-size:13px;margin-top:6px;color:#6B7280;">Итого: ${totalPct}% · Подушка: ${cushionPct}%</div>
           <div class="tr-modal-actions">
-            <button class="tr-modal-btn-secondary" id="bal-cats-cancel">Отмена</button>
-            <button class="tr-modal-btn-primary" id="bal-cats-save">Сохранить</button>
+            <button class="tr-modal-btn-secondary" id="bal-cancel">Отмена</button>
+            <button class="tr-modal-btn-primary" id="bal-save">Сохранить</button>
           </div>
         </div>`;
       document.body.appendChild(overlay);
-      overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-      overlay.querySelector('#bal-cats-cancel').addEventListener('click',()=>overlay.remove());
-      overlay.querySelector('#bal-cats-save').addEventListener('click',()=>{
-        overlay.querySelectorAll('.bal-cat-name-inp').forEach(inp=>{ cats[+inp.dataset.i].name=inp.value.trim()||cats[+inp.dataset.i].name; });
-        overlay.querySelectorAll('.bal-cat-min-inp').forEach(inp=>{ cats[+inp.dataset.i].minAmt=parseFloat(inp.value)||0; });
+      overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+      overlay.querySelector('#bal-cancel').addEventListener('click', () => overlay.remove());
+      overlay.querySelectorAll('.bal-p').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const t = [...overlay.querySelectorAll('.bal-p')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+          const el = overlay.querySelector('#bal-tot');
+          el.textContent = `Итого: ${t}% · Подушка: ${Math.max(0,100-t)}%`;
+          el.style.color = t>100 ? '#EF4444' : '#16A34A';
+        });
+      });
+      overlay.querySelector('#bal-save').addEventListener('click', () => {
+        overlay.querySelectorAll('.bal-n').forEach(inp => { cats[+inp.dataset.i].name = inp.value.trim() || cats[+inp.dataset.i].name; });
+        overlay.querySelectorAll('.bal-p').forEach(inp => { cats[+inp.dataset.i].pct = parseFloat(inp.value)||0; });
         Store.set('finance.balance.categories', cats);
-        overlay.remove(); renderBalance();
+        overlay.remove();
+        renderBalance();
       });
     });
   }
-
 
   /* ═══ БЛИЖАЙШИЕ РАСХОДЫ ═══════════════════════ */
   function expGetList() {
@@ -581,8 +505,13 @@ window.Screens.finance = function(mount) {
           </label>
         </div>
         <div class="tr-modal-row">
-          <label style="flex:1 1 100%">Источник / комментарий
-            <input type="text" id="exp-source" value="${existing?.source||''}" placeholder="Откуда деньги">
+          <label style="flex:1 1 100%">Источник
+            <input type="text" id="exp-source" value="${existing?.source||''}" placeholder="Клиент, проект…">
+          </label>
+        </div>
+        <div class="tr-modal-row">
+          <label style="flex:1 1 100%">Сумма источника, ₽
+            <input type="number" id="exp-source-amt" value="${existing?.sourceAmt||''}" inputmode="numeric" placeholder="0">
           </label>
         </div>
         <div class="tr-modal-actions">
@@ -600,8 +529,9 @@ window.Screens.finance = function(mount) {
       const name = overlay.querySelector('#exp-name').value.trim();
       const amount = parseFloat(overlay.querySelector('#exp-amount').value) || 0;
       const source = overlay.querySelector('#exp-source').value.trim();
+      const sourceAmt = parseFloat(overlay.querySelector('#exp-source-amt').value) || 0;
       if (!name) return;
-      onSave({ id: existing?.id || 'e_' + Date.now(), name, amount, source });
+      onSave({ id: existing?.id || 'e_' + Date.now(), name, amount, source, sourceAmt });
       overlay.remove();
     });
   }
@@ -610,35 +540,59 @@ window.Screens.finance = function(mount) {
     const list = expGetList();
     const total = list.reduce((s, e) => s + (e.amount || 0), 0);
 
+    const sourceTotal = list.reduce((s,e) => s + (e.sourceAmt || 0), 0);
+    const balance = sourceTotal - total;
+
     content.innerHTML = `
-      <div class="tochka-hero" style="margin-bottom:8px;">
-        <div class="tochka-hero-label">Ближайшие расходы</div>
-        <div class="tochka-hero-amount">${finFmtFull(total)}</div>
-        <div class="tochka-hero-sub" style="color:#EF4444;">−${finFmtFull(total)}</div>
-      </div>
-      <div class="tochka-list">
+      <div class="tochka-list" style="margin-bottom:8px;">
         <div class="tochka-list-head">
-          <span class="tochka-list-title">Список · тяни для сортировки</span>
+          <span class="tochka-list-title">Ближайшие расходы</span>
           <button id="exp-add" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>
         </div>
+
+        <!-- Заголовок таблицы -->
+        <div class="exp-header">
+          <div class="exp-header-drag"></div>
+          <div class="exp-header-col exp-header-left">Вид расхода</div>
+          <div class="exp-header-col exp-header-right">Сумма</div>
+          <div class="exp-header-divider"></div>
+          <div class="exp-header-col exp-header-left">Источник</div>
+          <div class="exp-header-col exp-header-right">Сумма</div>
+        </div>
+
         <div id="exp-list">
           ${list.length === 0
             ? '<div class="tochka-empty">Нет расходов — добавьте первый</div>'
             : list.map((e, i) => `
-              <div class="exp-row" data-idx="${i}" draggable="true">
+              <div class="exp-row2" data-idx="${i}" draggable="true">
                 <div class="exp-drag-handle"><i class="ti ti-grip-vertical"></i></div>
-                <div class="exp-info exp-edit" data-idx="${i}">
+                <!-- Расход -->
+                <div class="exp-cell-left exp-edit" data-idx="${i}">
                   <div class="exp-name">${e.name}</div>
-                  ${e.source ? `<div class="exp-source">${e.source}</div>` : ''}
                 </div>
-                <div class="exp-amount">−${finFmtFull(e.amount)}</div>
+                <div class="exp-cell-right exp-edit" data-idx="${i}">
+                  <span class="exp-amt-red">${e.amount ? '−'+finFmtFull(e.amount) : '—'}</span>
+                </div>
+                <div class="exp-divider-v"></div>
+                <!-- Источник -->
+                <div class="exp-cell-left exp-edit" data-idx="${i}">
+                  <div class="exp-name" style="color:#6B7280;">${e.source || '—'}</div>
+                </div>
+                <div class="exp-cell-right exp-edit" data-idx="${i}">
+                  <span class="exp-amt-green">${e.sourceAmt ? '+'+finFmtFull(e.sourceAmt) : '—'}</span>
+                </div>
               </div>`).join('')}
         </div>
-        ${list.length > 0 ? `
-        <div class="exp-total-row">
-          <span>Итого</span>
-          <span style="font-weight:800;color:#EF4444;">−${finFmtFull(total)}</span>
-        </div>` : ''}
+
+        <!-- Итог -->
+        <div class="exp-total2">
+          <div class="exp-drag-handle" style="visibility:hidden;"></div>
+          <div class="exp-cell-left"><strong>Итого</strong></div>
+          <div class="exp-cell-right"><strong style="color:#EF4444;">−${finFmtFull(total)}</strong></div>
+          <div class="exp-divider-v"></div>
+          <div class="exp-cell-left"><strong style="color:#6B7280;">Потенциал</strong></div>
+          <div class="exp-cell-right"><strong style="color:${balance>=0?'#16A34A':'#EF4444'};">${balance>=0?'+':''}${finFmtFull(balance)}</strong></div>
+        </div>
       </div>`;
 
     document.getElementById('exp-add').addEventListener('click', () => {

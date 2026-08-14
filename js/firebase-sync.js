@@ -22,14 +22,19 @@ const FirebaseSync = (() => {
   }
 
   function sanitizeKeys(value) {
+    if (value === undefined || value === null) return null;
     if (Array.isArray(value)) return value.map(sanitizeKeys);
     if (value && typeof value === 'object') {
       const out = {};
       for (const key of Object.keys(value)) {
-        out[key.replace(/[.#$/\[\]]/g, '')] = sanitizeKeys(value[key]);
+        const v = sanitizeKeys(value[key]);
+        if (v !== undefined) {
+          out[key.replace(/[.#$/\[\]]/g, '_')] = v;
+        }
       }
       return out;
     }
+    if (typeof value === 'number' && !isFinite(value)) return null;
     return value;
   }
 

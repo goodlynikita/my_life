@@ -487,30 +487,23 @@ window.Screens.finance = function(mount) {
     Store.set('finance.expensesList', list);
   }
 
-  function expOpenModal(existing, side, onSave) {
-    /* side: 'expense' | 'source' | null (edit both) */
+  function expOpenModal(existing, onSave) {
     const isEdit = !!existing;
     const overlay = document.createElement('div');
     overlay.className = 'tr-modal-overlay';
-    const isExpense = !side || side === 'expense';
-    const isSource = !side || side === 'source';
     overlay.innerHTML = `
       <div class="tr-modal">
-        <p class="tr-modal-title">${isEdit
-          ? (side==='expense' ? 'Расход' : side==='source' ? 'Источник' : 'Редактировать')
-          : (side==='source' ? 'Добавить источник' : 'Новый расход')}</p>
-        ${isExpense ? `
+        <p class="tr-modal-title">${isEdit ? 'Редактировать' : 'Новый расход'}</p>
         <div class="tr-modal-row">
-          <label style="flex:1 1 100%">Вид расхода
+          <label style="flex:1 1 100%">Название
             <input type="text" id="exp-name" value="${existing?.name||''}" placeholder="Зубы, аренда…">
           </label>
         </div>
         <div class="tr-modal-row">
-          <label style="flex:1 1 100%">Сумма расхода, ₽
-            <input type="number" id="exp-amount" value="${existing?.amount||''}" inputmode="numeric" placeholder="0">
+          <label style="flex:1 1 100%">Сумма, ₽
+            <input type="number" id="exp-amount" value="${existing?.amount||''}" inputmode="numeric">
           </label>
-        </div>` : ''}
-        ${isSource ? `
+        </div>
         <div class="tr-modal-row">
           <label style="flex:1 1 100%">Источник
             <input type="text" id="exp-source" value="${existing?.source||''}" placeholder="Клиент, проект…">
@@ -520,7 +513,7 @@ window.Screens.finance = function(mount) {
           <label style="flex:1 1 100%">Сумма источника, ₽
             <input type="number" id="exp-source-amt" value="${existing?.sourceAmt||''}" inputmode="numeric" placeholder="0">
           </label>
-        </div>` : ''}
+        </div>
         <div class="tr-modal-actions">
           ${isEdit ? '<button class="tr-modal-btn-secondary" id="exp-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="exp-cancel">Отмена</button>'}
           <button class="tr-modal-btn-primary" id="exp-save">Сохранить</button>
@@ -533,18 +526,12 @@ window.Screens.finance = function(mount) {
     const db = overlay.querySelector('#exp-del');
     if (db) db.addEventListener('click', () => { onSave(null); overlay.remove(); });
     overlay.querySelector('#exp-save').addEventListener('click', () => {
-      const base = existing || { id: 'e_' + Date.now() };
-      if (isExpense) {
-        const name = overlay.querySelector('#exp-name')?.value.trim();
-        if (!name) return;
-        base.name = name;
-        base.amount = parseFloat(overlay.querySelector('#exp-amount')?.value) || 0;
-      }
-      if (isSource) {
-        base.source = overlay.querySelector('#exp-source')?.value.trim() || '';
-        base.sourceAmt = parseFloat(overlay.querySelector('#exp-source-amt')?.value) || 0;
-      }
-      onSave(base);
+      const name = overlay.querySelector('#exp-name').value.trim();
+      const amount = parseFloat(overlay.querySelector('#exp-amount').value) || 0;
+      const source = overlay.querySelector('#exp-source').value.trim();
+      const sourceAmt = parseFloat(overlay.querySelector('#exp-source-amt').value) || 0;
+      if (!name) return;
+      onSave({ id: existing?.id || 'e_' + Date.now(), name, amount, source, sourceAmt });
       overlay.remove();
     });
   }
@@ -580,20 +567,19 @@ window.Screens.finance = function(mount) {
               <div class="exp-row2" data-idx="${i}" draggable="true">
                 <div class="exp-drag-handle"><i class="ti ti-grip-vertical"></i></div>
                 <!-- Расход -->
-                <div class="exp-cell-left" data-idx="${i}" data-side="expense" style="cursor:pointer;" title="Редактировать расход">
+                <div class="exp-cell-left exp-edit" data-idx="${i}">
                   <div class="exp-name">${e.name}</div>
                 </div>
-                <div class="exp-cell-right" data-idx="${i}" style="cursor:pointer;" title="Редактировать расход">
+                <div class="exp-cell-right exp-edit" data-idx="${i}">
                   <span class="exp-amt-red">${e.amount ? '−'+finFmtFull(e.amount) : '—'}</span>
                 </div>
                 <div class="exp-divider-v"></div>
-                <div class="exp-cell-left" data-idx="${i}" data-side="source" style="cursor:pointer;" title="Редактировать источник">
-                  <div class="exp-name" style="color:#6B7280;">${e.source || '<span style=\"color:#D1D5DB;\">+ источник</span>'}</div>
+                <!-- Источник -->
+                <div class="exp-cell-left exp-edit" data-idx="${i}">
+                  <div class="exp-name" style="color:#6B7280;">${e.source || '—'}</div>
                 </div>
-                <div class="exp-cell-right" data-idx="${i}" data-side="source" style="cursor:pointer;" title="Редактировать источник">
-                  <span class="${e.sourceAmt ? 'exp-amt-green' : ''}" style="${!e.sourceAmt ? 'color:#D1D5DB;' : ''}">
-                    ${e.sourceAmt ? '+'+finFmtFull(e.sourceAmt) : '—'}
-                  </span>
+                <div class="exp-cell-right exp-edit" data-idx="${i}">
+                  <span class="exp-amt-green">${e.sourceAmt ? '+'+finFmtFull(e.sourceAmt) : '—'}</span>
                 </div>
               </div>`).join('')}
         </div>
@@ -604,12 +590,8 @@ window.Screens.finance = function(mount) {
           <div class="exp-cell-left"><strong>Итого</strong></div>
           <div class="exp-cell-right"><strong style="color:#EF4444;">−${finFmtFull(total)}</strong></div>
           <div class="exp-divider-v"></div>
-          <div class="exp-cell-left"><strong style="color:#16A34A;">Источники</strong></div>
-          <div class="exp-cell-right">
-            <strong style="color:${balance===0?'#6B7280':balance>0?'#16A34A':'#EF4444'};">
-              ${balance===0 ? '0₽' : (balance>0?'+':'')+finFmtFull(balance)}
-            </strong>
-          </div>
+          <div class="exp-cell-left"><strong style="color:#6B7280;">Потенциал</strong></div>
+          <div class="exp-cell-right"><strong style="color:${balance>=0?'#16A34A':'#EF4444'};">${balance>=0?'+':''}${finFmtFull(balance)}</strong></div>
         </div>
       </div>`;
 
@@ -623,24 +605,14 @@ window.Screens.finance = function(mount) {
       });
     });
 
-    /* Edit on row click - left=expense, right=source */
-    content.querySelectorAll('.exp-cell-left[data-idx]').forEach(el => {
+    /* Edit on row click */
+    content.querySelectorAll('.exp-edit').forEach(el => {
       el.addEventListener('click', () => {
         const idx = parseInt(el.dataset.idx);
         const l = expGetList();
-        expOpenModal({...l[idx]}, el.dataset.side || 'expense', result => {
-          if (result === null) { l.splice(idx, 1); } else { l[idx] = result; }
-          expSave(l);
-          renderExpenses();
-        });
-      });
-    });
-    content.querySelectorAll('.exp-cell-right[data-idx]').forEach(el => {
-      el.addEventListener('click', () => {
-        const idx = parseInt(el.dataset.idx);
-        const l = expGetList();
-        expOpenModal({...l[idx]}, 'source', result => {
-          if (result !== null) l[idx] = result;
+        expOpenModal(l[idx], result => {
+          if (result === null) l.splice(idx, 1);
+          else l[idx] = result;
           expSave(l);
           renderExpenses();
         });

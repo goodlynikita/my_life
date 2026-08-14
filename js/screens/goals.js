@@ -209,12 +209,17 @@ window.Screens.goals = function(mount) {
       const otherTotal = otherItems.reduce((s,g)=>s+g.amount,0);
       const grandTotal = goalTotal + otherTotal;
       const allDone = all.filter(g=>g.done).length;
-      const allPct = Math.round(allDone/all.length*100);
+      const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
+      const doneOtherTotal = all.filter(g=>g.done && g.season!=='all').reduce((s,g)=>s+g.amount,0);
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};">
-          <div class="goals-hero-eyebrow">ОБЩАЯ СУММА ЦЕЛЕЙ</div>
+          <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>
           <div class="goals-hero-big">${goalsFmt(grandTotal)}</div>
-          <div class="goals-hero-sub">из них на текущий год: ${goalsFmt(otherTotal)}</div>
+          <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
+            <span>На год: ${goalsFmt(otherTotal)}</span>
+            <span style="color:${color};">Закрыто: ${goalsFmt(doneOtherTotal)}</span>
+            <span style="color:${doneOtherTotal>0?'#A8C97F':'#9CA3AF'};">Осталось: ${goalsFmt(otherTotal-doneOtherTotal)}</span>
+          </div>
           <div class="goals-all-progress">
             <div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div>
           </div>

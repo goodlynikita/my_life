@@ -78,8 +78,7 @@ const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
   'Ноги': ['Присяд штанга', 'Присяд гакк', 'Жим ногами', 'Пресс', 'Разгибания', 'Сгибания'],
   'Плечи': ['Махи', 'Жим', 'Разведения']
 };
-/* При загрузке сбрасываем локальный кэш упражнений чтобы применить актуальный список */
-try { localStorage.removeItem('nik_exercises_v1'); } catch(e) {}
+/* Exercise list is canonical, no localStorage cache needed */
 
 function trLoadExercises() {
   try {

@@ -305,9 +305,11 @@ window.Screens.goals = function(mount) {
         e.stopPropagation();
         const idx=parseInt(el.dataset.idx);
         const list=goalsGet();
+        if (!list[idx]) return;
         list[idx].done=!list[idx].done;
         goalsSave(list);
         render();
+        window.dispatchEvent(new CustomEvent('goals-updated'));
       });
     });
 

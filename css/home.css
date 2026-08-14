@@ -589,3 +589,40 @@ html, body {
   .home2-tile-icon { font-size: 36px !important; }
   .home2-tile-name { font-size: 18px !important; }
 }
+
+/* ── Monthly summary card ────────────────────────── */
+.home2-summary-card {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 18px;
+  padding: 20px;
+  animation: slideUp 0.4s ease both;
+}
+.home2-summary-top { margin-bottom: 14px; }
+.home2-summary-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.home2-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.home2-summary-item {
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.home2-summary-label {
+  font-size: 10px;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.home2-summary-val {
+  font-size: 15px;
+  font-weight: 700;
+}

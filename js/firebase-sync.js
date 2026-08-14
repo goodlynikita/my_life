@@ -55,22 +55,14 @@ const FirebaseSync = (() => {
     /* Если все пути начинаются с одного топ-раздела — пишем одним set.
        Иначе пишем каждый путь отдельно. */
     try {
-      /* Группируем: finance/* → один set finance, goals/* → один set goals и тд */
-      const sections = new Map();
-      for (const [path, value] of entries) {
-        const top = path.split('.')[0];
-        if (!sections.has(top)) sections.set(top, []);
-        sections.get(top).push({ path, value });
-      }
+      /* Группируем по top-level разделу */
+      const sections = new Set();
+      for (const [path] of entries) sections.add(path.split('.')[0]);
 
-      for (const [top, items] of sections) {
-        if (items.length === 1) {
-          /* Один путь — пишем точечно */
-          const fbPath = ROOT + '/' + items[0].path.replace(/\./g, '/');
-          await set(ref(_db, fbPath), sanitizeKeys(items[0].value));
-        } else {
-          /* Несколько путей в одном разделе — пишем весь раздел */
-          const sectionData = Store.get()[top];
+      /* Всегда пишем весь раздел целиком — надёжнее точечной записи */
+      for (const top of sections) {
+        const sectionData = Store.get()[top];
+        if (sectionData !== undefined) {
           await set(ref(_db, ROOT + '/' + top), sanitizeKeys(sectionData));
         }
       }
@@ -99,7 +91,8 @@ const FirebaseSync = (() => {
       const snap = await get(ref(_db, ROOT));
       if (!snap.exists()) return;
       const remote = snap.val();
-      if (!remote?.training?.plans?.length) return;
+      /* Синхронизируем если есть любые данные */
+      if (!remote) return;
       Store.replaceAll(remote);
       setStatus('Синхронизировано');
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
@@ -113,13 +106,19 @@ const FirebaseSync = (() => {
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
-      const hasData = remote?.training?.plans?.length > 0;
+      /* Грузим данные если есть ЛЮБОЙ раздел — не только тренировки */
+      const hasData = remote && (
+        remote?.training?.plans?.length > 0 ||
+        remote?.finance?.years ||
+        remote?.goals?.directions ||
+        remote?.habits?.list?.length > 0
+      );
       if (hasData) {
         Store.replaceAll(remote);
         setStatus('Данные загружены');
       }
       _loaded = true;
-      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 10000);
+      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 15000);
       return hasData ? true : false;
     } catch (e) {
       console.error('pullIntoStore failed', e);
@@ -132,11 +131,11 @@ const FirebaseSync = (() => {
   /* Beacon — сохраняет ВСЕ данные при уходе со страницы */
   function _pushBeacon() {
     if (!_loaded) return;
-    /* Сначала сбрасываем очередь если есть */
+    /* Если есть очередь — сначала сбрасываем её */
     if (_queue.size > 0) {
       _flushQueue();
-      return;
     }
+    /* Всегда пишем полный стейт при уходе */
     const d = Store.get();
     _lastWriteAt = Date.now();
     try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch (e) {}

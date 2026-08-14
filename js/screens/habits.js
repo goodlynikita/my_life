@@ -41,10 +41,7 @@ function habSetMark(monthKey, hid, day, value) {
 }
 
 function habSaveList(list) {
-  // Записываем каждый элемент отдельно
-  list.forEach((h,i) => Store.set(`habits.list.${i}`, h));
-  const prev = Store.get().habits?.list || [];
-  for (let i = list.length; i < prev.length; i++) Store.set(`habits.list.${i}`, null);
+  Store.set('habits.list', list);
 }
 
 /* Считаем прогресс с учётом расписания */

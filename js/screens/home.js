@@ -55,6 +55,7 @@ window.Screens.home = function (mount) {
   const doneCnt = goals.filter(g=>g.done).length;
   const totalCnt = goals.length;
   const goalsPct = totalCnt ? Math.round(doneCnt/totalCnt*100) : 0;
+  const doneYearAmt = goals.filter(g=>g.done && g.season!=='all').reduce((s,g)=>s+g.amount,0);
 
   const now = new Date();
   const months = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -105,15 +106,35 @@ window.Screens.home = function (mount) {
         <button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button>
       </div>
 
-      <!-- Цели — главный блок -->
-      <div class="home2-goals-card" data-route="/goals">
-        <div class="home2-goals-eyebrow">🎯 ОБЩАЯ СУММА ЦЕЛЕЙ</div>
-        <div class="home2-goals-amount">${fmtAmt(allAmt)}</div>
-        <div class="home2-goals-sub">из них на текущий год: ${fmtAmt(yearAmt)}</div>
-        <div class="home2-goals-bar-track">
+      <!-- Сводка месяца -->
+      <div class="home2-summary-card">
+        <div class="home2-summary-top">
+          <div>
+            <div class="home2-goals-eyebrow">${months[now.getMonth()].toUpperCase()} ${now.getFullYear()}</div>
+            <div class="home2-summary-title">Сводка месяца</div>
+          </div>
+        </div>
+        <div class="home2-summary-grid">
+          <div class="home2-summary-item">
+            <div class="home2-summary-label">Доход</div>
+            <div class="home2-summary-val" style="color:#16A34A;">${monthIncome>0?fmtAmt(monthIncome):'—'}</div>
+          </div>
+          <div class="home2-summary-item">
+            <div class="home2-summary-label">Привычки</div>
+            <div class="home2-summary-val" style="color:#A8C97F;">${todayDone}/${habList.length} сегодня</div>
+          </div>
+          <div class="home2-summary-item">
+            <div class="home2-summary-label">Цели закрыто</div>
+            <div class="home2-summary-val" style="color:#A78BFA;">${doneCnt}/${totalCnt} · ${goalsPct}%</div>
+          </div>
+          <div class="home2-summary-item" data-route="/goals" style="cursor:pointer;">
+            <div class="home2-summary-label">Осталось целей</div>
+            <div class="home2-summary-val" style="color:#F0EDE5;">${fmtAmt(yearAmt - doneYearAmt)}</div>
+          </div>
+        </div>
+        <div class="home2-goals-bar-track" style="margin-top:12px;">
           <div class="home2-goals-bar-fill" style="width:${goalsPct}%;"></div>
         </div>
-        <div class="home2-goals-progress">${doneCnt} из ${totalCnt} закрыто · ${goalsPct}%</div>
       </div>
 
       <!-- Плитки -->

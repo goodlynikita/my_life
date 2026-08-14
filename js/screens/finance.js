@@ -139,6 +139,7 @@ window.Screens.finance = function(mount) {
       </div>
       <div class="tochka-tabs" style="position:sticky;top:0;z-index:10;">
         <button class="tochka-tab active" data-tab="month">Месяц</button>
+        <button class="tochka-tab" data-tab="expenses">Расходы</button>
         <button class="tochka-tab" data-tab="balance">Баланс</button>
         <button class="tochka-tab" data-tab="year">Год</button>
         <button class="tochka-tab" data-tab="all">Всё время</button>
@@ -553,8 +554,197 @@ window.Screens.finance = function(mount) {
     });
   }
 
+
+  /* ═══ БЛИЖАЙШИЕ РАСХОДЫ ═══════════════════════ */
+  function expGetList() {
+    return Store.get().finance?.expensesList || [];
+  }
+  function expSave(list) {
+    Store.set('finance.expensesList', list);
+  }
+
+  function expOpenModal(existing, onSave) {
+    const isEdit = !!existing;
+    const overlay = document.createElement('div');
+    overlay.className = 'tr-modal-overlay';
+    overlay.innerHTML = `
+      <div class="tr-modal">
+        <p class="tr-modal-title">${isEdit ? 'Редактировать' : 'Новый расход'}</p>
+        <div class="tr-modal-row">
+          <label style="flex:1 1 100%">Название
+            <input type="text" id="exp-name" value="${existing?.name||''}" placeholder="Зубы, аренда…">
+          </label>
+        </div>
+        <div class="tr-modal-row">
+          <label style="flex:1 1 100%">Сумма, ₽
+            <input type="number" id="exp-amount" value="${existing?.amount||''}" inputmode="numeric">
+          </label>
+        </div>
+        <div class="tr-modal-row">
+          <label style="flex:1 1 100%">Источник / комментарий
+            <input type="text" id="exp-source" value="${existing?.source||''}" placeholder="Откуда деньги">
+          </label>
+        </div>
+        <div class="tr-modal-actions">
+          ${isEdit ? '<button class="tr-modal-btn-secondary" id="exp-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="exp-cancel">Отмена</button>'}
+          <button class="tr-modal-btn-primary" id="exp-save">Сохранить</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    const cb = overlay.querySelector('#exp-cancel');
+    if (cb) cb.addEventListener('click', () => overlay.remove());
+    const db = overlay.querySelector('#exp-del');
+    if (db) db.addEventListener('click', () => { onSave(null); overlay.remove(); });
+    overlay.querySelector('#exp-save').addEventListener('click', () => {
+      const name = overlay.querySelector('#exp-name').value.trim();
+      const amount = parseFloat(overlay.querySelector('#exp-amount').value) || 0;
+      const source = overlay.querySelector('#exp-source').value.trim();
+      if (!name) return;
+      onSave({ id: existing?.id || 'e_' + Date.now(), name, amount, source });
+      overlay.remove();
+    });
+  }
+
+  function renderExpenses() {
+    const list = expGetList();
+    const total = list.reduce((s, e) => s + (e.amount || 0), 0);
+
+    content.innerHTML = `
+      <div class="tochka-hero" style="margin-bottom:8px;">
+        <div class="tochka-hero-label">Ближайшие расходы</div>
+        <div class="tochka-hero-amount">${finFmtFull(total)}</div>
+        <div class="tochka-hero-sub" style="color:#EF4444;">−${finFmtFull(total)}</div>
+      </div>
+      <div class="tochka-list">
+        <div class="tochka-list-head">
+          <span class="tochka-list-title">Список · тяни для сортировки</span>
+          <button id="exp-add" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>
+        </div>
+        <div id="exp-list">
+          ${list.length === 0
+            ? '<div class="tochka-empty">Нет расходов — добавьте первый</div>'
+            : list.map((e, i) => `
+              <div class="exp-row" data-idx="${i}" draggable="true">
+                <div class="exp-drag-handle"><i class="ti ti-grip-vertical"></i></div>
+                <div class="exp-info exp-edit" data-idx="${i}">
+                  <div class="exp-name">${e.name}</div>
+                  ${e.source ? `<div class="exp-source">${e.source}</div>` : ''}
+                </div>
+                <div class="exp-amount">−${finFmtFull(e.amount)}</div>
+              </div>`).join('')}
+        </div>
+        ${list.length > 0 ? `
+        <div class="exp-total-row">
+          <span>Итого</span>
+          <span style="font-weight:800;color:#EF4444;">−${finFmtFull(total)}</span>
+        </div>` : ''}
+      </div>`;
+
+    document.getElementById('exp-add').addEventListener('click', () => {
+      expOpenModal(null, result => {
+        if (!result) return;
+        const l = expGetList();
+        l.push(result);
+        expSave(l);
+        renderExpenses();
+      });
+    });
+
+    /* Edit on row click */
+    content.querySelectorAll('.exp-edit').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.idx);
+        const l = expGetList();
+        expOpenModal(l[idx], result => {
+          if (result === null) l.splice(idx, 1);
+          else l[idx] = result;
+          expSave(l);
+          renderExpenses();
+        });
+      });
+    });
+
+    /* Drag-and-drop reorder */
+    const listEl = document.getElementById('exp-list');
+    let dragIdx = null;
+    listEl.querySelectorAll('.exp-row').forEach(row => {
+      row.addEventListener('dragstart', () => {
+        dragIdx = parseInt(row.dataset.idx);
+        row.classList.add('exp-dragging');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('exp-dragging');
+        listEl.querySelectorAll('.exp-row').forEach(r => r.classList.remove('exp-drag-over'));
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault();
+        const tgt = parseInt(row.dataset.idx);
+        if (dragIdx === null || dragIdx === tgt) return;
+        listEl.querySelectorAll('.exp-row').forEach(r => r.classList.remove('exp-drag-over'));
+        row.classList.add('exp-drag-over');
+      });
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        const tgt = parseInt(row.dataset.idx);
+        if (dragIdx === null || dragIdx === tgt) return;
+        const l = expGetList();
+        const [moved] = l.splice(dragIdx, 1);
+        l.splice(tgt, 0, moved);
+        expSave(l);
+        dragIdx = null;
+        renderExpenses();
+      });
+
+      /* Touch drag for mobile */
+      let touchSrc = null, touchClone = null;
+      row.querySelector('.exp-drag-handle').addEventListener('touchstart', te => {
+        te.preventDefault();
+        touchSrc = row;
+        touchClone = row.cloneNode(true);
+        touchClone.style.cssText = 'position:fixed;opacity:0.85;pointer-events:none;z-index:9999;width:'+row.offsetWidth+'px;background:#fff;border:1px solid #16A34A;border-radius:8px;';
+        document.body.appendChild(touchClone);
+        dragIdx = parseInt(row.dataset.idx);
+        row.style.opacity = '0.4';
+      }, { passive: false });
+
+      document.addEventListener('touchmove', te => {
+        if (!touchSrc) return;
+        te.preventDefault();
+        const t = te.touches[0];
+        if (touchClone) { touchClone.style.left = (t.clientX - 20) + 'px'; touchClone.style.top = (t.clientY - 20) + 'px'; }
+        touchClone && (touchClone.style.display = 'none');
+        const under = document.elementFromPoint(t.clientX, t.clientY);
+        touchClone && (touchClone.style.display = '');
+        const tgtRow = under?.closest('.exp-row');
+        listEl.querySelectorAll('.exp-row').forEach(r => r.classList.remove('exp-drag-over'));
+        if (tgtRow && tgtRow !== touchSrc) tgtRow.classList.add('exp-drag-over');
+      }, { passive: false });
+
+      document.addEventListener('touchend', te => {
+        if (!touchSrc) return;
+        if (touchClone) { touchClone.remove(); touchClone = null; }
+        touchSrc.style.opacity = '';
+        const t = te.changedTouches[0];
+        const under = document.elementFromPoint(t.clientX, t.clientY);
+        const tgtRow = under?.closest('.exp-row');
+        listEl.querySelectorAll('.exp-row').forEach(r => r.classList.remove('exp-drag-over'));
+        if (tgtRow && tgtRow !== touchSrc) {
+          const tgt = parseInt(tgtRow.dataset.idx);
+          const l = expGetList();
+          const [moved] = l.splice(dragIdx, 1);
+          l.splice(tgt, 0, moved);
+          expSave(l);
+        }
+        touchSrc = null; dragIdx = null;
+        renderExpenses();
+      });
+    });
+  }
+
   function render(){
     if(activeTab==='month')renderMonth();
+    else if(activeTab==='expenses')renderExpenses();
     else if(activeTab==='balance')renderBalance();
     else if(activeTab==='year')renderYear();
     else renderAll();

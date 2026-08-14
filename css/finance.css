@@ -762,3 +762,43 @@
   .fin2-year-card { margin: 0 16px; border-radius: 12px; border: 1px solid #E5E7EB; }
   .fin2-year-card:first-child { border-top: 1px solid #E5E7EB; }
 }
+
+/* ── Expenses tab ────────────────────────────────── */
+.exp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #F3F4F6;
+  background: #fff;
+  transition: background 0.15s;
+  cursor: default;
+}
+.exp-row:last-child { border-bottom: none; }
+.exp-row.exp-dragging { opacity: 0.4; }
+.exp-row.exp-drag-over { background: #F0FDF4; border-top: 2px solid #16A34A; }
+.exp-drag-handle {
+  color: #D1D5DB;
+  cursor: grab;
+  font-size: 16px;
+  padding: 4px;
+  flex-shrink: 0;
+  touch-action: none;
+}
+.exp-drag-handle:active { cursor: grabbing; }
+.exp-info { flex: 1; cursor: pointer; }
+.exp-info:hover .exp-name { color: #16A34A; }
+.exp-name { font-size: 14px; font-weight: 500; color: #111827; }
+.exp-source { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+.exp-amount { font-size: 14px; font-weight: 700; color: #EF4444; white-space: nowrap; }
+.exp-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 15px;
+  color: #111;
+  border-top: 2px solid #E5E7EB;
+  background: #F9FAFB;
+}

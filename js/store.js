@@ -24,7 +24,18 @@ const Store = (() => {
         months: {}
       },
       finance: {
-        years: {}
+        years: {},
+        expensesList: [
+          { id:'exp1', name:'Зубы', amount:24000, source:'' },
+          { id:'exp2', name:'Вибрато', amount:18000, source:'' },
+          { id:'exp3', name:'Химчистка', amount:8000, source:'' },
+          { id:'exp4', name:'РС', amount:6400, source:'' },
+          { id:'exp5', name:'Зал', amount:3500, source:'' },
+          { id:'exp6', name:'Карплей', amount:24000, source:'' },
+          { id:'exp7', name:'Брекетты', amount:40000, source:'' },
+          { id:'exp8', name:'Налог', amount:29000, source:'' },
+          { id:'exp9', name:'Остатки по тачке', amount:25000, source:'' },
+        ]
       },
       goals: {
         directions: [],

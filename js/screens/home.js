@@ -106,34 +106,80 @@ window.Screens.home = function (mount) {
         <button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button>
       </div>
 
-      <!-- Сводка месяца -->
-      <div class="home2-summary-card">
-        <div class="home2-summary-top">
-          <div>
-            <div class="home2-goals-eyebrow">${months[now.getMonth()].toUpperCase()} ${now.getFullYear()}</div>
-            <div class="home2-summary-title">Сводка месяца</div>
+      <!-- Hero slider -->
+      <div class="hero-slider" id="hero-slider">
+        <div class="hero-slides" id="hero-slides">
+
+          <!-- Слайд 1: Фокус дня -->
+          <div class="hero-slide slide-focus" data-route="/training">
+            <div class="hero-slide-label">ФОКУС ДНЯ</div>
+            <div class="hero-slide-main">
+              <div class="hero-workout">
+                <span class="hero-workout-icon">💪</span>
+                <span class="hero-workout-text">${todayWorkout || 'Заполни тренировку'}</span>
+              </div>
+            </div>
+            <div class="hero-slide-sub">
+              <div class="hero-stat">
+                <span class="hero-stat-icon">✅</span>
+                <span>Привычки: <strong>${todayDone}/${habList.length}</strong> сегодня</span>
+              </div>
+              <div class="hero-stat" style="margin-top:6px;">
+                <span class="hero-stat-icon">📅</span>
+                <span>${now.getDate()} ${months[now.getMonth()]}, ${['вс','пн','вт','ср','чт','пт','сб'][now.getDay()]}</span>
+              </div>
+            </div>
+            <div class="hero-slide-glow slide-glow-blue"></div>
           </div>
+
+          <!-- Слайд 2: Финансовый пульс -->
+          <div class="hero-slide slide-finance" data-route="/finance">
+            <div class="hero-slide-label">ФИНАНСОВЫЙ ПУЛЬС</div>
+            <div class="hero-slide-main">
+              <div class="hero-amount">${monthIncome>0?fmtAmt(monthIncome):'Добавь доход'}</div>
+              <div class="hero-amount-sub">${months[now.getMonth()]} ${now.getFullYear()}</div>
+            </div>
+            <div class="hero-slide-sub">
+              <div class="hero-stat">
+                <span class="hero-stat-icon">🛡</span>
+                <span>Подушка: <strong style="color:${(monthIncome-97000)>=0?'#4ADE80':'#F87171'}">${fmtAmt(Math.max(0,monthIncome-97000))}</strong></span>
+              </div>
+              <div class="hero-stat" style="margin-top:6px;">
+                <span class="hero-stat-icon">⚡</span>
+                <span>Ближайший: <strong>Зубы 24 000₽</strong></span>
+              </div>
+            </div>
+            <div class="hero-slide-glow slide-glow-green"></div>
+          </div>
+
+          <!-- Слайд 3: Прогресс целей -->
+          <div class="hero-slide slide-goals" data-route="/goals">
+            <div class="hero-slide-label">ПРОГРЕСС ЦЕЛЕЙ</div>
+            <div class="hero-slide-main">
+              <div class="hero-goals-pct">${goalsPct}%</div>
+              <div class="hero-goals-bar">
+                <div class="hero-goals-fill" style="width:${goalsPct}%"></div>
+              </div>
+            </div>
+            <div class="hero-slide-sub">
+              <div class="hero-stat">
+                <span class="hero-stat-icon">🎯</span>
+                <span><strong>${doneCnt}</strong> из <strong>${totalCnt}</strong> закрыто</span>
+              </div>
+              <div class="hero-stat" style="margin-top:6px;">
+                <span class="hero-stat-icon">💎</span>
+                <span>Осталось: <strong>${fmtAmt(yearAmt-doneYearAmt)}</strong></span>
+              </div>
+            </div>
+            <div class="hero-slide-glow slide-glow-purple"></div>
+          </div>
+
         </div>
-        <div class="home2-summary-grid">
-          <div class="home2-summary-item">
-            <div class="home2-summary-label">Доход</div>
-            <div class="home2-summary-val" style="color:#16A34A;">${monthIncome>0?fmtAmt(monthIncome):'—'}</div>
-          </div>
-          <div class="home2-summary-item">
-            <div class="home2-summary-label">Привычки</div>
-            <div class="home2-summary-val" style="color:#A8C97F;">${todayDone}/${habList.length} сегодня</div>
-          </div>
-          <div class="home2-summary-item">
-            <div class="home2-summary-label">Цели закрыто</div>
-            <div class="home2-summary-val" style="color:#A78BFA;">${doneCnt}/${totalCnt} · ${goalsPct}%</div>
-          </div>
-          <div class="home2-summary-item" data-route="/goals" style="cursor:pointer;">
-            <div class="home2-summary-label">Осталось целей</div>
-            <div class="home2-summary-val" style="color:#F0EDE5;">${fmtAmt(yearAmt - doneYearAmt)}</div>
-          </div>
-        </div>
-        <div class="home2-goals-bar-track" style="margin-top:12px;">
-          <div class="home2-goals-bar-fill" style="width:${goalsPct}%;"></div>
+        <!-- Dots -->
+        <div class="hero-dots">
+          <div class="hero-dot active" data-idx="0"></div>
+          <div class="hero-dot" data-idx="1"></div>
+          <div class="hero-dot" data-idx="2"></div>
         </div>
       </div>
 
@@ -178,6 +224,45 @@ window.Screens.home = function (mount) {
   mount.querySelectorAll('[data-route]').forEach(el => {
     el.addEventListener('click', () => Router.go(el.dataset.route));
   });
+
+  /* ── Hero slider ── */
+  const slider = document.getElementById('hero-slider');
+  const slides = document.getElementById('hero-slides');
+  const dots = mount.querySelectorAll('.hero-dot');
+  if (slider && slides) {
+    let cur = 0;
+    let autoTimer = null;
+    const total = 3;
+
+    function goTo(idx) {
+      cur = (idx + total) % total;
+      slides.style.transform = \`translateX(-\${cur * 100}%)\`;
+      dots.forEach((d,i) => d.classList.toggle('active', i === cur));
+    }
+
+    function startAuto() {
+      if (autoTimer) clearInterval(autoTimer);
+      autoTimer = setInterval(() => goTo(cur + 1), 4000);
+    }
+
+    dots.forEach(d => {
+      d.addEventListener('click', e => {
+        e.stopPropagation();
+        goTo(parseInt(d.dataset.idx));
+        startAuto();
+      });
+    });
+
+    /* Swipe */
+    let tx = 0, sx = 0;
+    slides.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+    slides.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) > 40) { goTo(dx < 0 ? cur+1 : cur-1); startAuto(); }
+    });
+
+    startAuto();
+  }
   document.getElementById('logout-btn').addEventListener('click', () => {
     Auth.logout();
     Router.go('/login');

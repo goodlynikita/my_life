@@ -376,9 +376,16 @@ function trDayAllExercises(day) {
 function trCalcProgress(plan, weekIndex, exerciseName) {
   const week1 = plan.weeks[0];
   let baseline = null;
+  let baselineKind = null;
   for (const day of week1.days) {
     const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
-    if (found) { baseline = trMetricFor(found.ex); break; }
+    if (found) {
+      baselineKind = found.ex.kind;
+      /* Не показываем прогресс для шагов/кардио в зале — некорректное сравнение */
+      if (found.ex.kind === 'steps' || found.ex.kind === 'cardio') return { pct: 0, dir: 'flat' };
+      baseline = trMetricFor(found.ex);
+      break;
+    }
   }
   const currentWeek = plan.weeks[weekIndex];
   let current = null;
@@ -1682,9 +1689,11 @@ function trCollectGymExercises(plan) {
         if (!trIsGymType(session.type)) return;
         session.exercises.forEach((ex, exIdx) => {
           if (ex.kind !== 'strength') return;
-          /* Группа: сначала ищем в каноническом списке, иначе берём из сессии */
+          /* Группа: ТОЛЬКО по каноническому списку упражнений.
+             Группы сессии (напр "Спина+Руки") не используем — они для отображения дня,
+             а не для определения к какой мышце относится упражнение. */
           const canonical = trExerciseCanonicalGroups(ex.name);
-          const groups = canonical || session.groups || [];
+          const groups = canonical || ['Разное'];
           latest[ex.name] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
         });
       });

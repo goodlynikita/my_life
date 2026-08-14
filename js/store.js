@@ -117,11 +117,19 @@ const Store = (() => {
     d.meta = d.meta || base.meta;
     d.training = normalizeTraining(d.training, base);
     d.habits = d.habits || base.habits;
+    if (!d.habits.list) d.habits.list = [];
+    if (!d.habits.months) d.habits.months = {};
     d.finance = d.finance || base.finance;
     if (!d.finance.years) d.finance.years = {};
     d.goals = d.goals || base.goals;
+    /* Firebase может вернуть directions как объект {0:..,1:..} — конвертируем в массив */
+    if (d.goals.directions && !Array.isArray(d.goals.directions)) {
+      d.goals.directions = toArr(d.goals.directions).filter(Boolean);
+    }
     d.nutrition = d.nutrition || base.nutrition;
     d.nutritionFoods = d.nutritionFoods || base.nutritionFoods;
+    /* nutritionFoods тоже может прийти как объект */
+    if (!Array.isArray(d.nutritionFoods)) d.nutritionFoods = toArr(d.nutritionFoods).filter(Boolean);
     return d;
   }
 

@@ -62,10 +62,12 @@ const GOALS_INITIAL = [
 function goalsGet() {
   const s = Store.get().goals?.directions;
   if (s && Array.isArray(s) && s.filter(Boolean).length > 0) return s.filter(Boolean);
+  /* Если данных нет в Store — возвращаем начальные и сохраняем в Firebase */
   return GOALS_INITIAL;
 }
 function goalsSave(list) {
-  list.forEach((g,i) => Store.set(`goals.directions.${i}`, g));
+  /* Пишем весь массив целиком одним set — надёжнее чем по одному */
+  Store.set('goals.directions', list);
 }
 function goalsFmt(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';

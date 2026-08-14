@@ -7,13 +7,15 @@ const ROOT = 'nik-data';
 
 const FirebaseSync = (() => {
   let _loaded = false;
-  let _saveTimer = null;
-  let _pendingPath = null;
-  let _pendingValue = null;
   let _pollTimer = null;
   let _lastWriteAt = 0;
   let statusEl = null;
   let hideTimer = null;
+
+  /* Очередь сохранений: path -> value. Несколько изменений накапливаются
+     и сбрасываются все вместе — ни одно не теряется. */
+  const _queue = new Map();
+  let _flushTimer = null;
 
   function isConfigured() {
     return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL);
@@ -43,10 +45,55 @@ const FirebaseSync = (() => {
     }
   }
 
-  /* Тихий pull — просто берём Firebase как есть, никакого merge */
+  async function _flushQueue() {
+    if (_queue.size === 0) return;
+    const entries = [..._queue.entries()];
+    _queue.clear();
+    _lastWriteAt = Date.now();
+    setStatus('Сохранение…');
+
+    /* Если все пути начинаются с одного топ-раздела — пишем одним set.
+       Иначе пишем каждый путь отдельно. */
+    try {
+      /* Группируем: finance/* → один set finance, goals/* → один set goals и тд */
+      const sections = new Map();
+      for (const [path, value] of entries) {
+        const top = path.split('.')[0];
+        if (!sections.has(top)) sections.set(top, []);
+        sections.get(top).push({ path, value });
+      }
+
+      for (const [top, items] of sections) {
+        if (items.length === 1) {
+          /* Один путь — пишем точечно */
+          const fbPath = ROOT + '/' + items[0].path.replace(/\./g, '/');
+          await set(ref(_db, fbPath), sanitizeKeys(items[0].value));
+        } else {
+          /* Несколько путей в одном разделе — пишем весь раздел */
+          const sectionData = Store.get()[top];
+          await set(ref(_db, ROOT + '/' + top), sanitizeKeys(sectionData));
+        }
+      }
+      _lastWriteAt = Date.now();
+      setStatus('Сохранено');
+    } catch (e) {
+      console.error('flush failed', e);
+      setStatus('Ошибка сохранения', true);
+      /* Возвращаем в очередь для повтора */
+      for (const [path, value] of entries) _queue.set(path, value);
+      setTimeout(_flushQueue, 3000);
+    }
+  }
+
+  function scheduleSave(path, value) {
+    if (!_loaded) return;
+    _queue.set(path, value);
+    if (_flushTimer) clearTimeout(_flushTimer);
+    _flushTimer = setTimeout(_flushQueue, 500);
+  }
+
   async function _silentPull() {
     if (!_loaded) return;
-    /* Не тянем если сами только что писали — даём Firebase осесть */
     if (Date.now() - _lastWriteAt < 10000) return;
     try {
       const snap = await get(ref(_db, ROOT));
@@ -56,7 +103,7 @@ const FirebaseSync = (() => {
       Store.replaceAll(remote);
       setStatus('Синхронизировано');
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
-    } catch (e) { /* тихо */ }
+    } catch (e) {}
   }
 
   async function pullIntoStore() {
@@ -82,48 +129,23 @@ const FirebaseSync = (() => {
     }
   }
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') _silentPull();
-    else _pushBeacon();
-  });
-
-  async function pushPath(storePath, value) {
-    if (!_loaded) return;
-    const fbPath = ROOT + '/' + storePath.replace(/\./g, '/');
-    setStatus('Сохранение…');
-    _lastWriteAt = Date.now();
-    try {
-      await set(ref(_db, fbPath), sanitizeKeys(value));
-      _lastWriteAt = Date.now();
-      setStatus('Сохранено');
-    } catch (e) {
-      console.error('pushPath failed', fbPath, e);
-      setStatus('Ошибка сохранения', true);
-    }
-  }
-
-  function scheduleSave(path, value) {
-    if (!_loaded) return;
-    _pendingPath = path;
-    _pendingValue = value;
-    if (_saveTimer) clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(async () => {
-      if (_pendingPath !== null) {
-        await pushPath(_pendingPath, _pendingValue);
-        _pendingPath = null;
-        _pendingValue = null;
-      }
-    }, 400);
-  }
-
+  /* Beacon — сохраняет ВСЕ данные при уходе со страницы */
   function _pushBeacon() {
     if (!_loaded) return;
+    /* Сначала сбрасываем очередь если есть */
+    if (_queue.size > 0) {
+      _flushQueue();
+      return;
+    }
     const d = Store.get();
-    if (!d?.training?.plans?.length) return;
     _lastWriteAt = Date.now();
     try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch (e) {}
   }
 
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') _silentPull();
+    else _pushBeacon();
+  });
   window.addEventListener('pagehide', _pushBeacon);
 
   function getConfig() { return window.FIREBASE_CONFIG; }

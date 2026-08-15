@@ -7,27 +7,29 @@ const ROOT = 'nik-data';
 
 const FirebaseSync = (() => {
   let _loaded = false;
-  let _saveTimer = null;
-  let _pendingPath = null;
-  let _pendingValue = null;
   let _pollTimer = null;
   let _lastWriteAt = 0;
   let statusEl = null;
   let hideTimer = null;
+  const _queue = new Map();
+  let _flushTimer = null;
 
   function isConfigured() {
     return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL);
   }
 
   function sanitizeKeys(value) {
+    if (value === undefined || value === null) return null;
     if (Array.isArray(value)) return value.map(sanitizeKeys);
     if (value && typeof value === 'object') {
       const out = {};
       for (const key of Object.keys(value)) {
-        out[key.replace(/[.#$/\[\]]/g, '')] = sanitizeKeys(value[key]);
+        const v = sanitizeKeys(value[key]);
+        if (v !== undefined) out[key.replace(/[.#$\/\[\]]/g, '_')] = v;
       }
       return out;
     }
+    if (typeof value === 'number' && !isFinite(value)) return null;
     return value;
   }
 
@@ -38,43 +40,70 @@ const FirebaseSync = (() => {
     statusEl.textContent = text;
     statusEl.style.color = isError ? '#FF5C5C' : '#9D9A92';
     statusEl.style.opacity = '1';
-    if (!isError) {
-      hideTimer = setTimeout(() => { if (statusEl) statusEl.style.opacity = '0'; }, 2500);
+    if (!isError) hideTimer = setTimeout(() => { if (statusEl) statusEl.style.opacity = '0'; }, 2500);
+  }
+
+  async function _flushQueue() {
+    if (_queue.size === 0) return;
+    const entries = [..._queue.entries()];
+    _queue.clear();
+    _lastWriteAt = Date.now();
+    setStatus('Сохранение…');
+    try {
+      const sections = new Set();
+      for (const [path] of entries) sections.add(path.split('.')[0]);
+      for (const top of sections) {
+        const data = Store.get()[top];
+        if (data !== undefined) await set(ref(_db, ROOT + '/' + top), sanitizeKeys(data));
+      }
+      _lastWriteAt = Date.now();
+      setStatus('Сохранено');
+    } catch(e) {
+      console.error('flush failed', e);
+      setStatus('Ошибка сохранения', true);
+      for (const [p,v] of entries) _queue.set(p,v);
+      setTimeout(_flushQueue, 3000);
     }
   }
 
-  /* Тихий pull — просто берём Firebase как есть, никакого merge */
+  function scheduleSave(path, value) {
+    if (!_loaded) return;
+    _queue.set(path, value);
+    if (_flushTimer) clearTimeout(_flushTimer);
+    _flushTimer = setTimeout(_flushQueue, 600);
+  }
+
   async function _silentPull() {
     if (!_loaded) return;
-    /* Не тянем если сами только что писали — даём Firebase осесть */
     if (Date.now() - _lastWriteAt < 10000) return;
     try {
       const snap = await get(ref(_db, ROOT));
       if (!snap.exists()) return;
       const remote = snap.val();
-      if (!remote?.training?.plans?.length) return;
+      if (!remote) return;
       Store.replaceAll(remote);
-      setStatus('Синхронизировано');
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
-    } catch (e) { /* тихо */ }
+    } catch(e) {}
   }
 
   async function pullIntoStore() {
     try {
       const snap = await Promise.race([
         get(ref(_db, ROOT)),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 8000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
-      const hasData = remote?.training?.plans?.length > 0;
-      if (hasData) {
-        Store.replaceAll(remote);
-        setStatus('Данные загружены');
-      }
+      const hasData = remote && (
+        remote?.training?.plans?.length > 0 ||
+        remote?.finance?.years ||
+        remote?.goals?.directions ||
+        remote?.habits?.list?.length > 0
+      );
+      if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); }
       _loaded = true;
-      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 10000);
+      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 15000);
       return hasData ? true : false;
-    } catch (e) {
+    } catch(e) {
       console.error('pullIntoStore failed', e);
       setStatus('Нет связи', true);
       _loaded = false;
@@ -82,56 +111,21 @@ const FirebaseSync = (() => {
     }
   }
 
+  function _pushBeacon() {
+    if (!_loaded) return;
+    if (_queue.size > 0) _flushQueue();
+    const d = Store.get();
+    _lastWriteAt = Date.now();
+    try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch(e) {}
+  }
+
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') _silentPull();
     else _pushBeacon();
   });
-
-  async function pushPath(storePath, value) {
-    if (!_loaded) return;
-    const fbPath = ROOT + '/' + storePath.replace(/\./g, '/');
-    setStatus('Сохранение…');
-    _lastWriteAt = Date.now();
-    try {
-      await set(ref(_db, fbPath), sanitizeKeys(value));
-      _lastWriteAt = Date.now();
-      setStatus('Сохранено');
-    } catch (e) {
-      console.error('pushPath failed', fbPath, e);
-      setStatus('Ошибка сохранения', true);
-    }
-  }
-
-  function scheduleSave(path, value) {
-    if (!_loaded) return;
-    _pendingPath = path;
-    _pendingValue = value;
-    if (_saveTimer) clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(async () => {
-      if (_pendingPath !== null) {
-        await pushPath(_pendingPath, _pendingValue);
-        _pendingPath = null;
-        _pendingValue = null;
-      }
-    }, 400);
-  }
-
-  function _pushBeacon() {
-    if (!_loaded) return;
-    const d = Store.get();
-    if (!d?.training?.plans?.length) return;
-    _lastWriteAt = Date.now();
-    try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch (e) {}
-  }
-
   window.addEventListener('pagehide', _pushBeacon);
 
-  function getConfig() { return window.FIREBASE_CONFIG; }
-  function setConfig() {}
-  function clearConfig() {}
-  function pushNow() { _pushBeacon(); }
-
-  return { isConfigured, pullIntoStore, pushNow, scheduleSave, getConfig, setConfig, clearConfig };
+  return { isConfigured, pullIntoStore, scheduleSave, pushNow: _pushBeacon, getConfig: () => window.FIREBASE_CONFIG, setConfig(){}, clearConfig(){} };
 })();
 
 window.FirebaseSync = FirebaseSync;

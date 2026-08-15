@@ -78,7 +78,8 @@ const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
   'Ноги': ['Присяд штанга', 'Присяд гакк', 'Жим ногами', 'Пресс', 'Разгибания', 'Сгибания'],
   'Плечи': ['Махи', 'Жим', 'Разведения']
 };
-/* Exercise list is canonical, no localStorage cache needed */
+/* При загрузке сбрасываем локальный кэш упражнений чтобы применить актуальный список */
+try { localStorage.removeItem('nik_exercises_v1'); } catch(e) {}
 
 function trLoadExercises() {
   try {
@@ -375,16 +376,9 @@ function trDayAllExercises(day) {
 function trCalcProgress(plan, weekIndex, exerciseName) {
   const week1 = plan.weeks[0];
   let baseline = null;
-  let baselineKind = null;
   for (const day of week1.days) {
     const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
-    if (found) {
-      baselineKind = found.ex.kind;
-      /* Не показываем прогресс для шагов/кардио в зале — некорректное сравнение */
-      if (found.ex.kind === 'steps' || found.ex.kind === 'cardio') return { pct: 0, dir: 'flat' };
-      baseline = trMetricFor(found.ex);
-      break;
-    }
+    if (found) { baseline = trMetricFor(found.ex); break; }
   }
   const currentWeek = plan.weeks[weekIndex];
   let current = null;
@@ -1688,11 +1682,9 @@ function trCollectGymExercises(plan) {
         if (!trIsGymType(session.type)) return;
         session.exercises.forEach((ex, exIdx) => {
           if (ex.kind !== 'strength') return;
-          /* Группа: ТОЛЬКО по каноническому списку упражнений.
-             Группы сессии (напр "Спина+Руки") не используем — они для отображения дня,
-             а не для определения к какой мышце относится упражнение. */
+          /* Группа: сначала ищем в каноническом списке, иначе берём из сессии */
           const canonical = trExerciseCanonicalGroups(ex.name);
-          const groups = canonical || ['Разное'];
+          const groups = canonical || session.groups || [];
           latest[ex.name] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
         });
       });

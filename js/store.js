@@ -24,18 +24,7 @@ const Store = (() => {
         months: {}
       },
       finance: {
-        years: {},
-        expensesList: [
-          { id:'exp1', name:'Зубы', amount:24000, source:'' },
-          { id:'exp2', name:'Вибрато', amount:18000, source:'' },
-          { id:'exp3', name:'Химчистка', amount:8000, source:'' },
-          { id:'exp4', name:'РС', amount:6400, source:'' },
-          { id:'exp5', name:'Зал', amount:3500, source:'' },
-          { id:'exp6', name:'Карплей', amount:24000, source:'' },
-          { id:'exp7', name:'Брекетты', amount:40000, source:'' },
-          { id:'exp8', name:'Налог', amount:29000, source:'' },
-          { id:'exp9', name:'Остатки по тачке', amount:25000, source:'' },
-        ]
+        years: {}
       },
       goals: {
         directions: [],
@@ -128,19 +117,11 @@ const Store = (() => {
     d.meta = d.meta || base.meta;
     d.training = normalizeTraining(d.training, base);
     d.habits = d.habits || base.habits;
-    if (!d.habits.list) d.habits.list = [];
-    if (!d.habits.months) d.habits.months = {};
     d.finance = d.finance || base.finance;
     if (!d.finance.years) d.finance.years = {};
     d.goals = d.goals || base.goals;
-    /* Firebase может вернуть directions как объект {0:..,1:..} — конвертируем в массив */
-    if (d.goals.directions && !Array.isArray(d.goals.directions)) {
-      d.goals.directions = toArr(d.goals.directions).filter(Boolean);
-    }
     d.nutrition = d.nutrition || base.nutrition;
     d.nutritionFoods = d.nutritionFoods || base.nutritionFoods;
-    /* nutritionFoods тоже может прийти как объект */
-    if (!Array.isArray(d.nutritionFoods)) d.nutritionFoods = toArr(d.nutritionFoods).filter(Boolean);
     return d;
   }
 

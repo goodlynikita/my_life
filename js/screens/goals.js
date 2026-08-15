@@ -62,12 +62,10 @@ const GOALS_INITIAL = [
 function goalsGet() {
   const s = Store.get().goals?.directions;
   if (s && Array.isArray(s) && s.filter(Boolean).length > 0) return s.filter(Boolean);
-  /* Если данных нет в Store — возвращаем начальные и сохраняем в Firebase */
   return GOALS_INITIAL;
 }
 function goalsSave(list) {
-  /* Пишем весь массив целиком одним set — надёжнее чем по одному */
-  Store.set('goals.directions', list);
+  list.forEach((g,i) => Store.set(`goals.directions.${i}`, g));
 }
 function goalsFmt(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
@@ -209,17 +207,12 @@ window.Screens.goals = function(mount) {
       const otherTotal = otherItems.reduce((s,g)=>s+g.amount,0);
       const grandTotal = goalTotal + otherTotal;
       const allDone = all.filter(g=>g.done).length;
-      const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
-      const doneOtherTotal = all.filter(g=>g.done && g.season!=='all').reduce((s,g)=>s+g.amount,0);
+      const allPct = Math.round(allDone/all.length*100);
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};">
-          <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>
+          <div class="goals-hero-eyebrow">ОБЩАЯ СУММА ЦЕЛЕЙ</div>
           <div class="goals-hero-big">${goalsFmt(grandTotal)}</div>
-          <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
-            <span>На год: ${goalsFmt(otherTotal)}</span>
-            <span style="color:${color};">Закрыто: ${goalsFmt(doneOtherTotal)}</span>
-            <span style="color:${doneOtherTotal>0?'#A8C97F':'#9CA3AF'};">Осталось: ${goalsFmt(otherTotal-doneOtherTotal)}</span>
-          </div>
+          <div class="goals-hero-sub">из них на текущий год: ${goalsFmt(otherTotal)}</div>
           <div class="goals-all-progress">
             <div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div>
           </div>
@@ -310,11 +303,9 @@ window.Screens.goals = function(mount) {
         e.stopPropagation();
         const idx=parseInt(el.dataset.idx);
         const list=goalsGet();
-        if (!list[idx]) return;
         list[idx].done=!list[idx].done;
         goalsSave(list);
         render();
-        window.dispatchEvent(new CustomEvent('goals-updated'));
       });
     });
 

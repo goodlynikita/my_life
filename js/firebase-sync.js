@@ -7,34 +7,27 @@ const ROOT = 'nik-data';
 
 const FirebaseSync = (() => {
   let _loaded = false;
+  let _saveTimer = null;
+  let _pendingPath = null;
+  let _pendingValue = null;
   let _pollTimer = null;
   let _lastWriteAt = 0;
   let statusEl = null;
   let hideTimer = null;
-
-  /* Очередь сохранений: path -> value. Несколько изменений накапливаются
-     и сбрасываются все вместе — ни одно не теряется. */
-  const _queue = new Map();
-  let _flushTimer = null;
 
   function isConfigured() {
     return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL);
   }
 
   function sanitizeKeys(value) {
-    if (value === undefined || value === null) return null;
     if (Array.isArray(value)) return value.map(sanitizeKeys);
     if (value && typeof value === 'object') {
       const out = {};
       for (const key of Object.keys(value)) {
-        const v = sanitizeKeys(value[key]);
-        if (v !== undefined) {
-          out[key.replace(/[.#$/\[\]]/g, '_')] = v;
-        }
+        out[key.replace(/[.#$/\[\]]/g, '')] = sanitizeKeys(value[key]);
       }
       return out;
     }
-    if (typeof value === 'number' && !isFinite(value)) return null;
     return value;
   }
 
@@ -50,58 +43,20 @@ const FirebaseSync = (() => {
     }
   }
 
-  async function _flushQueue() {
-    if (_queue.size === 0) return;
-    const entries = [..._queue.entries()];
-    _queue.clear();
-    _lastWriteAt = Date.now();
-    setStatus('Сохранение…');
-
-    /* Если все пути начинаются с одного топ-раздела — пишем одним set.
-       Иначе пишем каждый путь отдельно. */
-    try {
-      /* Группируем по top-level разделу */
-      const sections = new Set();
-      for (const [path] of entries) sections.add(path.split('.')[0]);
-
-      /* Всегда пишем весь раздел целиком — надёжнее точечной записи */
-      for (const top of sections) {
-        const sectionData = Store.get()[top];
-        if (sectionData !== undefined) {
-          await set(ref(_db, ROOT + '/' + top), sanitizeKeys(sectionData));
-        }
-      }
-      _lastWriteAt = Date.now();
-      setStatus('Сохранено');
-    } catch (e) {
-      console.error('flush failed', e);
-      setStatus('Ошибка сохранения', true);
-      /* Возвращаем в очередь для повтора */
-      for (const [path, value] of entries) _queue.set(path, value);
-      setTimeout(_flushQueue, 3000);
-    }
-  }
-
-  function scheduleSave(path, value) {
-    if (!_loaded) return;
-    _queue.set(path, value);
-    if (_flushTimer) clearTimeout(_flushTimer);
-    _flushTimer = setTimeout(_flushQueue, 500);
-  }
-
+  /* Тихий pull — просто берём Firebase как есть, никакого merge */
   async function _silentPull() {
     if (!_loaded) return;
+    /* Не тянем если сами только что писали — даём Firebase осесть */
     if (Date.now() - _lastWriteAt < 10000) return;
     try {
       const snap = await get(ref(_db, ROOT));
       if (!snap.exists()) return;
       const remote = snap.val();
-      /* Синхронизируем если есть любые данные */
-      if (!remote) return;
+      if (!remote?.training?.plans?.length) return;
       Store.replaceAll(remote);
       setStatus('Синхронизировано');
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
-    } catch (e) {}
+    } catch (e) { /* тихо */ }
   }
 
   async function pullIntoStore() {
@@ -111,19 +66,13 @@ const FirebaseSync = (() => {
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
-      /* Грузим данные если есть ЛЮБОЙ раздел — не только тренировки */
-      const hasData = remote && (
-        remote?.training?.plans?.length > 0 ||
-        remote?.finance?.years ||
-        remote?.goals?.directions ||
-        remote?.habits?.list?.length > 0
-      );
+      const hasData = remote?.training?.plans?.length > 0;
       if (hasData) {
         Store.replaceAll(remote);
         setStatus('Данные загружены');
       }
       _loaded = true;
-      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 15000);
+      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 10000);
       return hasData ? true : false;
     } catch (e) {
       console.error('pullIntoStore failed', e);
@@ -133,23 +82,48 @@ const FirebaseSync = (() => {
     }
   }
 
-  /* Beacon — сохраняет ВСЕ данные при уходе со страницы */
-  function _pushBeacon() {
-    if (!_loaded) return;
-    /* Если есть очередь — сначала сбрасываем её */
-    if (_queue.size > 0) {
-      _flushQueue();
-    }
-    /* Всегда пишем полный стейт при уходе */
-    const d = Store.get();
-    _lastWriteAt = Date.now();
-    try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch (e) {}
-  }
-
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') _silentPull();
     else _pushBeacon();
   });
+
+  async function pushPath(storePath, value) {
+    if (!_loaded) return;
+    const fbPath = ROOT + '/' + storePath.replace(/\./g, '/');
+    setStatus('Сохранение…');
+    _lastWriteAt = Date.now();
+    try {
+      await set(ref(_db, fbPath), sanitizeKeys(value));
+      _lastWriteAt = Date.now();
+      setStatus('Сохранено');
+    } catch (e) {
+      console.error('pushPath failed', fbPath, e);
+      setStatus('Ошибка сохранения', true);
+    }
+  }
+
+  function scheduleSave(path, value) {
+    if (!_loaded) return;
+    _pendingPath = path;
+    _pendingValue = value;
+    if (_saveTimer) clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(async () => {
+      if (_pendingPath !== null) {
+        await pushPath(_pendingPath, _pendingValue);
+        _pendingPath = null;
+        _pendingValue = null;
+      }
+    }, 400);
+  }
+
+  function _pushBeacon() {
+    if (!_loaded) return;
+    const d = Store.get();
+    if (!d?.training?.plans?.length) return;
+    _lastWriteAt = Date.now();
+    try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch (e) {}
+  }
+
   window.addEventListener('pagehide', _pushBeacon);
 
   function getConfig() { return window.FIREBASE_CONFIG; }

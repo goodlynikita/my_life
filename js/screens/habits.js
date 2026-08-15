@@ -41,7 +41,10 @@ function habSetMark(monthKey, hid, day, value) {
 }
 
 function habSaveList(list) {
-  Store.set('habits.list', list);
+  // Записываем каждый элемент отдельно
+  list.forEach((h,i) => Store.set(`habits.list.${i}`, h));
+  const prev = Store.get().habits?.list || [];
+  for (let i = list.length; i < prev.length; i++) Store.set(`habits.list.${i}`, null);
 }
 
 /* Считаем прогресс с учётом расписания */
@@ -252,7 +255,7 @@ window.Screens.habits = function(mount) {
         <div class="sec-metric-grid">
           <div class="sec-metric">
             <div class="sec-metric-label">Общий прогресс</div>
-            <div class="sec-metric-value accent hab-overall-pct">${overallPct}%</div>
+            <div class="sec-metric-value accent">${overallPct}%</div>
           </div>
           <div class="sec-metric">
             <div class="sec-metric-label">Лучшая</div>
@@ -291,7 +294,7 @@ window.Screens.habits = function(mount) {
               </tr>
             </thead>
             <tbody>
-              ${habits.map((h, hi) => {
+              ${habits.map((h,hi)=>{
                 const hMarks = marks[h.id]||{};
                 const prog = progresses[hi];
                 const cells = dayNums.map(d=>{
@@ -326,7 +329,7 @@ window.Screens.habits = function(mount) {
                         <div style="height:100%;width:${barW}%;background:${barColor};border-radius:2px;transition:width 0.4s;"></div>
                       </div>
                     </td>
-                    <td class="hab-tot-val" data-hi="${hi}" style="text-align:center;font-size:12px;color:#9D9A92;">${prog.done}</td>
+                    <td style="text-align:center;font-size:12px;color:#9D9A92;">${prog.done}</td>
                   </tr>`;
               }).join('')}
             </tbody>
@@ -337,7 +340,7 @@ window.Screens.habits = function(mount) {
         </button>
       </div>`;
 
-    /* Клики по ячейкам — NO full re-render, только обновляем ячейку и % */
+    /* Клики по ячейкам */
     content.querySelectorAll('.hab-cell.hab-active').forEach(el => {
       el.addEventListener('click', () => {
         const hid = el.dataset.hid;
@@ -345,32 +348,10 @@ window.Screens.habits = function(mount) {
         const cur = marks[hid]?.[day]||'';
         const next = habNextMark(cur, true);
         habSetMark(mk, hid, day, next);
-        /* Обновляем только эту ячейку */
         el.className = `hab-cell hab-active ${next} ${el.classList.contains('hab-today')?'hab-today':''}`;
         el.innerHTML = habMarkHtml(next, true);
-        /* Обновляем marks локально */
-        if (!marks[hid]) marks[hid] = {};
-        marks[hid][day] = next;
-        /* Пересчитываем и обновляем только % и итог этой привычки */
-        const hi = habList.findIndex(h=>h.id===hid);
-        if (hi < 0) return;
-        const prog = habProgress(habList[hi], marks, viewYear, viewMonth);
-        const barColor = prog.pct>=80?'#A8C97F':prog.pct>=50?'#E0B873':'#FF5C5C';
-        /* Находим строку привычки по data-hi */
-        const pctEl = content.querySelector(`.hab-pct-val[data-hi="${hi}"]`);
-        const barEl = content.querySelector(`.hab-pct-bar[data-hi="${hi}"]`);
-        const totEl = content.querySelector(`.hab-tot-val[data-hi="${hi}"]`);
-        if (pctEl) { pctEl.textContent = prog.pct+'%'; pctEl.style.color = barColor; }
-        if (barEl) { barEl.style.width = prog.pct+'%'; barEl.style.background = barColor; }
-        if (totEl) { totEl.textContent = prog.done; }
-        /* Обновляем общий % */
-        const newPcts = habList.map((h,i) => {
-          const m2 = marks;
-          return habProgress(h, m2, viewYear, viewMonth).pct;
-        });
-        const overall = newPcts.length ? Math.round(newPcts.reduce((a,b)=>a+b,0)/newPcts.length) : 0;
-        const overallEl = content.querySelector('.hab-overall-pct');
-        if (overallEl) overallEl.textContent = overall+'%';
+        // Обновляем % без полного перерендера
+        renderGrid();
       });
     });
 

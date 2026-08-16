@@ -139,6 +139,7 @@ window.Screens.finance = function(mount) {
       </div>
       <div class="tochka-tabs" style="position:sticky;top:0;z-index:10;">
         <button class="tochka-tab active" data-tab="month">Месяц</button>
+        <button class="tochka-tab" data-tab="expenses">Расходы</button>
         <button class="tochka-tab" data-tab="balance">Баланс</button>
         <button class="tochka-tab" data-tab="year">Год</button>
         <button class="tochka-tab" data-tab="all">Всё время</button>
@@ -806,8 +807,116 @@ window.Screens.finance = function(mount) {
     });
   }
 
+
+  /* ═══ РАСХОДЫ ═══════════════════════════════════ */
+  function expGet() { return Store.get().finance?.expensesList || []; }
+  function expSave(list) { Store.set('finance.expensesList', list); }
+
+  function expModal(item, side, onSave) {
+    var isEdit = !!item;
+    var overlay = document.createElement('div');
+    overlay.className = 'tr-modal-overlay';
+    var showExp = !side || side==='expense';
+    var showSrc = !side || side==='source';
+    overlay.innerHTML = '<div class="tr-modal">'
+      + '<p class="tr-modal-title">'+(isEdit?(side==='source'?'Источник':'Расход'):'Новый расход')+'</p>'
+      + (showExp ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'"></label></div>'
+                 + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric"></label></div>' : '')
+      + (showSrc ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
+                 + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма источника, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric"></label></div>' : '')
+      + '<div class="tr-modal-actions">'
+      + (isEdit?'<button class="tr-modal-btn-secondary" id="em-del" style="color:#EF4444;">Удалить</button>':'<button class="tr-modal-btn-secondary" id="em-cancel">Отмена</button>')
+      + '<button class="tr-modal-btn-primary" id="em-save">Сохранить</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){if(e.target===overlay)overlay.remove();});
+    var cb=overlay.querySelector('#em-cancel'); if(cb)cb.addEventListener('click',function(){overlay.remove();});
+    var db=overlay.querySelector('#em-del'); if(db)db.addEventListener('click',function(){onSave(null);overlay.remove();});
+    overlay.querySelector('#em-save').addEventListener('click', function(){
+      var base = item ? Object.assign({},item) : {id:'e_'+Date.now()};
+      if(showExp){
+        var n=overlay.querySelector('#em-name').value.trim(); if(!n)return;
+        base.name=n; base.amount=parseFloat(overlay.querySelector('#em-amt').value)||0;
+      }
+      if(showSrc){
+        base.source=overlay.querySelector('#em-src').value.trim();
+        base.sourceAmt=parseFloat(overlay.querySelector('#em-srca').value)||0;
+      }
+      onSave(base); overlay.remove();
+    });
+  }
+
+  function renderExpenses() {
+    var list = expGet();
+    var total = list.reduce(function(s,e){return s+(e.amount||0);},0);
+    var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
+    var balance = srcTotal - total;
+
+    content.innerHTML = '<div class="tochka-list">'
+      + '<div class="tochka-list-head"><span class="tochka-list-title">Ближайшие расходы</span>'
+      + '<button id="exp-add" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button></div>'
+      + '<div class="exp-header">'
+      + '<div class="exp-hdr-drag"></div>'
+      + '<div class="exp-hdr-l">Вид расхода</div><div class="exp-hdr-r">Сумма</div>'
+      + '<div class="exp-hdr-sep"></div>'
+      + '<div class="exp-hdr-l">Источник</div><div class="exp-hdr-r">Сумма</div>'
+      + '</div>'
+      + '<div id="exp-list">'
+      + (list.length===0 ? '<div class="tochka-empty">Нет расходов — добавьте первый</div>'
+        : list.map(function(e,i){
+            return '<div class="exp-row2" data-idx="'+i+'" draggable="true">'
+              + '<div class="exp-drag"><i class="ti ti-grip-vertical"></i></div>'
+              + '<div class="exp-cl exp-left" data-idx="'+i+'" data-side="expense"><div class="exp-name">'+(e.name||'')+'</div></div>'
+              + '<div class="exp-cr exp-left" data-idx="'+i+'" data-side="expense"><span class="exp-red">'+(e.amount?'−'+finFmtFull(e.amount):'—')+'</span></div>'
+              + '<div class="exp-sep"></div>'
+              + '<div class="exp-cl exp-right" data-idx="'+i+'" data-side="source"><div class="exp-name" style="color:#6B7280;">'+(e.source||'<span style="color:#D1D5DB;">+ источник</span>')+'</div></div>'
+              + '<div class="exp-cr exp-right" data-idx="'+i+'" data-side="source"><span class="'+(e.sourceAmt?'exp-green':'exp-dim')+'">'+(e.sourceAmt?'+'+finFmtFull(e.sourceAmt):'—')+'</span></div>'
+              + '</div>';
+          }).join(''))
+      + '</div>'
+      + (list.length>0 ? '<div class="exp-total2">'
+          + '<div class="exp-drag" style="visibility:hidden;"></div>'
+          + '<div class="exp-cl"><strong>Итого</strong></div>'
+          + '<div class="exp-cr"><strong style="color:#EF4444;">−'+finFmtFull(total)+'</strong></div>'
+          + '<div class="exp-sep"></div>'
+          + '<div class="exp-cl"><strong style="color:#6B7280;">Источники</strong></div>'
+          + '<div class="exp-cr"><strong style="color:'+(balance===0?'#6B7280':balance>0?'#16A34A':'#EF4444')+'">'+(balance===0?'0₽':(balance>0?'+':'')+finFmtFull(balance))+'</strong></div>'
+          + '</div>' : '')
+      + '</div>';
+
+    document.getElementById('exp-add').addEventListener('click',function(){
+      expModal(null,null,function(r){ if(!r)return; var l=expGet(); l.push(r); expSave(l); renderExpenses(); });
+    });
+
+    content.querySelectorAll('.exp-left').forEach(function(el){
+      el.addEventListener('click',function(){
+        var idx=parseInt(el.dataset.idx); var l=expGet();
+        expModal(Object.assign({},l[idx]),'expense',function(r){ if(r===null)l.splice(idx,1); else l[idx]=r; expSave(l); renderExpenses(); });
+      });
+    });
+    content.querySelectorAll('.exp-right').forEach(function(el){
+      el.addEventListener('click',function(){
+        var idx=parseInt(el.dataset.idx); var l=expGet();
+        expModal(Object.assign({},l[idx]),'source',function(r){ if(r!==null)l[idx]=r; expSave(l); renderExpenses(); });
+      });
+    });
+
+    /* Drag-and-drop */
+    var listEl=document.getElementById('exp-list'); var dragIdx=null;
+    listEl.querySelectorAll('.exp-row2').forEach(function(row){
+      row.addEventListener('dragstart',function(){dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';});
+      row.addEventListener('dragend',function(){row.style.opacity='';listEl.querySelectorAll('.exp-row2').forEach(function(r){r.style.borderTop='';});});
+      row.addEventListener('dragover',function(e){e.preventDefault();listEl.querySelectorAll('.exp-row2').forEach(function(r){r.style.borderTop='';});row.style.borderTop='2px solid #16A34A';});
+      row.addEventListener('drop',function(e){
+        e.preventDefault();var tgt=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===tgt)return;
+        var l=expGet();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);expSave(l);dragIdx=null;renderExpenses();
+      });
+    });
+  }
+
   function render(){
     if(activeTab==='month')renderMonth();
+    else if(activeTab==='expenses')renderExpenses();
     else if(activeTab==='balance')renderBalance();
     else if(activeTab==='year')renderYear();
     else renderAll();

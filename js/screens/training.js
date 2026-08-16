@@ -378,7 +378,12 @@ function trCalcProgress(plan, weekIndex, exerciseName) {
   let baseline = null;
   for (const day of week1.days) {
     const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
-    if (found) { baseline = trMetricFor(found.ex); break; }
+    if (found) {
+      /* Шаги и кардио не сравниваем с силовыми */
+      if (found.ex.kind === 'steps' || found.ex.kind === 'cardio') return { pct: 0, dir: 'flat' };
+      baseline = trMetricFor(found.ex);
+      break;
+    }
   }
   const currentWeek = plan.weeks[weekIndex];
   let current = null;

@@ -210,16 +210,15 @@ window.Screens.goals = function(mount) {
       const allPct = Math.round(allDone/all.length*100);
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};">
-          <div class="goals-hero-eyebrow">ОБЩАЯ СУММА ЦЕЛЕЙ</div>
+          <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>
           <div class="goals-hero-big">${goalsFmt(grandTotal)}</div>
-          <div class="goals-hero-sub">из них на текущий год: ${goalsFmt(otherTotal)}</div>
-          <div class="goals-all-progress">
-            <div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div>
+          <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
+            <span>На год: ${goalsFmt(otherTotal)}</span>
+            <span style="color:#A8C97F;">Закрыто: ${goalsFmt(doneOtherTotal)}</span>
+            <span style="color:#9D9A92;">Осталось: ${goalsFmt(otherTotal-doneOtherTotal)}</span>
           </div>
-          <div class="goals-all-stats">
-            <span>${allDone} из ${all.length} закрыто</span>
-            <span style="color:${color};">${allPct}%</span>
-          </div>
+          <div class="goals-all-progress"><div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div></div>
+          <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>
         </div>`;
     } else if (activeSeason==='spring') {
       heroHtml = `

@@ -827,3 +827,20 @@
 .exp-green { font-size:13px; font-weight:700; color:#16A34A; }
 .exp-dim { font-size:13px; color:#D1D5DB; }
 .exp-total2 { display:flex; align-items:center; padding:12px 14px; border-top:2px solid #E5E7EB; background:#F9FAFB; font-size:14px; }
+
+/* ── Expenses v2 ─────────────────────────────────── */
+.exp-hdr-row { display:flex;align-items:center;padding:8px 14px;background:#F9FAFB;border-bottom:1px solid #E5E7EB; }
+.exp-hdr-col { flex:1;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em; }
+.exp-hdr-r { min-width:80px;text-align:right;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em; }
+.exp-hdr-sep { width:1px;height:14px;background:#E5E7EB;margin:0 10px;flex-shrink:0; }
+.exp-row2 { display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid #F3F4F6;background:#fff;transition:background 0.15s; }
+.exp-row2:hover { background:#FAFAFA; }
+.exp-drag-h { color:#D1D5DB;cursor:grab;font-size:16px;padding:4px;flex-shrink:0;width:28px; }
+.exp-cl { flex:1;min-width:0; }
+.exp-cr { min-width:80px;text-align:right;flex-shrink:0; }
+.exp-sep-v { width:1px;height:28px;background:#E5E7EB;margin:0 10px;flex-shrink:0; }
+.exp-name { font-size:13px;font-weight:500;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.exp-red { font-size:13px;font-weight:700;color:#EF4444; }
+.exp-green { font-size:13px;font-weight:700;color:#16A34A; }
+.exp-dim { font-size:13px;color:#D1D5DB; }
+.exp-total2 { display:flex;align-items:center;padding:12px 14px;border-top:2px solid #E5E7EB;background:#F9FAFB;font-size:14px; }

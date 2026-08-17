@@ -264,7 +264,8 @@ window.Screens.goals = function(mount) {
     /* ── Категории ── */
     const catsHtml = cats.map(cat=>{
       const catItems = catSource.filter(g=>g.cat===cat);
-      const catTotal = catItems.reduce((s,g)=>s+g.amount,0);
+      /* Итог категории = только незакрытые */
+      const catTotal = catItems.filter(g=>!g.done).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
       const catColor = isGoal ? '#9333EA' : color;
       return `
@@ -285,7 +286,7 @@ window.Screens.goals = function(mount) {
               </div>
               ${seasonDot}
               <span class="goals-item-v3-name">${g.name}</span>
-              <span class="goals-item-v3-amt" style="${g.done?'color:'+itemColor+';':''}">${g.amount>0?goalsFmt(g.amount):'✓'}</span>
+              <span class="goals-item-v3-amt">${g.done ? '<i class="ti ti-check" style="color:'+itemColor+';font-size:16px;"></i>' : (g.amount>0?goalsFmt(g.amount):'')}</span>
             </div>`;
           }).join('')}
           <button class="goals-add-v3" data-cat="${cat}" data-season="${activeSeason}">+ добавить</button>
@@ -303,9 +304,12 @@ window.Screens.goals = function(mount) {
         e.stopPropagation();
         const idx=parseInt(el.dataset.idx);
         const list=goalsGet();
+        if(!list[idx]) return;
         list[idx].done=!list[idx].done;
         goalsSave(list);
-        render();
+        el.style.transform='scale(1.35)';
+        setTimeout(()=>{el.style.transform=''; render();},180);
+        window.dispatchEvent(new CustomEvent('goals-updated'));
       });
     });
 

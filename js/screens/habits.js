@@ -348,10 +348,28 @@ window.Screens.habits = function(mount) {
         const cur = marks[hid]?.[day]||'';
         const next = habNextMark(cur, true);
         habSetMark(mk, hid, day, next);
-        el.className = `hab-cell hab-active ${next} ${el.classList.contains('hab-today')?'hab-today':''}`;
+        /* Обновляем только эту ячейку — без полного ре-рендера страницы */
+        el.className = 'hab-cell hab-active ' + next + (el.classList.contains('hab-today')?' hab-today':'');
         el.innerHTML = habMarkHtml(next, true);
-        // Обновляем % без полного перерендера
-        renderGrid();
+        /* Обновляем marks локально */
+        if (!marks[hid]) marks[hid] = {};
+        marks[hid][day] = next;
+        /* Пересчитываем % только для этой привычки */
+        const hi = habList.findIndex(h => h && h.id === hid);
+        if (hi < 0) return;
+        const prog = habProgress(habList[hi], marks, viewYear, viewMonth);
+        const barColor = prog.pct >= 80 ? '#A8C97F' : prog.pct >= 50 ? '#E0B873' : '#FF5C5C';
+        const pctEl = content.querySelector('.hab-pct-val[data-hi="'+hi+'"]');
+        const barEl = content.querySelector('.hab-pct-bar[data-hi="'+hi+'"]');
+        const totEl = content.querySelector('.hab-tot-val[data-hi="'+hi+'"]');
+        if (pctEl) { pctEl.textContent = prog.pct+'%'; pctEl.style.color = barColor; }
+        if (barEl) { barEl.style.width = prog.pct+'%'; barEl.style.background = barColor; }
+        if (totEl) { totEl.textContent = prog.done; }
+        /* Обновляем общий % */
+        const allPcts = habList.map((h,i) => habProgress(h, marks, viewYear, viewMonth).pct);
+        const overall = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
+        const overallEl = content.querySelector('.hab-overall-pct');
+        if (overallEl) overallEl.textContent = overall+'%';
       });
     });
 

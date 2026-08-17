@@ -70,6 +70,15 @@ window.Screens.home = function(mount) {
     + '<div class="hero-slide-glow slide-glow-blue"></div>'
     + '</div>';
 
+  /* Текущий сезон для финансового пульса */
+  var curMonth = now.getMonth();
+  var curSeason = curMonth<=7 ? 'summer' : curMonth<=10 ? 'autumn' : 'december';
+  var seasonGoals = goals.filter(function(g){return g.season===curSeason;});
+  var seasonTotal = seasonGoals.reduce(function(s,g){return s+(g.amount||0);},0);
+  var seasonDone = seasonGoals.filter(function(g){return g.done;}).reduce(function(s,g){return s+(g.amount||0);},0);
+  var seasonLeft = seasonTotal - seasonDone;
+  var seasonNames = {summer:'Лето',autumn:'Осень',december:'Декабрь'};
+
   var slide2 = '<div class="hero-slide slide-finance" data-route="/finance">'
     + '<div class="hero-slide-label">ФИНАНСОВЫЙ ПУЛЬС</div>'
     + '<div class="hero-slide-main">'
@@ -78,7 +87,8 @@ window.Screens.home = function(mount) {
     + '</div>'
     + '<div class="hero-slide-sub"><div class="hero-stat-row">'
     + '<div class="hero-stat-box"><div class="hero-stat-num" style="color:'+(cushion>=0?'#4ADE80':'#F87171')+'">'+fmt(Math.abs(cushion))+'</div><div class="hero-stat-lbl">'+(cushion>=0?'подушка':'не хватает')+'</div></div>'
-    + (nextExp?'<div class="hero-stat-sep"></div><div class="hero-stat-box"><div class="hero-stat-num" style="font-size:14px;color:#F87171;">'+fmt(nextExp.amount)+'</div><div class="hero-stat-lbl">'+nextExp.name+'</div></div>':'')
+    + '<div class="hero-stat-sep"></div>'
+    + '<div class="hero-stat-box"><div class="hero-stat-num" style="font-size:13px;color:#FCD34D;">'+fmt(seasonLeft)+'</div><div class="hero-stat-lbl">цели '+seasonNames[curSeason]+'</div></div>'
     + '</div></div>'
     + '<div class="hero-slide-glow slide-glow-green"></div>'
     + '</div>';

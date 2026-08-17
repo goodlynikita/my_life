@@ -207,7 +207,8 @@ window.Screens.goals = function(mount) {
       const otherTotal = otherItems.reduce((s,g)=>s+g.amount,0);
       const grandTotal = goalTotal + otherTotal;
       const allDone = all.filter(g=>g.done).length;
-      const allPct = Math.round(allDone/all.length*100);
+      const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
+      const doneOtherTotal = all.filter(g=>g.done&&g.season!=='all').reduce((s,g)=>s+g.amount,0);
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};">
           <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>

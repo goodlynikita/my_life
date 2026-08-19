@@ -297,8 +297,7 @@ window.Screens.goals = function(mount) {
     } else if (activeSeason==='spring') {
       heroHtml = `
         <div class="goals-hero-season" style="--season-bg:${bg};background:${bg};border-color:${color}55;">
-          <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label}</div>
-          <div class="goals-hero-season-amount" style="color:#F0EDE5;">${goalsFmt(totalAmt)}</div>
+          <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label} · ${pct}%</div>
           ${monthsLeft ? `
           <div class="goals-season-stats">
             <div class="goals-season-stat">
@@ -469,14 +468,20 @@ window.Screens.goals = function(mount) {
       });
     });
 
-    /* Редактирование */
+    /* Редактирование — только по клику на имя/сумму, не на чекбокс */
     content.querySelectorAll('.goals-item-v3').forEach(el=>{
-      el.addEventListener('click',()=>{
+      el.addEventListener('click', e=>{
+        /* Если клик был на чекбоксе — не открываем модалку */
+        if(e.target.closest('.goals-check-v3')) return;
         const idx=parseInt(el.dataset.idx);
         const list=goalsGet();
-        goalsOpenModal(list[idx],result=>{
-          if(result===null)list.splice(idx,1);
-          else list[idx]=result;
+        if(!list[idx]) return;
+        goalsOpenModal({...list[idx]}, result=>{
+          if(result===null) {
+            list.splice(idx,1);
+          } else {
+            list[idx]=result;
+          }
           goalsSave(list);
           render();
         });

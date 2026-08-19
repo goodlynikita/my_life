@@ -94,69 +94,98 @@ function goalsOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
+  const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
+  const catOpts = existingCats.map(c=>`<option value="${c}"${existing?.cat===c?' selected':''}>${c}</option>`).join('');
+  const isNewCat = existing?.cat && !existingCats.includes(existing.cat);
   overlay.innerHTML = `
-    <div class="tr-modal">
-      <p class="tr-modal-title">${isEdit?'Редактировать':'Новая цель'}</p>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Название<input type="text" id="g-name" value="${existing?.name||''}"></label>
+    <div class="goals-modal">
+      <div class="goals-modal-header">
+        <span class="goals-modal-title">${isEdit?'Редактировать':'Новая цель'}</span>
+        ${isEdit?'<button class="goals-modal-del" id="g-del">✕ Удалить</button>':''}
       </div>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Сумма, ₽<input type="number" id="g-amount" value="${existing?.amount||''}" inputmode="numeric"></label>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Название</div>
+        <input class="goals-modal-input" type="text" id="g-name" value="${existing?.name||''}" placeholder="Название цели">
       </div>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Категория
-          <div style="display:flex;gap:8px;">
-            <select id="g-cat-sel" class="tr-color-select" style="flex:1;" onchange="document.getElementById('g-cat').value=this.value==='\_new'?'':this.value;">
-              ${[...new Set(goalsGet().map(g=>g.cat))].sort().map(c=>'<option value="'+c+'"'+(existing?.cat===c?' selected':'')+'>'+c+'</option>').join('')}
-              <option value="\_new">+ Новая категория</option>
-            </select>
-            <input type="text" id="g-cat" value="${existing?.cat||''}" placeholder="Или введи новую" style="flex:1;">
-          </div>
-        </label>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Сумма, ₽</div>
+        <input class="goals-modal-input" type="number" id="g-amount" value="${existing?.amount||''}" inputmode="numeric" placeholder="0">
       </div>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Сезон
-          <select id="g-season" class="tr-color-select">
-            <option value="all" ${existing?.season==='all'?'selected':''}>Без сезона / Цель</option>
-            <option value="spring" ${existing?.season==='spring'?'selected':''}>Весна</option>
-            <option value="summer" ${existing?.season==='summer'?'selected':''}>Лето</option>
-            <option value="autumn" ${existing?.season==='autumn'?'selected':''}>Осень</option>
-            <option value="december" ${existing?.season==='december'?'selected':''}>Декабрь</option>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Категория</div>
+        <select class="goals-modal-select" id="g-cat-sel">
+          ${catOpts}
+          <option value="_new"${isNewCat?' selected':''}>+ Новая категория…</option>
+        </select>
+        <input class="goals-modal-input" type="text" id="g-cat" value="${isNewCat?existing?.cat||'':''}" placeholder="Название новой категории" style="margin-top:8px;display:${isNewCat?'block':'none'};">
+      </div>
+      <div class="goals-modal-2col">
+        <div class="goals-modal-field">
+          <div class="goals-modal-label">Сезон</div>
+          <select class="goals-modal-select" id="g-season">
+            <option value="all"${existing?.season==='all'?' selected':''}>Без сезона</option>
+            <option value="spring"${existing?.season==='spring'?' selected':''}>Весна</option>
+            <option value="summer"${existing?.season==='summer'?' selected':''}>Лето</option>
+            <option value="autumn"${existing?.season==='autumn'?' selected':''}>Осень</option>
+            <option value="december"${existing?.season==='december'?' selected':''}>Декабрь</option>
           </select>
-        </label>
-      </div>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Приоритет
-          <select id="g-priority" class="tr-color-select">
-            <option value="1" ${(existing?.priority||2)===1?'selected':''}>🔴 Высокий</option>
-            <option value="2" ${(existing?.priority||2)===2?'selected':''}>🟡 Средний</option>
-            <option value="3" ${(existing?.priority||2)===3?'selected':''}>🟢 Низкий</option>
+        </div>
+        <div class="goals-modal-field">
+          <div class="goals-modal-label">Приоритет</div>
+          <select class="goals-modal-select" id="g-priority">
+            <option value="1"${(existing?.priority||2)===1?' selected':''}>🔴 Высокий</option>
+            <option value="2"${(existing?.priority||2)===2?' selected':''}>🟡 Средний</option>
+            <option value="3"${(existing?.priority||2)===3?' selected':''}>🟢 Низкий</option>
           </select>
-        </label>
+        </div>
       </div>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Статус
-          <select id="g-status" class="tr-color-select">
-            <option value="active" ${(!existing?.done&&!existing?.maybe)?'selected':''}>☐ Активная — считается</option>
-            <option value="done" ${existing?.done?'selected':''}>✓ Закрыта — не считается</option>
-            <option value="maybe" ${existing?.maybe?'selected':''}>? Под вопросом — не считается</option>
-          </select>
-        </label>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Статус</div>
+        <div class="goals-modal-statuses">
+          <button class="gm-status ${!existing?.done&&!existing?.maybe?'sel':''}" data-val="active">☐ Активная</button>
+          <button class="gm-status ${existing?.done?'sel':''}" data-val="done">✓ Закрыта</button>
+          <button class="gm-status ${existing?.maybe?'sel':''}" data-val="maybe">? Вопрос</button>
+        </div>
       </div>
-      <div class="tr-modal-actions">
-        ${isEdit?'<button class="tr-modal-btn-secondary" id="g-del" style="color:#FF5C5C;">Удалить</button>':'<button class="tr-modal-btn-secondary" id="g-cancel">Отмена</button>'}
-        <button class="tr-modal-btn-primary" id="g-save">Сохранить</button>
+      <div class="goals-modal-actions">
+        <button class="goals-modal-cancel" id="g-cancel">Отмена</button>
+        <button class="goals-modal-save" id="g-save">Сохранить</button>
       </div>
     </div>`;
+
   document.body.appendChild(overlay);
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-  const cb=overlay.querySelector('#g-cancel');if(cb)cb.addEventListener('click',()=>overlay.remove());
-  const db=overlay.querySelector('#g-del');if(db)db.addEventListener('click',()=>{if(!confirm('Удалить?'))return;onSave(null);overlay.remove();});
+  overlay.querySelector('#g-cancel')?.addEventListener('click',()=>overlay.remove());
+  overlay.querySelector('#g-del')?.addEventListener('click',()=>{if(!confirm('Удалить?'))return;onSave(null);overlay.remove();});
+
+  /* Показать поле новой категории */
+  overlay.querySelector('#g-cat-sel').addEventListener('change', function(){
+    const inp = overlay.querySelector('#g-cat');
+    inp.style.display = this.value==='_new'?'block':'none';
+  });
+
+  /* Статус кнопки */
+  let selStatus = existing?.done?'done':existing?.maybe?'maybe':'active';
+  overlay.querySelectorAll('.gm-status').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      selStatus=btn.dataset.val;
+      overlay.querySelectorAll('.gm-status').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+    });
+  });
+
   overlay.querySelector('#g-save').addEventListener('click',()=>{
-    const name=overlay.querySelector('#g-name').value.trim();if(!name)return;
-    const catVal = overlay.querySelector('#g-cat').value.trim() || overlay.querySelector('#g-cat-sel')?.value || 'Разное';
-    const status = overlay.querySelector('#g-status').value;
-    onSave({id:existing?.id||'g_'+Date.now(),name,amount:parseFloat(overlay.querySelector('#g-amount').value)||0,cat:catVal==='_new'?'Разное':catVal,season:overlay.querySelector('#g-season').value,priority:parseInt(overlay.querySelector('#g-priority').value)||2,done:status==='done',maybe:status==='maybe'});
+    const name=overlay.querySelector('#g-name').value.trim(); if(!name)return;
+    const selCat=overlay.querySelector('#g-cat-sel').value;
+    const newCat=overlay.querySelector('#g-cat').value.trim();
+    const cat = selCat==='_new'?(newCat||'Разное'):selCat;
+    onSave({
+      id:existing?.id||'g_'+Date.now(), name,
+      amount:parseFloat(overlay.querySelector('#g-amount').value)||0,
+      cat, season:overlay.querySelector('#g-season').value,
+      priority:parseInt(overlay.querySelector('#g-priority').value)||2,
+      done:selStatus==='done', maybe:selStatus==='maybe'
+    });
     overlay.remove();
   });
 }
@@ -247,8 +276,10 @@ window.Screens.goals = function(mount) {
       const otherTotal = otherItems.reduce((s,g)=>s+((g.done||g.maybe)?0:g.amount),0);
       /* grandTotal = незакрытые цели + незакрытые сезонные */
       const grandTotal = goalTotal + otherTotal;
-      /* Закрыто в деньгах = сумма закрытых с ненулевой суммой */
-      const doneOtherTotal = all.filter(g=>g.done&&g.amount>0).reduce((s,g)=>s+g.amount,0);
+      /* Закрыто = только сезонные закрытые (не цель) */
+      const doneOtherTotal = all.filter(g=>g.done&&g.amount>0&&g.season!=='all').reduce((s,g)=>s+g.amount,0);
+      /* Осталось не может быть отрицательным */
+      const remainOther = Math.max(0, otherTotal - doneOtherTotal);
       const allDone = all.filter(g=>g.done).length;
       const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
       heroHtml = `
@@ -258,7 +289,7 @@ window.Screens.goals = function(mount) {
           <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
             <span>На год: ${goalsFmt(otherTotal)}</span>
             <span style="color:#A8C97F;">Закрыто: ${goalsFmt(doneOtherTotal)}</span>
-            <span style="color:#9D9A92;">Осталось: ${goalsFmt(otherTotal-doneOtherTotal)}</span>
+            <span style="color:#9D9A92;">Осталось: ${goalsFmt(remainOther)}</span>
           </div>
           <div class="goals-all-progress"><div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div></div>
           <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>
@@ -266,15 +297,8 @@ window.Screens.goals = function(mount) {
     } else if (activeSeason==='spring') {
       heroHtml = `
         <div class="goals-hero-season" style="--season-bg:${bg};background:${bg};border-color:${color}55;">
-          <div class="goals-hero-season-row">
-            <div>
-              <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label}</div>
-              <div class="goals-hero-season-amount" style="color:#F0EDE5;">${goalsFmt(totalAmt)}</div>
-            </div>
-            <div class="goals-ring" style="--pct:${pct};--c:${color};">
-              <span class="goals-hero-pct-val" style="color:${color};">${pct}%</span>
-            </div>
-          </div>
+          <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label}</div>
+          <div class="goals-hero-season-amount" style="color:#F0EDE5;">${goalsFmt(totalAmt)}</div>
           ${monthsLeft ? `
           <div class="goals-season-stats">
             <div class="goals-season-stat">

@@ -979,3 +979,134 @@
 .goals-hero-season-amount { font-size: 28px !important; }
 .goals-season-badge { font-size: 13px !important; }
 .goals-screen-title { font-size: 20px !important; }
+
+/* ── Goals modal redesign ────────────────────────── */
+.goals-modal {
+  background: #1C1E24;
+  border-radius: 18px;
+  padding: 0;
+  width: min(420px, 92vw);
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #2A2D35;
+}
+.goals-modal-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #F0EDE5;
+}
+.goals-modal-del {
+  background: #2A1A1A;
+  border: 1px solid #FF5C5C44;
+  color: #FF5C5C;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-modal-field {
+  padding: 12px 20px 0;
+}
+.goals-modal-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.goals-modal-input {
+  width: 100%;
+  background: #16181E;
+  border: 1px solid #2A2D35;
+  border-radius: 10px;
+  color: #F0EDE5;
+  font-size: 15px;
+  padding: 10px 14px;
+  font-family: 'Montserrat', sans-serif;
+  box-sizing: border-box;
+}
+.goals-modal-input:focus {
+  border-color: #A78BFA;
+  outline: none;
+}
+.goals-modal-select {
+  width: 100%;
+  background: #16181E;
+  border: 1px solid #2A2D35;
+  border-radius: 10px;
+  color: #F0EDE5;
+  font-size: 14px;
+  padding: 10px 14px;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-modal-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+  padding: 0 20px;
+}
+.goals-modal-2col .goals-modal-field {
+  padding: 12px 0 0;
+}
+.goals-modal-statuses {
+  display: flex;
+  gap: 8px;
+}
+.gm-status {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 10px;
+  border: 1px solid #2A2D35;
+  background: #16181E;
+  color: #9D9A92;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s;
+}
+.gm-status.sel {
+  background: #A78BFA22;
+  border-color: #A78BFA;
+  color: #A78BFA;
+}
+.goals-modal-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px 20px;
+  margin-top: 14px;
+  border-top: 1px solid #2A2D35;
+}
+.goals-modal-cancel {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #2A2D35;
+  background: none;
+  color: #9D9A92;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-modal-save {
+  flex: 2;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #A78BFA;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+}
+.goals-modal-save:hover { background: #9333EA; }

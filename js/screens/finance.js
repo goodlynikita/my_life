@@ -367,8 +367,15 @@ window.Screens.finance = function(mount) {
     content.innerHTML = `
       <div class="bal-hero">
         <div class="bal-hero-row">
-          <div><div class="bal-label">ДОХОД МЕСЯЦА</div><div class="bal-income">${finFmtFull(monthIncome)}</div></div>
-          <div style="text-align:right;"><div class="bal-label">ПОДУШКА / ЦЕЛИ</div><div class="bal-cushion-big ${cushion>=0?'pos':'neg'}">${finFmtFull(cushion)}</div></div>
+          <div>
+            <div class="bal-label">ДОХОД МЕСЯЦА</div>
+            <div class="bal-income">${finFmtFull(monthIncome)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="bal-label">СВОБОДНЫЕ ДЕНЬГИ</div>
+            <div class="bal-cushion-big ${cushion>=0?'pos':'neg'}">${finFmtFull(Math.max(0,cushion))}</div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${cushion<0?'Не хватает '+finFmtFull(Math.abs(cushion)):''}</div>
+          </div>
         </div>
         <div class="bal-progress-track2"><div style="width:100%;height:100%;display:flex;overflow:hidden;">${segs}</div></div>
         <div class="bal-progress-labels"><span>${totalPct}% распределено</span><span>Подушка: ${cushionPct}%</span></div>
@@ -492,72 +499,93 @@ window.Screens.finance = function(mount) {
 
   function renderExpenses() {
     var list = expGetList();
-    var total = list.reduce(function(s,e){return s+(e.amount||0);},0);
+
+    /* Две независимые колонки */
+    var expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
     var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
-    var bal = srcTotal - total;
+    var итог = srcTotal - expTotal;  /* положительный = профит, отрицательный = дефицит */
 
     var rowsHtml = list.length === 0
       ? '<div class="tochka-empty">Нет расходов — добавьте первый</div>'
       : list.map(function(e,i){
           return '<div class="exp-row2" data-idx="'+i+'">'
             + '<div class="exp-drag-h"><i class="ti ti-grip-vertical"></i></div>'
-            + '<div class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;"><div class="exp-name">'+(e.name||'')+'</div></div>'
-            + '<div class="exp-cr" data-idx="'+i+'" data-side="expense" style="cursor:pointer;"><span class="exp-red">'+(e.amount?'−'+finFmtFull(e.amount):'—')+'</span></div>'
+            + '<div class="exp-cl exp-side-left" data-idx="'+i+'" data-side="expense">'
+            +   '<div class="exp-name">'+(e.name||'<span style="color:#D1D5DB;">+ расход</span>')+'</div>'
+            + '</div>'
+            + '<div class="exp-cr exp-side-left" data-idx="'+i+'" data-side="expense">'
+            +   '<span class="'+(e.amount?'exp-red':'exp-dim')+'">'+(e.amount?'−'+finFmtFull(e.amount):'—')+'</span>'
+            + '</div>'
             + '<div class="exp-sep-v"></div>'
-            + '<div class="exp-cl" data-idx="'+i+'" data-side="source" style="cursor:pointer;"><div class="exp-name" style="color:#6B7280;">'+(e.source||'<span style="color:#D1D5DB;">+ источник</span>')+'</div></div>'
-            + '<div class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;"><span class="'+(e.sourceAmt?'exp-green':'exp-dim')+'">'+(e.sourceAmt?'+'+finFmtFull(e.sourceAmt):'—')+'</span></div>'
+            + '<div class="exp-cl exp-side-right" data-idx="'+i+'" data-side="source">'
+            +   '<div class="exp-name" style="color:#374151;">'+(e.source||'<span style="color:#D1D5DB;">+ источник</span>')+'</div>'
+            + '</div>'
+            + '<div class="exp-cr exp-side-right" data-idx="'+i+'" data-side="source">'
+            +   '<span class="'+(e.sourceAmt?'exp-green':'exp-dim')+'">'+(e.sourceAmt?'+'+finFmtFull(e.sourceAmt):'—')+'</span>'
+            + '</div>'
             + '</div>';
         }).join('');
-
-    var totalHtml = list.length > 0
-      ? '<div class="exp-total2">'
-        + '<div style="visibility:hidden;width:28px;"></div>'
-        + '<div class="exp-cl"><strong>Итого</strong></div>'
-        + '<div class="exp-cr"><strong style="color:#EF4444;">−'+finFmtFull(total)+'</strong></div>'
-        + '<div class="exp-sep-v"></div>'
-        + '<div class="exp-cl"><strong style="color:'+(bal>=0?'#16A34A':'#EF4444')+'">'+(bal>=0?'Профит':'Дефицит')+'</strong></div>'
-        + '<div class="exp-cr"><strong style="color:'+(bal>=0?'#16A34A':'#EF4444')+'">'+(bal>=0?'+':'')+finFmtFull(bal)+'</strong></div>'
-        + '</div>'
-      : '';
 
     content.innerHTML = '<div class="tochka-list">'
       + '<div class="tochka-list-head"><span class="tochka-list-title">Ближайшие расходы</span>'
       + '<button id="exp-add-btn" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button></div>'
       + '<div class="exp-hdr-row">'
-      + '<div style="width:28px;flex-shrink:0;"></div>'
-      + '<div class="exp-hdr-col">Вид расхода</div><div class="exp-hdr-r">Сумма</div>'
-      + '<div class="exp-hdr-sep"></div>'
-      + '<div class="exp-hdr-col">Источник</div><div class="exp-hdr-r">Сумма</div>'
+      +   '<div style="width:28px;flex-shrink:0;"></div>'
+      +   '<div class="exp-hdr-col">Расход</div><div class="exp-hdr-r" style="color:#EF4444;">Сумма</div>'
+      +   '<div class="exp-hdr-sep"></div>'
+      +   '<div class="exp-hdr-col">Источник</div><div class="exp-hdr-r" style="color:#16A34A;">Сумма</div>'
       + '</div>'
       + '<div id="exp-rows">'+rowsHtml+'</div>'
-      + totalHtml
+      + '<div class="exp-total2">'
+      +   '<div style="width:28px;flex-shrink:0;"></div>'
+      +   '<div class="exp-cl" style="font-weight:700;">Итого расходов</div>'
+      +   '<div class="exp-cr"><strong style="color:#EF4444;">'+finFmtFull(expTotal)+'</strong></div>'
+      +   '<div class="exp-sep-v"></div>'
+      +   '<div class="exp-cl" style="font-weight:700;">Итого источников</div>'
+      +   '<div class="exp-cr"><strong style="color:#16A34A;">'+finFmtFull(srcTotal)+'</strong></div>'
+      + '</div>'
+      + '<div class="exp-итог-row">'
+      +   '<strong>Баланс: </strong>'
+      +   '<strong style="color:'+(итог>=0?'#16A34A':'#EF4444')+';">'+(итог>=0?'+':'')+finFmtFull(итог)+'</strong>'
+      +   '<span style="color:#9CA3AF;font-size:12px;margin-left:8px;">'+(итог>=0?'профит':'дефицит')+'</span>'
+      + '</div>'
       + '</div>';
 
-    /* Add button */
     document.getElementById('exp-add-btn').addEventListener('click', function(){
       expOpenModal(null, null, function(r){
         if(!r) return;
-        var l = expGetList(); l.push(r); expSaveList(l); renderExpenses();
+        var l=expGetList(); l.push(r); expSaveList(l); renderExpenses();
       });
     });
 
-    /* Click on expense/source cells */
-    content.querySelectorAll('.exp-cl[data-idx], .exp-cr[data-idx]').forEach(function(el){
+    /* Левая колонка (расход) - кликабельна независимо */
+    content.querySelectorAll('.exp-side-left').forEach(function(el){
       el.addEventListener('click', function(){
-        var idx = parseInt(el.dataset.idx);
-        var side = el.dataset.side;
-        var l = expGetList();
-        expOpenModal(Object.assign({},l[idx]), side, function(r){
+        var idx=parseInt(el.dataset.idx);
+        var l=expGetList();
+        expOpenModal(Object.assign({},l[idx]), 'expense', function(r){
           if(r===null) l.splice(idx,1); else l[idx]=r;
           expSaveList(l); renderExpenses();
         });
       });
     });
 
+    /* Правая колонка (источник) - кликабельна независимо */
+    content.querySelectorAll('.exp-side-right').forEach(function(el){
+      el.addEventListener('click', function(){
+        var idx=parseInt(el.dataset.idx);
+        var l=expGetList();
+        expOpenModal(Object.assign({},l[idx]), 'source', function(r){
+          if(r!==null) l[idx]=r;
+          expSaveList(l); renderExpenses();
+        });
+      });
+    });
+
     /* Drag reorder */
-    var listEl = document.getElementById('exp-rows');
+    var listEl=document.getElementById('exp-rows');
     if(!listEl) return;
-    var dragIdx = null;
+    var dragIdx=null;
     listEl.querySelectorAll('.exp-row2').forEach(function(row){
       row.setAttribute('draggable','true');
       row.addEventListener('dragstart',function(){dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';});
@@ -567,11 +595,10 @@ window.Screens.finance = function(mount) {
         e.preventDefault();
         var tgt=parseInt(row.dataset.idx);
         if(dragIdx===null||dragIdx===tgt)return;
-        var l=expGetList(); var m=l.splice(dragIdx,1)[0]; l.splice(tgt,0,m); expSaveList(l); dragIdx=null; renderExpenses();
+        var l=expGetList();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);expSaveList(l);dragIdx=null;renderExpenses();
       });
     });
   }
-
   function render(){
     if(activeTab==='month')renderMonth();
     else if(activeTab==='expenses')renderExpenses();

@@ -237,7 +237,7 @@ window.Screens.goals = function(mount) {
               <div class="goals-hero-season-amount" style="color:#F0EDE5;">${goalsFmt(totalAmt)}</div>
             </div>
             <div class="goals-ring" style="--pct:${pct};--c:${color};">
-              <span style="color:${color};">${pct}%</span>
+              <span class="goals-hero-pct-val" style="color:${color};transition:all 0.4s;">${pct}%</span>
             </div>
           </div>
           ${monthsLeft ? `
@@ -272,7 +272,7 @@ window.Screens.goals = function(mount) {
         <div class="goals-cat-v3 ${isGoal?'goals-cat-main':''}" style="--cat-color:${catColor};">
           <div class="goals-cat-v3-head">
             <span class="goals-cat-v3-title">${isGoal?'🎯 ':''} ${cat}</span>
-            <span class="goals-cat-v3-total" style="color:${catColor};">${goalsFmt(catTotal)}</span>
+            <span class="goals-cat-total goals-cat-v3-total" data-cat="${cat}" style="color:${catColor};transition:all 0.4s;">${goalsFmt(catTotal)}</span>
           </div>
           ${catItems.map(g=>{
             const idx = goalsGet().findIndex(x=>x.id===g.id);
@@ -302,14 +302,66 @@ window.Screens.goals = function(mount) {
     content.querySelectorAll('.goals-check-v3').forEach(el=>{
       el.addEventListener('click',e=>{
         e.stopPropagation();
-        const idx=parseInt(el.dataset.idx);
-        const list=goalsGet();
-        if(!list[idx]) return;
-        list[idx].done=!list[idx].done;
+        const idx = parseInt(el.dataset.idx);
+        const list = goalsGet();
+        if (!list[idx]) return;
+        list[idx].done = !list[idx].done;
         goalsSave(list);
-        el.style.transform='scale(1.35)';
-        setTimeout(()=>{el.style.transform=''; render();},180);
         window.dispatchEvent(new CustomEvent('goals-updated'));
+
+        /* ── Анимация без перезагрузки ── */
+        const isDone = list[idx].done;
+        const itemColor = el.style.getPropertyValue('--item-color') || '#9333EA';
+
+        /* Чекбокс */
+        el.style.transition = 'all 0.25s cubic-bezier(.34,1.56,.64,1)';
+        el.style.transform = 'scale(1.3)';
+        el.style.background = isDone ? '#9333EA' : '#16181E';
+        el.style.borderColor = isDone ? '#9333EA' : '#3A3D4544';
+        el.innerHTML = isDone ? '<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>' : '';
+        setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+
+        /* Строка цели */
+        const row = el.closest('.goals-item-v3');
+        if (row) {
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = isDone ? '0.5' : '1';
+          if (isDone) row.classList.add('done'); else row.classList.remove('done');
+          const nameEl = row.querySelector('.goals-item-v3-name');
+          if (nameEl) nameEl.style.textDecoration = isDone ? 'line-through' : '';
+          const amtEl = row.querySelector('.goals-item-v3-amt');
+          if (amtEl) {
+            amtEl.style.transition = 'all 0.3s';
+            amtEl.innerHTML = isDone
+              ? '<i class="ti ti-check" style="font-size:16px;transition:all 0.3s;"></i>'
+              : (list[idx].amount > 0 ? goalsFmt(list[idx].amount) : '');
+          }
+        }
+
+        /* Пересчёт суммы категории */
+        const cat = list[idx].cat;
+        const allList = goalsGet();
+        const catItems = allList.filter(g => g.cat === cat && (activeSeason==='all' || g.season===activeSeason));
+        const newCatTotal = catItems.filter(g => !g.done).reduce((s,g) => s + g.amount, 0);
+        const catTotalEl = content.querySelector('.goals-cat-total[data-cat="'+cat+'"]');
+        if (catTotalEl) {
+          catTotalEl.style.transition = 'all 0.4s';
+          catTotalEl.textContent = goalsFmt(newCatTotal);
+        }
+
+        /* Пересчёт hero суммы сезона */
+        const seasonItems = allList.filter(g => activeSeason==='all' ? true : g.season===activeSeason);
+        const newRemain = seasonItems.filter(g=>!g.done&&g.season!=='all').reduce((s,g)=>s+g.amount,0);
+        const newDone = seasonItems.filter(g=>g.done).length;
+        const newTotal = seasonItems.length;
+        const newPct = newTotal ? Math.round(newDone/newTotal*100) : 0;
+
+        const remainEl = content.querySelector('.goals-remain-val');
+        if (remainEl) { remainEl.style.transition='all 0.4s'; remainEl.textContent=goalsFmt(newRemain); }
+        const pctEl = content.querySelector('.goals-hero-pct-val');
+        if (pctEl) { pctEl.style.transition='all 0.4s'; pctEl.textContent=newPct+'%'; }
+        const fillEl = content.querySelector('.goals-all-bar, .hero-goals-fill');
+        if (fillEl) { fillEl.style.transition='width 0.6s ease'; fillEl.style.width=newPct+'%'; }
       });
     });
 

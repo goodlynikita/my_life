@@ -844,3 +844,14 @@
 .exp-green { font-size:13px;font-weight:700;color:#16A34A; }
 .exp-dim { font-size:13px;color:#D1D5DB; }
 .exp-total2 { display:flex;align-items:center;padding:12px 14px;border-top:2px solid #E5E7EB;background:#F9FAFB;font-size:14px; }
+
+/* Expenses итог row */
+.exp-итог-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px 12px 42px;
+  background: #F9FAFB;
+  border-top: 1px solid #E5E7EB;
+  font-size: 15px;
+  gap: 8px;
+}

@@ -967,3 +967,15 @@
 /* Goals hero all amounts white */
 .goals-hero-season-amount { color: #F0EDE5 !important; }
 .goals-sstat-val { color: #F0EDE5 !important; }
+
+/* ── Goals bigger font ───────────────────────────── */
+.goals-item-v3-name { font-size: 15px !important; }
+.goals-item-v3-amt { font-size: 14px !important; }
+.goals-cat-v3-title { font-size: 15px !important; }
+.goals-cat-v3-total { font-size: 15px !important; }
+.goals-sstat-val { font-size: 17px !important; }
+.goals-sstat-label { font-size: 11px !important; }
+.goals-hero-big { font-size: 32px !important; }
+.goals-hero-season-amount { font-size: 28px !important; }
+.goals-season-badge { font-size: 13px !important; }
+.goals-screen-title { font-size: 20px !important; }

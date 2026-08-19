@@ -104,7 +104,15 @@ function goalsOpenModal(existing, onSave) {
         <label style="flex:1 1 100%">Сумма, ₽<input type="number" id="g-amount" value="${existing?.amount||''}" inputmode="numeric"></label>
       </div>
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Категория<input type="text" id="g-cat" value="${existing?.cat||''}"></label>
+        <label style="flex:1 1 100%">Категория
+          <div style="display:flex;gap:8px;">
+            <select id="g-cat-sel" class="tr-color-select" style="flex:1;" onchange="document.getElementById('g-cat').value=this.value==='\_new'?'':this.value;">
+              ${[...new Set(goalsGet().map(g=>g.cat))].sort().map(c=>'<option value="'+c+'"'+(existing?.cat===c?' selected':'')+'>'+c+'</option>').join('')}
+              <option value="\_new">+ Новая категория</option>
+            </select>
+            <input type="text" id="g-cat" value="${existing?.cat||''}" placeholder="Или введи новую" style="flex:1;">
+          </div>
+        </label>
       </div>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Сезон
@@ -117,9 +125,23 @@ function goalsOpenModal(existing, onSave) {
           </select>
         </label>
       </div>
-      <div class="tr-modal-row" style="align-items:center;gap:10px;">
-        <input type="checkbox" id="g-done" ${existing?.done?'checked':''} style="width:auto;">
-        <label for="g-done" style="font-size:13px;color:#E8E5DC;margin:0;">Закрыто ✓</label>
+      <div class="tr-modal-row">
+        <label style="flex:1 1 100%">Приоритет
+          <select id="g-priority" class="tr-color-select">
+            <option value="1" ${(existing?.priority||2)===1?'selected':''}>🔴 Высокий</option>
+            <option value="2" ${(existing?.priority||2)===2?'selected':''}>🟡 Средний</option>
+            <option value="3" ${(existing?.priority||2)===3?'selected':''}>🟢 Низкий</option>
+          </select>
+        </label>
+      </div>
+      <div class="tr-modal-row">
+        <label style="flex:1 1 100%">Статус
+          <select id="g-status" class="tr-color-select">
+            <option value="active" ${(!existing?.done&&!existing?.maybe)?'selected':''}>☐ Активная — считается</option>
+            <option value="done" ${existing?.done?'selected':''}>✓ Закрыта — не считается</option>
+            <option value="maybe" ${existing?.maybe?'selected':''}>? Под вопросом — не считается</option>
+          </select>
+        </label>
       </div>
       <div class="tr-modal-actions">
         ${isEdit?'<button class="tr-modal-btn-secondary" id="g-del" style="color:#FF5C5C;">Удалить</button>':'<button class="tr-modal-btn-secondary" id="g-cancel">Отмена</button>'}
@@ -132,7 +154,9 @@ function goalsOpenModal(existing, onSave) {
   const db=overlay.querySelector('#g-del');if(db)db.addEventListener('click',()=>{if(!confirm('Удалить?'))return;onSave(null);overlay.remove();});
   overlay.querySelector('#g-save').addEventListener('click',()=>{
     const name=overlay.querySelector('#g-name').value.trim();if(!name)return;
-    onSave({id:existing?.id||'g_'+Date.now(),name,amount:parseFloat(overlay.querySelector('#g-amount').value)||0,cat:overlay.querySelector('#g-cat').value.trim()||'Разное',season:overlay.querySelector('#g-season').value,done:overlay.querySelector('#g-done').checked});
+    const catVal = overlay.querySelector('#g-cat').value.trim() || overlay.querySelector('#g-cat-sel')?.value || 'Разное';
+    const status = overlay.querySelector('#g-status').value;
+    onSave({id:existing?.id||'g_'+Date.now(),name,amount:parseFloat(overlay.querySelector('#g-amount').value)||0,cat:catVal==='_new'?'Разное':catVal,season:overlay.querySelector('#g-season').value,priority:parseInt(overlay.querySelector('#g-priority').value)||2,done:status==='done',maybe:status==='maybe'});
     overlay.remove();
   });
 }
@@ -142,14 +166,14 @@ window.Screens.goals = function(mount) {
 
   mount.innerHTML = `
     <div class="goals-screen">
-      <div class="goals-header">
+      <div class="goals-header" style="position:sticky;top:0;z-index:16;">
         <div style="display:flex;align-items:center;gap:10px;">
           <button class="goals-back" id="gb"><i class="ti ti-arrow-left"></i></button>
           <p class="goals-screen-title">Цели 2026</p>
         </div>
         <button class="goals-back" id="gl"><i class="ti ti-logout"></i></button>
       </div>
-      <div class="goals-season-tabs" id="goals-tabs"></div>
+      <div class="goals-season-tabs" id="goals-tabs" style="position:sticky;top:53px;z-index:15;"></div>
       <div class="goals-body" id="goals-content"></div>
     </div>`;
 
@@ -182,33 +206,51 @@ window.Screens.goals = function(mount) {
 
     const items = activeSeason==='all' ? all : all.filter(g=>g.season===activeSeason);
     const monthsLeft = goalsMonthsLeft(activeSeason);
+    /* totalAmt = все суммы сезона (включая закрытые) для показа общего */
     const totalAmt = items.filter(g=>g.season!=='all').reduce((s,g)=>s+g.amount,0);
-    const doneAmt = items.filter(g=>g.done).reduce((s,g)=>s+g.amount,0);
-    const remainAmt = totalAmt - doneAmt;
+    /* remainAmt = только активные (не закрытые, не под вопросом) */
+    const remainAmt = items.filter(g=>g.season!=='all'&&!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
+    const doneAmt = totalAmt - remainAmt;
     const perMonth = monthsLeft && remainAmt>0 ? Math.round(remainAmt/monthsLeft) : 0;
     const doneCnt = items.filter(g=>g.done).length;
-    const pct = items.length ? Math.round(doneCnt/items.length*100) : 0;
+    /* % от денег: закрыто/всего (исключаем нулевые суммы из подсчёта) */
+    const seasonNonZero = items.filter(g=>g.season!=='all'&&g.amount>0);
+    const seasonDoneAmt = seasonNonZero.filter(g=>g.done).reduce((s,g)=>s+g.amount,0);
+    const seasonTotalAmt = seasonNonZero.reduce((s,g)=>s+g.amount,0);
+    const pct = seasonTotalAmt>0 ? Math.round(seasonDoneAmt/seasonTotalAmt*100) : (doneCnt===items.length&&items.length>0?100:0);
 
     /* ── Группы ── */
     const ALL_CATS = ['Цель','Бизнес','Бытовые','Бытовые моменты','Машина','Техника','Лыжный комплект','Здоровье','Разное','Закрытые'];
     const catOrder = activeSeason==='all'
       ? ALL_CATS
       : [...new Set(items.map(g=>g.cat))];
-    /* В "Всё" показываем все цели из всех сезонов */
     const catSource = activeSeason==='all' ? all : items;
-    const cats = catOrder.filter(cat=>catSource.some(g=>g.cat===cat));
+    let cats = catOrder.filter(cat=>catSource.some(g=>g.cat===cat));
+    /* Добавляем пользовательские категории которых нет в списке */
+    [...new Set(catSource.map(g=>g.cat))].forEach(c=>{ if(!cats.includes(c)) cats.push(c); });
+    /* В сезонах сортируем по приоритету категории */
+    if (activeSeason !== 'all') {
+      cats.sort((a,b)=>{
+        const pa = Math.min(...(catSource.filter(g=>g.cat===a).map(g=>g.priority||2)));
+        const pb = Math.min(...(catSource.filter(g=>g.cat===b).map(g=>g.priority||2)));
+        return pa-pb;
+      });
+    }
 
     /* ── Hero ── */
     let heroHtml = '';
     if (activeSeason==='all') {
       const goalItems = all.filter(g=>g.cat==='Цель');
-      const goalTotal = goalItems.reduce((s,g)=>s+g.amount,0);
+      const goalTotal = goalItems.filter(g=>!g.done).reduce((s,g)=>s+g.amount,0);
       const otherItems = all.filter(g=>g.cat!=='Цель'&&g.season!=='all');
-      const otherTotal = otherItems.reduce((s,g)=>s+g.amount,0);
+      /* "На год" = все суммы незакрытых по сезонам */
+      const otherTotal = otherItems.reduce((s,g)=>s+((g.done||g.maybe)?0:g.amount),0);
+      /* grandTotal = незакрытые цели + незакрытые сезонные */
       const grandTotal = goalTotal + otherTotal;
+      /* Закрыто в деньгах = сумма закрытых с ненулевой суммой */
+      const doneOtherTotal = all.filter(g=>g.done&&g.amount>0).reduce((s,g)=>s+g.amount,0);
       const allDone = all.filter(g=>g.done).length;
       const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
-      const doneOtherTotal = all.filter(g=>g.done&&g.season!=='all').reduce((s,g)=>s+g.amount,0);
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};">
           <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>
@@ -224,9 +266,33 @@ window.Screens.goals = function(mount) {
     } else if (activeSeason==='spring') {
       heroHtml = `
         <div class="goals-hero-season" style="--season-bg:${bg};background:${bg};border-color:${color}55;">
-          <div class="goals-season-badge" style="background:${color};color:#fff;">✓ Весна закрыта</div>
-          <div class="goals-hero-season-amount" style="color:${color};">Всё выполнено</div>
-          <div class="goals-season-sub" style="color:${color}99;">${doneCnt} пунктов закрыто</div>
+          <div class="goals-hero-season-row">
+            <div>
+              <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label}</div>
+              <div class="goals-hero-season-amount" style="color:#F0EDE5;">${goalsFmt(totalAmt)}</div>
+            </div>
+            <div class="goals-ring" style="--pct:${pct};--c:${color};">
+              <span class="goals-hero-pct-val" style="color:${color};">${pct}%</span>
+            </div>
+          </div>
+          ${monthsLeft ? `
+          <div class="goals-season-stats">
+            <div class="goals-season-stat">
+              <div class="goals-sstat-label">ОСТАЛОСЬ</div>
+              <div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">${goalsFmt(remainAmt)}</div>
+            </div>
+            <div class="goals-season-stat">
+              <div class="goals-sstat-label">МЕСЯЦЕВ</div>
+              <div class="goals-sstat-val" style="color:${color};">${monthsLeft}</div>
+            </div>
+            <div class="goals-season-stat">
+              <div class="goals-sstat-label">В МЕСЯЦ</div>
+              <div class="goals-sstat-val" style="color:${color};">${goalsFmt(perMonth)}</div>
+            </div>
+          </div>
+          <div class="goals-season-bar-track">
+            <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 0.5s;"></div>
+          </div>` : ''}
         </div>`;
     } else {
       heroHtml = `
@@ -264,8 +330,8 @@ window.Screens.goals = function(mount) {
     /* ── Категории ── */
     const catsHtml = cats.map(cat=>{
       const catItems = catSource.filter(g=>g.cat===cat);
-      /* Итог категории = только незакрытые */
-      const catTotal = catItems.filter(g=>!g.done).reduce((s,g)=>s+g.amount,0);
+      /* Итог = только активные (не закрытые и не под вопросом) */
+      const catTotal = catItems.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
       const catColor = isGoal ? '#9333EA' : color;
       return `
@@ -280,13 +346,23 @@ window.Screens.goals = function(mount) {
             const itemColor = activeSeason==='all' ? sInfo.color : catColor;
             const seasonDot = activeSeason==='all' && g.season!=='all'
               ? `<span style="width:6px;height:6px;border-radius:50%;background:${sInfo.color};flex-shrink:0;display:inline-block;margin-right:2px;"></span>` : '';
-            return `<div class="goals-item-v3 ${g.done?'done':''}" data-idx="${idx}">
-              <div class="goals-check-v3 ${g.done?'checked':''}" data-idx="${idx}" style="${g.done?'background:'+itemColor+';border-color:'+itemColor+';':'border-color:'+itemColor+'44;'}">
-                ${g.done?'<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>':''}
+            const gStatus = g.done?'done':g.maybe?'maybe':'active';
+            const checkBg = g.done?itemColor:g.maybe?'#F59E0B':'transparent';
+            const checkBorder = g.done||g.maybe?checkBg:(itemColor+'44');
+            const checkIcon = g.done?'<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>':g.maybe?'<span style="color:#fff;font-size:12px;font-weight:800;">?</span>':'';
+            const amtDisplay = g.done
+              ? '<i class="ti ti-check" style="color:'+itemColor+';font-size:16px;"></i>'
+              : g.maybe
+                ? '<span style="color:#F59E0B;font-size:13px;font-weight:700;">?</span>'
+                : (g.amount>0?goalsFmt(g.amount):'');
+            const rowOpacity = (g.done||g.maybe)?'0.6':'1';
+            return `<div class="goals-item-v3 ${gStatus}" data-idx="${idx}" style="opacity:${rowOpacity};transition:opacity 0.3s;">
+              <div class="goals-check-v3 ${gStatus}" data-idx="${idx}" style="background:${checkBg};border-color:${checkBorder};">
+                ${checkIcon}
               </div>
               ${seasonDot}
-              <span class="goals-item-v3-name">${g.name}</span>
-              <span class="goals-item-v3-amt">${g.done ? '<i class="ti ti-check" style="color:'+itemColor+';font-size:16px;"></i>' : (g.amount>0?goalsFmt(g.amount):'')}</span>
+              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.priority===1?'🔴 ':''}${g.name}</span>
+              <span class="goals-item-v3-amt">${amtDisplay}</span>
             </div>`;
           }).join('')}
           <button class="goals-add-v3" data-cat="${cat}" data-season="${activeSeason}">+ добавить</button>
@@ -305,7 +381,11 @@ window.Screens.goals = function(mount) {
         const idx = parseInt(el.dataset.idx);
         const list = goalsGet();
         if (!list[idx]) return;
-        list[idx].done = !list[idx].done;
+        /* Цикл: active → done → maybe → active */
+        const cur = list[idx].done?'done':list[idx].maybe?'maybe':'active';
+        if (cur==='active') { list[idx].done=true; list[idx].maybe=false; }
+        else if (cur==='done') { list[idx].done=false; list[idx].maybe=true; }
+        else { list[idx].done=false; list[idx].maybe=false; }
         goalsSave(list);
         window.dispatchEvent(new CustomEvent('goals-updated'));
 

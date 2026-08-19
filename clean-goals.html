@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Очистка дублей целей</title>
+<style>
+  body { font-family: 'Montserrat', sans-serif; background:#0F1117; color:#E8E5DC; padding:30px; }
+  h2 { color:#A78BFA; }
+  button { background:#7C3AED; color:#fff; border:none; padding:14px 28px; border-radius:10px; font-size:15px; cursor:pointer; margin:8px; font-weight:700; }
+  button:hover { background:#9333EA; }
+  #log { background:#1C1E24; border-radius:10px; padding:20px; margin-top:20px; min-height:100px; white-space:pre-wrap; font-size:13px; line-height:1.8; }
+  .ok { color:#A8C97F; }
+  .err { color:#FF5C5C; }
+</style>
+</head>
+<body>
+<h2>🧹 Очистка дублей целей</h2>
+<p style="color:#9D9A92;">Эта утилита удаляет дубли из Firebase и оставляет только уникальные цели</p>
+<button id="btn-clean">🧹 Почистить дубли</button>
+<button id="btn-show">👁 Показать текущие данные</button>
+<div id="log">Нажми кнопку...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { FIREBASE_CONFIG } from './js/config.js';
+
+const app = initializeApp(FIREBASE_CONFIG);
+const db = getDatabase(app);
+const log = document.getElementById('log');
+
+function addLog(msg, cls) {
+  const line = document.createElement('div');
+  line.className = cls || '';
+  line.textContent = msg;
+  log.appendChild(line);
+}
+
+document.getElementById('btn-show').addEventListener('click', async () => {
+  log.innerHTML = '';
+  addLog('Загружаем данные...');
+  const snap = await get(ref(db, 'nik-data/goals/directions'));
+  if (!snap.exists()) { addLog('Нет данных', 'err'); return; }
+  const dirs = snap.val();
+  const arr = Array.isArray(dirs) ? dirs : Object.values(dirs);
+  addLog(`Всего записей: ${arr.filter(Boolean).length}`);
+  const counts = {};
+  arr.filter(Boolean).forEach(g => {
+    counts[g.name] = (counts[g.name]||0)+1;
+  });
+  Object.entries(counts).filter(([,v])=>v>1).forEach(([k,v]) => {
+    addLog(`⚠️ ДУБЛЬ: "${k}" — ${v} раза`, 'err');
+  });
+  if (!Object.values(counts).some(v=>v>1)) addLog('✅ Дублей нет!', 'ok');
+});
+
+document.getElementById('btn-clean').addEventListener('click', async () => {
+  log.innerHTML = '';
+  addLog('Загружаем данные из Firebase...');
+  
+  try {
+    const snap = await get(ref(db, 'nik-data/goals/directions'));
+    if (!snap.exists()) { addLog('Нет данных целей', 'err'); return; }
+    
+    const dirs = snap.val();
+    const arr = Array.isArray(dirs) ? dirs : Object.values(dirs);
+    const all = arr.filter(Boolean);
+    addLog(`Записей до очистки: ${all.length}`);
+    
+    // Удаляем дубли — оставляем первое вхождение каждого имени+сезона
+    const seen = new Set();
+    const clean = [];
+    all.forEach(g => {
+      const key = g.name + '|' + g.season + '|' + g.cat;
+      if (!seen.has(key)) {
+        seen.add(key);
+        clean.push(g);
+      } else {
+        addLog(`Удалён дубль: "${g.name}" (${g.season})`, 'err');
+      }
+    });
+    
+    addLog(`Записей после очистки: ${clean.length}`, 'ok');
+    
+    // Сохраняем
+    await set(ref(db, 'nik-data/goals/directions'), clean);
+    addLog('✅ Сохранено в Firebase!', 'ok');
+    addLog(`Удалено дублей: ${all.length - clean.length}`, 'ok');
+  } catch(e) {
+    addLog('Ошибка: ' + e.message, 'err');
+  }
+});
+</script>
+</body>
+</html>

@@ -61,11 +61,16 @@ const GOALS_INITIAL = [
 
 function goalsGet() {
   const s = Store.get().goals?.directions;
-  if (s && Array.isArray(s) && s.filter(Boolean).length > 0) return s.filter(Boolean);
+  if (s) {
+    const arr = Array.isArray(s) ? s : Object.values(s);
+    const clean = arr.filter(Boolean);
+    if (clean.length > 0) return clean;
+  }
   return GOALS_INITIAL;
 }
 function goalsSave(list) {
-  list.forEach((g,i) => Store.set(`goals.directions.${i}`, g));
+  /* ВАЖНО: пишем весь массив одним set, иначе старые индексы остаются в Firebase */
+  Store.set('goals.directions', list.filter(Boolean));
 }
 function goalsFmt(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
@@ -379,8 +384,8 @@ window.Screens.goals = function(mount) {
                 ? '<span style="color:#F59E0B;font-size:13px;font-weight:700;">?</span>'
                 : (g.amount>0?goalsFmt(g.amount):'');
             const rowOpacity = (g.done||g.maybe)?'0.6':'1';
-            return `<div class="goals-item-v3 ${gStatus}" data-idx="${idx}" style="opacity:${rowOpacity};transition:opacity 0.3s;">
-              <div class="goals-check-v3 ${gStatus}" data-idx="${idx}" style="background:${checkBg};border-color:${checkBorder};">
+            return `<div class="goals-item-v3 ${gStatus}" data-idx="${idx}" data-gid="${g.id}" style="opacity:${rowOpacity};transition:opacity 0.3s;">
+              <div class="goals-check-v3 ${gStatus}" data-idx="${idx}" data-gid="${g.id}" style="background:${checkBg};border-color:${checkBorder};">
                 ${checkIcon}
               </div>
               ${seasonDot}
@@ -401,14 +406,15 @@ window.Screens.goals = function(mount) {
     content.querySelectorAll('.goals-check-v3').forEach(el=>{
       el.addEventListener('click',e=>{
         e.stopPropagation();
-        const idx = parseInt(el.dataset.idx);
+        const gid = el.dataset.gid;
         const list = goalsGet();
-        if (!list[idx]) return;
+        const item = list.find(g=>g.id===gid);
+        if (!item) return;
         /* Цикл: active → done → maybe → active */
-        const cur = list[idx].done?'done':list[idx].maybe?'maybe':'active';
-        if (cur==='active') { list[idx].done=true; list[idx].maybe=false; }
-        else if (cur==='done') { list[idx].done=false; list[idx].maybe=true; }
-        else { list[idx].done=false; list[idx].maybe=false; }
+        const cur = item.done?'done':item.maybe?'maybe':'active';
+        if (cur==='active') { item.done=true; item.maybe=false; }
+        else if (cur==='done') { item.done=false; item.maybe=true; }
+        else { item.done=false; item.maybe=false; }
         goalsSave(list);
         window.dispatchEvent(new CustomEvent('goals-updated'));
 
@@ -468,21 +474,23 @@ window.Screens.goals = function(mount) {
       });
     });
 
-    /* Редактирование — только по клику на имя/сумму, не на чекбокс */
+    /* Редактирование по клику на имя/сумму */
     content.querySelectorAll('.goals-item-v3').forEach(el=>{
       el.addEventListener('click', e=>{
-        /* Если клик был на чекбоксе — не открываем модалку */
         if(e.target.closest('.goals-check-v3')) return;
-        const idx=parseInt(el.dataset.idx);
-        const list=goalsGet();
-        if(!list[idx]) return;
-        goalsOpenModal({...list[idx]}, result=>{
+        const gid = el.dataset.gid;
+        const list = goalsGet();
+        const item = list.find(g=>g.id===gid);
+        if(!item) return;
+        goalsOpenModal({...item}, result=>{
+          const fresh = goalsGet(); /* берём свежий список */
           if(result===null) {
-            list.splice(idx,1);
+            const filtered = fresh.filter(g=>g.id!==gid);
+            goalsSave(filtered);
           } else {
-            list[idx]=result;
+            const updated = fresh.map(g=>g.id===gid?result:g);
+            goalsSave(updated);
           }
-          goalsSave(list);
           render();
         });
       });

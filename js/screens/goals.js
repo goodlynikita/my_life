@@ -412,7 +412,7 @@ window.Screens.goals = function(mount) {
                 ${checkIcon}
               </div>
               ${seasonDot}
-              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.name}${g.month?'<span style="font-size:10px;color:#9D9A92;margin-left:4px;">·'+['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][g.month]+'</span>':''}</span>
+              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.name}${g.month?' · <span style="font-size:10px;color:#9D9A92;">'+['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][g.month]+'</span>':''}</span>
               <span class="goals-item-v3-amt">${amtDisplay}</span>
             </div>`;
           }).join('')}

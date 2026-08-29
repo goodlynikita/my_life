@@ -247,7 +247,29 @@ window.Screens.goals = function(mount) {
 
   const content = document.getElementById('goals-content');
 
+  function renderMonthFilter() {
+    const filterEl = document.getElementById('goals-month-filter');
+    const rowEl = document.getElementById('goals-month-row');
+    if (!filterEl || !rowEl) return;
+    if (activeSeason === 'all') { filterEl.style.display='none'; return; }
+    filterEl.style.display = 'block';
+    const all = goalsGet();
+    const months = [...new Set(all.filter(g=>g.season===activeSeason&&g.month).map(g=>g.month))].sort((a,b)=>a-b);
+    const MNAMES = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+    rowEl.innerHTML = ['<button class="goals-mf-btn'+(activeMonth===0?' active':'')+'" data-m="0">Все</button>',
+      ...months.map(m=>'<button class="goals-mf-btn'+(activeMonth===m?' active':'')+'" data-m="'+m+'">'+MNAMES[m]+'</button>')
+    ].join('');
+    rowEl.querySelectorAll('.goals-mf-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        activeMonth=parseInt(btn.dataset.m);
+        renderMonthFilter();
+        render();
+      });
+    });
+  }
+
   function render() {
+    renderMonthFilter();
     const all = goalsGet();
     const season = GOALS_SEASONS.find(s=>s.key===activeSeason);
     const color = season.color;

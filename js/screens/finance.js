@@ -476,11 +476,15 @@ window.Screens.finance = function(mount) {
           <label style="width:80px;">Копилка %<input type="number" id="bi-pct" value="${SAVE_PCT}" min="0" max="100" inputmode="numeric"></label>
         </div>
         <p style="font-size:12px;color:#9CA3AF;margin:12px 0 6px;">Базовые расходы:</p>
+        <div id="bi-cats-list">
         ${cats.map((c,i)=>`
           <div class="tr-modal-row" style="gap:8px;align-items:flex-end;">
             <label style="flex:1;">Категория<input type="text" class="bi-name" data-i="${i}" value="${c.name}"></label>
             <label style="width:110px;">Сумма, ₽<input type="number" class="bi-amt" data-i="${i}" value="${c.amt}" inputmode="numeric"></label>
+            <button class="bi-del-cat" data-i="${i}" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px;padding:0 4px;margin-bottom:2px;">✕</button>
           </div>`).join('')}
+        </div>
+        <button id="bi-add-cat" style="background:none;border:1px dashed #D1D5DB;border-radius:8px;width:100%;padding:8px;color:#9CA3AF;cursor:pointer;margin-bottom:8px;">+ Добавить категорию</button>
         <div class="tr-modal-actions">
           <button class="tr-modal-btn-secondary" id="bi-cancel">Отмена</button>
           <button class="tr-modal-btn-primary" id="bi-save">Сохранить</button>
@@ -489,6 +493,33 @@ window.Screens.finance = function(mount) {
       document.body.appendChild(ov);
       ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
       ov.querySelector('#bi-cancel').addEventListener('click',()=>ov.remove());
+
+      /* Удалить категорию */
+      ov.addEventListener('click', e=>{
+        if(e.target.classList.contains('bi-del-cat')){
+          const i = parseInt(e.target.dataset.i);
+          cats.splice(i,1);
+          // Перерисовываем список
+          const list = ov.querySelector('#bi-cats-list');
+          list.querySelectorAll('.tr-modal-row').forEach((r,idx)=>{
+            r.querySelectorAll('[data-i]').forEach(el=>el.dataset.i=idx);
+          });
+          e.target.closest('.tr-modal-row').remove();
+        }
+      });
+
+      /* Добавить категорию */
+      ov.querySelector('#bi-add-cat').addEventListener('click',()=>{
+        cats.push({id:'b_'+Date.now(),name:'Новая категория',amt:0,color:'#9CA3AF'});
+        const i = cats.length-1;
+        const row = document.createElement('div');
+        row.className = 'tr-modal-row';
+        row.style.cssText = 'gap:8px;align-items:flex-end;';
+        row.innerHTML = '<label style="flex:1;">Категория<input type="text" class="bi-name" data-i="'+i+'" value="Новая категория"></label>'
+          +'<label style="width:110px;">Сумма, ₽<input type="number" class="bi-amt" data-i="'+i+'" value="0" inputmode="numeric"></label>'
+          +'<button class="bi-del-cat" data-i="'+i+'" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px;padding:0 4px;margin-bottom:2px;">✕</button>';
+        ov.querySelector('#bi-cats-list').appendChild(row);
+      });
       ov.querySelector('#bi-save').addEventListener('click',()=>{
         ov.querySelectorAll('.bi-name').forEach(inp=>{ cats[+inp.dataset.i].name=inp.value.trim()||cats[+inp.dataset.i].name; });
         ov.querySelectorAll('.bi-amt').forEach(inp=>{ cats[+inp.dataset.i].amt=parseFloat(inp.value)||0; });
@@ -498,6 +529,46 @@ window.Screens.finance = function(mount) {
         ov.remove();
         renderBalance();
       });
+    });
+  }
+
+
+  /* ═══ РАСХОДЫ — хелперы ════════════════════════ */
+  function expGetList() { return Store.get().finance?.expensesList || []; }
+  function expSaveList(list) { Store.set('finance.expensesList', list.filter(Boolean)); }
+
+  function expOpenModal(item, side, cb) {
+    var isEdit = !!item;
+    var showExp = !side || side === 'expense';
+    var showSrc = !side || side === 'source';
+    var ov = document.createElement('div');
+    ov.className = 'tr-modal-overlay';
+    ov.innerHTML = '<div class="tr-modal">'
+      + '<p class="tr-modal-title">' + (side==='source'?'Потенциал / источник': isEdit?'Редактировать расход':'Новый расход') + '</p>'
+      + (showExp ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'"></label></div>'
+                 + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric"></label></div>' : '')
+      + (showSrc ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник / комментарий<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Откуда деньги"></label></div>'
+                 + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма потенциала, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric"></label></div>' : '')
+      + '<div class="tr-modal-actions">'
+      + (isEdit ? '<button class="tr-modal-btn-secondary" id="em-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="em-cancel">Отмена</button>')
+      + '<button class="tr-modal-btn-primary" id="em-save">Сохранить</button>'
+      + '</div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e){if(e.target===ov)ov.remove();});
+    var cancBtn = ov.querySelector('#em-cancel'); if(cancBtn) cancBtn.addEventListener('click',function(){ov.remove();});
+    var delBtn = ov.querySelector('#em-del'); if(delBtn) delBtn.addEventListener('click',function(){cb(null);ov.remove();});
+    ov.querySelector('#em-save').addEventListener('click', function(){
+      var base = item ? Object.assign({},item) : {id:'e_'+Date.now()};
+      if(showExp){
+        var n = (ov.querySelector('#em-name')||{}).value; if(n) n=n.trim(); if(!n&&!isEdit) return;
+        if(n) base.name = n;
+        var a = ov.querySelector('#em-amt'); if(a) base.amount = parseFloat(a.value)||0;
+      }
+      if(showSrc){
+        var s = ov.querySelector('#em-src'); if(s) base.source = s.value.trim();
+        var sa = ov.querySelector('#em-srca'); if(sa) base.sourceAmt = parseFloat(sa.value)||0;
+      }
+      cb(base); ov.remove();
     });
   }
 

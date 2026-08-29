@@ -575,77 +575,85 @@ window.Screens.finance = function(mount) {
   }
 
   function renderExpenses() {
-    var list = expGetList();
-    var expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
-    var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
+    var expList = expGetList();
+    var srcList = expGetList(); // same list, two views
+
+    var expTotal = expList.reduce(function(s,e){return s+(e.amount||0);},0);
+    var srcTotal = expList.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
     var balance = srcTotal - expTotal;
 
-    /* Начальные данные из скриншота если список пустой */
-    if (list.length === 0) {
-      list = [
-        {id:'e1',name:'Зубы',amount:24000,sourceAmt:90000,source:''},
-        {id:'e2',name:'Брекеты',amount:40000,sourceAmt:70000,source:''},
-        {id:'e3',name:'Кроссы',amount:11000,sourceAmt:30000,source:''},
-        {id:'e4',name:'Ракетка',amount:15000,sourceAmt:0,source:''},
-        {id:'e5',name:'Карплей',amount:24000,sourceAmt:0,source:''},
-        {id:'e6',name:'Тонер',amount:8500,sourceAmt:0,source:''},
-        {id:'e7',name:'Кожа',amount:10000,sourceAmt:0,source:''},
-        {id:'e8',name:'Пластик',amount:2500,sourceAmt:0,source:''},
-        {id:'e9',name:'Мелочь',amount:10000,sourceAmt:0,source:''},
-        {id:'e10',name:'Неприкосаемые',amount:40000,sourceAmt:0,source:''},
-      ];
-      expSaveList(list);
-      expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
-      srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
-      balance = srcTotal - expTotal;
-    }
+    var maxRows = Math.max(expList.length, 1);
 
-    var rowsHtml = list.map(function(e,i){
-      return '<tr class="exp2-row" data-idx="'+i+'">'
-        + '<td class="exp2-name exp2-left" data-idx="'+i+'" data-side="expense">'+e.name+'</td>'
-        + '<td class="exp2-amt exp2-left" data-idx="'+i+'" data-side="expense">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
-        + '<td class="exp2-src exp2-right" data-idx="'+i+'" data-side="source">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
-        + '<td class="exp2-drag" draggable="true"><i class="ti ti-grip-vertical"></i></td>'
+    var leftRows = expList.map(function(e,i){
+      return '<tr>'
+        + '<td class="exp2-name" data-idx="'+i+'" data-side="expense" style="cursor:pointer;text-align:right;">'+( e.name||'' )+'</td>'
+        + '<td class="exp2-amt" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+( e.amount ? finFmtFull(e.amount) : '' )+'</td>'
         + '</tr>';
     }).join('');
 
-    content.innerHTML = '<div class="exp2-wrap">'
-      + '<div class="exp2-header-bar">'
-      +   '<span class="exp2-header-title">Ближайшие расходы</span>'
-      +   '<button id="exp-add-btn" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>'
+    var rightRows = expList.map(function(e,i){
+      return '<tr>'
+        + '<td class="exp2-src-name" data-idx="'+i+'" data-side="source" style="cursor:pointer;color:#16A34A;">'+( e.source || '' )+'</td>'
+        + '<td class="exp2-src-amt" data-idx="'+i+'" data-side="source" style="cursor:pointer;font-weight:700;color:#16A34A;">'+( e.sourceAmt ? finFmtFull(e.sourceAmt) : '' )+'</td>'
+        + '<td><button class="exp2-drag" data-idx="'+i+'"><i class="ti ti-grip-vertical"></i></button></td>'
+        + '</tr>';
+    }).join('');
+
+    content.innerHTML = '<div style="background:#fff;">'
+      + '<div class="exp2-topbar">'
+      +   '<span class="exp2-topbar-title">Ближайшие расходы</span>'
+      +   '<div class="exp2-add-btns">'
+      +     '<button id="exp-add-expense" class="exp2-add-btn exp2-add-left"><i class="ti ti-plus"></i> Расход</button>'
+      +     '<button id="exp-add-source" class="exp2-add-btn exp2-add-right"><i class="ti ti-plus"></i> Потенциал</button>'
+      +   '</div>'
       + '</div>'
-      + '<table class="exp2-table">'
-      +   '<thead><tr>'
-      +     '<th class="exp2-th-name">Вид расхода</th>'
-      +     '<th class="exp2-th-amt">Сумма</th>'
-      +     '<th class="exp2-th-src">Потенциал</th>'
-      +     '<th style="width:32px;"></th>'
-      +   '</tr></thead>'
-      +   '<tbody id="exp2-body">'+rowsHtml+'</tbody>'
-      +   '<tfoot>'
-      +     '<tr class="exp2-total">'
-      +       '<td><strong>Итого</strong></td>'
-      +       '<td><strong style="color:#EF4444;">'+finFmtFull(expTotal)+'</strong></td>'
-      +       '<td><strong style="color:'+( balance>0?'#16A34A':balance<0?'#EF4444':'#6B7280' )+';">'+(balance>0?'+':'')+finFmtFull(balance)+'</strong></td>'
-      +       '<td><span style="font-size:10px;color:#9CA3AF;">остаток</span></td>'
-      +     '</tr>'
-      +   '</tfoot>'
-      + '</table>'
+      + '<div class="exp2-cols-wrap">'
+      +   '<div class="exp2-col-left">'
+      +     '<table class="exp2-table">'
+      +       '<thead><tr><th style="text-align:right;">Вид расхода</th><th>Сумма</th></tr></thead>'
+      +       '<tbody id="exp2-left-body">'+leftRows+'</tbody>'
+      +       '<tfoot><tr><td style="text-align:right;font-weight:700;">Итого</td><td style="font-weight:800;color:#EF4444;">'+finFmtFull(expTotal)+'</td></tr></tfoot>'
+      +     '</table>'
+      +   '</div>'
+      +   '<div class="exp2-col-divider"></div>'
+      +   '<div class="exp2-col-right">'
+      +     '<table class="exp2-table">'
+      +       '<thead><tr><th>Потенциал</th><th>Сумма</th><th style="width:28px;"></th></tr></thead>'
+      +       '<tbody id="exp2-right-body">'+rightRows+'</tbody>'
+      +       '<tfoot><tr>'
+      +         '<td style="font-weight:700;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td>'
+      +         '<td style="font-weight:800;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td>'
+      +         '<td></td>'
+      +       '</tr></tfoot>'
+      +     '</table>'
+      +   '</div>'
+      + '</div>'
       + '</div>';
 
-    /* Добавить */
-    document.getElementById('exp-add-btn').addEventListener('click', function(){
+    /* Добавить расход */
+    document.getElementById('exp-add-expense').addEventListener('click', function(){
       expOpenModal(null, 'expense', function(r){
         if(!r) return;
         var l=expGetList(); l.push(r); expSaveList(l); renderExpenses();
       });
     });
 
-    /* Клик по левой половине строки — расход */
-    content.querySelectorAll('.exp2-left').forEach(function(el){
+    /* Добавить потенциал к существующей строке */
+    document.getElementById('exp-add-source').addEventListener('click', function(){
+      var l=expGetList();
+      if(l.length===0){ alert('Сначала добавьте расход'); return; }
+      // Найдём первую строку без источника
+      var idx = l.findIndex(function(e){return !e.sourceAmt;});
+      if(idx<0) idx=0;
+      expOpenModal(Object.assign({},l[idx]), 'source', function(r){
+        if(r!==null){l[idx]=r; expSaveList(l); renderExpenses();}
+      });
+    });
+
+    /* Клик по левой колонке */
+    content.querySelectorAll('.exp2-name, .exp2-amt').forEach(function(el){
       el.addEventListener('click', function(){
-        var idx=parseInt(el.dataset.idx);
-        var l=expGetList();
+        var idx=parseInt(el.dataset.idx); var l=expGetList();
         expOpenModal(Object.assign({},l[idx]), 'expense', function(r){
           if(r===null) l.splice(idx,1); else l[idx]=r;
           expSaveList(l); renderExpenses();
@@ -653,30 +661,30 @@ window.Screens.finance = function(mount) {
       });
     });
 
-    /* Клик по правой — потенциал/источник */
-    content.querySelectorAll('.exp2-right').forEach(function(el){
+    /* Клик по правой колонке */
+    content.querySelectorAll('.exp2-src-name, .exp2-src-amt').forEach(function(el){
       el.addEventListener('click', function(){
-        var idx=parseInt(el.dataset.idx);
-        var l=expGetList();
+        var idx=parseInt(el.dataset.idx); var l=expGetList();
         expOpenModal(Object.assign({},l[idx]), 'source', function(r){
-          if(r!==null) l[idx]=r;
-          expSaveList(l); renderExpenses();
+          if(r!==null){l[idx]=r; expSaveList(l); renderExpenses();}
         });
       });
     });
 
-    /* Drag-and-drop */
-    var tbody = document.getElementById('exp2-body');
-    var dragIdx = null;
-    tbody.querySelectorAll('.exp2-row').forEach(function(row){
-      row.addEventListener('dragstart', function(){ dragIdx=parseInt(row.dataset.idx); row.style.opacity='0.4'; });
-      row.addEventListener('dragend', function(){ row.style.opacity=''; tbody.querySelectorAll('.exp2-row').forEach(function(r){r.style.background='';}); });
-      row.addEventListener('dragover', function(e){ e.preventDefault(); tbody.querySelectorAll('.exp2-row').forEach(function(r){r.style.background='';}); row.style.background='#F0FDF4'; });
-      row.addEventListener('drop', function(e){
-        e.preventDefault();
-        var tgt=parseInt(row.dataset.idx);
-        if(dragIdx===null||dragIdx===tgt)return;
-        var l=expGetList(); var m=l.splice(dragIdx,1)[0]; l.splice(tgt,0,m);
+    /* Drag по правой (перемещает всю строку) */
+    var dragIdx=null;
+    content.querySelectorAll('.exp2-drag').forEach(function(btn){
+      btn.setAttribute('draggable','true');
+      btn.addEventListener('dragstart',function(){dragIdx=parseInt(btn.dataset.idx);btn.closest('tr').style.opacity='0.4';});
+      btn.addEventListener('dragend',function(){btn.closest('tr').style.opacity='';});
+    });
+    content.querySelectorAll('#exp2-right-body tr').forEach(function(row,i){
+      row.addEventListener('dragover',function(e){e.preventDefault();row.style.outline='2px solid #16A34A';});
+      row.addEventListener('dragleave',function(){row.style.outline='';});
+      row.addEventListener('drop',function(e){
+        e.preventDefault(); row.style.outline='';
+        if(dragIdx===null||dragIdx===i)return;
+        var l=expGetList(); var m=l.splice(dragIdx,1)[0]; l.splice(i,0,m);
         expSaveList(l); dragIdx=null; renderExpenses();
       });
     });

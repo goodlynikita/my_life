@@ -410,8 +410,8 @@ window.Screens.goals = function(mount) {
             </div>
             <div class="goals-cat-comment-row" data-cat="${cat}">
               ${catComment
-                ? `<span class="goals-cat-comment-text">${catComment}</span><button class="goals-cat-comment-edit" data-cat="${cat}">✏</button>`
-                : `<button class="goals-cat-comment-add" data-cat="${cat}">+ заметка к категории</button>`}
+                ? '<span class="goals-cat-comment-text">'+catComment+'</span><button class="goals-cat-comment-edit" data-cat="'+cat+'">✏</button>'
+                : '<button class="goals-cat-comment-add" data-cat="'+cat+'">+ заметка к категории</button>'}
             </div>
           </div>
           ${catItems.map(g=>{

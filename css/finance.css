@@ -1074,3 +1074,93 @@
   padding: 12px 14px !important;
   font-weight: 600 !important;
 }
+
+/* ── Tochka tabs brand colors ────────────────────── */
+.tochka-tabs {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 0 4px;
+  gap: 0;
+}
+.tochka-tab {
+  flex: 1;
+  padding: 13px 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #6B7280 !important;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tochka-tab.active {
+  color: #00CFCF !important;
+  border-bottom-color: #00CFCF !important;
+}
+
+/* ── Expenses two-col layout ─────────────────────── */
+.exp2-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E7EB;
+}
+.exp2-topbar-title { font-size:15px; font-weight:700; color:#111; }
+.exp2-add-btns { display:flex; gap:8px; }
+.exp2-add-btn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+}
+.exp2-add-left { background:#FEF2F2; color:#EF4444; }
+.exp2-add-right { background:#F0FDF4; color:#16A34A; }
+
+.exp2-cols-wrap {
+  display: flex;
+  align-items: flex-start;
+}
+.exp2-col-left { flex:1; overflow:hidden; }
+.exp2-col-right { flex:1; overflow:hidden; }
+.exp2-col-divider { width:1px; background:#E5E7EB; align-self:stretch; }
+
+.exp2-table { width:100%; border-collapse:collapse; }
+.exp2-table thead th {
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+.exp2-table tbody td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #111;
+  border-bottom: 1px solid #F3F4F6;
+}
+.exp2-table tbody tr:hover td { background:#FAFAFA; }
+.exp2-table tfoot td {
+  padding: 11px 12px;
+  font-size: 13px;
+  border-top: 2px solid #E5E7EB;
+  background: #F9FAFB;
+}
+.exp2-drag {
+  background: none;
+  border: none;
+  color: #D1D5DB;
+  cursor: grab;
+  padding: 2px 4px;
+  font-size: 14px;
+}

@@ -1144,3 +1144,17 @@
   color: #9D9A92;
   font-weight: 500;
 }
+
+/* ── Goals category comment ──────────────────────── */
+.goals-cat-comment-row { width:100%; }
+.goals-cat-comment-text { font-size:12px; color:#9D9A92; font-style:italic; }
+.goals-cat-comment-edit {
+  background:none; border:none; color:#555; cursor:pointer;
+  font-size:11px; padding:0 4px; margin-left:4px;
+}
+.goals-cat-comment-add {
+  background:none; border:none; color:#444; cursor:pointer;
+  font-size:11px; padding:2px 0; opacity:0.4;
+  font-family:'Montserrat',sans-serif;
+}
+.goals-cat-comment-add:hover { opacity:0.8; }

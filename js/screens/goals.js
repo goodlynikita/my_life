@@ -399,11 +399,20 @@ window.Screens.goals = function(mount) {
       const catTotal = catItems.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
       const catColor = isGoal ? '#9333EA' : color;
+      const catKey = cat.replace(/[^a-zA-Zа-яёА-ЯЁ0-9]/g,'_');
+      const catComment = (Store.get().goals?.catComments||{})[catKey]||'';
       return `
         <div class="goals-cat-v3 ${isGoal?'goals-cat-main':''}" style="--cat-color:${catColor};">
-          <div class="goals-cat-v3-head">
-            <span class="goals-cat-v3-title">${isGoal?'🎯 ':''} ${cat}</span>
-            <span class="goals-cat-total goals-cat-v3-total" data-cat="${cat}" style="color:${catColor};transition:all 0.4s;">${goalsFmt(catTotal)}</span>
+          <div class="goals-cat-v3-head" style="flex-direction:column;align-items:flex-start;gap:2px;">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
+              <span class="goals-cat-v3-title">${isGoal?'🎯 ':''} ${cat}</span>
+              <span class="goals-cat-total goals-cat-v3-total" data-cat="${cat}" style="color:${catColor};transition:all 0.4s;">${goalsFmt(catTotal)}</span>
+            </div>
+            <div class="goals-cat-comment-row" data-cat="${cat}">
+              ${catComment
+                ? `<span class="goals-cat-comment-text">${catComment}</span><button class="goals-cat-comment-edit" data-cat="${cat}">✏</button>`
+                : `<button class="goals-cat-comment-add" data-cat="${cat}">+ заметка к категории</button>`}
+            </div>
           </div>
           ${catItems.map(g=>{
             const idx = goalsGet().findIndex(x=>x.id===g.id);

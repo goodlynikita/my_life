@@ -1067,3 +1067,10 @@
   padding:12px; background:#00CFCF22; font-size:14px;
   border-top:2px solid #00CFCF;
 }
+
+/* ── Bigger tabs ─────────────────────────────────── */
+.tochka-tab {
+  font-size: 13px !important;
+  padding: 12px 14px !important;
+  font-weight: 600 !important;
+}

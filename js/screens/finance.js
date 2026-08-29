@@ -539,16 +539,18 @@ window.Screens.finance = function(mount) {
 
   function expOpenModal(item, side, cb) {
     var isEdit = !!item;
-    var showExp = !side || side === 'expense';
-    var showSrc = !side || side === 'source';
+    var isExpense = side === 'expense' || !side;
+    var isSrc = side === 'source';
     var ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
+    var title = isSrc ? 'Потенциал' : isEdit ? 'Редактировать расход' : 'Новый расход';
     ov.innerHTML = '<div class="tr-modal">'
-      + '<p class="tr-modal-title">' + (side==='source'?'Потенциал / источник': isEdit?'Редактировать расход':'Новый расход') + '</p>'
-      + (showExp ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'"></label></div>'
-                 + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric"></label></div>' : '')
-      + (showSrc ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник / комментарий<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Откуда деньги"></label></div>'
-                 + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма потенциала, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric"></label></div>' : '')
+      + '<p class="tr-modal-title">'+title+'</p>'
+      + (isSrc
+        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
+        + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма потенциала, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric" placeholder="0"></label></div>'
+        : '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'" placeholder="Название"></label></div>'
+        + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric" placeholder="0"></label></div>')
       + '<div class="tr-modal-actions">'
       + (isEdit ? '<button class="tr-modal-btn-secondary" id="em-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="em-cancel">Отмена</button>')
       + '<button class="tr-modal-btn-primary" id="em-save">Сохранить</button>'
@@ -559,14 +561,14 @@ window.Screens.finance = function(mount) {
     var delBtn = ov.querySelector('#em-del'); if(delBtn) delBtn.addEventListener('click',function(){cb(null);ov.remove();});
     ov.querySelector('#em-save').addEventListener('click', function(){
       var base = item ? Object.assign({},item) : {id:'e_'+Date.now()};
-      if(showExp){
-        var n = (ov.querySelector('#em-name')||{}).value; if(n) n=n.trim(); if(!n&&!isEdit) return;
-        if(n) base.name = n;
-        var a = ov.querySelector('#em-amt'); if(a) base.amount = parseFloat(a.value)||0;
-      }
-      if(showSrc){
+      if(isSrc){
         var s = ov.querySelector('#em-src'); if(s) base.source = s.value.trim();
         var sa = ov.querySelector('#em-srca'); if(sa) base.sourceAmt = parseFloat(sa.value)||0;
+      } else {
+        var n = (ov.querySelector('#em-name')||{}).value||''; n=n.trim();
+        if(!n) return;
+        base.name = n;
+        var a = ov.querySelector('#em-amt'); if(a) base.amount = parseFloat(a.value)||0;
       }
       cb(base); ov.remove();
     });
@@ -633,7 +635,7 @@ window.Screens.finance = function(mount) {
 
     /* Добавить */
     document.getElementById('exp-add-btn').addEventListener('click', function(){
-      expOpenModal(null, null, function(r){
+      expOpenModal(null, 'expense', function(r){
         if(!r) return;
         var l=expGetList(); l.push(r); expSaveList(l); renderExpenses();
       });

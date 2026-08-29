@@ -136,11 +136,21 @@ function goalsOpenModal(existing, onSave) {
           </select>
         </div>
         <div class="goals-modal-field">
-          <div class="goals-modal-label">Приоритет</div>
-          <select class="goals-modal-select" id="g-priority">
-            <option value="1"${(existing?.priority||2)===1?' selected':''}>🔴 Высокий</option>
-            <option value="2"${(existing?.priority||2)===2?' selected':''}>🟡 Средний</option>
-            <option value="3"${(existing?.priority||2)===3?' selected':''}>🟢 Низкий</option>
+          <div class="goals-modal-label">Месяц</div>
+          <select class="goals-modal-select" id="g-month">
+            <option value=""${!existing?.month?' selected':''}>— не указан</option>
+            <option value="1"${existing?.month===1?' selected':''}>Январь</option>
+            <option value="2"${existing?.month===2?' selected':''}>Февраль</option>
+            <option value="3"${existing?.month===3?' selected':''}>Март</option>
+            <option value="4"${existing?.month===4?' selected':''}>Апрель</option>
+            <option value="5"${existing?.month===5?' selected':''}>Май</option>
+            <option value="6"${existing?.month===6?' selected':''}>Июнь</option>
+            <option value="7"${existing?.month===7?' selected':''}>Июль</option>
+            <option value="8"${existing?.month===8?' selected':''}>Август</option>
+            <option value="9"${existing?.month===9?' selected':''}>Сентябрь</option>
+            <option value="10"${existing?.month===10?' selected':''}>Октябрь</option>
+            <option value="11"${existing?.month===11?' selected':''}>Ноябрь</option>
+            <option value="12"${existing?.month===12?' selected':''}>Декабрь</option>
           </select>
         </div>
       </div>
@@ -188,7 +198,7 @@ function goalsOpenModal(existing, onSave) {
       id:existing?.id||'g_'+Date.now(), name,
       amount:parseFloat(overlay.querySelector('#g-amount').value)||0,
       cat, season:overlay.querySelector('#g-season').value,
-      priority:parseInt(overlay.querySelector('#g-priority').value)||2,
+      month: parseInt(overlay.querySelector('#g-month').value)||null,
       done:selStatus==='done', maybe:selStatus==='maybe'
     });
     overlay.remove();
@@ -297,8 +307,8 @@ window.Screens.goals = function(mount) {
     /* В сезонах сортируем по приоритету категории */
     if (activeSeason !== 'all') {
       cats.sort((a,b)=>{
-        const pa = Math.min(...(catSource.filter(g=>g.cat===a).map(g=>g.priority||2)));
-        const pb = Math.min(...(catSource.filter(g=>g.cat===b).map(g=>g.priority||2)));
+        const pa = Math.min(...catSource.filter(g=>g.cat===a&&g.month).map(g=>g.month).concat([99]));
+        const pb = Math.min(...catSource.filter(g=>g.cat===b&&g.month).map(g=>g.month).concat([99]));
         return pa-pb;
       });
     }
@@ -402,7 +412,7 @@ window.Screens.goals = function(mount) {
                 ${checkIcon}
               </div>
               ${seasonDot}
-              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.priority===1?'🔴 ':''}${g.name}</span>
+              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.name}${g.month?'<span style="font-size:10px;color:#9D9A92;margin-left:4px;">·'+['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][g.month]+'</span>':''}</span>
               <span class="goals-item-v3-amt">${amtDisplay}</span>
             </div>`;
           }).join('')}

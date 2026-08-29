@@ -575,31 +575,30 @@ window.Screens.finance = function(mount) {
   }
 
   function renderExpenses() {
-    var expList = expGetList();
-    var srcList = expGetList(); // same list, two views
-
-    var expTotal = expList.reduce(function(s,e){return s+(e.amount||0);},0);
-    var srcTotal = expList.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
+    var list = expGetList();
+    var expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
+    var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
     var balance = srcTotal - expTotal;
 
-    var maxRows = Math.max(expList.length, 1);
-
-    var leftRows = expList.map(function(e,i){
-      return '<tr>'
-        + '<td class="exp2-name" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+( e.name||'' )+'</td>'
-        + '<td class="exp2-amt" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+( e.amount ? finFmtFull(e.amount) : '' )+'</td>'
+    /* Левый столбик — расходы */
+    var leftRows = list.map(function(e,i){
+      return '<tr class="exp2-row-l" data-idx="'+i+'" draggable="true">'
+        + '<td class="exp2-drag-cell"><button class="exp2-drag-btn" data-col="left" data-idx="'+i+'"><i class="ti ti-grip-vertical"></i></button></td>'
+        + '<td class="exp2-name" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+(e.name||'')+'</td>'
+        + '<td class="exp2-amt" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
         + '</tr>';
     }).join('');
 
-    var rightRows = expList.map(function(e,i){
-      return '<tr>'
-        + '<td class="exp2-src-name" data-idx="'+i+'" data-side="source" style="cursor:pointer;color:#16A34A;">'+( e.source || '' )+'</td>'
-        + '<td class="exp2-src-amt" data-idx="'+i+'" data-side="source" style="cursor:pointer;font-weight:700;color:#16A34A;">'+( e.sourceAmt ? finFmtFull(e.sourceAmt) : '' )+'</td>'
-        + '<td><button class="exp2-drag" data-idx="'+i+'"><i class="ti ti-grip-vertical"></i></button></td>'
+    /* Правый столбик — потенциал */
+    var rightRows = list.map(function(e,i){
+      return '<tr class="exp2-row-r" data-idx="'+i+'" draggable="true">'
+        + '<td class="exp2-drag-cell"><button class="exp2-drag-btn" data-col="right" data-idx="'+i+'"><i class="ti ti-grip-vertical"></i></button></td>'
+        + '<td class="exp2-src-name" data-idx="'+i+'" data-side="source" style="cursor:pointer;">'+(e.source||'')+'</td>'
+        + '<td class="exp2-src-amt" data-idx="'+i+'" data-side="source" style="cursor:pointer;">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
     }).join('');
 
-    content.innerHTML = '<div style="background:#fff;">'
+    content.innerHTML = '<div class="exp2-wrap">'
       + '<div class="exp2-topbar">'
       +   '<span class="exp2-topbar-title">Ближайшие расходы</span>'
       +   '<div class="exp2-add-btns">'
@@ -608,23 +607,22 @@ window.Screens.finance = function(mount) {
       +   '</div>'
       + '</div>'
       + '<div class="exp2-cols-wrap">'
-      +   '<div class="exp2-col-left">'
+      /* Левый */
+      +   '<div class="exp2-col">'
       +     '<table class="exp2-table">'
-      +       '<thead><tr><th style="text-align:right;">Вид расхода</th><th>Сумма</th></tr></thead>'
+      +       '<thead><tr><th class="exp2-th-drag"></th><th>Вид расхода</th><th>Сумма</th></tr></thead>'
       +       '<tbody id="exp2-left-body">'+leftRows+'</tbody>'
-      +       '<tfoot><tr><td style="text-align:right;font-weight:700;">Итого</td><td style="font-weight:800;color:#EF4444;">'+finFmtFull(expTotal)+'</td></tr></tfoot>'
+      +       '<tfoot><tr><td></td><td class="exp2-foot-label">Итого</td><td class="exp2-foot-val" style="color:#EF4444;">'+finFmtFull(expTotal)+'</td></tr></tfoot>'
       +     '</table>'
       +   '</div>'
+      /* Разделитель */
       +   '<div class="exp2-col-divider"></div>'
-      +   '<div class="exp2-col-right">'
+      /* Правый */
+      +   '<div class="exp2-col">'
       +     '<table class="exp2-table">'
-      +       '<thead><tr><th>Потенциал</th><th>Сумма</th><th style="width:28px;"></th></tr></thead>'
+      +       '<thead><tr><th class="exp2-th-drag"></th><th>Потенциал</th><th>Сумма</th></tr></thead>'
       +       '<tbody id="exp2-right-body">'+rightRows+'</tbody>'
-      +       '<tfoot><tr>'
-      +         '<td style="font-weight:700;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td>'
-      +         '<td style="font-weight:800;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td>'
-      +         '<td></td>'
-      +       '</tr></tfoot>'
+      +       '<tfoot><tr><td></td><td class="exp2-foot-label" style="color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td><td class="exp2-foot-val" style="color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td></tr></tfoot>'
       +     '</table>'
       +   '</div>'
       + '</div>'
@@ -632,62 +630,71 @@ window.Screens.finance = function(mount) {
 
     /* Добавить расход */
     document.getElementById('exp-add-expense').addEventListener('click', function(){
-      expOpenModal(null, 'expense', function(r){
-        if(!r) return;
-        var l=expGetList(); l.push(r); expSaveList(l); renderExpenses();
-      });
+      expOpenModal(null,'expense',function(r){ if(!r)return; var l=expGetList();l.push(r);expSaveList(l);renderExpenses(); });
     });
 
-    /* Добавить потенциал к существующей строке */
+    /* Добавить потенциал — к первой строке без источника */
     document.getElementById('exp-add-source').addEventListener('click', function(){
       var l=expGetList();
-      if(l.length===0){ alert('Сначала добавьте расход'); return; }
-      // Найдём первую строку без источника
-      var idx = l.findIndex(function(e){return !e.sourceAmt;});
-      if(idx<0) idx=0;
-      expOpenModal(Object.assign({},l[idx]), 'source', function(r){
-        if(r!==null){l[idx]=r; expSaveList(l); renderExpenses();}
-      });
+      if(!l.length){ alert('Сначала добавьте расход'); return; }
+      var idx=l.findIndex(function(e){return !e.sourceAmt;}); if(idx<0)idx=0;
+      expOpenModal(Object.assign({},l[idx]),'source',function(r){ if(r!==null){l[idx]=r;expSaveList(l);renderExpenses();} });
     });
 
-    /* Клик по левой колонке */
-    content.querySelectorAll('.exp2-name, .exp2-amt').forEach(function(el){
-      el.addEventListener('click', function(){
-        var idx=parseInt(el.dataset.idx); var l=expGetList();
-        expOpenModal(Object.assign({},l[idx]), 'expense', function(r){
-          if(r===null) l.splice(idx,1); else l[idx]=r;
-          expSaveList(l); renderExpenses();
+    /* Клик по расходу */
+    content.querySelectorAll('.exp2-name,.exp2-amt').forEach(function(el){
+      el.addEventListener('click',function(){
+        var idx=parseInt(el.dataset.idx);var l=expGetList();
+        expOpenModal(Object.assign({},l[idx]),'expense',function(r){
+          if(r===null)l.splice(idx,1);else l[idx]=r;expSaveList(l);renderExpenses();
         });
       });
     });
 
-    /* Клик по правой колонке */
-    content.querySelectorAll('.exp2-src-name, .exp2-src-amt').forEach(function(el){
-      el.addEventListener('click', function(){
-        var idx=parseInt(el.dataset.idx); var l=expGetList();
-        expOpenModal(Object.assign({},l[idx]), 'source', function(r){
-          if(r!==null){l[idx]=r; expSaveList(l); renderExpenses();}
-        });
+    /* Клик по потенциалу */
+    content.querySelectorAll('.exp2-src-name,.exp2-src-amt').forEach(function(el){
+      el.addEventListener('click',function(){
+        var idx=parseInt(el.dataset.idx);var l=expGetList();
+        expOpenModal(Object.assign({},l[idx]),'source',function(r){ if(r!==null){l[idx]=r;expSaveList(l);renderExpenses();} });
       });
     });
 
-    /* Drag по правой (перемещает всю строку) */
+    /* Drag — оба столбца двигают одну и ту же строку */
     var dragIdx=null;
-    content.querySelectorAll('.exp2-drag').forEach(function(btn){
-      btn.setAttribute('draggable','true');
-      btn.addEventListener('dragstart',function(){dragIdx=parseInt(btn.dataset.idx);btn.closest('tr').style.opacity='0.4';});
-      btn.addEventListener('dragend',function(){btn.closest('tr').style.opacity='';});
-    });
-    content.querySelectorAll('#exp2-right-body tr').forEach(function(row,i){
-      row.addEventListener('dragover',function(e){e.preventDefault();row.style.outline='2px solid #16A34A';});
-      row.addEventListener('dragleave',function(){row.style.outline='';});
-      row.addEventListener('drop',function(e){
-        e.preventDefault(); row.style.outline='';
-        if(dragIdx===null||dragIdx===i)return;
-        var l=expGetList(); var m=l.splice(dragIdx,1)[0]; l.splice(i,0,m);
-        expSaveList(l); dragIdx=null; renderExpenses();
+    function setupDrag(bodyId) {
+      var tbody=document.getElementById(bodyId);
+      if(!tbody)return;
+      tbody.querySelectorAll('tr').forEach(function(row){
+        row.addEventListener('dragstart',function(e){
+          dragIdx=parseInt(row.dataset.idx);
+          row.style.opacity='0.4';
+          e.dataTransfer.effectAllowed='move';
+        });
+        row.addEventListener('dragend',function(){
+          row.style.opacity='';
+          document.querySelectorAll('.exp2-row-l,.exp2-row-r').forEach(function(r){r.style.outline='';});
+        });
+        row.addEventListener('dragover',function(e){
+          e.preventDefault();
+          document.querySelectorAll('.exp2-row-l,.exp2-row-r').forEach(function(r){r.style.outline='';});
+          /* Подсветить обе строки с этим индексом */
+          var tgt=parseInt(row.dataset.idx);
+          document.querySelectorAll('[data-idx="'+tgt+'"]').forEach(function(r){
+            if(r.tagName==='TR')r.style.outline='2px solid #5B21B6';
+          });
+        });
+        row.addEventListener('drop',function(e){
+          e.preventDefault();
+          document.querySelectorAll('.exp2-row-l,.exp2-row-r').forEach(function(r){r.style.outline='';});
+          var tgt=parseInt(row.dataset.idx);
+          if(dragIdx===null||dragIdx===tgt)return;
+          var l=expGetList();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);
+          expSaveList(l);dragIdx=null;renderExpenses();
+        });
       });
-    });
+    }
+    setupDrag('exp2-left-body');
+    setupDrag('exp2-right-body');
   }
 
   function render(){

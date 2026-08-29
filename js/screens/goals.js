@@ -337,59 +337,39 @@ window.Screens.goals = function(mount) {
           <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>
         </div>`;
     } else if (activeSeason==='spring') {
-      heroHtml = `
-        <div class="goals-hero-season" style="--season-bg:${bg};background:${bg};border-color:${color}55;">
-          <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label} · ${pct}%</div>
-          ${monthsLeft ? `
-          <div class="goals-season-stats">
-            <div class="goals-season-stat">
-              <div class="goals-sstat-label">ОСТАЛОСЬ</div>
-              <div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">${goalsFmt(remainAmt)}</div>
-            </div>
-            <div class="goals-season-stat">
-              <div class="goals-sstat-label">МЕСЯЦЕВ</div>
-              <div class="goals-sstat-val" style="color:${color};">${monthsLeft}</div>
-            </div>
-            <div class="goals-season-stat">
-              <div class="goals-sstat-label">В МЕСЯЦ</div>
-              <div class="goals-sstat-val" style="color:${color};">${goalsFmt(perMonth)}</div>
-            </div>
-          </div>
-          <div class="goals-season-bar-track">
-            <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 0.5s;"></div>
-          </div>` : ''}
-        </div>`;
+      var statsHtml = monthsLeft
+        ? '<div class="goals-season-stats">'
+          + '<div class="goals-season-stat"><div class="goals-sstat-label">ОСТАЛОСЬ</div><div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
+          + '<div class="goals-season-stat"><div class="goals-sstat-label">МЕСЯЦЕВ</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+          + '<div class="goals-season-stat"><div class="goals-sstat-label">В МЕСЯЦ</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+          + '</div>'
+          + '<div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
+        : '';
+      heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
+        + '<div class="goals-season-badge" style="background:'+color+'22;color:'+color+';">'+season.label+' · '+pct+'%</div>'
+        + statsHtml
+        + '</div>';
     } else {
-      heroHtml = `
-        <div class="goals-hero-season" style="--season-bg:${bg};background:${bg};border-color:${color}55;">
-          <div class="goals-hero-season-row">
-            <div>
-              <div class="goals-season-badge" style="background:${color}22;color:${color};">${season.label}</div>
-              <div class="goals-hero-season-amount" style="color:#F0EDE5;">${goalsFmt(totalAmt)}</div>
-            </div>
-            <div class="goals-ring" style="--pct:${pct};--c:${color};">
-              <span class="goals-hero-pct-val" style="color:${color};transition:all 0.4s;">${pct}%</span>
-            </div>
-          </div>
-          ${monthsLeft ? `
-          <div class="goals-season-stats">
-            <div class="goals-season-stat">
-              <div class="goals-sstat-label">Осталось</div>
-              <div class="goals-sstat-val" style="color:#F0EDE5;">${goalsFmt(remainAmt)}</div>
-            </div>
-            <div class="goals-season-stat">
-              <div class="goals-sstat-label">Месяцев</div>
-              <div class="goals-sstat-val" style="color:${color};">${monthsLeft}</div>
-            </div>
-            <div class="goals-season-stat">
-              <div class="goals-sstat-label">В месяц</div>
-              <div class="goals-sstat-val" style="color:${color};">${goalsFmt(perMonth)}</div>
-            </div>
-          </div>
-          <div class="goals-season-bar-track">
-            <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 0.5s;"></div>
-          </div>` : ''}
-        </div>`;
+      var stats2Html = monthsLeft
+        ? '<div class="goals-season-stats">'
+          + '<div class="goals-season-stat"><div class="goals-sstat-label">Осталось</div><div class="goals-sstat-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
+          + '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+          + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+          + '</div>'
+          + '<div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
+        : '';
+      heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
+        + '<div class="goals-hero-season-row">'
+        +   '<div>'
+        +     '<div class="goals-season-badge" style="background:'+color+'22;color:'+color+';">'+season.label+'</div>'
+        +     '<div class="goals-hero-season-amount" style="color:#F0EDE5;">'+goalsFmt(totalAmt)+'</div>'
+        +   '</div>'
+        +   '<div class="goals-ring" style="--pct:'+pct+';--c:'+color+';">'
+        +     '<span class="goals-hero-pct-val" style="color:'+color+';transition:all 0.4s;">'+pct+'%</span>'
+        +   '</div>'
+        + '</div>'
+        + stats2Html
+        + '</div>';
     }
 
     /* ── Категории ── */
@@ -419,7 +399,7 @@ window.Screens.goals = function(mount) {
             const sInfo = GOALS_SEASONS.find(s=>s.key===g.season)||GOALS_SEASONS[0];
             const itemColor = activeSeason==='all' ? sInfo.color : catColor;
             const seasonDot = activeSeason==='all' && g.season!=='all'
-              ? `<span style="width:6px;height:6px;border-radius:50%;background:${sInfo.color};flex-shrink:0;display:inline-block;margin-right:2px;"></span>` : '';
+              ? '<span style="width:6px;height:6px;border-radius:50%;background:'+sInfo.color+';flex-shrink:0;display:inline-block;margin-right:2px;"></span>' : '';
             const gStatus = g.done?'done':g.maybe?'maybe':'active';
             const checkBg = g.done?itemColor:g.maybe?'#F59E0B':'transparent';
             const checkBorder = g.done||g.maybe?checkBg:(itemColor+'44');

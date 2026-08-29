@@ -586,7 +586,7 @@ window.Screens.finance = function(mount) {
 
     var leftRows = expList.map(function(e,i){
       return '<tr>'
-        + '<td class="exp2-name" data-idx="'+i+'" data-side="expense" style="cursor:pointer;text-align:right;">'+( e.name||'' )+'</td>'
+        + '<td class="exp2-name" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+( e.name||'' )+'</td>'
         + '<td class="exp2-amt" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+( e.amount ? finFmtFull(e.amount) : '' )+'</td>'
         + '</tr>';
     }).join('');

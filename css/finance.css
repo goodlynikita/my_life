@@ -403,7 +403,7 @@
   font-family: 'Montserrat', sans-serif;
 }
 .tochka-header {
-  background: #5B21B6;
+  background: #fff;
   padding: 14px 20px;
   display: flex;
   align-items: center;
@@ -416,12 +416,12 @@
 .tochka-screen-title {
   font-size: 20px;
   font-weight: 800;
-  color: #fff;
+  color: #111;
 }
 .tochka-back-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: #374151;
   cursor: pointer;
   font-size: 18px;
   width: 32px;
@@ -431,7 +431,7 @@
   justify-content: center;
   border-radius: 8px;
 }
-.tochka-back-btn:hover { background: #ffffff22; }
+.tochka-back-btn:hover { background: #F3F4F6; }
 
 /* Tabs */
 .tochka-tabs {
@@ -1075,32 +1075,6 @@
   font-weight: 600 !important;
 }
 
-/* ── Tochka tabs brand colors ────────────────────── */
-.tochka-tabs {
-  display: flex;
-  background: #fff;
-  border-bottom: 1px solid #E5E7EB;
-  padding: 0 4px;
-  gap: 0;
-}
-.tochka-tab {
-  flex: 1;
-  padding: 13px 8px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  color: #6B7280 !important;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.tochka-tab.active {
-  color: #00CFCF !important;
-  border-bottom-color: #00CFCF !important;
-}
 
 /* ── Expenses two-col layout ─────────────────────── */
 .exp2-topbar {
@@ -1109,32 +1083,35 @@
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid #E5E7EB;
+  background: #fff;
 }
 .exp2-topbar-title { font-size:15px; font-weight:700; color:#111; }
 .exp2-add-btns { display:flex; gap:8px; }
 .exp2-add-btn {
-  padding: 7px 12px;
+  padding: 7px 14px;
   border-radius: 8px;
-  border: none;
+  border: 1.5px solid;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
+  background: #fff;
 }
-.exp2-add-left { background:#FEF2F2; color:#EF4444; }
-.exp2-add-right { background:#F0FDF4; color:#16A34A; }
+.exp2-add-left { border-color:#EF4444; color:#EF4444; }
+.exp2-add-right { border-color:#16A34A; color:#16A34A; }
 
 .exp2-cols-wrap {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch; /* равная высота */
+  background: #fff;
 }
-.exp2-col-left { flex:1; overflow:hidden; }
-.exp2-col-right { flex:1; overflow:hidden; }
-.exp2-col-divider { width:1px; background:#E5E7EB; align-self:stretch; }
+.exp2-col-left { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+.exp2-col-right { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+.exp2-col-divider { width:1px; background:#E5E7EB; flex-shrink:0; }
 
-.exp2-table { width:100%; border-collapse:collapse; }
+.exp2-table { width:100%; border-collapse:collapse; flex:1; }
 .exp2-table thead th {
-  padding: 9px 12px;
+  padding: 9px 14px;
   font-size: 11px;
   font-weight: 700;
   color: #9CA3AF;
@@ -1142,16 +1119,18 @@
   letter-spacing: 0.06em;
   border-bottom: 1px solid #E5E7EB;
   background: #F9FAFB;
+  text-align: left;
 }
 .exp2-table tbody td {
-  padding: 10px 12px;
+  padding: 11px 14px;
   font-size: 13px;
   color: #111;
   border-bottom: 1px solid #F3F4F6;
 }
+.exp2-table tbody tr { height: 44px; }
 .exp2-table tbody tr:hover td { background:#FAFAFA; }
 .exp2-table tfoot td {
-  padding: 11px 12px;
+  padding: 12px 14px;
   font-size: 13px;
   border-top: 2px solid #E5E7EB;
   background: #F9FAFB;

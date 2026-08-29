@@ -397,6 +397,8 @@ window.Screens.goals = function(mount) {
             const itemColor = activeSeason==='all' ? sInfo.color : catColor;
             const seasonDot = activeSeason==='all' && g.season!=='all'
               ? '<span style="width:6px;height:6px;border-radius:50%;background:'+sInfo.color+';flex-shrink:0;display:inline-block;margin-right:2px;"></span>' : '';
+            const _ms=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+            const _mt = g.month ? ' · ' + _ms[g.month] : '';
             const gStatus = g.done?'done':g.maybe?'maybe':'active';
             const checkBg = g.done?itemColor:g.maybe?'#F59E0B':'transparent';
             const checkBorder = g.done||g.maybe?checkBg:(itemColor+'44');
@@ -412,7 +414,7 @@ window.Screens.goals = function(mount) {
                 ${checkIcon}
               </div>
               ${seasonDot}
-              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.name}${g.month?' · <span style="font-size:10px;color:#9D9A92;">'+['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][g.month]+'</span>':''}</span>
+              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.name}<span style="font-size:10px;color:#9D9A92;">${_mt}</span></span>
               <span class="goals-item-v3-amt">${amtDisplay}</span>
             </div>`;
           }).join('')}

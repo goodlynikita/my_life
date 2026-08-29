@@ -136,21 +136,11 @@ function goalsOpenModal(existing, onSave) {
           </select>
         </div>
         <div class="goals-modal-field">
-          <div class="goals-modal-label">Месяц</div>
-          <select class="goals-modal-select" id="g-month">
-            <option value=""${!existing?.month?' selected':''}>— Не указан</option>
-            <option value="1"${existing?.month===1?' selected':''}>Январь</option>
-            <option value="2"${existing?.month===2?' selected':''}>Февраль</option>
-            <option value="3"${existing?.month===3?' selected':''}>Март</option>
-            <option value="4"${existing?.month===4?' selected':''}>Апрель</option>
-            <option value="5"${existing?.month===5?' selected':''}>Май</option>
-            <option value="6"${existing?.month===6?' selected':''}>Июнь</option>
-            <option value="7"${existing?.month===7?' selected':''}>Июль</option>
-            <option value="8"${existing?.month===8?' selected':''}>Август</option>
-            <option value="9"${existing?.month===9?' selected':''}>Сентябрь</option>
-            <option value="10"${existing?.month===10?' selected':''}>Октябрь</option>
-            <option value="11"${existing?.month===11?' selected':''}>Ноябрь</option>
-            <option value="12"${existing?.month===12?' selected':''}>Декабрь</option>
+          <div class="goals-modal-label">Приоритет</div>
+          <select class="goals-modal-select" id="g-priority">
+            <option value="1"${(existing?.priority||2)===1?' selected':''}>🔴 Высокий</option>
+            <option value="2"${(existing?.priority||2)===2?' selected':''}>🟡 Средний</option>
+            <option value="3"${(existing?.priority||2)===3?' selected':''}>🟢 Низкий</option>
           </select>
         </div>
       </div>
@@ -198,7 +188,7 @@ function goalsOpenModal(existing, onSave) {
       id:existing?.id||'g_'+Date.now(), name,
       amount:parseFloat(overlay.querySelector('#g-amount').value)||0,
       cat, season:overlay.querySelector('#g-season').value,
-      month: parseInt(overlay.querySelector('#g-month').value)||null,
+      priority:parseInt(overlay.querySelector('#g-priority').value)||2,
       done:selStatus==='done', maybe:selStatus==='maybe'
     });
     overlay.remove();
@@ -207,7 +197,7 @@ function goalsOpenModal(existing, onSave) {
 
 window.Screens.goals = function(mount) {
   let activeSeason = 'all';
-  let activeMonth = 0; /* 0 = все месяцы */
+  let activeMonth = 0;
 
   mount.innerHTML = `
     <div class="goals-screen">
@@ -219,9 +209,7 @@ window.Screens.goals = function(mount) {
         <button class="goals-back" id="gl"><i class="ti ti-logout"></i></button>
       </div>
       <div class="goals-season-tabs" id="goals-tabs" style="position:sticky;top:53px;z-index:15;"></div>
-      <div class="goals-month-filter" id="goals-month-filter" style="position:sticky;top:97px;z-index:14;display:none;">
-        <div class="goals-month-row" id="goals-month-row"></div>
-      </div>
+      <div id="goals-month-bar" style="display:none;position:sticky;top:97px;z-index:14;background:#1A1C22;border-bottom:1px solid #2A2D35;padding:6px 14px;"></div>
       <div class="goals-body" id="goals-content"></div>
     </div>`;
 
@@ -247,29 +235,36 @@ window.Screens.goals = function(mount) {
 
   const content = document.getElementById('goals-content');
 
-  function renderMonthFilter() {
-    const filterEl = document.getElementById('goals-month-filter');
-    const rowEl = document.getElementById('goals-month-row');
-    if (!filterEl || !rowEl) return;
-    if (activeSeason === 'all') { filterEl.style.display='none'; return; }
-    filterEl.style.display = 'block';
+  function renderMonthBar() {
+    const bar = document.getElementById('goals-month-bar');
+    if (!bar) return;
+    if (activeSeason === 'all') { bar.style.display = 'none'; return; }
     const all = goalsGet();
-    const months = [...new Set(all.filter(g=>g.season===activeSeason&&g.month).map(g=>g.month))].sort((a,b)=>a-b);
-    const MNAMES = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-    rowEl.innerHTML = ['<button class="goals-mf-btn'+(activeMonth===0?' active':'')+'" data-m="0">Все</button>',
-      ...months.map(m=>'<button class="goals-mf-btn'+(activeMonth===m?' active':'')+'" data-m="'+m+'">'+MNAMES[m]+'</button>')
-    ].join('');
-    rowEl.querySelectorAll('.goals-mf-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        activeMonth=parseInt(btn.dataset.m);
-        renderMonthFilter();
+    const seasonItems = all.filter(g => g.season === activeSeason);
+    const months = [...new Set(seasonItems.filter(g => g.month).map(g => g.month))].sort((a,b)=>a-b);
+    if (!months.length) { bar.style.display = 'none'; return; }
+    bar.style.display = 'block';
+    const MNAMES = ['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+    const btns = [0, ...months].map(m => {
+      const active = activeMonth === m;
+      return '<button class="goals-mbar-btn' + (active?' active':'') + '" data-m="'+m+'" style="'
+        + 'padding:5px 14px;border-radius:20px;border:1px solid '+(active?'#A78BFA':'#2A2D35')+';'
+        + 'background:'+(active?'#A78BFA22':'none')+';color:'+(active?'#A78BFA':'#9D9A92')+';'
+        + 'font-size:12px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">'
+        + (m===0?'Все':MNAMES[m])+'</button>';
+    }).join('');
+    bar.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;">'+btns+'</div>';
+    bar.querySelectorAll('.goals-mbar-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeMonth = parseInt(btn.dataset.m);
+        renderMonthBar();
         render();
       });
     });
   }
 
   function render() {
-    renderMonthFilter();
+    renderMonthBar();
     const all = goalsGet();
     const season = GOALS_SEASONS.find(s=>s.key===activeSeason);
     const color = season.color;
@@ -278,9 +273,9 @@ window.Screens.goals = function(mount) {
     const items = activeSeason==='all' ? all : all.filter(g=>g.season===activeSeason);
     const monthsLeft = goalsMonthsLeft(activeSeason);
     /* totalAmt = все суммы сезона (включая закрытые) для показа общего */
-    const totalAmt = items.filter(g=>g.season!=='all').reduce((s,g)=>s+g.amount,0);
+    const totalAmt = filteredByMonth.filter(g=>g.season!=='all').reduce((s,g)=>s+g.amount,0);
     /* remainAmt = только активные (не закрытые, не под вопросом) */
-    const remainAmt = items.filter(g=>g.season!=='all'&&!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
+    const remainAmt = filteredByMonth.filter(g=>g.season!=='all'&&!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
     const doneAmt = totalAmt - remainAmt;
     const perMonth = monthsLeft && remainAmt>0 ? Math.round(remainAmt/monthsLeft) : 0;
     const doneCnt = items.filter(g=>g.done).length;
@@ -295,16 +290,16 @@ window.Screens.goals = function(mount) {
     const catOrder = activeSeason==='all'
       ? ALL_CATS
       : [...new Set(items.map(g=>g.cat))];
-    const catSource = activeSeason==='all' ? all : filteredItems;
+    const catSource = activeSeason==='all' ? all : items;
     let cats = catOrder.filter(cat=>catSource.some(g=>g.cat===cat));
     /* Добавляем пользовательские категории которых нет в списке */
     [...new Set(catSource.map(g=>g.cat))].forEach(c=>{ if(!cats.includes(c)) cats.push(c); });
-    /* В сезонах сортируем по минимальному месяцу в категории */
+    /* В сезонах сортируем по приоритету категории */
     if (activeSeason !== 'all') {
       cats.sort((a,b)=>{
-        const ma = Math.min(...catSource.filter(g=>g.cat===a&&g.month).map(g=>g.month).concat([99]));
-        const mb = Math.min(...catSource.filter(g=>g.cat===b&&g.month).map(g=>g.month).concat([99]));
-        return ma-mb;
+        const pa = Math.min(...(catSource.filter(g=>g.cat===a).map(g=>g.priority||2)));
+        const pb = Math.min(...(catSource.filter(g=>g.cat===b).map(g=>g.priority||2)));
+        return pa-pb;
       });
     }
 
@@ -337,39 +332,40 @@ window.Screens.goals = function(mount) {
           <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>
         </div>`;
     } else if (activeSeason==='spring') {
-      var statsHtml = monthsLeft
-        ? '<div class="goals-season-stats">'
-          + '<div class="goals-season-stat"><div class="goals-sstat-label">ОСТАЛОСЬ</div><div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
-          + '<div class="goals-season-stat"><div class="goals-sstat-label">МЕСЯЦЕВ</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
-          + '<div class="goals-season-stat"><div class="goals-sstat-label">В МЕСЯЦ</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
-          + '</div>'
-          + '<div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
-        : '';
-      heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
-        + '<div class="goals-season-badge" style="background:'+color+'22;color:'+color+';">'+season.label+' · '+pct+'%</div>'
-        + statsHtml
-        + '</div>';
+      {
+        const stats1 = monthsLeft
+          ? '<div class="goals-season-stats">'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">ОСТАЛОСЬ</div><div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">МЕСЯЦЕВ</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">В МЕСЯЦ</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+            + '</div><div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
+          : '';
+        heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
+          + '<div class="goals-season-badge" style="background:'+color+'22;color:'+color+';">'+season.label+' · '+pct+'%</div>'
+          + stats1 + '</div>';
+      }
     } else {
-      var stats2Html = monthsLeft
-        ? '<div class="goals-season-stats">'
-          + '<div class="goals-season-stat"><div class="goals-sstat-label">Осталось</div><div class="goals-sstat-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
-          + '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
-          + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+      
+      {
+        const stats2 = monthsLeft
+          ? '<div class="goals-season-stats">'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">Осталось</div><div class="goals-sstat-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+            + '</div><div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
+          : '';
+        heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
+          + '<div class="goals-hero-season-row">'
+          +   '<div>'
+          +     '<div class="goals-season-badge" style="background:'+color+'22;color:'+color+';">'+season.label+'</div>'
+          +     '<div class="goals-hero-season-amount" style="color:#F0EDE5;">'+goalsFmt(totalAmt)+'</div>'
+          +   '</div>'
+          +   '<div class="goals-ring" style="--pct:'+pct+';--c:'+color+';">'
+          +     '<span class="goals-hero-pct-val" style="color:'+color+';transition:all 0.4s;">'+pct+'%</span>'
+          +   '</div>'
           + '</div>'
-          + '<div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
-        : '';
-      heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
-        + '<div class="goals-hero-season-row">'
-        +   '<div>'
-        +     '<div class="goals-season-badge" style="background:'+color+'22;color:'+color+';">'+season.label+'</div>'
-        +     '<div class="goals-hero-season-amount" style="color:#F0EDE5;">'+goalsFmt(totalAmt)+'</div>'
-        +   '</div>'
-        +   '<div class="goals-ring" style="--pct:'+pct+';--c:'+color+';">'
-        +     '<span class="goals-hero-pct-val" style="color:'+color+';transition:all 0.4s;">'+pct+'%</span>'
-        +   '</div>'
-        + '</div>'
-        + stats2Html
-        + '</div>';
+          + stats2 + '</div>';
+      }
     }
 
     /* ── Категории ── */
@@ -379,20 +375,11 @@ window.Screens.goals = function(mount) {
       const catTotal = catItems.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
       const catColor = isGoal ? '#9333EA' : color;
-      const catKey = cat.replace(/[^a-zA-Zа-яёА-ЯЁ0-9]/g,'_');
-      const catComment = (Store.get().goals?.catComments||{})[catKey]||'';
       return `
         <div class="goals-cat-v3 ${isGoal?'goals-cat-main':''}" style="--cat-color:${catColor};">
-          <div class="goals-cat-v3-head" style="flex-direction:column;align-items:flex-start;gap:2px;">
-            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;">
-              <span class="goals-cat-v3-title">${isGoal?'🎯 ':''} ${cat}</span>
-              <span class="goals-cat-total goals-cat-v3-total" data-cat="${cat}" style="color:${catColor};transition:all 0.4s;">${goalsFmt(catTotal)}</span>
-            </div>
-            <div class="goals-cat-comment-row" data-cat="${cat}">
-              ${catComment
-                ? '<span class="goals-cat-comment-text">'+catComment+'</span><button class="goals-cat-comment-edit" data-cat="'+cat+'">✏</button>'
-                : '<button class="goals-cat-comment-add" data-cat="'+cat+'">+ заметка к категории</button>'}
-            </div>
+          <div class="goals-cat-v3-head">
+            <span class="goals-cat-v3-title">${isGoal?'🎯 ':''} ${cat}</span>
+            <span class="goals-cat-total goals-cat-v3-total" data-cat="${cat}" style="color:${catColor};transition:all 0.4s;">${goalsFmt(catTotal)}</span>
           </div>
           ${catItems.map(g=>{
             const idx = goalsGet().findIndex(x=>x.id===g.id);
@@ -415,7 +402,7 @@ window.Screens.goals = function(mount) {
                 ${checkIcon}
               </div>
               ${seasonDot}
-              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':""}">${g.name}${g.month?'<span class="goals-item-month"> · '+['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][g.month-1]+'</span>':''}</span>
+              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.priority===1?'🔴 ':''}${g.name}</span>
               <span class="goals-item-v3-amt">${amtDisplay}</span>
             </div>`;
           }).join('')}

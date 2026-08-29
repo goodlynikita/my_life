@@ -346,7 +346,7 @@ function trCreateNextPlan() {
 }
 
 function trTonnage(ex) {
-  return ex.sets * ex.reps * ex.weight;
+  return Math.round((ex.sets * ex.reps * ex.weight) * 10) / 10;
 }
 
 function trPace(ex) {
@@ -391,13 +391,14 @@ function trCalcProgress(plan, weekIndex, exerciseName) {
     const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
     if (found) { current = trMetricFor(found.ex); break; }
   }
-  if (baseline === null || current === null) return { pct: 0, dir: 'flat' };
+  if (baseline === null || current === null) return { pct: 0, dir: 'flat', diff: 0 };
   if (baseline === 0) {
-    if (current === 0) return { pct: 0, dir: 'flat' };
-    return { pct: 100, dir: 'up' };
+    if (current === 0) return { pct: 0, dir: 'flat', diff: 0 };
+    return { pct: 100, dir: 'up', diff: Math.round((current - baseline) * 10) / 10 };
   }
-  const pct = Math.round(((current - baseline) / baseline) * 100);
-  return { pct, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
+  const diff = Math.round((current - baseline) * 10) / 10;
+  const pct = Math.round((diff / baseline) * 100);
+  return { pct, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat', diff };
 }
 
 
@@ -527,7 +528,10 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const progress = trCalcProgress(plan, weekIndex, ex.name);
   const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
   const sign = progress.pct > 0 ? '+' : '';
-  const progressBadge = `<span class="tr-progress ${progress.dir}">${arrow} ${sign}${progress.pct}%</span>`;
+  const diffStr = (progress.diff !== undefined && progress.diff !== 0)
+    ? ' ' + (progress.diff > 0 ? '+' : '') + progress.diff + ' кг'
+    : '';
+  const progressBadge = '<span class="tr-progress '+progress.dir+'">'+arrow+' '+sign+progress.pct+'%'+diffStr+'</span>';
   /* Двунаправленный прогресс-бар: центр = 0%, вправо = рост, влево = падение */
   const clampedPct = Math.min(50, Math.abs(progress.pct) / 2); /* макс ±50% от центра */
   const barColor = progress.dir === 'up' ? '#A8C97F' : progress.dir === 'down' ? '#FF5C5C' : '#3A3D45';

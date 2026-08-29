@@ -580,121 +580,109 @@ window.Screens.finance = function(mount) {
     var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
     var balance = srcTotal - expTotal;
 
-    /* Левый столбик — расходы */
     var leftRows = list.map(function(e,i){
-      return '<tr class="exp2-row-l" data-idx="'+i+'" draggable="true">'
-        + '<td class="exp2-drag-cell"><button class="exp2-drag-btn" data-col="left" data-idx="'+i+'"><i class="ti ti-grip-vertical"></i></button></td>'
-        + '<td class="exp2-name" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+(e.name||'')+'</td>'
-        + '<td class="exp2-amt" data-idx="'+i+'" data-side="expense" style="cursor:pointer;">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
+      return '<tr data-idx="'+i+'" draggable="true">'
+        + '<td style="width:28px;padding:0 4px;text-align:center;"><span class="expd" data-idx="'+i+'"><i class="ti ti-grip-vertical" style="color:#ccc;font-size:14px;"></i></span></td>'
+        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;font-size:13px;color:#111;padding:10px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.name||'')+'</td>'
+        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;font-size:13px;font-weight:600;color:#111;padding:10px 6px;text-align:right;white-space:nowrap;">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
         + '</tr>';
     }).join('');
 
-    /* Правый столбик — потенциал */
     var rightRows = list.map(function(e,i){
-      return '<tr class="exp2-row-r" data-idx="'+i+'" draggable="true">'
-        + '<td class="exp2-drag-cell"><button class="exp2-drag-btn" data-col="right" data-idx="'+i+'"><i class="ti ti-grip-vertical"></i></button></td>'
-        + '<td class="exp2-src-name" data-idx="'+i+'" data-side="source" style="cursor:pointer;">'+(e.source||'')+'</td>'
-        + '<td class="exp2-src-amt" data-idx="'+i+'" data-side="source" style="cursor:pointer;">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
+      return '<tr data-idx="'+i+'" draggable="true">'
+        + '<td style="width:28px;padding:0 4px;text-align:center;"><span class="expd" data-idx="'+i+'"><i class="ti ti-grip-vertical" style="color:#ccc;font-size:14px;"></i></span></td>'
+        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;font-size:13px;color:#16A34A;padding:10px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.source||'')+'</td>'
+        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;font-size:13px;font-weight:600;color:#16A34A;padding:10px 6px;text-align:right;white-space:nowrap;">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
     }).join('');
 
-    content.innerHTML = '<div class="exp2-wrap">'
-      + '<div class="exp2-topbar">'
-      +   '<span class="exp2-topbar-title">Ближайшие расходы</span>'
-      +   '<div class="exp2-add-btns">'
-      +     '<button id="exp-add-expense" class="exp2-add-btn exp2-add-left"><i class="ti ti-plus"></i> Расход</button>'
-      +     '<button id="exp-add-source" class="exp2-add-btn exp2-add-right"><i class="ti ti-plus"></i> Потенциал</button>'
+    var tStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;';
+    /* Колонки: drag 24px, название 60%, сумма 40% */
+    var thStyle = 'padding:9px 8px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid #E5E7EB;background:#F9FAFB;text-align:left;';
+    var tfStyle = 'padding:11px 8px;font-size:13px;border-top:2px solid #E5E7EB;background:#F9FAFB;';
+
+    content.innerHTML =
+      '<div style="background:#fff;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E5E7EB;">'
+      +   '<span style="font-size:15px;font-weight:700;color:#111;">Ближайшие расходы</span>'
+      +   '<div style="display:flex;gap:8px;">'
+      +     '<button id="exp-add-l" style="padding:7px 12px;border-radius:8px;border:1.5px solid #EF4444;color:#EF4444;background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Расход</button>'
+      +     '<button id="exp-add-r" style="padding:7px 12px;border-radius:8px;border:1.5px solid #16A34A;color:#16A34A;background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Потенциал</button>'
       +   '</div>'
       + '</div>'
-      + '<div class="exp2-cols-wrap">'
-      /* Левый */
-      +   '<div class="exp2-col">'
-      +     '<table class="exp2-table">'
-      +       '<thead><tr><th class="exp2-th-drag"></th><th>Вид расхода</th><th>Сумма</th></tr></thead>'
-      +       '<tbody id="exp2-left-body">'+leftRows+'</tbody>'
-      +       '<tfoot><tr><td></td><td class="exp2-foot-label">Итого</td><td class="exp2-foot-val" style="color:#EF4444;">'+finFmtFull(expTotal)+'</td></tr></tfoot>'
+      + '<div style="display:flex;">'
+      +   '<div style="flex:1;overflow:hidden;">'
+      +     '<table style="'+tStyle+'">'
+      +       '<colgroup><col style="width:24px"><col style="width:60%"><col style="width:40%"></colgroup>'
+      + '<thead><tr><th style="'+thStyle+'padding:9px 4px;width:24px;"></th><th style="'+thStyle+'">Расход</th><th style="'+thStyle+'text-align:right;">Сумма</th></tr></thead>'
+      +       '<tbody id="exp-lb">'+leftRows+'</tbody>'
+      +       '<tfoot><tr><td></td><td style="'+tfStyle+'font-weight:700;">Итого</td><td style="'+tfStyle+'font-weight:800;color:#EF4444;text-align:right;">'+finFmtFull(expTotal)+'</td></tr></tfoot>'
       +     '</table>'
       +   '</div>'
-      /* Разделитель */
-      +   '<div class="exp2-col-divider"></div>'
-      /* Правый */
-      +   '<div class="exp2-col">'
-      +     '<table class="exp2-table">'
-      +       '<thead><tr><th class="exp2-th-drag"></th><th>Потенциал</th><th>Сумма</th></tr></thead>'
-      +       '<tbody id="exp2-right-body">'+rightRows+'</tbody>'
-      +       '<tfoot><tr><td></td><td class="exp2-foot-label" style="color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td><td class="exp2-foot-val" style="color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td></tr></tfoot>'
+      +   '<div style="width:1px;background:#E5E7EB;flex-shrink:0;"></div>'
+      +   '<div style="flex:1;overflow:hidden;">'
+      +     '<table style="'+tStyle+'">'
+      +       '<colgroup><col style="width:24px"><col style="width:60%"><col style="width:40%"></colgroup>'
+      + '<thead><tr><th style="'+thStyle+'padding:9px 4px;width:24px;"></th><th style="'+thStyle+'">Потенциал</th><th style="'+thStyle+'text-align:right;">Сумма</th></tr></thead>'
+      +       '<tbody id="exp-rb">'+rightRows+'</tbody>'
+      +       '<tfoot><tr><td></td><td style="'+tfStyle+'font-weight:700;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td><td style="'+tfStyle+'font-weight:800;color:'+(balance>=0?'#16A34A':'#EF4444')+';text-align:right;">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td></tr></tfoot>'
       +     '</table>'
       +   '</div>'
       + '</div>'
       + '</div>';
 
-    /* Добавить расход */
-    document.getElementById('exp-add-expense').addEventListener('click', function(){
-      expOpenModal(null,'expense',function(r){ if(!r)return; var l=expGetList();l.push(r);expSaveList(l);renderExpenses(); });
+    document.getElementById('exp-add-l').addEventListener('click',function(){
+      expOpenModal(null,'expense',function(r){if(!r)return;var l=expGetList();l.push(r);expSaveList(l);renderExpenses();});
     });
-
-    /* Добавить потенциал — к первой строке без источника */
-    document.getElementById('exp-add-source').addEventListener('click', function(){
+    document.getElementById('exp-add-r').addEventListener('click',function(){
       var l=expGetList();
-      if(!l.length){ alert('Сначала добавьте расход'); return; }
-      var idx=l.findIndex(function(e){return !e.sourceAmt;}); if(idx<0)idx=0;
-      expOpenModal(Object.assign({},l[idx]),'source',function(r){ if(r!==null){l[idx]=r;expSaveList(l);renderExpenses();} });
+      if(!l.length){alert('Сначала добавьте расход');return;}
+      var i=l.findIndex(function(e){return !e.sourceAmt;});if(i<0)i=0;
+      expOpenModal(Object.assign({},l[i]),'source',function(r){if(r!==null){l[i]=r;expSaveList(l);renderExpenses();}});
     });
 
-    /* Клик по расходу */
-    content.querySelectorAll('.exp2-name,.exp2-amt').forEach(function(el){
+    content.querySelectorAll('.exp-cl').forEach(function(el){
       el.addEventListener('click',function(){
-        var idx=parseInt(el.dataset.idx);var l=expGetList();
-        expOpenModal(Object.assign({},l[idx]),'expense',function(r){
-          if(r===null)l.splice(idx,1);else l[idx]=r;expSaveList(l);renderExpenses();
+        var i=parseInt(el.dataset.idx);var l=expGetList();
+        expOpenModal(Object.assign({},l[i]),'expense',function(r){
+          if(r===null)l.splice(i,1);else l[i]=r;expSaveList(l);renderExpenses();
         });
       });
     });
-
-    /* Клик по потенциалу */
-    content.querySelectorAll('.exp2-src-name,.exp2-src-amt').forEach(function(el){
+    content.querySelectorAll('.exp-cr').forEach(function(el){
       el.addEventListener('click',function(){
-        var idx=parseInt(el.dataset.idx);var l=expGetList();
-        expOpenModal(Object.assign({},l[idx]),'source',function(r){ if(r!==null){l[idx]=r;expSaveList(l);renderExpenses();} });
+        var i=parseInt(el.dataset.idx);var l=expGetList();
+        expOpenModal(Object.assign({},l[i]),'source',function(r){if(r!==null){l[i]=r;expSaveList(l);renderExpenses();}});
       });
     });
 
-    /* Drag — оба столбца двигают одну и ту же строку */
+    /* Drag — синхронный для обоих столбцов */
     var dragIdx=null;
-    function setupDrag(bodyId) {
-      var tbody=document.getElementById(bodyId);
-      if(!tbody)return;
+    ['exp-lb','exp-rb'].forEach(function(id){
+      var tbody=document.getElementById(id);if(!tbody)return;
       tbody.querySelectorAll('tr').forEach(function(row){
-        row.addEventListener('dragstart',function(e){
+        row.addEventListener('dragstart',function(){
           dragIdx=parseInt(row.dataset.idx);
-          row.style.opacity='0.4';
-          e.dataTransfer.effectAllowed='move';
+          document.querySelectorAll('#exp-lb tr[data-idx="'+dragIdx+'"],#exp-rb tr[data-idx="'+dragIdx+'"]').forEach(function(r){r.style.opacity='0.4';});
         });
         row.addEventListener('dragend',function(){
-          row.style.opacity='';
-          document.querySelectorAll('.exp2-row-l,.exp2-row-r').forEach(function(r){r.style.outline='';});
+          document.querySelectorAll('#exp-lb tr,#exp-rb tr').forEach(function(r){r.style.opacity='';r.style.background='';});
         });
         row.addEventListener('dragover',function(e){
           e.preventDefault();
-          document.querySelectorAll('.exp2-row-l,.exp2-row-r').forEach(function(r){r.style.outline='';});
-          /* Подсветить обе строки с этим индексом */
           var tgt=parseInt(row.dataset.idx);
-          document.querySelectorAll('[data-idx="'+tgt+'"]').forEach(function(r){
-            if(r.tagName==='TR')r.style.outline='2px solid #5B21B6';
-          });
+          document.querySelectorAll('#exp-lb tr,#exp-rb tr').forEach(function(r){r.style.background='';});
+          document.querySelectorAll('#exp-lb tr[data-idx="'+tgt+'"],#exp-rb tr[data-idx="'+tgt+'"]').forEach(function(r){r.style.background='#F0FDF4';});
         });
         row.addEventListener('drop',function(e){
           e.preventDefault();
-          document.querySelectorAll('.exp2-row-l,.exp2-row-r').forEach(function(r){r.style.outline='';});
           var tgt=parseInt(row.dataset.idx);
           if(dragIdx===null||dragIdx===tgt)return;
           var l=expGetList();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);
           expSaveList(l);dragIdx=null;renderExpenses();
         });
       });
-    }
-    setupDrag('exp2-left-body');
-    setupDrag('exp2-right-body');
+    });
   }
 
   function render(){

@@ -608,3 +608,13 @@ window.Screens.finance = function(mount) {
       });
     });
   }
+
+  function render(){
+    if(activeTab==='month')renderMonth();
+    else if(activeTab==='expenses')renderExpenses();
+    else if(activeTab==='balance')renderBalance();
+    else if(activeTab==='year')renderYear();
+    else renderAll();
+  }
+  render();
+};

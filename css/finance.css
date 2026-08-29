@@ -1033,3 +1033,37 @@
   gap: 8px;
 }
 .bal2-edit-btn:hover { border-color: #9CA3AF; color: #374151; }
+
+/* ── Expenses table v3 ───────────────────────────── */
+.exp2-wrap { background:#fff; }
+.exp2-header-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 16px 10px; border-bottom:1px solid #E5E7EB;
+}
+.exp2-header-title { font-size:15px; font-weight:700; color:#111; }
+.exp2-table {
+  width:100%; border-collapse:collapse; table-layout:fixed;
+}
+.exp2-table thead th {
+  background:#00CFCF; color:#fff; font-size:13px; font-weight:700;
+  padding:10px 12px; text-align:left;
+}
+.exp2-th-name { width:40%; }
+.exp2-th-amt  { width:28%; }
+.exp2-th-src  { width:25%; }
+.exp2-row td {
+  padding:10px 12px; border-bottom:1px solid #F3F4F6;
+  font-size:13px; color:#111;
+}
+.exp2-row:hover { background:#FAFAFA; }
+.exp2-name { font-weight:500; cursor:pointer; }
+.exp2-name:hover { color:#0891B2; }
+.exp2-amt  { font-weight:600; cursor:pointer; color:#111; }
+.exp2-amt:hover { color:#EF4444; }
+.exp2-src  { font-weight:600; cursor:pointer; color:#16A34A; }
+.exp2-src:empty::after, .exp2-src:not(:has(*)):empty { content:'—'; color:#D1D5DB; font-weight:400; }
+.exp2-drag { color:#D1D5DB; cursor:grab; text-align:center; width:32px; }
+.exp2-total td {
+  padding:12px; background:#00CFCF22; font-size:14px;
+  border-top:2px solid #00CFCF;
+}

@@ -503,58 +503,64 @@ window.Screens.finance = function(mount) {
 
   function renderExpenses() {
     var list = expGetList();
-
-    /* Две независимые колонки */
     var expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
     var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
-    var итог = srcTotal - expTotal;  /* положительный = профит, отрицательный = дефицит */
+    var balance = srcTotal - expTotal;
 
-    var rowsHtml = list.length === 0
-      ? '<div class="tochka-empty">Нет расходов — добавьте первый</div>'
-      : list.map(function(e,i){
-          return '<div class="exp-row2" data-idx="'+i+'">'
-            + '<div class="exp-drag-h"><i class="ti ti-grip-vertical"></i></div>'
-            + '<div class="exp-cl exp-side-left" data-idx="'+i+'" data-side="expense">'
-            +   '<div class="exp-name">'+(e.name||'<span style="color:#D1D5DB;">+ расход</span>')+'</div>'
-            + '</div>'
-            + '<div class="exp-cr exp-side-left" data-idx="'+i+'" data-side="expense">'
-            +   '<span class="'+(e.amount?'exp-red':'exp-dim')+'">'+(e.amount?'−'+finFmtFull(e.amount):'—')+'</span>'
-            + '</div>'
-            + '<div class="exp-sep-v"></div>'
-            + '<div class="exp-cl exp-side-right" data-idx="'+i+'" data-side="source">'
-            +   '<div class="exp-name" style="color:#374151;">'+(e.source||'<span style="color:#D1D5DB;">+ источник</span>')+'</div>'
-            + '</div>'
-            + '<div class="exp-cr exp-side-right" data-idx="'+i+'" data-side="source">'
-            +   '<span class="'+(e.sourceAmt?'exp-green':'exp-dim')+'">'+(e.sourceAmt?'+'+finFmtFull(e.sourceAmt):'—')+'</span>'
-            + '</div>'
-            + '</div>';
-        }).join('');
+    /* Начальные данные из скриншота если список пустой */
+    if (list.length === 0) {
+      list = [
+        {id:'e1',name:'Зубы',amount:24000,sourceAmt:90000,source:''},
+        {id:'e2',name:'Брекеты',amount:40000,sourceAmt:70000,source:''},
+        {id:'e3',name:'Кроссы',amount:11000,sourceAmt:30000,source:''},
+        {id:'e4',name:'Ракетка',amount:15000,sourceAmt:0,source:''},
+        {id:'e5',name:'Карплей',amount:24000,sourceAmt:0,source:''},
+        {id:'e6',name:'Тонер',amount:8500,sourceAmt:0,source:''},
+        {id:'e7',name:'Кожа',amount:10000,sourceAmt:0,source:''},
+        {id:'e8',name:'Пластик',amount:2500,sourceAmt:0,source:''},
+        {id:'e9',name:'Мелочь',amount:10000,sourceAmt:0,source:''},
+        {id:'e10',name:'Неприкосаемые',amount:40000,sourceAmt:0,source:''},
+      ];
+      expSaveList(list);
+      expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
+      srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
+      balance = srcTotal - expTotal;
+    }
 
-    content.innerHTML = '<div class="tochka-list">'
-      + '<div class="tochka-list-head"><span class="tochka-list-title">Ближайшие расходы</span>'
-      + '<button id="exp-add-btn" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button></div>'
-      + '<div class="exp-hdr-row">'
-      +   '<div style="width:28px;flex-shrink:0;"></div>'
-      +   '<div class="exp-hdr-col">Расход</div><div class="exp-hdr-r" style="color:#EF4444;">Сумма</div>'
-      +   '<div class="exp-hdr-sep"></div>'
-      +   '<div class="exp-hdr-col">Источник</div><div class="exp-hdr-r" style="color:#16A34A;">Сумма</div>'
+    var rowsHtml = list.map(function(e,i){
+      return '<tr class="exp2-row" data-idx="'+i+'">'
+        + '<td class="exp2-name exp2-left" data-idx="'+i+'" data-side="expense">'+e.name+'</td>'
+        + '<td class="exp2-amt exp2-left" data-idx="'+i+'" data-side="expense">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
+        + '<td class="exp2-src exp2-right" data-idx="'+i+'" data-side="source">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
+        + '<td class="exp2-drag" draggable="true"><i class="ti ti-grip-vertical"></i></td>'
+        + '</tr>';
+    }).join('');
+
+    content.innerHTML = '<div class="exp2-wrap">'
+      + '<div class="exp2-header-bar">'
+      +   '<span class="exp2-header-title">Ближайшие расходы</span>'
+      +   '<button id="exp-add-btn" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>'
       + '</div>'
-      + '<div id="exp-rows">'+rowsHtml+'</div>'
-      + '<div class="exp-total2">'
-      +   '<div style="width:28px;flex-shrink:0;"></div>'
-      +   '<div class="exp-cl" style="font-weight:700;">Итого расходов</div>'
-      +   '<div class="exp-cr"><strong style="color:#EF4444;">'+finFmtFull(expTotal)+'</strong></div>'
-      +   '<div class="exp-sep-v"></div>'
-      +   '<div class="exp-cl" style="font-weight:700;">Итого источников</div>'
-      +   '<div class="exp-cr"><strong style="color:#16A34A;">'+finFmtFull(srcTotal)+'</strong></div>'
-      + '</div>'
-      + '<div class="exp-итог-row">'
-      +   '<strong>Баланс: </strong>'
-      +   '<strong style="color:'+(итог>=0?'#16A34A':'#EF4444')+';">'+(итог>=0?'+':'')+finFmtFull(итог)+'</strong>'
-      +   '<span style="color:#9CA3AF;font-size:12px;margin-left:8px;">'+(итог>=0?'профит':'дефицит')+'</span>'
-      + '</div>'
+      + '<table class="exp2-table">'
+      +   '<thead><tr>'
+      +     '<th class="exp2-th-name">Вид расхода</th>'
+      +     '<th class="exp2-th-amt">Сумма</th>'
+      +     '<th class="exp2-th-src">Потенциал</th>'
+      +     '<th style="width:32px;"></th>'
+      +   '</tr></thead>'
+      +   '<tbody id="exp2-body">'+rowsHtml+'</tbody>'
+      +   '<tfoot>'
+      +     '<tr class="exp2-total">'
+      +       '<td><strong>Итого</strong></td>'
+      +       '<td><strong style="color:#EF4444;">'+finFmtFull(expTotal)+'</strong></td>'
+      +       '<td><strong style="color:'+( balance>0?'#16A34A':balance<0?'#EF4444':'#6B7280' )+';">'+(balance>0?'+':'')+finFmtFull(balance)+'</strong></td>'
+      +       '<td><span style="font-size:10px;color:#9CA3AF;">остаток</span></td>'
+      +     '</tr>'
+      +   '</tfoot>'
+      + '</table>'
       + '</div>';
 
+    /* Добавить */
     document.getElementById('exp-add-btn').addEventListener('click', function(){
       expOpenModal(null, null, function(r){
         if(!r) return;
@@ -562,8 +568,8 @@ window.Screens.finance = function(mount) {
       });
     });
 
-    /* Левая колонка (расход) - кликабельна независимо */
-    content.querySelectorAll('.exp-side-left').forEach(function(el){
+    /* Клик по левой половине строки — расход */
+    content.querySelectorAll('.exp2-left').forEach(function(el){
       el.addEventListener('click', function(){
         var idx=parseInt(el.dataset.idx);
         var l=expGetList();
@@ -574,8 +580,8 @@ window.Screens.finance = function(mount) {
       });
     });
 
-    /* Правая колонка (источник) - кликабельна независимо */
-    content.querySelectorAll('.exp-side-right').forEach(function(el){
+    /* Клик по правой — потенциал/источник */
+    content.querySelectorAll('.exp2-right').forEach(function(el){
       el.addEventListener('click', function(){
         var idx=parseInt(el.dataset.idx);
         var l=expGetList();
@@ -586,29 +592,19 @@ window.Screens.finance = function(mount) {
       });
     });
 
-    /* Drag reorder */
-    var listEl=document.getElementById('exp-rows');
-    if(!listEl) return;
-    var dragIdx=null;
-    listEl.querySelectorAll('.exp-row2').forEach(function(row){
-      row.setAttribute('draggable','true');
-      row.addEventListener('dragstart',function(){dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';});
-      row.addEventListener('dragend',function(){row.style.opacity='';listEl.querySelectorAll('.exp-row2').forEach(function(r){r.style.outline='';});});
-      row.addEventListener('dragover',function(e){e.preventDefault();listEl.querySelectorAll('.exp-row2').forEach(function(r){r.style.outline='';});row.style.outline='2px solid #16A34A';});
-      row.addEventListener('drop',function(e){
+    /* Drag-and-drop */
+    var tbody = document.getElementById('exp2-body');
+    var dragIdx = null;
+    tbody.querySelectorAll('.exp2-row').forEach(function(row){
+      row.addEventListener('dragstart', function(){ dragIdx=parseInt(row.dataset.idx); row.style.opacity='0.4'; });
+      row.addEventListener('dragend', function(){ row.style.opacity=''; tbody.querySelectorAll('.exp2-row').forEach(function(r){r.style.background='';}); });
+      row.addEventListener('dragover', function(e){ e.preventDefault(); tbody.querySelectorAll('.exp2-row').forEach(function(r){r.style.background='';}); row.style.background='#F0FDF4'; });
+      row.addEventListener('drop', function(e){
         e.preventDefault();
         var tgt=parseInt(row.dataset.idx);
         if(dragIdx===null||dragIdx===tgt)return;
-        var l=expGetList();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);expSaveList(l);dragIdx=null;renderExpenses();
+        var l=expGetList(); var m=l.splice(dragIdx,1)[0]; l.splice(tgt,0,m);
+        expSaveList(l); dragIdx=null; renderExpenses();
       });
     });
   }
-  function render(){
-    if(activeTab==='month')renderMonth();
-    else if(activeTab==='expenses')renderExpenses();
-    else if(activeTab==='balance')renderBalance();
-    else if(activeTab==='year')renderYear();
-    else renderAll();
-  }
-  render();
-};

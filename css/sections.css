@@ -1110,3 +1110,37 @@
   font-family: 'Montserrat', sans-serif;
 }
 .goals-modal-save:hover { background: #9333EA; }
+
+/* ── Goals month filter ──────────────────────────── */
+.goals-month-filter {
+  background: #13151A;
+  padding: 6px 14px 8px;
+  border-bottom: 1px solid #1E2128;
+}
+.goals-month-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.goals-mf-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #2A2D35;
+  background: none;
+  color: #9D9A92;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s;
+}
+.goals-mf-btn.active {
+  background: #A78BFA22;
+  border-color: #A78BFA;
+  color: #A78BFA;
+}
+.goals-item-month {
+  font-size: 11px;
+  color: #9D9A92;
+  font-weight: 500;
+}

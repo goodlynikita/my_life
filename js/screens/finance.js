@@ -345,155 +345,159 @@ window.Screens.finance = function(mount) {
     const now = new Date();
     const monthEntries = finEntries(now.getFullYear(), now.getMonth());
     const monthIncome = finSum(monthEntries);
+
+    /* Настройки из Store */
     const stored = Store.get().finance?.balance || {};
+    const GOAL_INCOME = stored.goalIncome || 291500;
+    const SAVE_PCT = stored.savePct || 30;
+
     const DEFAULT_CATS = [
-      { id:'b1', name:'Оплата КВ + Ком',  pct:25, color:'#7C3AED' },
-      { id:'b2', name:'Продукты / Рест',   pct:31, color:'#0EA5E9' },
-      { id:'b3', name:'Спорт / Здоровье',  pct:19, color:'#16A34A' },
-      { id:'b4', name:'Подписки / Работа', pct:11, color:'#F59E0B' },
-      { id:'b5', name:'Разное / Бытовые',  pct:11, color:'#EF4444' },
-      { id:'b6', name:'Машина',            pct:6,  color:'#6B7280' },
+      { id:'b1', name:'КВ',                    amt:24000, color:'#7C3AED' },
+      { id:'b2', name:'Еда: продукты + рестораны', amt:30000, color:'#0EA5E9' },
+      { id:'b3', name:'Зал + спортпит + тренер',  amt:15500, color:'#16A34A' },
+      { id:'b4', name:'Подписки, работа',          amt:10000, color:'#F59E0B' },
+      { id:'b5', name:'Всякое разное',             amt:10000, color:'#EF4444' },
+      { id:'b6', name:'Машина',                    amt:5000,  color:'#6B7280' },
+      { id:'b7', name:'Стрижка',                   amt:2500,  color:'#EC4899' },
+      { id:'b8', name:'Стоматолог',                amt:6000,  color:'#14B8A6' },
     ];
     const cats = stored.categories || DEFAULT_CATS;
-    const totalPct = cats.reduce((s,c)=>s+(c.pct||0),0);
-    const cushionPct = Math.max(0, 100-totalPct);
-    const rows = cats.map(c=>({...c, allocated:Math.round(monthIncome*(c.pct||0)/100)}));
-    const totalAllocated = rows.reduce((s,r)=>s+r.allocated,0);
-    const cushion = monthIncome - totalAllocated;
+    const totalBase = cats.reduce((s,c)=>s+(c.amt||0),0);
 
-    const segs = rows.map(r=>`<div style="flex:${r.pct||1};height:100%;background:${r.color};" title="${r.name}: ${r.pct}%"></div>`).join('')
-      + (cushionPct>0?`<div style="flex:${cushionPct};height:100%;background:#DCFCE7;" title="Подушка: ${cushionPct}%"></div>`:'');
+    /* Расчёт от реального дохода */
+    const savingsAmt = Math.round(monthIncome * SAVE_PCT / 100);
+    const afterSavings = monthIncome - savingsAmt;
+    const freeAfterBase = afterSavings - totalBase;
+
+    /* Цель: идеальный расклад */
+    const goalSavings = Math.round(GOAL_INCOME * SAVE_PCT / 100);
+    const goalForLife = GOAL_INCOME - goalSavings;
 
     content.innerHTML = `
-      <div class="bal-hero">
-        <div class="bal-hero-row">
+      <!-- Hero: доход и копилка -->
+      <div class="bal2-hero">
+        <div class="bal2-hero-row">
           <div>
-            <div class="bal-label">ДОХОД МЕСЯЦА</div>
-            <div class="bal-income">${finFmtFull(monthIncome)}</div>
+            <div class="bal2-label">ДОХОД МЕСЯЦА</div>
+            <div class="bal2-income">${finFmtFull(monthIncome || 0)}</div>
+            <div class="bal2-goal-line">Цель: ${finFmtFull(GOAL_INCOME)}/мес</div>
           </div>
           <div style="text-align:right;">
-            <div class="bal-label">СВОБОДНЫЕ ДЕНЬГИ</div>
-            <div class="bal-cushion-big ${cushion>=0?'pos':'neg'}">${finFmtFull(Math.max(0,cushion))}</div>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${cushion<0?'Не хватает '+finFmtFull(Math.abs(cushion)):''}</div>
+            <div class="bal2-label">В КОПИЛКУ (${SAVE_PCT}%)</div>
+            <div class="bal2-savings">${finFmtFull(savingsAmt)}</div>
+            <div class="bal2-goal-line">Цель: ${finFmtFull(goalSavings)}</div>
           </div>
         </div>
-        <div class="bal-progress-track2"><div style="width:100%;height:100%;display:flex;overflow:hidden;">${segs}</div></div>
-        <div class="bal-progress-labels"><span>${totalPct}% распределено</span><span>Подушка: ${cushionPct}%</span></div>
+        <div class="bal2-progress-track">
+          <div class="bal2-progress-fill" style="width:${Math.min(100,Math.round(monthIncome/GOAL_INCOME*100))}%;"></div>
+        </div>
+        <div class="bal2-progress-labels">
+          <span>На жизнь: ${finFmtFull(afterSavings)}</span>
+          <span>${Math.min(100,Math.round(monthIncome/GOAL_INCOME*100))}% от цели</span>
+        </div>
       </div>
-      <div class="bal-table-wrap">
-        <table class="bal-table">
-          <thead><tr>
-            <th>Вид расхода</th>
-            <th style="text-align:right;">%</th>
-            <th style="text-align:right;">Приход</th>
-            <th style="text-align:right;">Мин. сумма</th>
-            <th style="text-align:right;">Баланс</th>
-          </tr></thead>
-          <tbody>
-            ${rows.map(r=>`<tr>
-              <td><div style="display:flex;align-items:center;gap:8px;">
-                <div style="width:10px;height:10px;border-radius:3px;background:${r.color};flex-shrink:0;"></div>
-                <span class="bal-cat-name">${r.name}</span>
-              </div></td>
-              <td style="text-align:right;color:#6B7280;">${r.pct}%</td>
-              <td style="text-align:right;font-weight:500;">${monthIncome>0?finFmtFull(monthIncome):''}</td>
-              <td style="text-align:right;color:#6B7280;">${finFmtFull(Math.round(97000*r.pct/100))}</td>
-              <td style="text-align:right;font-weight:700;">${finFmtFull(r.allocated)}</td>
-            </tr>`).join('')}
-            <tr style="background:#F0FDF4;">
-              <td style="color:#16A34A;font-weight:600;">Подушка / Цели</td>
-              <td style="text-align:right;color:#16A34A;">${cushionPct}%</td>
-              <td></td>
-              <td style="text-align:right;color:#9CA3AF;">—</td>
-              <td style="text-align:right;font-weight:700;color:${cushion>=0?'#16A34A':'#EF4444'};">${finFmtFull(cushion)}</td>
-            </tr>
-          </tbody>
-          <tfoot><tr class="bal-total-row">
-            <td>Итого</td>
-            <td style="text-align:right;">${totalPct}%</td>
-            <td style="text-align:right;">${finFmtFull(monthIncome)}</td>
-            <td style="text-align:right;">97 000₽</td>
-            <td style="text-align:right;">${finFmtFull(monthIncome)}</td>
-          </tr></tfoot>
-        </table>
-      </div>
-      <button id="bal-edit-cats" class="bal-edit-btn"><i class="ti ti-settings"></i> Настроить % категорий</button>`;
 
-    document.getElementById('bal-edit-cats').addEventListener('click',()=>{
-      const overlay=document.createElement('div'); overlay.className='tr-modal-overlay';
-      overlay.innerHTML=`<div class="tr-modal" style="max-height:80vh;overflow-y:auto;">
-        <p class="tr-modal-title">% распределения дохода</p>
-        <p style="font-size:12px;color:#9CA3AF;margin-bottom:12px;">Итого ≤ 100%. Остаток → подушка/цели.</p>
-        ${cats.map((c,i)=>`<div class="tr-modal-row" style="gap:8px;align-items:flex-end;">
-          <label style="flex:1;">Категория<input type="text" class="bal-n" data-i="${i}" value="${c.name}"></label>
-          <label style="width:70px;">%<input type="number" class="bal-p" data-i="${i}" value="${c.pct||0}" min="0" max="100" inputmode="numeric"></label>
-        </div>`).join('')}
-        <div id="bal-tot" style="text-align:right;font-size:13px;margin-top:6px;color:#6B7280;">Итого: ${totalPct}% · Подушка: ${cushionPct}%</div>
+      <!-- Система управления -->
+      <div class="bal2-system">
+        <div class="bal2-system-title">📋 Система управления деньгами</div>
+
+        <div class="bal2-rule">
+          <div class="bal2-rule-num">1</div>
+          <div>
+            <div class="bal2-rule-title">Сразу в копилку — ${SAVE_PCT}%</div>
+            <div class="bal2-rule-desc">Любой приход → сразу ${finFmtFull(savingsAmt)} в копилку. Без исключений.</div>
+          </div>
+        </div>
+
+        <div class="bal2-rule">
+          <div class="bal2-rule-num">2</div>
+          <div>
+            <div class="bal2-rule-title">Приоритет базовых расходов</div>
+            <div class="bal2-rule-desc">Оставшиеся ${finFmtFull(afterSavings)} трать в таком порядке:</div>
+          </div>
+        </div>
+
+        <!-- Таблица расходов -->
+        <div class="bal2-cats-table">
+          <div class="bal2-cats-head">
+            <span>Вид расхода</span>
+            <span>Сумма</span>
+            <span>% от дохода</span>
+          </div>
+          ${cats.map(c=>`
+            <div class="bal2-cat-row">
+              <div class="bal2-cat-dot-name">
+                <div class="bal2-cat-dot" style="background:${c.color};"></div>
+                <span class="bal2-cat-name">${c.name}</span>
+              </div>
+              <span class="bal2-cat-amt">${finFmtFull(c.amt)}</span>
+              <span class="bal2-cat-pct" style="color:${c.color};">${monthIncome>0?Math.round(c.amt/monthIncome*100):0}%</span>
+            </div>`).join('')}
+          <div class="bal2-cat-total">
+            <span>Итого базовые</span>
+            <span>${finFmtFull(totalBase)}</span>
+            <span>${monthIncome>0?Math.round(totalBase/monthIncome*100):0}%</span>
+          </div>
+        </div>
+
+        <div class="bal2-rule">
+          <div class="bal2-rule-num">3</div>
+          <div>
+            <div class="bal2-rule-title">Свободные деньги → цели</div>
+            <div class="bal2-free ${freeAfterBase>=0?'pos':'neg'}">
+              ${freeAfterBase>=0
+                ? `<span>${finFmtFull(freeAfterBase)}</span><span class="bal2-free-label"> — на цели и желания</span>`
+                : `<span>${finFmtFull(Math.abs(freeAfterBase))}</span><span class="bal2-free-label"> — не хватает на базу</span>`}
+            </div>
+          </div>
+        </div>
+
+        <div class="bal2-rule">
+          <div class="bal2-rule-num">4</div>
+          <div>
+            <div class="bal2-rule-title">Внеплановые расходы</div>
+            <div class="bal2-rule-desc">Неожиданная трата → берёшь из копилки, не из текущего остатка.</div>
+          </div>
+        </div>
+      </div>
+
+      <button id="bal2-edit" class="bal2-edit-btn">
+        <i class="ti ti-settings"></i> Настроить расходы и цель
+      </button>
+    `;
+
+    document.getElementById('bal2-edit').addEventListener('click', ()=>{
+      const ov = document.createElement('div');
+      ov.className = 'tr-modal-overlay';
+      ov.innerHTML = `<div class="tr-modal" style="max-height:85vh;overflow-y:auto;">
+        <p class="tr-modal-title">Настройки баланса</p>
+        <div class="tr-modal-row">
+          <label style="flex:1">Цель дохода, ₽<input type="number" id="bi-goal" value="${GOAL_INCOME}" inputmode="numeric"></label>
+          <label style="width:80px;">Копилка %<input type="number" id="bi-pct" value="${SAVE_PCT}" min="0" max="100" inputmode="numeric"></label>
+        </div>
+        <p style="font-size:12px;color:#9CA3AF;margin:12px 0 6px;">Базовые расходы:</p>
+        ${cats.map((c,i)=>`
+          <div class="tr-modal-row" style="gap:8px;align-items:flex-end;">
+            <label style="flex:1;">Категория<input type="text" class="bi-name" data-i="${i}" value="${c.name}"></label>
+            <label style="width:110px;">Сумма, ₽<input type="number" class="bi-amt" data-i="${i}" value="${c.amt}" inputmode="numeric"></label>
+          </div>`).join('')}
         <div class="tr-modal-actions">
-          <button class="tr-modal-btn-secondary" id="bal-cancel">Отмена</button>
-          <button class="tr-modal-btn-primary" id="bal-save">Сохранить</button>
+          <button class="tr-modal-btn-secondary" id="bi-cancel">Отмена</button>
+          <button class="tr-modal-btn-primary" id="bi-save">Сохранить</button>
         </div>
       </div>`;
-      document.body.appendChild(overlay);
-      overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-      overlay.querySelector('#bal-cancel').addEventListener('click',()=>overlay.remove());
-      overlay.querySelectorAll('.bal-p').forEach(inp=>{
-        inp.addEventListener('input',()=>{
-          const t=[...overlay.querySelectorAll('.bal-p')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
-          const el=overlay.querySelector('#bal-tot');
-          el.textContent=`Итого: ${t}% · Подушка: ${Math.max(0,100-t)}%`;
-          el.style.color=t>100?'#EF4444':'#16A34A';
-        });
+      document.body.appendChild(ov);
+      ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+      ov.querySelector('#bi-cancel').addEventListener('click',()=>ov.remove());
+      ov.querySelector('#bi-save').addEventListener('click',()=>{
+        ov.querySelectorAll('.bi-name').forEach(inp=>{ cats[+inp.dataset.i].name=inp.value.trim()||cats[+inp.dataset.i].name; });
+        ov.querySelectorAll('.bi-amt').forEach(inp=>{ cats[+inp.dataset.i].amt=parseFloat(inp.value)||0; });
+        const newGoal = parseFloat(ov.querySelector('#bi-goal').value)||GOAL_INCOME;
+        const newPct = parseFloat(ov.querySelector('#bi-pct').value)||SAVE_PCT;
+        Store.set('finance.balance', {categories:cats, goalIncome:newGoal, savePct:newPct});
+        ov.remove();
+        renderBalance();
       });
-      overlay.querySelector('#bal-save').addEventListener('click',()=>{
-        overlay.querySelectorAll('.bal-n').forEach(inp=>{cats[+inp.dataset.i].name=inp.value.trim()||cats[+inp.dataset.i].name;});
-        overlay.querySelectorAll('.bal-p').forEach(inp=>{cats[+inp.dataset.i].pct=parseFloat(inp.value)||0;});
-        Store.set('finance.balance.categories',cats);
-        overlay.remove(); renderBalance();
-      });
-    });
-  }
-
-
-  /* ═══ РАСХОДЫ ═══════════════════════════════════ */
-  function expGetList() { return Store.get().finance?.expensesList || []; }
-  function expSaveList(list) { Store.set('finance.expensesList', list); }
-
-  function expOpenModal(item, side, cb) {
-    var isEdit = !!item;
-    var showExp = !side || side === 'expense';
-    var showSrc = !side || side === 'source';
-    var ov = document.createElement('div');
-    ov.className = 'tr-modal-overlay';
-    ov.innerHTML = '<div class="tr-modal">'
-      + '<p class="tr-modal-title">' + (isEdit ? (side==='source'?'Источник':'Расход') : 'Новый расход') + '</p>'
-      + (showExp
-        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'"></label></div>'
-        + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric"></label></div>'
-        : '')
-      + (showSrc
-        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
-        + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма источника, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric"></label></div>'
-        : '')
-      + '<div class="tr-modal-actions">'
-      + (isEdit ? '<button class="tr-modal-btn-secondary" id="em-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="em-cancel">Отмена</button>')
-      + '<button class="tr-modal-btn-primary" id="em-save">Сохранить</button>'
-      + '</div></div>';
-    document.body.appendChild(ov);
-    ov.addEventListener('click', function(e){if(e.target===ov)ov.remove();});
-    var cancBtn = ov.querySelector('#em-cancel'); if(cancBtn) cancBtn.addEventListener('click',function(){ov.remove();});
-    var delBtn = ov.querySelector('#em-del'); if(delBtn) delBtn.addEventListener('click',function(){cb(null);ov.remove();});
-    ov.querySelector('#em-save').addEventListener('click', function(){
-      var base = item ? Object.assign({},item) : {id:'e_'+Date.now()};
-      if(showExp){
-        var n = ov.querySelector('#em-name').value.trim(); if(!n) return;
-        base.name = n; base.amount = parseFloat(ov.querySelector('#em-amt').value)||0;
-      }
-      if(showSrc){
-        base.source = (ov.querySelector('#em-src').value||'').trim();
-        base.sourceAmt = parseFloat(ov.querySelector('#em-srca').value)||0;
-      }
-      cb(base); ov.remove();
     });
   }
 

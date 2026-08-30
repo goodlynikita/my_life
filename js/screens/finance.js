@@ -580,67 +580,56 @@ window.Screens.finance = function(mount) {
     var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
     var balance = srcTotal - expTotal;
 
-    var leftRows = list.map(function(e,i){
+    var rows = list.map(function(e,i){
       return '<tr data-idx="'+i+'" draggable="true">'
-        + '<td style="width:28px;padding:0 4px;text-align:center;"><span class="expd" data-idx="'+i+'"><i class="ti ti-grip-vertical" style="color:#ccc;font-size:14px;"></i></span></td>'
-        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;font-size:13px;color:#111;padding:10px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.name||'')+'</td>'
-        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;font-size:13px;font-weight:600;color:#111;padding:10px 6px;text-align:right;white-space:nowrap;">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
+        + '<td style="width:24px;padding:0 6px;cursor:grab;color:#ccc;text-align:center;border-bottom:1px solid #F3F4F6;"><i class="ti ti-grip-vertical"></i></td>'
+        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;padding:11px 10px;font-size:13px;color:#111;border-bottom:1px solid #F3F4F6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.name||'—')+'</td>'
+        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;padding:11px 10px;font-size:13px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px solid #F3F4F6;white-space:nowrap;">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
+        + '<td style="width:1px;background:#E5E7EB;padding:0;border-bottom:1px solid #F3F4F6;"></td>'
+        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;padding:11px 10px;font-size:13px;color:#16A34A;border-bottom:1px solid #F3F4F6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.source||'')+'</td>'
+        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;padding:11px 10px;font-size:13px;font-weight:700;color:#16A34A;text-align:right;border-bottom:1px solid #F3F4F6;white-space:nowrap;">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
     }).join('');
 
-    var rightRows = list.map(function(e,i){
-      return '<tr data-idx="'+i+'" draggable="true">'
-        + '<td style="width:28px;padding:0 4px;text-align:center;"><span class="expd" data-idx="'+i+'"><i class="ti ti-grip-vertical" style="color:#ccc;font-size:14px;"></i></span></td>'
-        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;font-size:13px;color:#16A34A;padding:10px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.source||'')+'</td>'
-        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;font-size:13px;font-weight:600;color:#16A34A;padding:10px 6px;text-align:right;white-space:nowrap;">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
-        + '</tr>';
-    }).join('');
-
-    var tStyle = 'width:100%;border-collapse:collapse;table-layout:fixed;';
-    /* Колонки: drag 24px, название 60%, сумма 40% */
-    var thStyle = 'padding:9px 8px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid #E5E7EB;background:#F9FAFB;text-align:left;';
-    var tfStyle = 'padding:11px 8px;font-size:13px;border-top:2px solid #E5E7EB;background:#F9FAFB;';
-
-    content.innerHTML =
-      '<div style="background:#fff;">'
+    content.innerHTML = '<div style="background:#fff;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E5E7EB;">'
       +   '<span style="font-size:15px;font-weight:700;color:#111;">Ближайшие расходы</span>'
       +   '<div style="display:flex;gap:8px;">'
-      +     '<button id="exp-add-l" style="padding:7px 12px;border-radius:8px;border:1.5px solid #EF4444;color:#EF4444;background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Расход</button>'
-      +     '<button id="exp-add-r" style="padding:7px 12px;border-radius:8px;border:1.5px solid #16A34A;color:#16A34A;background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Потенциал</button>'
+      +     '<button id="exp-add-l" style="padding:6px 12px;border-radius:8px;border:1.5px solid #EF4444;color:#EF4444;background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Расход</button>'
+      +     '<button id="exp-add-r" style="padding:6px 12px;border-radius:8px;border:1.5px solid #16A34A;color:#16A34A;background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Потенциал</button>'
       +   '</div>'
       + '</div>'
-      + '<div style="display:flex;">'
-      +   '<div style="flex:1;overflow:hidden;">'
-      +     '<table style="'+tStyle+'">'
-      +       '<colgroup><col style="width:24px"><col style="width:60%"><col style="width:40%"></colgroup>'
-      + '<thead><tr><th style="'+thStyle+'padding:9px 4px;width:24px;"></th><th style="'+thStyle+'">Расход</th><th style="'+thStyle+'text-align:right;">Сумма</th></tr></thead>'
-      +       '<tbody id="exp-lb">'+leftRows+'</tbody>'
-      +       '<tfoot><tr><td></td><td style="'+tfStyle+'font-weight:700;">Итого</td><td style="'+tfStyle+'font-weight:800;color:#EF4444;text-align:right;">'+finFmtFull(expTotal)+'</td></tr></tfoot>'
-      +     '</table>'
-      +   '</div>'
-      +   '<div style="width:1px;background:#E5E7EB;flex-shrink:0;"></div>'
-      +   '<div style="flex:1;overflow:hidden;">'
-      +     '<table style="'+tStyle+'">'
-      +       '<colgroup><col style="width:24px"><col style="width:60%"><col style="width:40%"></colgroup>'
-      + '<thead><tr><th style="'+thStyle+'padding:9px 4px;width:24px;"></th><th style="'+thStyle+'">Потенциал</th><th style="'+thStyle+'text-align:right;">Сумма</th></tr></thead>'
-      +       '<tbody id="exp-rb">'+rightRows+'</tbody>'
-      +       '<tfoot><tr><td></td><td style="'+tfStyle+'font-weight:700;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td><td style="'+tfStyle+'font-weight:800;color:'+(balance>=0?'#16A34A':'#EF4444')+';text-align:right;">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td></tr></tfoot>'
-      +     '</table>'
-      +   '</div>'
-      + '</div>'
-      + '</div>';
+      + '<div style="overflow-x:auto;">'
+      + '<table style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:320px;">'
+      + '<colgroup><col style="width:24px"><col><col style="width:100px"><col style="width:1px"><col><col style="width:100px"></colgroup>'
+      + '<thead><tr style="background:#F9FAFB;">'
+      +   '<th style="padding:8px 6px;"></th>'
+      +   '<th style="padding:8px 10px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;text-align:left;border-bottom:1px solid #E5E7EB;">Расход</th>'
+      +   '<th style="padding:8px 10px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;text-align:right;border-bottom:1px solid #E5E7EB;">Сумма</th>'
+      +   '<th style="background:#E5E7EB;padding:0;border-bottom:1px solid #E5E7EB;"></th>'
+      +   '<th style="padding:8px 10px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;text-align:left;border-bottom:1px solid #E5E7EB;">Потенциал</th>'
+      +   '<th style="padding:8px 10px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;text-align:right;border-bottom:1px solid #E5E7EB;">Сумма</th>'
+      + '</tr></thead>'
+      + '<tbody id="exp-body">'+rows+'</tbody>'
+      + '<tfoot><tr style="background:#F9FAFB;">'
+      +   '<td></td>'
+      +   '<td style="padding:11px 10px;font-weight:700;font-size:13px;border-top:2px solid #E5E7EB;">Итого</td>'
+      +   '<td style="padding:11px 10px;font-weight:800;font-size:13px;color:#EF4444;text-align:right;border-top:2px solid #E5E7EB;">'+finFmtFull(expTotal)+'</td>'
+      +   '<td style="background:#E5E7EB;border-top:2px solid #E5E7EB;"></td>'
+      +   '<td style="padding:11px 10px;font-weight:700;font-size:13px;color:'+(balance>=0?'#16A34A':'#EF4444')+';border-top:2px solid #E5E7EB;">'+(balance>=0?'Профит':'Дефицит')+'</td>'
+      +   '<td style="padding:11px 10px;font-weight:800;font-size:13px;color:'+(balance>=0?'#16A34A':'#EF4444')+';text-align:right;border-top:2px solid #E5E7EB;">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td>'
+      + '</tr></tfoot>'
+      + '</table></div></div>';
 
     document.getElementById('exp-add-l').addEventListener('click',function(){
       expOpenModal(null,'expense',function(r){if(!r)return;var l=expGetList();l.push(r);expSaveList(l);renderExpenses();});
     });
     document.getElementById('exp-add-r').addEventListener('click',function(){
       var l=expGetList();
-      if(!l.length){alert('Сначала добавьте расход');return;}
+      if(!l.length){alert('Сначала добавь расход');return;}
       var i=l.findIndex(function(e){return !e.sourceAmt;});if(i<0)i=0;
       expOpenModal(Object.assign({},l[i]),'source',function(r){if(r!==null){l[i]=r;expSaveList(l);renderExpenses();}});
     });
-
     content.querySelectorAll('.exp-cl').forEach(function(el){
       el.addEventListener('click',function(){
         var i=parseInt(el.dataset.idx);var l=expGetList();
@@ -655,32 +644,17 @@ window.Screens.finance = function(mount) {
         expOpenModal(Object.assign({},l[i]),'source',function(r){if(r!==null){l[i]=r;expSaveList(l);renderExpenses();}});
       });
     });
-
-    /* Drag — синхронный для обоих столбцов */
     var dragIdx=null;
-    ['exp-lb','exp-rb'].forEach(function(id){
-      var tbody=document.getElementById(id);if(!tbody)return;
-      tbody.querySelectorAll('tr').forEach(function(row){
-        row.addEventListener('dragstart',function(){
-          dragIdx=parseInt(row.dataset.idx);
-          document.querySelectorAll('#exp-lb tr[data-idx="'+dragIdx+'"],#exp-rb tr[data-idx="'+dragIdx+'"]').forEach(function(r){r.style.opacity='0.4';});
-        });
-        row.addEventListener('dragend',function(){
-          document.querySelectorAll('#exp-lb tr,#exp-rb tr').forEach(function(r){r.style.opacity='';r.style.background='';});
-        });
-        row.addEventListener('dragover',function(e){
-          e.preventDefault();
-          var tgt=parseInt(row.dataset.idx);
-          document.querySelectorAll('#exp-lb tr,#exp-rb tr').forEach(function(r){r.style.background='';});
-          document.querySelectorAll('#exp-lb tr[data-idx="'+tgt+'"],#exp-rb tr[data-idx="'+tgt+'"]').forEach(function(r){r.style.background='#F0FDF4';});
-        });
-        row.addEventListener('drop',function(e){
-          e.preventDefault();
-          var tgt=parseInt(row.dataset.idx);
-          if(dragIdx===null||dragIdx===tgt)return;
-          var l=expGetList();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);
-          expSaveList(l);dragIdx=null;renderExpenses();
-        });
+    var tbody=document.getElementById('exp-body');
+    if(tbody)tbody.querySelectorAll('tr').forEach(function(row){
+      row.addEventListener('dragstart',function(){dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';});
+      row.addEventListener('dragend',function(){row.style.opacity='';tbody.querySelectorAll('tr').forEach(function(r){r.style.background='';});});
+      row.addEventListener('dragover',function(e){e.preventDefault();tbody.querySelectorAll('tr').forEach(function(r){r.style.background='';});row.style.background='#F0FDF4';});
+      row.addEventListener('drop',function(e){
+        e.preventDefault();var tgt=parseInt(row.dataset.idx);
+        if(dragIdx===null||dragIdx===tgt)return;
+        var l=expGetList();var m=l.splice(dragIdx,1)[0];l.splice(tgt,0,m);
+        expSaveList(l);dragIdx=null;renderExpenses();
       });
     });
   }

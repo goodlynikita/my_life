@@ -252,26 +252,30 @@ window.Screens.habits = function(mount) {
             <button id="hab-next" class="sec-back" style="width:28px;height:28px;" ${isNow?'disabled style="opacity:.3;"':''}><i class="ti ti-chevron-right"></i></button>
           </div>
         </div>
-        <div class="sec-metric-grid">
-          <div class="sec-metric">
-            <div class="sec-metric-label">Общий прогресс</div>
-            <div class="sec-metric-value accent">${overallPct}%</div>
+        <div class="sec-metric-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
+          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
+            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Общий прогресс</div>
+            <div class="sec-metric-value accent hab-overall-pct" style="font-size:26px;font-weight:900;">${overallPct}%</div>
           </div>
-          <div class="sec-metric">
-            <div class="sec-metric-label">Лучшая</div>
-            <div class="sec-metric-value" style="font-size:13px;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
+          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
+            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Дней в месяце</div>
+            <div class="sec-metric-value" style="font-size:26px;font-weight:900;color:#E8E5DC;">${daysInMonth}</div>
           </div>
-          <div class="sec-metric">
-            <div class="sec-metric-label">Требует внимания</div>
-            <div class="sec-metric-value" style="font-size:13px;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
+          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
+            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Лучшая</div>
+            <div class="sec-metric-value" style="font-size:13px;font-weight:700;color:#A8C97F;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
+          </div>
+          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
+            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Требует внимания</div>
+            <div class="sec-metric-value" style="font-size:13px;font-weight:700;color:#E0B873;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
           </div>
         </div>
       </div>
 
-      <div class="sec-card" style="padding:12px;">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-          <table class="habit-table" style="min-width:max-content;">
-            <thead>
+      <div class="sec-card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
+          <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
+            <thead style="position:sticky;top:0;z-index:5;">
               <tr>
                 <th style="min-width:130px;text-align:left;padding:4px 8px;font-size:11px;color:#9D9A92;">Привычка</th>
                 ${dayNums.map(d=>{

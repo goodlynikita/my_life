@@ -135,6 +135,40 @@ window.Screens.home = function(mount) {
     Auth.logout(); Router.go('/login');
   });
 
+  /* Slider settings */
+  var sliderCfg = Store.get().home?.sliderCfg || {interval: 4500};
+  document.getElementById('slider-settings-btn').addEventListener('click', function(){
+    var ov = document.createElement('div');
+    ov.className = 'tr-modal-overlay';
+    ov.innerHTML = '<div class="tr-modal">'
+      + '<p class="tr-modal-title">Настройки слайдера</p>'
+      + '<div class="tr-modal-row"><label style="flex:1">Интервал, сек<input type="number" id="sl-interval" value="'+(sliderCfg.interval/1000)+'" min="1" max="30" step="0.5" inputmode="decimal"></label></div>'
+      + '<p style="font-size:12px;color:#9CA3AF;margin:8px 0 4px;">Слайды (отметь нужные):</p>'
+      + '<div class="tr-modal-row" style="flex-direction:column;gap:6px;">'
+      +   '<label style="display:flex;align-items:center;gap:8px;font-size:14px;"><input type="checkbox" id="sl-s0" '+(sliderCfg.s0!==false?'checked':'')+' style="width:auto;"> Фокус дня</label>'
+      +   '<label style="display:flex;align-items:center;gap:8px;font-size:14px;"><input type="checkbox" id="sl-s1" '+(sliderCfg.s1!==false?'checked':'')+' style="width:auto;"> Финансовый пульс</label>'
+      +   '<label style="display:flex;align-items:center;gap:8px;font-size:14px;"><input type="checkbox" id="sl-s2" '+(sliderCfg.s2!==false?'checked':'')+' style="width:auto;"> Прогресс целей</label>'
+      + '</div>'
+      + '<div class="tr-modal-actions">'
+      +   '<button class="tr-modal-btn-secondary" id="sl-cancel">Отмена</button>'
+      +   '<button class="tr-modal-btn-primary" id="sl-save">Сохранить</button>'
+      + '</div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+    ov.querySelector('#sl-cancel').addEventListener('click',function(){ov.remove();});
+    ov.querySelector('#sl-save').addEventListener('click',function(){
+      sliderCfg.interval = Math.max(1000, parseFloat(ov.querySelector('#sl-interval').value||4.5)*1000);
+      sliderCfg.s0 = ov.querySelector('#sl-s0').checked;
+      sliderCfg.s1 = ov.querySelector('#sl-s1').checked;
+      sliderCfg.s2 = ov.querySelector('#sl-s2').checked;
+      Store.set('home.sliderCfg', sliderCfg);
+      ov.remove();
+      /* Restart slider with new interval */
+      if(autoTimer) clearInterval(autoTimer);
+      autoTimer = setInterval(function(){ goTo(cur+1); }, sliderCfg.interval);
+    });
+  });
+
   var slidesEl = document.getElementById('hero-slides');
   var dotsEls = mount.querySelectorAll('.hero-dot');
   if (slidesEl) {

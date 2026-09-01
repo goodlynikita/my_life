@@ -385,20 +385,14 @@ window.Screens.goals = function(mount) {
       const catTotal = catItems.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
       const catColor = isGoal ? '#9333EA' : color;
-      return `
-        <div class="goals-cat-v3 ${isGoal?'goals-cat-main':''}" style="--cat-color:${catColor};">
-          <div class="goals-cat-v3-head">
-            <span class="goals-cat-v3-title">${isGoal?'🎯 ':''} ${cat}</span>
-            <span class="goals-cat-total goals-cat-v3-total" data-cat="${cat}" style="color:${catColor};transition:all 0.4s;">${goalsFmt(catTotal)}</span>
-          </div>
-          ${catItems.map(g=>{
+      const itemsHtml = catItems.map(g=>{
             const idx = goalsGet().findIndex(x=>x.id===g.id);
             const sInfo = GOALS_SEASONS.find(s=>s.key===g.season)||GOALS_SEASONS[0];
             const itemColor = activeSeason==='all' ? sInfo.color : catColor;
             const seasonDot = activeSeason==='all' && g.season!=='all'
               ? '<span style="width:6px;height:6px;border-radius:50%;background:'+sInfo.color+';flex-shrink:0;display:inline-block;margin-right:2px;"></span>' : '';
-            const _ms=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-            const _mt = g.month ? ' · ' + _ms[g.month] : '';
+            const MS=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+            const mt = g.month ? ' · ' + MS[g.month] : '';
             const gStatus = g.done?'done':g.maybe?'maybe':'active';
             const checkBg = g.done?itemColor:g.maybe?'#F59E0B':'transparent';
             const checkBorder = g.done||g.maybe?checkBg:(itemColor+'44');
@@ -409,94 +403,23 @@ window.Screens.goals = function(mount) {
                 ? '<span style="color:#F59E0B;font-size:13px;font-weight:700;">?</span>'
                 : (g.amount>0?goalsFmt(g.amount):'');
             const rowOpacity = (g.done||g.maybe)?'0.6':'1';
-            return `<div class="goals-item-v3 ${gStatus}" data-idx="${idx}" data-gid="${g.id}" style="opacity:${rowOpacity};transition:opacity 0.3s;">
-              <div class="goals-check-v3 ${gStatus}" data-idx="${idx}" data-gid="${g.id}" style="background:${checkBg};border-color:${checkBorder};">
-                ${checkIcon}
-              </div>
-              ${seasonDot}
-              <span class="goals-item-v3-name" style="${g.done?'text-decoration:line-through;':''}">${g.name}<span style="font-size:10px;color:#9D9A92;">${_mt}</span></span>
-              <span class="goals-item-v3-amt">${amtDisplay}</span>
-            </div>`;
-          }).join('')}
-          <button class="goals-add-v3" data-cat="${cat}" data-season="${activeSeason}">+ добавить</button>
-        </div>`;
-    }).join('');
-
-    content.innerHTML = heroHtml + catsHtml + `
-      <button id="goals-new" class="goals-new-v3" style="--season-color:${color};">
-        <i class="ti ti-plus"></i> Новая цель
-      </button>`;
-
-    /* Чекбокс */
-    content.querySelectorAll('.goals-check-v3').forEach(el=>{
-      el.addEventListener('click',e=>{
-        e.stopPropagation();
-        const gid = el.dataset.gid;
-        const list = goalsGet();
-        const item = list.find(g=>g.id===gid);
-        if (!item) return;
-        /* Цикл: active → done → maybe → active */
-        const cur = item.done?'done':item.maybe?'maybe':'active';
-        if (cur==='active') { item.done=true; item.maybe=false; }
-        else if (cur==='done') { item.done=false; item.maybe=true; }
-        else { item.done=false; item.maybe=false; }
-        goalsSave(list);
-        window.dispatchEvent(new CustomEvent('goals-updated'));
-
-        /* ── Анимация без перезагрузки ── */
-        const isDone = list[idx].done;
-        const itemColor = el.style.getPropertyValue('--item-color') || '#9333EA';
-
-        /* Чекбокс */
-        el.style.transition = 'all 0.25s cubic-bezier(.34,1.56,.64,1)';
-        el.style.transform = 'scale(1.3)';
-        el.style.background = isDone ? '#9333EA' : '#16181E';
-        el.style.borderColor = isDone ? '#9333EA' : '#3A3D4544';
-        el.innerHTML = isDone ? '<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>' : '';
-        setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
-
-        /* Строка цели */
-        const row = el.closest('.goals-item-v3');
-        if (row) {
-          row.style.transition = 'opacity 0.3s';
-          row.style.opacity = isDone ? '0.5' : '1';
-          if (isDone) row.classList.add('done'); else row.classList.remove('done');
-          const nameEl = row.querySelector('.goals-item-v3-name');
-          if (nameEl) nameEl.style.textDecoration = isDone ? 'line-through' : '';
-          const amtEl = row.querySelector('.goals-item-v3-amt');
-          if (amtEl) {
-            amtEl.style.transition = 'all 0.3s';
-            amtEl.innerHTML = isDone
-              ? '<i class="ti ti-check" style="font-size:16px;transition:all 0.3s;"></i>'
-              : (list[idx].amount > 0 ? goalsFmt(list[idx].amount) : '');
-          }
-        }
-
-        /* Пересчёт суммы категории */
-        const cat = list[idx].cat;
-        const allList = goalsGet();
-        const catItems = allList.filter(g => g.cat === cat && (activeSeason==='all' || g.season===activeSeason));
-        const newCatTotal = catItems.filter(g => !g.done).reduce((s,g) => s + g.amount, 0);
-        const catTotalEl = content.querySelector('.goals-cat-total[data-cat="'+cat+'"]');
-        if (catTotalEl) {
-          catTotalEl.style.transition = 'all 0.4s';
-          catTotalEl.textContent = goalsFmt(newCatTotal);
-        }
-
-        /* Пересчёт hero суммы сезона */
-        const seasonItems = allList.filter(g => activeSeason==='all' ? true : g.season===activeSeason);
-        const newRemain = seasonItems.filter(g=>!g.done&&g.season!=='all').reduce((s,g)=>s+g.amount,0);
-        const newDone = seasonItems.filter(g=>g.done).length;
-        const newTotal = seasonItems.length;
-        const newPct = newTotal ? Math.round(newDone/newTotal*100) : 0;
-
-        const remainEl = content.querySelector('.goals-remain-val');
-        if (remainEl) { remainEl.style.transition='all 0.4s'; remainEl.textContent=goalsFmt(newRemain); }
-        const pctEl = content.querySelector('.goals-hero-pct-val');
-        if (pctEl) { pctEl.style.transition='all 0.4s'; pctEl.textContent=newPct+'%'; }
-        const fillEl = content.querySelector('.goals-all-bar, .hero-goals-fill');
-        if (fillEl) { fillEl.style.transition='width 0.6s ease'; fillEl.style.width=newPct+'%'; }
-      });
+            return '<div class="goals-item-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+g.id+'" style="opacity:'+rowOpacity+';transition:opacity 0.3s;">'
+              + '<div class="goals-check-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+g.id+'" style="background:'+checkBg+';border-color:'+checkBorder+';">'
+              + checkIcon + '</div>'
+              + seasonDot
+              + '<span class="goals-item-v3-name" style="'+(g.done?'text-decoration:line-through;':'')+'">'
+              + g.name+'<span style="font-size:10px;color:#9D9A92;">'+mt+'</span></span>'
+              + '<span class="goals-item-v3-amt">'+amtDisplay+'</span>'
+              + '</div>';
+          }).join('');
+      return '<div class="goals-cat-v3 '+(isGoal?'goals-cat-main':'')+'" style="--cat-color:'+catColor+';">'
+        + '<div class="goals-cat-v3-head">'
+        + '<span class="goals-cat-v3-title">'+(isGoal?'🎯 ':'')+' '+cat+'</span>'
+        + '<span class="goals-cat-total goals-cat-v3-total" data-cat="'+cat+'" style="color:'+catColor+';transition:all 0.4s;">'+goalsFmt(catTotal)+'</span>'
+        + '</div>'
+        + itemsHtml
+        + '<button class="goals-add-v3" data-cat="'+cat+'" data-season="'+activeSeason+'">+ добавить</button>'
+        + '</div>';
     });
 
     /* Редактирование по клику на имя/сумму */

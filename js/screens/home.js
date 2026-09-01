@@ -111,7 +111,7 @@ window.Screens.home = function(mount) {
     + '<div class="home2-header"><div>'
     + '<p class="home2-date">'+DOWS[now.getDay()]+', '+now.getDate()+' '+MONTHS[now.getMonth()]+'</p>'
     + '<h1 class="home2-title">NIK \u00b7 \u0421\u0438\u0441\u0442\u0435\u043c\u0430</h1>'
-    + '</div><button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button></div>'
+    + '</div><div style="display:flex;gap:8px;"><button class="home2-logout" id="slider-settings-btn" style="font-size:16px;"><i class="ti ti-settings"></i></button><button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button></div></div>'
     + '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides">'+slide1+slide2+slide3+'</div>'
     + '<div class="hero-dots">'

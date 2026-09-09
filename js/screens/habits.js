@@ -252,22 +252,18 @@ window.Screens.habits = function(mount) {
             <button id="hab-next" class="sec-back" style="width:28px;height:28px;" ${isNow?'disabled style="opacity:.3;"':''}><i class="ti ti-chevron-right"></i></button>
           </div>
         </div>
-        <div class="sec-metric-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
-          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
-            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Общий прогресс</div>
-            <div class="sec-metric-value accent hab-overall-pct" style="font-size:26px;font-weight:900;">${overallPct}%</div>
+        <div class="sec-metric-grid" style="grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
+            <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Прогресс</div>
+            <div class="sec-metric-value accent hab-overall-pct" style="font-size:28px;font-weight:900;line-height:1;">${overallPct}%</div>
           </div>
-          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
-            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Дней в месяце</div>
-            <div class="sec-metric-value" style="font-size:26px;font-weight:900;color:#E8E5DC;">${daysInMonth}</div>
+          <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
+            <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Лучшая</div>
+            <div class="sec-metric-value" style="font-size:12px;font-weight:700;color:#A8C97F;line-height:1.3;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
           </div>
-          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
-            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Лучшая</div>
-            <div class="sec-metric-value" style="font-size:13px;font-weight:700;color:#A8C97F;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
-          </div>
-          <div class="sec-metric" style="background:#1C1E24;border-radius:12px;padding:12px 14px;">
-            <div class="sec-metric-label" style="font-size:10px;color:#9D9A92;margin-bottom:4px;">Требует внимания</div>
-            <div class="sec-metric-value" style="font-size:13px;font-weight:700;color:#E0B873;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
+          <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
+            <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Подтянуть</div>
+            <div class="sec-metric-value" style="font-size:12px;font-weight:700;color:#E0B873;line-height:1.3;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
           </div>
         </div>
       </div>
@@ -318,7 +314,7 @@ window.Screens.habits = function(mount) {
 
                 return `
                   <tr>
-                    <td style="padding:6px 8px;white-space:nowrap;">
+                    <td style="padding:6px 8px;white-space:nowrap;position:sticky;left:0;z-index:4;background:#1A1C22;">
                       <div style="display:flex;align-items:center;gap:6px;cursor:pointer;" class="hab-name-edit" data-idx="${hi}">
                         <i class="ti ${h.icon}" style="color:#C8A84B;font-size:13px;"></i>
                         <span style="font-size:12px;">${h.name}</span>
@@ -615,9 +611,8 @@ window.Screens.habits = function(mount) {
     const allWheels = Store.get().habits?.wheel || {};
     const keys = Object.keys(allWheels).sort((a,b)=>b.localeCompare(a));
 
-    /* Текущий месяц */
-    const now = new Date();
-    const currentMk = habMonthKey(now.getFullYear(), now.getMonth());
+    /* Используем viewYear/viewMonth (тот же месяц что выбран на гриде) */
+    const currentMk = habMonthKey(viewYear, viewMonth);
     const currentData = wheelGetData(currentMk);
 
     content.innerHTML = `
@@ -625,8 +620,8 @@ window.Screens.habits = function(mount) {
         <div class="wheel-current-card">
           <div class="wheel-card-head">
             <div>
-              <div class="wheel-card-eyebrow">Текущий месяц</div>
-              <div class="wheel-card-title">${HAB_MONTHS_RU[now.getMonth()]} ${now.getFullYear()}</div>
+              <div class="wheel-card-eyebrow">${viewYear===new Date().getFullYear()&&viewMonth===new Date().getMonth()?'Текущий месяц':'Выбранный месяц'}</div>
+              <div class="wheel-card-title">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</div>
             </div>
             <button id="wheel-fill-now" class="wheel-fill-btn">
               ${currentData ? '✏️ Изменить' : '+ Заполнить'}

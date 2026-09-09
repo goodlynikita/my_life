@@ -69,8 +69,16 @@ function goalsGet() {
   return GOALS_INITIAL;
 }
 function goalsSave(list) {
-  /* ВАЖНО: пишем весь массив одним set, иначе старые индексы остаются в Firebase */
-  Store.set('goals.directions', list.filter(Boolean));
+  /* Пишем весь чистый массив. Сначала зануляем старые индексы чтобы не было дублей */
+  const clean = list.filter(Boolean);
+  const prev = Store.get().goals?.directions || [];
+  const prevArr = Array.isArray(prev) ? prev : Object.values(prev);
+  /* Зануляем лишние слоты если список стал короче */
+  for (let i = clean.length; i < prevArr.length; i++) {
+    Store.set('goals.directions.' + i, null);
+  }
+  /* Пишем каждый элемент отдельно чтобы Firebase не делал дубли */
+  clean.forEach((g, i) => Store.set('goals.directions.' + i, g));
 }
 function goalsFmt(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
@@ -221,6 +229,7 @@ window.Screens.goals = function(mount) {
       <div class="goals-season-tabs" id="goals-tabs" style="position:sticky;top:53px;z-index:15;"></div>
       <div id="goals-month-bar" style="display:none;position:sticky;top:97px;z-index:14;background:#1A1C22;border-bottom:1px solid #2A2D35;padding:6px 14px;"></div>
       <div class="goals-body" id="goals-content"></div>
+      <button id="goals-new" style="position:fixed;bottom:24px;right:20px;z-index:20;background:#A78BFA;color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:26px;cursor:pointer;box-shadow:0 4px 16px #A78BFA44;">+</button>
     </div>`;
 
   document.getElementById('gb').addEventListener('click',()=>Router.go('/home'));
@@ -282,6 +291,8 @@ window.Screens.goals = function(mount) {
 
     const items = activeSeason==='all' ? all : all.filter(g=>g.season===activeSeason);
     const monthsLeft = goalsMonthsLeft(activeSeason);
+    /* filteredByMonth = items с учётом фильтра по месяцу */
+    const filteredByMonth = (activeMonth > 0) ? items.filter(g=>!g.month||g.month===activeMonth) : items;
     /* totalAmt = все суммы сезона (включая закрытые) для показа общего */
     const totalAmt = filteredByMonth.filter(g=>g.season!=='all').reduce((s,g)=>s+g.amount,0);
     /* remainAmt = только активные (не закрытые, не под вопросом) */
@@ -300,7 +311,7 @@ window.Screens.goals = function(mount) {
     const catOrder = activeSeason==='all'
       ? ALL_CATS
       : [...new Set(items.map(g=>g.cat))];
-    const catSource = activeSeason==='all' ? all : items;
+    const catSource = activeSeason==='all' ? all : filteredByMonth;
     let cats = catOrder.filter(cat=>catSource.some(g=>g.cat===cat));
     /* Добавляем пользовательские категории которых нет в списке */
     [...new Set(catSource.map(g=>g.cat))].forEach(c=>{ if(!cats.includes(c)) cats.push(c); });
@@ -420,6 +431,24 @@ window.Screens.goals = function(mount) {
         + itemsHtml
         + '<button class="goals-add-v3" data-cat="'+cat+'" data-season="'+activeSeason+'">+ добавить</button>'
         + '</div>';
+    });
+
+    /* ── Рендер HTML ── */
+    const addNewCatBtn = '<div style="padding:16px;"><button class="goals-add-v3" data-cat="" data-season="'+activeSeason+'" style="width:100%;">+ новая категория</button></div>';
+    content.innerHTML = heroHtml + catsHtml.join('') + addNewCatBtn;
+
+    /* Чекбокс: закрыть/открыть цель */
+    content.querySelectorAll('.goals-check-v3').forEach(chk=>{
+      chk.addEventListener('click', e=>{
+        e.stopPropagation();
+        const gid = chk.dataset.gid;
+        const list = goalsGet();
+        const idx = list.findIndex(g=>g.id===gid);
+        if(idx<0) return;
+        list[idx] = {...list[idx], done: !list[idx].done, maybe: false};
+        goalsSave(list);
+        render();
+      });
     });
 
     /* Редактирование по клику на имя/сумму */

@@ -963,6 +963,8 @@
 .hab-dark .wheel-comment { color: #9D9A92 !important; }
 .hab-dark .wheel-history { background: #1C1E24 !important; border-color: #2A2D35 !important; }
 .hab-dark .wheel-hist-comment { color: #777 !important; }
+.hab-dark .wheel-hist-row { background: #1C1E24 !important; }
+.hab-dark .wheel-hist-row:hover { background: #22252E !important; }
 
 /* Goals hero all amounts white */
 .goals-hero-season-amount { color: #F0EDE5 !important; }

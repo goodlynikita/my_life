@@ -373,8 +373,9 @@ function trDayAllExercises(day) {
   return list;
 }
 
-function trCalcProgress(plan, weekIndex, exerciseName) {
-  const week1 = plan.weeks[0];
+function trCalcProgress(plan, weekIndex, exerciseName, baseWeekIndex) {
+  const _bi = (typeof baseWeekIndex === "number") ? baseWeekIndex : 0;
+  const week1 = plan.weeks[_bi] || plan.weeks[0];
   let baseline = null;
   for (const day of week1.days) {
     const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
@@ -529,7 +530,7 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
   const sign = progress.pct > 0 ? '+' : '';
   const diffStr = (progress.diff !== undefined && progress.diff !== 0)
-    ? ' ' + (progress.diff > 0 ? '+' : '') + progress.diff + ' кг'
+    ? ' ' + (progress.diff > 0 ? '+' : '') + (Math.round(progress.diff * 10) / 10) + ' кг'
     : '';
   const progressBadge = '<span class="tr-progress '+progress.dir+'">'+arrow+' '+sign+progress.pct+'%'+diffStr+'</span>';
   /* Двунаправленный прогресс-бар: центр = 0%, вправо = рост, влево = падение */
@@ -1535,9 +1536,15 @@ window.Screens.training = function (mount) {
       trAnimateBars(content);
       bindPlanEvents(plan);
     } else if (tab === 'working-weight') {
-      content.innerHTML = trRenderWorkingWeight(plan);
-      const wwEditBtn = document.getElementById('tr-edit-exercises-ww');
-      if (wwEditBtn) wwEditBtn.addEventListener('click', () => trOpenExerciseEditor());
+      let _baseWkIdx = 0;
+      const _renderWW = () => {
+        content.innerHTML = trRenderWorkingWeight(plan, _baseWkIdx);
+        const sel = document.getElementById('tr-base-week-sel');
+        if (sel) sel.addEventListener('change', () => { _baseWkIdx = parseInt(sel.value); _renderWW(); });
+        const editBtn = document.getElementById('tr-edit-exercises-ww');
+        if (editBtn) editBtn.addEventListener('click', trOpenExerciseEditor);
+      };
+      _renderWW();
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
       const addBtn = document.getElementById('tr-add-measure');
@@ -1704,7 +1711,10 @@ function trCollectGymExercises(plan) {
 
 const WORKING_WEIGHT_CATEGORIES = ['Грудь', 'Спина', 'Ноги', 'Руки', 'Плечи'];
 
-function trRenderWorkingWeight(plan) {
+function trRenderWorkingWeight(plan, baseWeekIndex) {
+  const _bw = (typeof baseWeekIndex === 'number') ? baseWeekIndex : 0;
+  const weekOpts = plan.weeks.map((w,i) => '<option value="'+i+'" '+(i===_bw?'selected':'')+'>'+(i===0?'Нед. 1 (первая)':'Нед. '+(i+1))+'</option>').join('');
+  const baseSelector = '<div style="padding:10px 16px 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:12px;color:#9D9A92;">Сравнивать с:</span><select id="tr-base-week-sel" style="background:#1C1E24;color:#E8E5DC;border:1px solid #2A2D35;border-radius:6px;padding:4px 8px;font-size:13px;">'+weekOpts+'</select></div>';
   const latest = trCollectGymExercises(plan);
   const names = Object.keys(latest);
   if (names.length === 0) {
@@ -1734,7 +1744,7 @@ function trRenderWorkingWeight(plan) {
 
     const exerciseRows = allForCat.map(name => {
       const { ex, weekIndex } = latest[name];
-      const progress = trCalcProgress(plan, weekIndex, name);
+      const progress = trCalcProgress(plan, weekIndex, name, _bw);
       const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
       const sign = progress.pct > 0 ? '+' : '';
       return `
@@ -1757,7 +1767,7 @@ function trRenderWorkingWeight(plan) {
       </div>`;
   }).filter(Boolean).join('');
 
-  return `<div>
+  return baseSelector + `<div>
     <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
       <button id="tr-edit-exercises-ww" style="font-size:11px; color:#9D9A92; background:none; border:1px solid #2A2D35; border-radius:6px; padding:4px 10px; cursor:pointer;">⚙ Редактор упражнений</button>
     </div>
@@ -2301,7 +2311,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
 
   const w1 = first.ex.weight;
   const wN = last.ex.weight;
-  const diff = wN - w1;
+  const diff = Math.round((wN - w1) * 10) / 10;
   const pct = w1 > 0 ? Math.round((diff / w1) * 100) : 0;
   const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
   const color = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#9D9A92';

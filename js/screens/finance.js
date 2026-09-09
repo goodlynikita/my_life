@@ -599,8 +599,8 @@ window.Screens.finance = function(mount) {
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #E5E7EB;">'
       +   '<span style="font-size:15px;font-weight:700;color:#111;">Ближайшие расходы</span>'
       +   '<div style="display:flex;gap:6px;">'
-      +     '<button id="exp-add-l" style="padding:5px 10px;border-radius:7px;border:1px solid #EF4444;color:#EF4444;background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Расход</button>'
-      +     '<button id="exp-add-r" style="padding:5px 10px;border-radius:7px;border:1px solid #16A34A;color:#16A34A;background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Потенциал</button>'
+      +     '<button id="exp-add-l" style="padding:3px 8px;border-radius:6px;border:1px solid #EF4444;color:#EF4444;background:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Расход</button>'
+      +     '<button id="exp-add-r" style="padding:3px 8px;border-radius:6px;border:1px solid #16A34A;color:#16A34A;background:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Потенциал</button>'
       +   '</div>'
       + '</div>'
       + '<div style="overflow-x:auto;">'
@@ -651,34 +651,61 @@ window.Screens.finance = function(mount) {
       });
     });
 
-    /* Drag left column */
-    var dragIdxL=null;
-    var tbody=document.getElementById('exp-body');
+    /* Drag: LEFT reorders name/amount, RIGHT reorders source/sourceAmt — independently */
+    var dragIdxL = null, dragIdxR = null;
+    var tbody = document.getElementById('exp-body');
+
     content.querySelectorAll('.exp-drag-l').forEach(function(td){
-      td.addEventListener('dragstart',function(e){
-        dragIdxL=parseInt(td.dataset.idx);
-        e.dataTransfer.effectAllowed='move';
-        tbody.querySelectorAll('tr[data-idx="'+dragIdxL+'"]').forEach(function(r){r.style.opacity='0.4';});
+      td.addEventListener('dragstart', function(e){
+        dragIdxL = parseInt(td.dataset.idx); dragIdxR = null;
+        e.dataTransfer.effectAllowed = 'move';
+        tbody.querySelectorAll('tr').forEach(function(r){r.style.opacity = r.dataset.idx==dragIdxL?'0.4':'1';});
       });
     });
-    if(tbody){
+    content.querySelectorAll('.exp-drag-r').forEach(function(td){
+      td.addEventListener('dragstart', function(e){
+        dragIdxR = parseInt(td.dataset.idx); dragIdxL = null;
+        e.dataTransfer.effectAllowed = 'move';
+        tbody.querySelectorAll('tr').forEach(function(r){r.style.opacity = r.dataset.idx==dragIdxR?'0.4':'1';});
+      });
+    });
+
+    if (tbody) {
       tbody.querySelectorAll('tr').forEach(function(row){
-        row.addEventListener('dragend',function(){
+        row.addEventListener('dragend', function(){
           tbody.querySelectorAll('tr').forEach(function(r){r.style.opacity='';r.style.background='';});
-          dragIdxL=null;
+          dragIdxL = null; dragIdxR = null;
         });
-        row.addEventListener('dragover',function(e){
+        row.addEventListener('dragover', function(e){
           e.preventDefault();
           tbody.querySelectorAll('tr').forEach(function(r){r.style.background='';});
-          row.style.background='#F0FDF4';
+          row.style.background = dragIdxR !== null ? '#F0FDF4' : '#FFF1F2';
         });
-        row.addEventListener('drop',function(e){
+        row.addEventListener('drop', function(e){
           e.preventDefault();
-          var tgt=parseInt(row.dataset.idx);
-          var src=dragIdxL;
-          if(src===null||src===tgt)return;
-          var l=expGetList();var m=l.splice(src,1)[0];l.splice(tgt,0,m);
-          expSaveList(l);renderExpenses();
+          var tgt = parseInt(row.dataset.idx);
+          var l = expGetList();
+          if (dragIdxL !== null && dragIdxL !== tgt) {
+            /* Shift only name+amount fields */
+            var src = dragIdxL;
+            var tmp = {name:l[src].name, amount:l[src].amount};
+            var dir = src < tgt ? 1 : -1;
+            for (var i=src; i!==tgt; i+=dir) {
+              l[i].name=l[i+dir].name; l[i].amount=l[i+dir].amount;
+            }
+            l[tgt].name=tmp.name; l[tgt].amount=tmp.amount;
+            expSaveList(l); renderExpenses();
+          } else if (dragIdxR !== null && dragIdxR !== tgt) {
+            /* Shift only source+sourceAmt fields */
+            var src = dragIdxR;
+            var tmp = {source:l[src].source, sourceAmt:l[src].sourceAmt};
+            var dir = src < tgt ? 1 : -1;
+            for (var i=src; i!==tgt; i+=dir) {
+              l[i].source=l[i+dir].source; l[i].sourceAmt=l[i+dir].sourceAmt;
+            }
+            l[tgt].source=tmp.source; l[tgt].sourceAmt=tmp.sourceAmt;
+            expSaveList(l); renderExpenses();
+          }
         });
       });
     }

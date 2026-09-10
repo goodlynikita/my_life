@@ -1280,18 +1280,3 @@
   letter-spacing: -0.02em;
   text-shadow: 0 0 12px color-mix(in srgb, var(--zone-color) 50%, transparent);
 }
-
-/* ── Fluid typography for training ── */
-.tr-title { font-size: var(--fs-lg) !important; }
-.tr-tab { font-size: var(--fs-sm) !important; }
-.tr-week-label { font-size: var(--fs-md) !important; }
-.tr-week-range { font-size: var(--fs-xs) !important; }
-.tr-day-date { font-size: var(--fs-sm) !important; }
-.tr-day-tag { font-size: var(--fs-xs) !important; }
-.tr-exercise-name { font-size: var(--fs-sm) !important; }
-.tr-set-detail-row input { font-size: var(--fs-xl) !important; }
-.tr-ww-name { font-size: var(--fs-sm) !important; }
-.tr-ww-num { font-size: var(--fs-sm) !important; }
-.tr-ww-weight { font-size: var(--fs-md) !important; }
-.tr-1rm-answer-num { font-size: clamp(40px, 10vw, 56px) !important; }
-.tr-1rm-title { font-size: var(--fs-xl) !important; }

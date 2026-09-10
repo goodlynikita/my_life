@@ -11,7 +11,7 @@ const Slides = (() => {
   const BLOCK_LIBRARY = [
     /* Тренировки */
     {
-      id: 'workout_today',  section: 'Тренировки',
+      id: 'workout_today', section: 'Тренировки',
       name: 'Тренировка сегодня',
       desc: 'Группы мышц / тип тренировки на сегодня',
       render: (store) => {
@@ -28,11 +28,11 @@ const Slides = (() => {
             });
         }));
         const text = groups.join(' + ') || 'Отдых';
-        return `<div class="sb-big">${text}</div>`;
+        return `<div class="hero-big-text">${text}</div>`;
       },
     },
     {
-      id: 'habits_today',  section: 'Привычки',
+      id: 'habits_today', section: 'Привычки',
       name: 'Привычки сегодня',
       desc: 'X/Y выполнено сегодня',
       render: (store) => {
@@ -41,7 +41,7 @@ const Slides = (() => {
         const list  = (store.habits?.list||[]).filter(Boolean);
         const marks = (store.habits?.months||{})[`${now.getFullYear()}-${mm}`]||{};
         const done  = list.filter(h=>marks[h.id]?.[now.getDate()]==='done').length;
-        return `<div class="sb-big">${done}<span class="sb-of">/${list.length}</span></div><div class="sb-label">привычек выполнено</div>`;
+        return `<div class="hero-stat-num">${done}<span class="hero-stat-of">/${list.length}</span></div><div class="hero-stat-lbl">привычек</div>`;
       },
     },
     {
@@ -49,22 +49,21 @@ const Slides = (() => {
       name: 'Лучший стрик',
       desc: 'Максимальная серия дней среди всех привычек',
       render: (store) => {
-        const list  = (store.habits?.list||[]).filter(Boolean);
+        const list   = (store.habits?.list||[]).filter(Boolean);
         const months = store.habits?.months||{};
         let best = 0, bestName = '—';
         list.forEach(h => {
           let streak = 0, max = 0;
           const now = new Date();
-          for (let i=0; i<90; i++) {
+          for (let i=0;i<90;i++) {
             const d = new Date(now); d.setDate(d.getDate()-i);
             const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
             const mark = months[mk]?.[h.id]?.[d.getDate()];
-            if (mark==='done') { streak++; max=Math.max(max,streak); }
-            else streak=0;
+            if (mark==='done'){streak++;max=Math.max(max,streak);}else streak=0;
           }
-          if (max>best) { best=max; bestName=h.name; }
+          if (max>best){best=max;bestName=h.name;}
         });
-        return `<div class="sb-big">🔥${best}</div><div class="sb-label">${bestName}</div>`;
+        return `<div class="hero-stat-num">🔥${best}</div><div class="hero-stat-lbl">${bestName}</div>`;
       },
     },
     {
@@ -77,7 +76,7 @@ const Slides = (() => {
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income  = entries.reduce((s,e)=>s+((e?.amount)||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        return `<div class="sb-big">${income>0?fmt(income):'—'}</div><div class="sb-label">доход</div>`;
+        return `<div class="hero-big-text">${income>0?fmt(income):'Нет данных'}</div>`;
       },
     },
     {
@@ -92,8 +91,8 @@ const Slides = (() => {
         const planned = store.home?.plannedExpenses || 97000;
         const cushion = income - planned;
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        const color = cushion>=0 ? '#4ADE80' : '#F87171';
-        return `<div class="sb-big" style="color:${color}">${cushion>=0?'+':'−'}${fmt(cushion)}</div><div class="sb-label">${cushion>=0?'подушка':'дефицит'}</div>`;
+        const color = cushion>=0?'#4ADE80':'#F87171';
+        return `<div class="hero-stat-num" style="color:${color}">${fmt(cushion)}</div><div class="hero-stat-lbl">${cushion>=0?'подушка':'не хватает'}</div>`;
       },
     },
     {
@@ -104,7 +103,7 @@ const Slides = (() => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const done  = goals.filter(g=>g.done).length;
         const pct   = goals.length ? Math.round(done/goals.length*100) : 0;
-        return `<div class="sb-big">${pct}%</div><div class="sb-label">${done} из ${goals.length} закрыто</div>`;
+        return `<div class="hero-big-text">${pct}%</div>`;
       },
     },
     {
@@ -118,7 +117,7 @@ const Slides = (() => {
         const left   = goals.filter(g=>g.season===season&&!g.done&&!g.maybe).reduce((s,g)=>s+(g.amount||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const names  = {summer:'Лето',autumn:'Осень',december:'Декабрь'};
-        return `<div class="sb-big">${fmt(left)}</div><div class="sb-label">цели ${names[season]}</div>`;
+        return `<div class="hero-stat-num" style="font-size:13px;">${fmt(left)}</div><div class="hero-stat-lbl">цели ${names[season]}</div>`;
       },
     },
     {
@@ -129,14 +128,14 @@ const Slides = (() => {
         const now = new Date();
         const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
         const DOWS = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
-        return `<div class="sb-big">${now.getDate()} ${MONTHS[now.getMonth()]}</div><div class="sb-label">${DOWS[now.getDay()]}</div>`;
+        return `<div class="hero-stat-num">${now.getDate()}</div><div class="hero-stat-lbl">${MONTHS[now.getMonth()]}</div>`;
       },
     },
     {
       id: 'custom_text', section: 'Кастом',
       name: 'Свой текст',
       desc: 'Любой заголовок и подпись — ты вводишь сам',
-      render: (store, cfg) => `<div class="sb-big" style="font-size:clamp(20px,5vw,28px);line-height:1.2;">${cfg?.text||'Твой текст'}</div>${cfg?.sub?`<div class="sb-label">${cfg.sub}</div>`:''}`,
+      render: (store, cfg) => `<div class="hero-big-text">${cfg?.text||'Твой текст'}</div>${cfg?.sub?`<div class="hero-sub-text">${cfg.sub}</div>`:''}`,
     },
     {
       id: 'custom_goal', section: 'Кастом',
@@ -145,10 +144,10 @@ const Slides = (() => {
       render: (store, cfg) => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const g = goals.find(x=>x.id===cfg?.goalId) || goals[0];
-        if (!g) return `<div class="sb-big">—</div>`;
+        if (!g) return `<div class="hero-big-text">—</div>`;
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const icon = g.done?'✅':g.maybe?'❓':'⬜';
-        return `<div class="sb-big" style="font-size:clamp(16px,4vw,22px);line-height:1.3;">${icon} ${g.name}</div><div class="sb-label">${g.amount?fmt(g.amount):''}</div>`;
+        return `<div class="hero-stat-num">${icon} ${g.name}</div><div class="hero-stat-lbl">${g.amount?fmt(g.amount):''}</div>`;
       },
     },
   ];
@@ -180,21 +179,32 @@ const Slides = (() => {
 
   function saveSlides(slides) { Store.set('home.slides', slides); }
 
-  /* ── Рендер одного слайда по конфигу ── */
+  /* ── Рендер одного слайда — структура как в оригинале ── */
   function renderSlide(cfg, store) {
-    const blocks = (cfg.blocks||[]).map(bid => {
+    const rendered = (cfg.blocks||[]).map(bid => {
       const def = BLOCK_LIBRARY.find(b=>b.id===bid);
-      if (!def) return '';
+      if (!def) return null;
       const blockCfg = cfg.blockCfgs?.[bid];
-      try { return `<div class="sb-block">${def.render(store, blockCfg)}</div>`; }
-      catch(e) { return ''; }
-    }).join('');
+      try { return { html: def.render(store, blockCfg) }; }
+      catch(e) { return null; }
+    }).filter(Boolean);
+
+    /* Первый блок — главный (big text в центре), остальные — статы внизу */
+    const mainHtml  = rendered[0] ? `<div class="hero-slide-main">${rendered[0].html}</div>` : '';
+    const statsHtml = rendered.slice(1).map(b =>
+      `<div class="sb-block">${b.html}</div>`
+    ).join('<div class="hero-stat-sep"></div>');
+    const subHtml = statsHtml
+      ? `<div class="hero-slide-sub"><div class="hero-stat-row">${statsHtml}</div></div>`
+      : '';
 
     const route = cfg.route ? ` data-route="${cfg.route}"` : '';
+    const glowColor = cfg.glowColor || '#4A7CFF';
     return `<div class="hero-slide" style="background:${cfg.color||'#1A1C22'}"${route}>
       <div class="hero-slide-label">${cfg.label||''}</div>
-      <div class="sb-blocks">${blocks}</div>
-      <div class="hero-slide-glow" style="background:radial-gradient(ellipse at 80% 50%, ${cfg.glowColor||cfg.color||'#4A7CFF'}44 0%, transparent 70%);"></div>
+      ${mainHtml}
+      ${subHtml}
+      <div class="hero-slide-glow" style="background:radial-gradient(ellipse at 80% 50%,${glowColor}44 0%,transparent 70%);"></div>
     </div>`;
   }
 

@@ -1224,28 +1224,13 @@
   background-clip: text;
 }
 
-/* ══════════════════════════════════════
-   FLUID TYPOGRAPHY — responsive sizing
-   ══════════════════════════════════════ */
+.goals-item-v3-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Habits */
-.hab-screen-title { font-size: var(--fs-xl) !important; }
-.hab-tab { font-size: var(--fs-sm) !important; }
-.sec-card-title { font-size: var(--fs-sm) !important; }
-.sec-metric-value { font-size: var(--fs-2xl) !important; }
-.sec-metric-label { font-size: var(--fs-xs) !important; }
-.hab-cell { font-size: var(--fs-xs) !important; }
-table th { font-size: var(--fs-xs) !important; }
-table td { font-size: var(--fs-sm) !important; }
+/* ── Привычки: таблица в одну строку ── */
+.hab-dark table td { white-space: nowrap; }
+.hab-dark table th { white-space: nowrap; }
+.hab-dark .hab-name-edit { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
 
-/* Goals */
-.goals-season-tab { font-size: var(--fs-sm) !important; }
-.goals-cat-v3-title { font-size: var(--fs-md) !important; }
-.goals-item-v3-name { font-size: var(--fs-sm) !important; }
-.goals-item-v3-amt { font-size: var(--fs-sm) !important; }
-.goals-hero-season-amount { font-size: var(--fs-2xl) !important; }
-.goals-sstat-label { font-size: var(--fs-xs) !important; }
-.goals-sstat-val { font-size: var(--fs-sm) !important; }
-
-/* Finance */
-.tochka-tab { font-size: var(--fs-sm) !important; }
+/* ── Цели: одна строка ── */
+.goals-item-v3-name { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.goals-item-v3 { flex-wrap: nowrap !important; }

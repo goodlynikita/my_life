@@ -126,37 +126,3 @@ button { font-family: inherit; }
   font-weight: 700;
   letter-spacing: -0.01em;
 }
-
-/* ── Fluid typography: маленький на десктопе, нормальный на телефоне ──
-   clamp(min, preferred, max)
-   На ноуте (1200px): ближе к min
-   На телефоне (375px): ближе к max                                    */
-:root {
-  --fs-xs:   clamp(9px,  1.8vw, 11px);
-  --fs-sm:   clamp(10px, 2.2vw, 13px);
-  --fs-base: clamp(12px, 2.8vw, 15px);
-  --fs-md:   clamp(13px, 3.2vw, 16px);
-  --fs-lg:   clamp(15px, 3.8vw, 19px);
-  --fs-xl:   clamp(18px, 4.5vw, 24px);
-  --fs-2xl:  clamp(22px, 5.5vw, 32px);
-  --fs-hero: clamp(28px, 7vw,   48px);
-}
-
-/* Base body font — адаптивный */
-body {
-  font-size: var(--fs-base);
-}
-
-/* ── Desktop clamp: на широких экранах делаем компоненты чуть компактнее ── */
-@media (min-width: 768px) {
-  :root {
-    --fs-xs:   10px;
-    --fs-sm:   11px;
-    --fs-base: 13px;
-    --fs-md:   14px;
-    --fs-lg:   16px;
-    --fs-xl:   20px;
-    --fs-2xl:  26px;
-    --fs-hero: 36px;
-  }
-}

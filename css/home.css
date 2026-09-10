@@ -650,44 +650,48 @@ html, body {
   transition: box-shadow 0.2s ease;
 }
 
-/* ── Fluid hero stats ── */
-.hero-stat-num { font-size: var(--fs-xl) !important; }
-.hero-stat-lbl { font-size: var(--fs-xs) !important; }
-.hero-slide-label { font-size: var(--fs-xs) !important; }
-.home2-tile-name { font-size: var(--fs-md) !important; }
-.home2-tile-desc { font-size: var(--fs-xs) !important; }
-.home2-title { font-size: var(--fs-2xl) !important; }
-.home2-date { font-size: var(--fs-sm) !important; }
 
-/* ── Slide blocks (Slides.js) ── */
+
+/* ── Slide blocks — горизонтальный layout как в оригинале ── */
 .sb-blocks {
-  padding: 12px 20px 8px;
+  padding: 0 20px 12px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: flex-end;
 }
 .sb-block {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.sb-block + .sb-block {
+  border-left: 1px solid rgba(255,255,255,0.12);
+  padding-left: 14px;
+  margin-left: 14px;
 }
 .sb-big {
-  font-size: clamp(24px, 7vw, 40px);
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 800;
   color: #F2F4F8;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   font-family: 'Montserrat', sans-serif;
 }
 .sb-of {
-  font-size: 0.55em;
-  color: rgba(242,244,248,.5);
+  font-size: 0.6em;
+  color: rgba(242,244,248,0.5);
   font-weight: 700;
 }
 .sb-label {
-  font-size: clamp(10px, 2.5vw, 13px);
-  color: rgba(242,244,248,.55);
+  font-size: 11px;
+  color: rgba(242,244,248,0.55);
   font-weight: 500;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

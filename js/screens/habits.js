@@ -232,7 +232,10 @@ window.Screens.habits = function(mount) {
           <button class="hab-back-btn" id="hab-back"><i class="ti ti-arrow-left"></i></button>
           <p class="hab-screen-title">Привычки</p>
         </div>
-        <button class="hab-back-btn" id="hab-logout"><i class="ti ti-logout"></i></button>
+        <div style="display:flex;gap:6px;">
+          <button class="hab-back-btn" id="hab-settings"><i class="ti ti-settings"></i></button>
+          <button class="hab-back-btn" id="hab-logout"><i class="ti ti-logout"></i></button>
+        </div>
       </div>
       <div class="hab-tabs" style="position:sticky;top:53px;z-index:10;">
         <button class="hab-tab active" data-tab="grid">Месяц</button>
@@ -244,6 +247,73 @@ window.Screens.habits = function(mount) {
 
     document.getElementById('hab-back').addEventListener('click', () => Router.go('/home'));
   document.getElementById('hab-logout').addEventListener('click', () => { Auth.logout(); Router.go('/login'); });
+
+  /* ── Настройки привычек ── */
+  document.getElementById('hab-settings').addEventListener('click', () => {
+    const habits = habGetList();
+    const ov = document.createElement('div');
+    ov.className = 'tr-modal-overlay';
+    ov.style.cssText = 'align-items:flex-end;padding:0;';
+
+    function renderSettings() {
+      const list = habGetList();
+      const itemsHtml = list.map((h, i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #1E2028;">
+          <span style="font-size:18px;">${h.icon||'⭐'}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:600;color:#E8E5DC;font-family:Montserrat,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name}</div>
+            <div style="font-size:11px;color:#555;margin-top:1px;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?(h.target||3)+'×/нед':'каждый день'}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="hab-set-edit" data-idx="${i}" style="padding:5px 10px;border-radius:8px;border:1px solid #2A2D35;background:none;color:#9D9A92;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;">Изменить</button>
+            <button class="hab-set-del" data-idx="${i}" style="padding:5px 8px;border-radius:8px;border:1px solid #3A1A1A;background:none;color:#FF5C5C;font-size:11px;cursor:pointer;">✕</button>
+          </div>
+        </div>`).join('');
+
+      ov.innerHTML = `<div style="background:#13151A;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;max-height:88vh;display:flex;flex-direction:column;">
+        <div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Настройки привычек</span>
+          <button id="hab-set-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;padding:14px 0 6px;">Список привычек</div>
+          ${itemsHtml||'<div style="color:#555;font-size:13px;padding:16px 0;">Нет привычек</div>'}
+          <button id="hab-set-add" style="width:100%;margin-top:14px;padding:13px;background:#A8C97F;border:none;border-radius:12px;color:#1A1C22;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">+ Добавить привычку</button>
+        </div>
+      </div>`;
+
+      ov.querySelector('#hab-set-close').addEventListener('click', () => ov.remove());
+      ov.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
+
+      ov.querySelector('#hab-set-add').addEventListener('click', () => {
+        ov.remove();
+        openHabitModal(null, () => { render(); });
+      });
+
+      ov.querySelectorAll('.hab-set-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          ov.remove();
+          openHabitModal(habGetList()[idx], () => { render(); });
+        });
+      });
+
+      ov.querySelectorAll('.hab-set-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          if (!confirm('Удалить привычку?')) return;
+          const list2 = habGetList();
+          list2.splice(idx, 1);
+          Store.set('habits.list', list2);
+          render();
+          renderSettings();
+        });
+      });
+    }
+
+    document.body.appendChild(ov);
+    renderSettings();
+  });
   mount.querySelectorAll('.hab-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       mount.querySelectorAll('.hab-tab').forEach(b => b.classList.remove('active'));

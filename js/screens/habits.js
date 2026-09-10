@@ -129,10 +129,7 @@ function habOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
-  overlay.style.zIndex = '200';
-  overlay.style.alignItems = 'center';
-  overlay.style.justifyContent = 'center';
-  overlay.style.padding = '20px';
+  overlay.setAttribute('style', 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;');
 
   const ICONS = ['ti-star','ti-bolt','ti-apple','ti-barbell','ti-device-mobile',
     'ti-book','ti-run','ti-heart','ti-moon','ti-sun','ti-drop',
@@ -425,7 +422,7 @@ window.Screens.habits = function(mount) {
                       ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${h.description}</div>`:''}
                       <div style="display:flex;align-items:center;gap:6px;margin-left:19px;margin-top:1px;">
                         <span style="font-size:9px;color:#555;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?`${h.target}×/нед`:'каждый день'}</span>
-                        ${(()=>{const s=habStreak(h,Store.get());return s>=2?`<span style="font-size:9px;font-weight:700;color:#F59E0B;">🔥 ${s}</span>`:s===1?'<span style="font-size:9px;color:#9D9A92;">🔥 1</span>':''})()}
+                        ${(()=>{const s=habStreak(h,Store.get());if(!s)return '';const c=s>=14?'#FF4500':s>=7?'#F59E0B':s>=3?'#FB923C':'#9D9A92';return `<span style="display:inline-flex;align-items:center;gap:3px;background:${c}18;border:1px solid ${c}44;border-radius:20px;padding:1px 6px;margin-left:2px;"><svg width="7" height="9" viewBox="0 0 8 10" fill="${c}"><path d="M4 0C4 0 6.5 3 6.5 5.5C6.5 7.5 5.4 9 4 9C2.6 9 1.5 7.5 1.5 5.5C1.5 4 2.5 2.5 3 1.5C3 1.5 2 3 2.5 4.5C3 4 3.5 3 4 0Z"/></svg><span style="font-size:10px;font-weight:700;color:${c};">${s}</span></span>`})()}
                       </div>
                     </td>
                     ${cells}

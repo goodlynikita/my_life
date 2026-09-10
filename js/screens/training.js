@@ -1148,11 +1148,11 @@ function trRender1RMCalc() {
   return `<div class="tr-1rm-wrap">
     <div class="tr-1rm-hero">
       <div class="tr-1rm-title">Калькулятор 1RM</div>
-      <div class="tr-1rm-sub">Формула Эпли · weight × (1 + reps / 30)</div>
+      <div class="tr-1rm-sub">weight × (1 + reps / 30) · Epley</div>
     </div>
     <div class="tr-1rm-inputs">
       <label class="tr-1rm-label">
-        <span>Вес (кг)</span>
+        <span>Вес, кг</span>
         <input id="rm-weight" type="number" inputmode="decimal" placeholder="100" min="1" max="500" step="0.5" class="tr-1rm-input">
       </label>
       <div class="tr-1rm-x">×</div>
@@ -1616,8 +1616,8 @@ window.Screens.training = function (mount) {
           resultEl.innerHTML = `
             <div class="tr-1rm-answer">
               <div class="tr-1rm-answer-label">Расчётный максимум</div>
-              <div class="tr-1rm-answer-num">${rm} <span>кг</span></div>
-              <div class="tr-1rm-answer-sub">при ${w} кг × ${r} повт.</div>
+              <div class="tr-1rm-answer-num">${rm}<span> кг</span></div>
+              <div class="tr-1rm-answer-sub">${w} кг × ${r} повт.</div>
             </div>
             <div class="tr-1rm-zones-title">Зоны нагрузки</div>
             <div class="tr-1rm-zones">${zonesHtml}</div>`;

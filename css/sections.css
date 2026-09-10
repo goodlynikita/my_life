@@ -1191,3 +1191,77 @@
 /* ── Привычки: убираем лишний отступ снизу ── */
 .hab-body { padding-bottom: 32px !important; }
 .hab-dark .sec-card:last-child { margin-bottom: 0 !important; }
+
+/* ═══════════════════════════════════════
+   FIX 6: Цветные шапки всех разделов
+   ═══════════════════════════════════════ */
+
+/* Тренировки — синяя шапка */
+.tr-header {
+  background: linear-gradient(135deg, #0F2456 0%, #1a3a7a 100%) !important;
+}
+
+/* Привычки — зелёная шапка */
+.hab-header {
+  background: linear-gradient(135deg, #0a2e14 0%, #166534 100%) !important;
+}
+.hab-tabs {
+  background: linear-gradient(135deg, #0d3519 0%, #1a4a28 100%) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+.hab-tab { color: rgba(255,255,255,0.5) !important; }
+.hab-tab.active { color: #4ade80 !important; border-bottom-color: #4ade80 !important; }
+
+/* Цели — пурпурная шапка */
+.goals-header {
+  background: linear-gradient(135deg, #2d1057 0%, #4c1d95 100%) !important;
+}
+.goals-season-tabs {
+  background: linear-gradient(135deg, #2d1057 0%, #4c1d95 100%) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+.goals-season-tab {
+  color: rgba(255,255,255,0.5) !important;
+}
+.goals-season-tab.active {
+  color: #fff !important;
+  border-bottom-color: #fff !important;
+}
+
+/* FIX 8: Sticky tabs everywhere */
+.hab-tabs {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 15 !important;
+}
+.goals-season-tabs {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 15 !important;
+}
+
+/* FIX 9: Smaller font in metrics to prevent wrapping */
+.sec-metric-value { font-size: 18px !important; white-space: nowrap; }
+.sec-metric-label { font-size: 9px !important; }
+.goals-sstat-val { font-size: 12px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.goals-sstat-label { font-size: 9px !important; }
+.goals-season-stats { gap: 4px !important; }
+.goals-season-stat { padding: 6px 6px !important; }
+
+/* FIX 10: Goals month filter buttons - match season color */
+#goals-month-bar {
+  background: linear-gradient(135deg, #2d1057 0%, #4c1d95 100%) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+/* FIX 12: Prevent zoom, app-like behavior */
+html, body {
+  touch-action: pan-x pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+input, textarea, select {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}

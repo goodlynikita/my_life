@@ -2,7 +2,7 @@
   "name": "NIK · Система",
   "short_name": "Система",
   "description": "Личный трекер: привычки, цели, финансы, тренировки",
-  "start_url": "/",
+  "start_url": "/my_life/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#11141C",
@@ -18,43 +18,44 @@
   "shortcuts": [
     {
       "name": "Привычки",
-      "url": "/?r=/habits",
+      "url": "/my_life/?r=/habits",
       "icons": [
         {
-          "src": "icon.svg",
+          "src": "icon.png",
           "sizes": "any"
         }
       ]
     },
     {
       "name": "Тренировки",
-      "url": "/?r=/training",
+      "url": "/my_life/?r=/training",
       "icons": [
         {
-          "src": "icon.svg",
+          "src": "icon.png",
           "sizes": "any"
         }
       ]
     },
     {
       "name": "Цели",
-      "url": "/?r=/goals",
+      "url": "/my_life/?r=/goals",
       "icons": [
         {
-          "src": "icon.svg",
+          "src": "icon.png",
           "sizes": "any"
         }
       ]
     },
     {
       "name": "Финансы",
-      "url": "/?r=/finance",
+      "url": "/my_life/?r=/finance",
       "icons": [
         {
-          "src": "icon.svg",
+          "src": "icon.png",
           "sizes": "any"
         }
       ]
     }
-  ]
+  ],
+  "scope": "/my_life/"
 }

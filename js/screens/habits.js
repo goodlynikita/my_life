@@ -129,7 +129,7 @@ function habOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
-  overlay.setAttribute('style', 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:flex-end;justify-content:center;z-index:300;padding:0;';
 
   const ICONS = ['ti-star','ti-bolt','ti-apple','ti-barbell','ti-device-mobile',
     'ti-book','ti-run','ti-heart','ti-moon','ti-sun','ti-drop',
@@ -260,10 +260,10 @@ window.Screens.habits = function(mount) {
       const list = habGetList();
       const itemsHtml = list.map((h, i) => `
         <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #1E2028;">
-          <span style="font-size:18px;">${h.icon||'⭐'}</span>
+          <i class="ti ${h.icon||'ti-star'}" style="font-size:20px;color:#C8A84B;width:24px;text-align:center;"></i>
           <div style="flex:1;min-width:0;">
             <div style="font-size:14px;font-weight:600;color:#E8E5DC;font-family:Montserrat,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name}</div>
-            <div style="font-size:11px;color:#555;margin-top:1px;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?(h.target||3)+'×/нед':'каждый день'}</div>
+            <div style="font-size:11px;color:#555;margin-top:1px;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?(h.target||3)+'×/нед':h.schedule==='weekday'?'пн–пт':'каждый день'}</div>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="hab-set-edit" data-idx="${i}" style="padding:5px 10px;border-radius:8px;border:1px solid #2A2D35;background:none;color:#9D9A92;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;">Изменить</button>

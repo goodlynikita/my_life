@@ -398,29 +398,36 @@
 .tr-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  z-index: 100;
-  padding: 20px;
+  z-index: 200;
+  padding: 0;
 }
 
 .tr-modal {
   width: 100%;
-  max-width: 360px;
-  background: var(--tr-void-card);
-  border: 0.5px solid var(--tr-steel-line);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  max-width: 520px;
+  background: #1A1C22;
+  border: none;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px max(24px, env(safe-area-inset-bottom));
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 -4px 40px rgba(0,0,0,0.4);
 }
 
+/* Title row with close button */
 .tr-modal-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--tr-bone);
-  margin: 0 0 1rem;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #E8E5DC !important;
+  margin: 0 0 20px !important;
+  font-family: Montserrat, sans-serif !important;
 }
+
 
 .tr-modal-row {
   display: flex;
@@ -465,15 +472,18 @@
   display: flex;
   gap: 10px;
   margin-top: 1.25rem;
+  flex-wrap: wrap;
 }
 
 .tr-modal-btn-primary, .tr-modal-btn-secondary {
   flex: 1;
-  height: 42px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 600;
+  min-width: 120px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
+  font-family: Montserrat, sans-serif;
 }
 
 .tr-modal-btn-primary {

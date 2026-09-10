@@ -1594,13 +1594,22 @@ window.Screens.training = function (mount) {
       };
       _renderWW();
     } else if (tab === 'one-rm') {
+      /* Сохраняем последний результат чтобы не слетал */
+      const _saved1rm = window._last1rmState || {};
       content.innerHTML = trRender1RMCalc();
       const calcBtn = document.getElementById('rm-calc-btn');
+      const wEl = document.getElementById('rm-weight');
+      const rEl = document.getElementById('rm-reps');
+      /* Восстанавливаем прошлые значения */
+      if (_saved1rm.w) wEl.value = _saved1rm.w;
+      if (_saved1rm.r) rEl.value = _saved1rm.r;
+
       if (calcBtn) {
         const doCalc = () => {
-          const w = parseFloat(document.getElementById('rm-weight').value);
-          const r = parseInt(document.getElementById('rm-reps').value);
+          const w = parseFloat(wEl.value);
+          const r = parseInt(rEl.value);
           if (!w || !r || w <= 0 || r <= 0) return;
+          window._last1rmState = { w, r };
           const rm = calc1RM(w, r);
           const zones = get1RMZones(rm);
           const zonesHtml = zones.map(z => `
@@ -1622,13 +1631,14 @@ window.Screens.training = function (mount) {
             <div class="tr-1rm-zones-title">Зоны нагрузки</div>
             <div class="tr-1rm-zones">${zonesHtml}</div>`;
           resultEl.style.display = 'block';
-          resultEl.style.animation = 'tr-1rm-in 0.35s var(--ease) both';
         };
         calcBtn.addEventListener('click', doCalc);
-        ['rm-weight','rm-reps'].forEach(id => {
-          document.getElementById(id)?.addEventListener('keydown', e => { if(e.key==='Enter') doCalc(); });
+        [wEl, rEl].forEach(el => {
+          el?.addEventListener('keydown', e => { if(e.key==='Enter') doCalc(); });
         });
-        setTimeout(() => document.getElementById('rm-weight')?.focus(), 100);
+        /* Если были предыдущие значения - показываем результат сразу */
+        if (_saved1rm.w && _saved1rm.r) doCalc();
+        else setTimeout(() => wEl?.focus(), 100);
       }
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
@@ -1798,8 +1808,8 @@ const WORKING_WEIGHT_CATEGORIES = ['Грудь', 'Спина', 'Ноги', 'Ру
 
 function trRenderWorkingWeight(plan, baseWeekIndex) {
   const _bw = (typeof baseWeekIndex === 'number') ? baseWeekIndex : 0;
-  const weekOpts = plan.weeks.map((w,i) => '<option value="'+i+'" '+(i===_bw?'selected':'')+'>'+(i===0?'Нед. 1 (первая)':'Нед. '+(i+1))+'</option>').join('');
-  const baseSelector = '<div style="padding:10px 16px 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:12px;color:#9D9A92;">Сравнивать с:</span><select id="tr-base-week-sel" style="background:#1C1E24;color:#E8E5DC;border:1px solid #2A2D35;border-radius:6px;padding:4px 8px;font-size:13px;">'+weekOpts+'</select></div>';
+  const weekOpts = plan.weeks.map((w,i) => '<option value="'+i+'" '+(i===_bw?'selected':'')+'>'+'Нед. '+(i+1)+'</option>').join('');
+  const baseSelector = '<div style="padding:8px 16px 4px;display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:#9D9A92;white-space:nowrap;">База:</span><select id="tr-base-week-sel" style="background:#1C1E24;color:#E8E5DC;border:1px solid #2A2D35;border-radius:6px;padding:3px 6px;font-size:12px;">'+weekOpts+'</select></div>';
   const latest = trCollectGymExercises(plan);
   const names = Object.keys(latest);
   if (names.length === 0) {

@@ -643,8 +643,9 @@ window.Screens.habits = function(mount) {
     const allWheels = Store.get().habits?.wheel || {};
     const keys = Object.keys(allWheels).sort((a,b)=>b.localeCompare(a));
 
-    /* Используем viewYear/viewMonth (тот же месяц что выбран на гриде) */
-    const currentMk = habMonthKey(viewYear, viewMonth);
+    /* Колесо — всегда реальный текущий месяц (не зависит от навигации по гриду) */
+    const _wNow = new Date();
+    const currentMk = habMonthKey(_wNow.getFullYear(), _wNow.getMonth());
     const currentData = wheelGetData(currentMk);
 
     content.innerHTML = `
@@ -652,8 +653,8 @@ window.Screens.habits = function(mount) {
         <div class="wheel-current-card">
           <div class="wheel-card-head">
             <div>
-              <div class="wheel-card-eyebrow">${viewYear===new Date().getFullYear()&&viewMonth===new Date().getMonth()?'Текущий месяц':'Выбранный месяц'}</div>
-              <div class="wheel-card-title">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</div>
+              <div class="wheel-card-eyebrow">Текущий месяц</div>
+              <div class="wheel-card-title">${HAB_MONTHS_RU[_wNow.getMonth()]} ${_wNow.getFullYear()}</div>
             </div>
             <button id="wheel-fill-now" class="wheel-fill-btn">
               ${currentData ? '✏️ Изменить' : '+ Заполнить'}

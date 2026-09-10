@@ -284,8 +284,8 @@ window.Screens.goals = function(mount) {
 
     const items = activeSeason==='all' ? all : all.filter(g=>g.season===activeSeason);
     const monthsLeft = goalsMonthsLeft(activeSeason);
-    /* filteredByMonth = items с учётом фильтра по месяцу */
-    const filteredByMonth = (activeMonth > 0) ? items.filter(g=>!g.month||g.month===activeMonth) : items;
+    /* filteredByMonth = при активном фильтре — только цели с этим месяцем (без месяца не показываем) */
+    const filteredByMonth = (activeMonth > 0) ? items.filter(g=>g.month===activeMonth) : items;
     /* totalAmt = все суммы сезона (включая закрытые) для показа общего */
     const totalAmt = filteredByMonth.filter(g=>g.season!=='all').reduce((s,g)=>s+g.amount,0);
     /* remainAmt = только активные (не закрытые, не под вопросом) */

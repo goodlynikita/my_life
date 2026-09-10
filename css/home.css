@@ -624,19 +624,6 @@ html, body {
 @media(max-width:480px){ .hero-slide{min-height:160px;padding:18px 16px 44px;} .hero-big-text{font-size:22px;} .hero-stat-num{font-size:18px;} }
 @media(min-width:769px){ .hero-slide{min-height:200px;padding:28px 28px 52px;} .hero-big-text{font-size:34px;} }
 
-/* ── Home hero slides ── */
-.hero-slide {
-  transition: none;
-}
-.hero-stat-num {
-  font-size: 28px !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.03em;
-}
-.hero-stat-lbl {
-  font-size: 12px !important;
-}
-
 /* ── Tile hover lift ── */
 .home2-tile {
   transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease;
@@ -652,46 +639,3 @@ html, body {
 
 
 
-/* ── Slide blocks — горизонтальный layout как в оригинале ── */
-.sb-blocks {
-  padding: 0 20px 12px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0;
-  align-items: flex-end;
-}
-.sb-block {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-.sb-block + .sb-block {
-  border-left: 1px solid rgba(255,255,255,0.12);
-  padding-left: 14px;
-  margin-left: 14px;
-}
-.sb-big {
-  font-size: 22px;
-  font-weight: 800;
-  color: #F2F4F8;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  font-family: 'Montserrat', sans-serif;
-}
-.sb-of {
-  font-size: 0.6em;
-  color: rgba(242,244,248,0.5);
-  font-weight: 700;
-}
-.sb-label {
-  font-size: 11px;
-  color: rgba(242,244,248,0.55);
-  font-weight: 500;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}

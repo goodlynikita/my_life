@@ -523,8 +523,8 @@
 .goals-season-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 12px; }
 .goals-season-stat { min-width: 0; }
 .goals-season-stat { background: #fff; border-radius: 8px; padding: 8px 8px; }
-.goals-sstat-label { font-size: 9px; color: #9CA3AF; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
-.goals-sstat-val { font-size: 13px; font-weight: 800; color: #111; word-break: break-all; }
+.goals-sstat-label { font-size: 10px; color: #9CA3AF; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+.goals-sstat-val { font-size: 13px; font-weight: 800; color: #111; }
 .goals-season-bar-track { height: 4px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
 
 /* Category card */
@@ -604,9 +604,9 @@
 }
 .hab-tab {
   flex: 1; padding: 12px 8px; border: none; background: none;
-  color: #6B7280; font-size: 14px; font-weight: 600; cursor: pointer;
+  color: #9D9A92; font-size: 13px; font-weight: 600; cursor: pointer;
   border-bottom: 3px solid transparent; font-family: 'Montserrat', sans-serif;
-  transition: all 0.2s; color: #9D9A92;
+  transition: all 0.2s;
 }
 .hab-tab.active { color: #A8C97F !important; border-bottom-color: #A8C97F !important; background: none !important; }
 
@@ -879,7 +879,7 @@
 .goals-cat-v3-title { font-size: 14px !important; font-weight: 800 !important; color: #F0EDE5 !important; }
 .goals-cat-v3-total { font-size: 15px !important; }
 .goals-hero-big { font-size: 30px !important; }
-.goals-sstat-val { font-size: 13px !important; font-weight: 800 !important; }
+
 
 /* ── Global animations ───────────────────────────── */
 @keyframes fadeIn {
@@ -976,8 +976,8 @@
 .goals-item-v3-amt { font-size: 14px !important; }
 .goals-cat-v3-title { font-size: 15px !important; }
 .goals-cat-v3-total { font-size: 15px !important; }
-.goals-sstat-val { font-size: 13px !important; }
-.goals-sstat-label { font-size: 10px !important; }
+
+
 .goals-hero-big { font-size: 32px !important; }
 .goals-hero-season-amount { font-size: 28px !important; }
 .goals-season-badge { font-size: 14px !important; }

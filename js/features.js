@@ -257,10 +257,14 @@ const Features = (() => {
 
         const row = ov.querySelector(`[data-feature-row="${id}"]`);
         if (row) {
-          const title = row.querySelector('[style*="font-size:13px"]') || row.querySelector('[style*="font-size:12px"]');
-          const desc  = row.querySelector('[style*="font-size:11px"]');
-          if (title) title.style.color = nowOn ? '#E8E5DC' : '#555';
-          if (desc)  desc.style.color  = nowOn ? '#6B7280' : '#3A3D45';
+          /* Обновляем цвет текста — ищем по порядку дочерних элементов */
+          const divs = row.querySelectorAll('div');
+          if (divs[0]) {
+            const title = divs[0].querySelector('div') || divs[0];
+            const desc  = divs[0].querySelectorAll('div')[1];
+            if (title) title.style.color = nowOn ? '#E8E5DC' : '#555';
+            if (desc)  desc.style.color  = nowOn ? '#6B7280' : '#3A3D45';
+          }
         }
 
         /* Обновить счётчики в шапке */
@@ -268,7 +272,7 @@ const Features = (() => {
         const numEls = ov.querySelectorAll('[style*="font-size:20px"]');
         if (numEls[0]) numEls[0].textContent = newFeatOn;
 
-        setTimeout(() => Router.go(Router.currentPath()), 350);
+        setTimeout(() => Router.go(Router.currentPath()), 600);
       });
     });
 

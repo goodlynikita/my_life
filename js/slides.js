@@ -155,17 +155,17 @@ const Slides = (() => {
   /* ── Дефолтные слайды (если юзер ещё ничего не настроил) ── */
   const DEFAULT_SLIDES = [
     {
-      id: 's_focus', label: 'ФОКУС ДНЯ', color: '#1E3A5F',
+      id: 's_focus', label: 'ФОКУС ДНЯ', cssClass: 'slide-focus', glowClass: 'slide-glow-blue',
       enabled: true, route: '/training',
       blocks: ['workout_today','habits_today'],
     },
     {
-      id: 's_finance', label: 'ФИНАНСОВЫЙ ПУЛЬС', color: '#1A2E1A',
+      id: 's_finance', label: 'ФИНАНСОВЫЙ ПУЛЬС', cssClass: 'slide-finance', glowClass: 'slide-glow-green',
       enabled: true, route: '/finance',
       blocks: ['finance_income','finance_cushion'],
     },
     {
-      id: 's_goals', label: 'ПРОГРЕСС ЦЕЛЕЙ', color: '#2A1A3E',
+      id: 's_goals', label: 'ПРОГРЕСС ЦЕЛЕЙ', cssClass: 'slide-goals', glowClass: 'slide-glow-purple',
       enabled: true, route: '/goals',
       blocks: ['goals_pct','goals_season_left'],
     },
@@ -199,12 +199,16 @@ const Slides = (() => {
       : '';
 
     const route = cfg.route ? ` data-route="${cfg.route}"` : '';
-    const glowColor = cfg.glowColor || '#4A7CFF';
-    return `<div class="hero-slide" style="background:${cfg.color||'#1A1C22'}"${route}>
+    /* Используем cssClass для оригинальных слайдов, иначе inline color */
+    const slideClass = cfg.cssClass ? `hero-slide ${cfg.cssClass}` : 'hero-slide';
+    const stylePart  = cfg.cssClass ? '' : ` style="background:${cfg.color||'#1A1C22'}"`;
+    const glowClass  = cfg.glowClass || '';
+    const glowStyle  = cfg.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${cfg.glowColor||'#4A7CFF'}44 0%,transparent 70%);"`;
+    return `<div class="${slideClass}"${stylePart}${route}>
       <div class="hero-slide-label">${cfg.label||''}</div>
       ${mainHtml}
       ${subHtml}
-      <div class="hero-slide-glow" style="background:radial-gradient(ellipse at 80% 50%,${glowColor}44 0%,transparent 70%);"></div>
+      <div class="hero-slide-glow ${glowClass}"${glowStyle}></div>
     </div>`;
   }
 
@@ -215,9 +219,10 @@ const Slides = (() => {
     const goals   = ((store.goals?.directions)||[]).filter(Boolean);
 
     const SLIDE_COLORS = [
+      {name:'Синий (Тренировки)',   cssClass:'slide-focus',   glowClass:'slide-glow-blue'},
+      {name:'Зелёный (Финансы)',    cssClass:'slide-finance', glowClass:'slide-glow-green'},
+      {name:'Фиолетовый (Цели)',    cssClass:'slide-goals',   glowClass:'slide-glow-purple'},
       {name:'Ночной синий',  val:'#0F1E35', glow:'#4A7CFF'},
-      {name:'Изумрудный',    val:'#0D2318', glow:'#34D399'},
-      {name:'Фиолетовый',    val:'#1A0F2E', glow:'#A78BFA'},
       {name:'Янтарный',      val:'#1E1500', glow:'#F59E0B'},
       {name:'Малиновый',     val:'#1E0F18', glow:'#F87171'},
       {name:'Графит',        val:'#13151A', glow:'#9D9A92'},
@@ -277,9 +282,13 @@ const Slides = (() => {
         }).join('')
       ).join('');
 
-      const colorOpts = SLIDE_COLORS.map((c,i) =>
-        `<button class="se-color-btn" data-color="${c.val}" data-glow="${c.glow}" style="width:32px;height:32px;border-radius:8px;background:${c.val};border:2px solid ${s.color===c.val?'#fff':'transparent'};cursor:pointer;"></button>`
-      ).join('');
+      const colorOpts = SLIDE_COLORS.map((c,i) => {
+        const isActive = c.cssClass ? s.cssClass===c.cssClass : s.color===c.val;
+        const bg = c.cssClass
+          ? (c.cssClass==='slide-focus'?'linear-gradient(135deg,#0F172A,#1E3A5F)':c.cssClass==='slide-finance'?'linear-gradient(135deg,#052e16,#14532d)':'linear-gradient(135deg,#1e1b4b,#3b0764)')
+          : c.val;
+        return `<button class="se-color-btn" data-css-class="${c.cssClass||''}" data-glow-class="${c.glowClass||''}" data-color="${c.val||''}" data-glow="${c.glow||''}" style="width:36px;height:36px;border-radius:8px;background:${bg};border:2px solid ${isActive?'#fff':'transparent'};cursor:pointer;" title="${c.name}"></button>`;
+      }).join('');
 
       return `<div style="padding:0 20px 20px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:8px;">Название слайда</div>
@@ -360,11 +369,13 @@ const Slides = (() => {
           body.innerHTML = slideEditForm(sl[idx], idx);
 
           /* Color picker */
-          let selColor = sl[idx].color||'#0F1E35', selGlow = sl[idx].glowColor||'#4A7CFF';
+          let selCssClass = sl[idx].cssClass||'', selGlowClass = sl[idx].glowClass||'';
+          let selColor = sl[idx].color||'', selGlow = sl[idx].glowColor||'';
           body.querySelectorAll('.se-color-btn').forEach(cb => {
             cb.addEventListener('click', () => {
               body.querySelectorAll('.se-color-btn').forEach(x=>x.style.border='2px solid transparent');
               cb.style.border='2px solid #fff';
+              selCssClass=cb.dataset.cssClass; selGlowClass=cb.dataset.glowClass;
               selColor=cb.dataset.color; selGlow=cb.dataset.glow;
             });
           });
@@ -393,6 +404,8 @@ const Slides = (() => {
             sl[idx] = {
               ...sl[idx],
               label:      body.querySelector('#se-label').value.toUpperCase(),
+              cssClass:   selCssClass,
+              glowClass:  selGlowClass,
               color:      selColor,
               glowColor:  selGlow,
               route:      body.querySelector('#se-route').value,

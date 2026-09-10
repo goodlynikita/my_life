@@ -756,23 +756,20 @@
 }
 
 .tr-ww-name {
-  padding: 13px 12px;
+  padding: 9px 10px;
   color: var(--tr-bone);
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 500;
 }
 
 .tr-ww-num {
-  padding: 13px 12px;
+  padding: 9px 10px;
   text-align: right;
   color: var(--tr-bone-soft);
-  font-size: 14px;
 }
 
 .tr-ww-weight {
-  color: var(--tr-accent-bright);
-  font-weight: 700;
-  font-size: 15px;
+  color: var(--tr-bone);
+  font-weight: 600;
 }
 
 .tr-empty-state {

@@ -298,7 +298,7 @@ window.Screens.habits = function(mount) {
       </div>
 
       <div class="sec-card" style="padding:0;overflow:hidden;">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;padding-bottom:120px;">
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
             <thead style="position:sticky;top:0;z-index:5;">
               <tr>

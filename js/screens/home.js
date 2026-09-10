@@ -59,68 +59,29 @@ window.Screens.home = function(mount) {
 
   var tagHtml = todayGroups.map(function(g){ return '<span class="hero-tag">'+g+'</span>'; }).join('');
 
-  var slide1 = '<div class="hero-slide slide-focus" data-route="/training">'
-    + '<div class="hero-slide-label">ФОКУС ДНЯ</div>'
-    + '<div class="hero-slide-main">'
-    + (todayGroups.length ? '<div class="hero-tag-row">'+tagHtml+'</div>' : '')
-    + '<div class="hero-big-text'+(todayWorkout?'':' hero-dim')+'">'+(todayWorkout||'Тренировка не запланирована')+'</div>'
-    + '</div>'
-    + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box"><div class="hero-stat-num">'+todayDone+'<span class="hero-stat-of">/'+habList.length+'</span></div><div class="hero-stat-lbl">привычек сегодня</div></div>'
-    + '<div class="hero-stat-sep"></div>'
-    + '<div class="hero-stat-box"><div class="hero-stat-num">'+now.getDate()+'</div><div class="hero-stat-lbl">'+MONTHS[now.getMonth()].toLowerCase()+'</div></div>'
-    + '</div></div>'
-    + '<div class="hero-slide-glow slide-glow-blue"></div>'
-    + '</div>';
+  /* ── Слайды через Slides.js ── */
+  var slidesCfg = window.Slides ? window.Slides.getSlides() : [];
+  var enabledSlides = slidesCfg.filter(function(s){ return s.enabled !== false; });
+  if (!enabledSlides.length) enabledSlides = slidesCfg;
+  var store4slides = Store.get();
 
-  /* Текущий сезон для финансового пульса */
-  var curMonth = now.getMonth();
-  var curSeason = curMonth<=7 ? 'summer' : curMonth<=10 ? 'autumn' : 'december';
-  var seasonGoals = goals.filter(function(g){return g.season===curSeason;});
-  var seasonTotal = seasonGoals.reduce(function(s,g){return s+(g.amount||0);},0);
-  var seasonDone = seasonGoals.filter(function(g){return g.done;}).reduce(function(s,g){return s+(g.amount||0);},0);
-  var seasonLeft = seasonTotal - seasonDone;
-  var seasonNames = {summer:'Лето',autumn:'Осень',december:'Декабрь'};
-
-  var slide2 = '<div class="hero-slide slide-finance" data-route="/finance">'
-    + '<div class="hero-slide-label">ФИНАНСОВЫЙ ПУЛЬС</div>'
-    + '<div class="hero-slide-main">'
-    + '<div class="hero-big-text">'+(monthIncome>0?fmt(monthIncome):'Нет данных')+'</div>'
-    + '<div class="hero-sub-text">'+MONTHS[now.getMonth()]+' '+yr+'</div>'
-    + '</div>'
-    + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box" id="home-cushion-box" style="cursor:pointer;"><div class="hero-stat-num" style="color:'+(cushion>=0?'#4ADE80':'#F87171')+'">'+fmt(Math.abs(cushion))+'</div><div class="hero-stat-lbl">'+(cushion>=0?'подушка':'не хватает')+'<span style="font-size:8px;color:#9D9A92;"> (план '+fmt(plannedExpenses)+')</span></div></div>'
-    + '<div class="hero-stat-sep"></div>'
-    + '<div class="hero-stat-box"><div class="hero-stat-num" style="font-size:13px;color:#FCD34D;">'+fmt(seasonLeft)+'</div><div class="hero-stat-lbl">цели '+seasonNames[curSeason]+'</div></div>'
-    + '</div></div>'
-    + '<div class="hero-slide-glow slide-glow-green"></div>'
-    + '</div>';
-
-  var slide3 = '<div class="hero-slide slide-goals" data-route="/goals">'
-    + '<div class="hero-slide-label">ПРОГРЕСС ЦЕЛЕЙ</div>'
-    + '<div class="hero-slide-main">'
-    + '<div class="hero-big-text">'+goalsPct+'%</div>'
-    + '<div class="hero-goals-bar"><div class="hero-goals-fill" style="width:'+goalsPct+'%"></div></div>'
-    + '</div>'
-    + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box"><div class="hero-stat-num">'+doneCnt+'<span class="hero-stat-of">/'+totalCnt+'</span></div><div class="hero-stat-lbl">закрыто</div></div>'
-    + '<div class="hero-stat-sep"></div>'
-    + '<div class="hero-stat-box"><div class="hero-stat-num" style="font-size:14px;">'+fmt(yearAmt-doneYearAmt)+'</div><div class="hero-stat-lbl">осталось</div></div>'
-    + '</div></div>'
-    + '<div class="hero-slide-glow slide-glow-purple"></div>'
-    + '</div>';
+  var slidesHtml = enabledSlides.map(function(s) {
+    return window.Slides ? window.Slides.renderSlide(s, store4slides) : '';
+  }).join('');
 
   mount.innerHTML = '<div class="home2-screen">'
     + '<div class="home2-header"><div>'
     + '<p class="home2-date">'+DOWS[now.getDay()]+', '+now.getDate()+' '+MONTHS[now.getMonth()]+'</p>'
     + '<h1 class="home2-title">NIK \u00b7 \u0421\u0438\u0441\u0442\u0435\u043c\u0430</h1>'
-    + '</div><div style="display:flex;gap:8px;"><button class="home2-logout" id="slider-settings-btn" style="font-size:16px;"><i class="ti ti-settings"></i></button><button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button></div></div>'
+    + '</div><div style="display:flex;gap:8px;">'
+    + '<button class="home2-logout" id="slides-edit-btn" title="Редактор слайдов" style="font-size:16px;"><i class="ti ti-layout"></i></button>'
+    + '<button class="home2-logout" id="slider-settings-btn" title="Настройки" style="font-size:16px;"><i class="ti ti-settings"></i></button>'
+    + '<button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button>'
+    + '</div></div>'
     + '<div class="hero-slider" id="hero-slider">'
-    + '<div class="hero-slides" id="hero-slides">'+slide1+slide2+slide3+'</div>'
+    + '<div class="hero-slides" id="hero-slides">'+slidesHtml+'</div>'
     + '<div class="hero-dots">'
-    + '<div class="hero-dot active" data-idx="0"></div>'
-    + '<div class="hero-dot" data-idx="1"></div>'
-    + '<div class="hero-dot" data-idx="2"></div>'
+    + enabledSlides.map(function(_,i){ return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>'; }).join('')
     + '</div></div>'
     + '<div class="home2-grid">'
     + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><i class="ti ti-flame home2-tile-icon"></i><div class="home2-tile-name">\u0422\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438</div><div class="home2-tile-desc">'+(todayWorkout||'\u0417\u0430\u043f\u043e\u043b\u043d\u0438 \u043f\u043b\u0430\u043d')+'</div></div></button>'
@@ -128,12 +89,19 @@ window.Screens.home = function(mount) {
     + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
     + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + '</div>'
-    + '<div class="home2-footer">'+ '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'+ '<div id="sync-status" style="font-size:11px;color:#9D9A92;"></div>'+ '<button id="features-open-btn" style="font-size:11px;color:#A78BFA;background:none;border:none;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;padding:4px 0;">⚙ Доработки (' + window.Features.all().filter(function(f){return f.enabled;}).length + '/' + window.Features.REGISTRY.length + ')</button>'+ '</div>'+ '</div>'
+    + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
+    + '<div id="sync-status" style="font-size:11px;color:#9D9A92;"></div>'
+    + '<button id="features-open-btn" style="font-size:11px;color:#A78BFA;background:none;border:none;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;padding:4px 0;">⚙ Доработки (' + window.Features.all().filter(function(f){return f.enabled;}).length + '/' + window.Features.REGISTRY.length + ')</button>'
+    + '</div></div>'
     + '</div>';
 
   mount.querySelectorAll('[data-route]').forEach(function(el){
     el.addEventListener('click', function(){ Router.go(el.dataset.route); });
   });
+
+  /* ── Слайды: редактор ── */
+  var slidesEditBtn = document.getElementById('slides-edit-btn');
+  if (slidesEditBtn) slidesEditBtn.addEventListener('click', function(){ window.Slides && window.Slides.openEditor(); });
 
   /* ── Настройка плановых расходов ── */
   var cushionBox = document.getElementById('home-cushion-box');
@@ -154,54 +122,36 @@ window.Screens.home = function(mount) {
       ov.querySelector('#plan-exp-save').addEventListener('click', function(){
         var v = parseFloat(ov.querySelector('#plan-exp-input').value)||97000;
         Store.set('home.plannedExpenses', v);
-        ov.remove();
-        Router.go('/home');
+        ov.remove(); Router.go('/home');
       });
       setTimeout(function(){ ov.querySelector('#plan-exp-input').focus(); }, 100);
     });
   }
 
   /* ── Features panel ── */
-  /* Feature guard: show slider settings btn only if feature on */
   var sliderSettingsEl = document.getElementById('slider-settings-btn');
   if (sliderSettingsEl && window.Features && !window.Features.isOn('home_slider_settings')) {
     sliderSettingsEl.style.display = 'none';
   }
-
   var featBtn = document.getElementById('features-open-btn');
-  if (featBtn) {
-    featBtn.addEventListener('click', function() {
-      window.Features.openPanel();
-    });
-  }
+  if (featBtn) featBtn.addEventListener('click', function() { window.Features.openPanel(); });
   document.getElementById('logout-btn').addEventListener('click', function(){
     Auth.logout(); Router.go('/login');
   });
 
-
-
-  /* ── Slider: apply sliderCfg visibility + autoplay ── */
+  /* ── Слайдер ── */
   (function() {
     var cfg = Store.get().home?.sliderCfg || {};
     var interval = cfg.interval || 4500;
-    /* Build visible slides list */
-    var allSlides = [slide1, slide2, slide3];
-    var shown = [cfg.s0!==false, cfg.s1!==false, cfg.s2!==false];
-    var visSlides = allSlides.filter(function(_,i){ return shown[i]; });
-    if (!visSlides.length) visSlides = allSlides; // fallback: show all
+    var n = enabledSlides.length;
 
-    /* Re-render slides and dots */
     var slidesEl = document.getElementById('hero-slides');
     var dotsContainer = mount.querySelector('.hero-dots');
     if (!slidesEl || !dotsContainer) return;
-    slidesEl.innerHTML = visSlides.join('');
-    dotsContainer.innerHTML = visSlides.map(function(_,i){
-      return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>';
-    }).join('');
-    slidesEl.style.width = (visSlides.length * 100) + '%';
-    slidesEl.querySelectorAll('.hero-slide').forEach(function(s){ s.style.width = (100/visSlides.length)+'%'; });
 
-    /* Re-attach data-route handlers inside newly rendered slides */
+    slidesEl.style.width = (n * 100) + '%';
+    slidesEl.querySelectorAll('.hero-slide').forEach(function(s){ s.style.width = (100/n)+'%'; });
+
     slidesEl.querySelectorAll('[data-route]').forEach(function(el){
       el.addEventListener('click', function(){ Router.go(el.dataset.route); });
     });
@@ -209,7 +159,6 @@ window.Screens.home = function(mount) {
     var dotsEls = dotsContainer.querySelectorAll('.hero-dot');
     var cur = 0;
     var autoTimer = null;
-    var n = visSlides.length;
 
     function goTo(idx) {
       cur = ((idx % n) + n) % n;
@@ -218,7 +167,7 @@ window.Screens.home = function(mount) {
     }
     function startAuto() {
       if (autoTimer) clearInterval(autoTimer);
-      if (n > 1) autoTimer = setInterval(function(){ goTo(cur+1); }, interval);
+      if (n > 1 && cfg.autoplay !== false) autoTimer = setInterval(function(){ goTo(cur+1); }, interval);
     }
     dotsEls.forEach(function(d){
       d.addEventListener('click', function(e){ e.stopPropagation(); goTo(parseInt(d.dataset.idx)); startAuto(); });
@@ -231,37 +180,60 @@ window.Screens.home = function(mount) {
     });
     startAuto();
 
-    /* Settings: save + restart */
-    document.getElementById('slider-settings-btn').addEventListener('click', function(){
+    /* Настройки слайдера */
+    if (sliderSettingsEl) sliderSettingsEl.addEventListener('click', function(){
+      var cfg2 = Store.get().home?.sliderCfg || {};
+      var intVal = Math.round((cfg2.interval||4500)/1000);
       var ov = document.createElement('div');
       ov.className = 'tr-modal-overlay';
-      ov.innerHTML = '<div class="tr-modal">'
-        + '<p class="tr-modal-title">Настройки слайдера</p>'
-        + '<div class="tr-modal-row"><label style="flex:1">Интервал, сек<input type="number" id="sl-interval" value="'+(interval/1000)+'" min="1" max="30" step="0.5" inputmode="decimal"></label></div>'
-        + '<p style="font-size:12px;color:#9CA3AF;margin:8px 0 4px;">Слайды (отметь нужные):</p>'
-        + '<div class="tr-modal-row" style="flex-direction:column;gap:6px;">'
-        +   '<label style="display:flex;align-items:center;gap:8px;font-size:14px;"><input type="checkbox" id="sl-s0" '+(shown[0]?'checked':'')+' style="width:auto;"> Фокус дня</label>'
-        +   '<label style="display:flex;align-items:center;gap:8px;font-size:14px;"><input type="checkbox" id="sl-s1" '+(shown[1]?'checked':'')+' style="width:auto;"> Финансовый пульс</label>'
-        +   '<label style="display:flex;align-items:center;gap:8px;font-size:14px;"><input type="checkbox" id="sl-s2" '+(shown[2]?'checked':'')+' style="width:auto;"> Прогресс целей</label>'
+      ov.style.cssText = 'align-items:flex-end;padding:0;';
+      var slideNames = enabledSlides.map(function(s){ return s.label||'Слайд'; });
+      var autoOn = cfg2.autoplay !== false;
+      ov.innerHTML = '<div style="background:#1A1C22;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;max-height:90vh;overflow-y:auto;padding:0 0 36px;">'
+        + '<div style="position:sticky;top:0;background:#1A1C22;padding:18px 20px 14px;border-bottom:1px solid #2A2D35;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;">'
+        +   '<span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайдер</span>'
+        +   '<button id="sl-close-x" style="background:#2A2D35;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;line-height:1;">×</button>'
         + '</div>'
-        + '<div class="tr-modal-actions">'
-        +   '<button class="tr-modal-btn-secondary" id="sl-cancel">Отмена</button>'
-        +   '<button class="tr-modal-btn-primary" id="sl-save">Сохранить</button>'
+        + '<div style="padding:20px 20px 0;">'
+        + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Интервал переключения</div>'
+        + '<div style="display:flex;align-items:center;gap:16px;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:8px;">'
+        +   '<button id="sl-int-minus" style="width:36px;height:36px;border-radius:50%;border:1px solid #2A2D35;background:#2A2D35;color:#E8E5DC;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>'
+        +   '<span id="sl-int-val" style="flex:1;text-align:center;font-size:28px;font-weight:900;color:#E8E5DC;font-family:Montserrat,sans-serif;">'+intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span></span>'
+        +   '<button id="sl-int-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(74,124,255,.4);">+</button>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:20px;">'
+        +   '<div><div style="font-size:14px;font-weight:600;color:#E8E5DC;font-family:Montserrat,sans-serif;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл — листать вручную</div></div>'
+        +   '<button id="sl-auto-toggle" data-on="'+(autoOn?'1':'0')+'" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:'+(autoOn?'#4A7CFF':'#2A2D35')+';position:relative;transition:background .25s;">'
+        +     '<div style="position:absolute;top:4px;left:'+(autoOn?'23px':'4px')+';width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>'
+        +   '</button>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#9D9A92;text-align:center;padding:8px 0;">Для управления слайдами нажми <i class="ti ti-layout"></i> в хедере</div>'
+        + '<button id="sl-save" style="width:100%;margin-top:12px;padding:16px;background:#4A7CFF;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 4px 16px rgba(74,124,255,.4);">Сохранить</button>'
         + '</div></div>';
       document.body.appendChild(ov);
       ov.addEventListener('click', function(e){ if(e.target===ov)ov.remove(); });
-      ov.querySelector('#sl-cancel').addEventListener('click', function(){ ov.remove(); });
+      ov.querySelector('#sl-close-x').addEventListener('click', function(){ ov.remove(); });
+      ov.querySelector('#sl-int-minus').addEventListener('click', function(){
+        intVal=Math.max(1,intVal-1);
+        var el=ov.querySelector('#sl-int-val');
+        el.innerHTML=intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>';
+      });
+      ov.querySelector('#sl-int-plus').addEventListener('click', function(){
+        intVal=Math.min(60,intVal+1);
+        var el=ov.querySelector('#sl-int-val');
+        el.innerHTML=intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>';
+      });
+      ov.querySelector('#sl-auto-toggle').addEventListener('click', function(){
+        var on=this.dataset.on==='1'; on=!on;
+        this.dataset.on=on?'1':'0'; this.style.background=on?'#4A7CFF':'#2A2D35';
+        this.querySelector('div').style.left=on?'23px':'4px';
+      });
       ov.querySelector('#sl-save').addEventListener('click', function(){
-        var newCfg = {
-          interval: Math.max(1000, parseFloat(ov.querySelector('#sl-interval').value||4.5)*1000),
-          s0: ov.querySelector('#sl-s0').checked,
-          s1: ov.querySelector('#sl-s1').checked,
-          s2: ov.querySelector('#sl-s2').checked,
-        };
-        Store.set('home.sliderCfg', newCfg);
-        ov.remove();
-        /* Reload the whole screen to apply new settings */
-        Router.go('/home');
+        Store.set('home.sliderCfg',{
+          interval:intVal*1000,
+          autoplay:ov.querySelector('#sl-auto-toggle').dataset.on==='1',
+        });
+        ov.remove(); Router.go('/home');
       });
     });
   })();

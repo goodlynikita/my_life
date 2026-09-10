@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1C22"/>
+      <stop offset="100%" style="stop-color:#0C0D10"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6EE7B7"/>
+      <stop offset="50%" style="stop-color:#4A7CFF"/>
+      <stop offset="100%" style="stop-color:#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="letter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#E8E5DC"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Subtle inner border -->
+  <rect x="2" y="2" width="508" height="508" rx="110" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+
+  <!-- Gradient ring arc (top-right, like a progress arc) -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#ring)" stroke-width="12" stroke-dasharray="900 1194" stroke-dashoffset="-80" stroke-linecap="round" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- Inner accent dot top-right of arc -->
+  <circle cx="400" cy="112" r="10" fill="#6EE7B7" opacity="0.9"/>
+
+  <!-- N lettermark — bold, slightly left of center -->
+  <text x="256" y="340"
+    font-family="'Montserrat','Arial Black',sans-serif"
+    font-size="220"
+    font-weight="900"
+    fill="url(#letter)"
+    text-anchor="middle"
+    letter-spacing="-8">N</text>
+
+  <!-- Small dot accent bottom right -->
+  <circle cx="368" cy="380" r="14" fill="#A78BFA" opacity="0.7"/>
+  <circle cx="368" cy="380" r="7" fill="#A78BFA"/>
+</svg>

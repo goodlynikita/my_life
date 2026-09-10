@@ -54,7 +54,7 @@ html, body {
 
 .auth-sub {
   font-family: var(--font-sans);
-  font-size: 11.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--bone-faint);
   margin: 0 0 2rem;
@@ -89,7 +89,7 @@ html, body {
   background: var(--brass);
   color: var(--hull-deep);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -100,7 +100,7 @@ html, body {
 .auth-btn:active { transform: scale(0.98); }
 
 .auth-error {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--danger);
   margin-top: 0.9rem;
   min-height: 16px;
@@ -133,7 +133,7 @@ html, body {
 
 .home-eyebrow {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -197,7 +197,7 @@ html, body {
 
 .tile-desc {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 14px;
   color: var(--bone-soft);
   margin-top: 3px;
 }
@@ -226,7 +226,7 @@ html, body {
 
 .home-footer {
   margin-top: var(--gap-xl);
-  font-size: 11.5px;
+  font-size: 14px;
   color: var(--bone-faint);
   letter-spacing: 0.04em;
 }
@@ -236,7 +236,7 @@ html, body {
   border: none;
   color: var(--bone-faint);
   font-family: var(--font-sans);
-  font-size: 11.5px;
+  font-size: 14px;
   letter-spacing: 0.04em;
   cursor: pointer;
   text-decoration: underline;
@@ -269,7 +269,7 @@ html, body {
   align-items: flex-start;
   justify-content: space-between;
 }
-.home2-date { font-size: 12px; color: #9D9A92; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+.home2-date { font-size: 14px; color: #9D9A92; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
 .home2-title { font-size: 24px; font-weight: 800; color: #fff; }
 .home2-logout { background: none; border: none; color: #555; cursor: pointer; font-size: 18px; padding: 4px; }
 
@@ -292,12 +292,12 @@ html, body {
   font-size: 40px;
   opacity: 0.15;
 }
-.home2-goals-eyebrow { font-size: 10px; color: #9CA3AF; letter-spacing: 0.12em; margin-bottom: 6px; }
+.home2-goals-eyebrow { font-size: 14px; color: #9CA3AF; letter-spacing: 0.12em; margin-bottom: 6px; }
 .home2-goals-amount { font-size: 34px; font-weight: 800; color: #fff; letter-spacing: -1px; margin-bottom: 4px; }
-.home2-goals-sub { font-size: 12px; color: #9CA3AF; margin-bottom: 14px; }
+.home2-goals-sub { font-size: 14px; color: #9CA3AF; margin-bottom: 14px; }
 .home2-goals-bar-track { height: 4px; background: #ffffff22; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
 .home2-goals-bar-fill { height: 100%; background: linear-gradient(90deg, #9333EA, #C084FC); border-radius: 4px; transition: width 0.8s ease; }
-.home2-goals-progress { font-size: 12px; color: #C084FC; font-weight: 600; }
+.home2-goals-progress { font-size: 14px; color: #C084FC; font-weight: 600; }
 
 /* Grid */
 .home2-grid {
@@ -321,7 +321,7 @@ html, body {
 .home2-tile:hover { transform: translateY(-2px); border-color: #3A3D45; }
 .home2-tile i { font-size: 22px; margin-bottom: 6px; }
 .home2-tile-name { font-size: 14px; font-weight: 700; color: #E8E5DC; }
-.home2-tile-desc { font-size: 11px; color: #9D9A92; }
+.home2-tile-desc { font-size: 14px; color: #9D9A92; }
 
 .home2-tile-training i { color: #F97316; }
 .home2-tile-training { border-top: 2px solid #F97316; }
@@ -342,7 +342,7 @@ html, body {
   margin-bottom: 8px;
 }
 .bal-hero-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-.bal-label { font-size: 11px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.bal-label { font-size: 14px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
 .bal-income { font-size: 24px; font-weight: 800; color: #111; }
 .bal-cushion-big { font-size: 22px; font-weight: 800; }
 .bal-cushion-big.pos { color: #065F46; }
@@ -350,7 +350,7 @@ html, body {
 .bal-progress-track2 { height: 8px; background: #F3F4F6; border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
 .bal-progress-used { height: 100%; }
 .bal-seg { height: 100%; }
-.bal-progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #9CA3AF; }
+.bal-progress-labels { display: flex; justify-content: space-between; font-size: 14px; color: #9CA3AF; }
 
 .bal-reserve-card {
   background: #FEF3C7;
@@ -363,9 +363,9 @@ html, body {
 }
 .bal-reserve-ok { background: #D1FAE5; border-left-color: #16A34A; }
 .bal-reserve-icon { font-size: 24px; }
-.bal-reserve-title { font-size: 12px; color: #6B7280; margin-bottom: 2px; }
+.bal-reserve-title { font-size: 14px; color: #6B7280; margin-bottom: 2px; }
 .bal-reserve-amt { font-size: 20px; font-weight: 800; color: #111; }
-.bal-reserve-sub { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+.bal-reserve-sub { font-size: 14px; color: #9CA3AF; margin-top: 2px; }
 
 /* ── Wheel banner ────────────────────────────────── */
 .wheel-banner {
@@ -388,14 +388,14 @@ html, body {
 .wheel-banner-icon { font-size: 28px; flex-shrink: 0; }
 .wheel-banner-text { flex: 1; }
 .wheel-banner-title { font-size: 14px; font-weight: 700; color: #fff; }
-.wheel-banner-sub { font-size: 12px; color: #DDD6FE; margin-top: 2px; }
+.wheel-banner-sub { font-size: 14px; color: #DDD6FE; margin-top: 2px; }
 .wheel-banner-btn {
   background: #fff;
   border: none;
   color: #7C3AED;
   border-radius: 8px;
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
@@ -460,7 +460,7 @@ html, body {
   margin-bottom: 6px;
 }
 .home2-tile-desc {
-  font-size: 12px;
+  font-size: 14px;
   color: #9D9A92;
   line-height: 1.4;
 }
@@ -544,7 +544,7 @@ html, body {
   letter-spacing: -0.3px;
 }
 .home2-tile-desc {
-  font-size: 12px !important;
+  font-size: 14px !important;
   color: rgba(255,255,255,0.5) !important;
 }
 
@@ -623,3 +623,71 @@ html, body {
 .hero-dot.active { width:22px; border-radius:3px; background:#fff; }
 @media(max-width:480px){ .hero-slide{min-height:160px;padding:18px 16px 44px;} .hero-big-text{font-size:22px;} .hero-stat-num{font-size:18px;} }
 @media(min-width:769px){ .hero-slide{min-height:200px;padding:28px 28px 52px;} .hero-big-text{font-size:34px;} }
+
+/* ── Home hero slides ── */
+.hero-slide {
+  transition: none;
+}
+.hero-stat-num {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em;
+}
+.hero-stat-lbl {
+  font-size: 12px !important;
+}
+
+/* ── Tile hover lift ── */
+.home2-tile {
+  transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease;
+}
+.home2-tile:active {
+  transform: scale(0.96) translateY(1px);
+}
+
+/* ── Goals card on home ── */
+.home2-goals-card {
+  transition: box-shadow 0.2s ease;
+}
+
+/* ── Fluid hero stats ── */
+.hero-stat-num { font-size: var(--fs-xl) !important; }
+.hero-stat-lbl { font-size: var(--fs-xs) !important; }
+.hero-slide-label { font-size: var(--fs-xs) !important; }
+.home2-tile-name { font-size: var(--fs-md) !important; }
+.home2-tile-desc { font-size: var(--fs-xs) !important; }
+.home2-title { font-size: var(--fs-2xl) !important; }
+.home2-date { font-size: var(--fs-sm) !important; }
+
+/* ── Slide blocks (Slides.js) ── */
+.sb-blocks {
+  padding: 12px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.sb-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sb-big {
+  font-size: clamp(24px, 7vw, 40px);
+  font-weight: 900;
+  color: #F2F4F8;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-family: 'Montserrat', sans-serif;
+}
+.sb-of {
+  font-size: 0.55em;
+  color: rgba(242,244,248,.5);
+  font-weight: 700;
+}
+.sb-label {
+  font-size: clamp(10px, 2.5vw, 13px);
+  color: rgba(242,244,248,.55);
+  font-weight: 500;
+  margin-top: 2px;
+}

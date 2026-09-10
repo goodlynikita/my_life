@@ -222,7 +222,7 @@ window.Screens.goals = function(mount) {
       <div class="goals-season-tabs" id="goals-tabs" style="position:sticky;top:53px;z-index:15;"></div>
       <div id="goals-month-bar" style="display:none;position:sticky;top:97px;z-index:14;background:#1A1C22;border-bottom:1px solid #2A2D35;padding:6px 14px;"></div>
       <div class="goals-body" id="goals-content"></div>
-      <button id="goals-new" style="position:fixed;bottom:24px;right:20px;z-index:20;background:#A78BFA;color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:26px;cursor:pointer;box-shadow:0 4px 16px #A78BFA44;">+</button>
+      <button id="goals-new" style="position:fixed;bottom:80px;right:20px;z-index:20;background:#A78BFA;color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:26px;cursor:pointer;box-shadow:0 4px 16px #A78BFA44;">+</button>
     </div>`;
 
   document.getElementById('gb').addEventListener('click',()=>Router.go('/home'));
@@ -260,9 +260,9 @@ window.Screens.goals = function(mount) {
     const btns = [0, ...months].map(m => {
       const active = activeMonth === m;
       return '<button class="goals-mbar-btn' + (active?' active':'') + '" data-m="'+m+'" style="'
-        + 'padding:5px 14px;border-radius:20px;border:1px solid '+(active?'#A78BFA':'#2A2D35')+';'
+        + 'padding:4px 10px;border-radius:20px;border:1px solid '+(active?'#A78BFA':'#2A2D35')+';'
         + 'background:'+(active?'#A78BFA22':'none')+';color:'+(active?'#A78BFA':'#9D9A92')+';'
-        + 'font-size:12px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">'
+        + 'font-size:11px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">'
         + (m===0?'Все':MNAMES[m])+'</button>';
     }).join('');
     bar.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;">'+btns+'</div>';

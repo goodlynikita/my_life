@@ -1122,6 +1122,50 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
   });
 }
 
+
+/* ═══════════════════════════════════════════
+   1RM CALCULATOR — Epley formula
+   1RM = weight × (1 + reps / 30)
+   ═══════════════════════════════════════════ */
+function calc1RM(weight, reps) {
+  if (!weight || !reps || reps <= 0) return 0;
+  if (reps === 1) return weight;
+  return Math.round(weight * (1 + reps / 30) * 10) / 10;
+}
+
+/* Рекомендации по зонам нагрузки от 1RM */
+function get1RMZones(rm) {
+  return [
+    { label: 'Максимальная сила',  pct: 95, reps: '1–2',  color: '#FF5C5C', kg: Math.round(rm * 0.95) },
+    { label: 'Сила',              pct: 85, reps: '3–5',  color: '#FF8C42', kg: Math.round(rm * 0.85) },
+    { label: 'Сила + масса',      pct: 75, reps: '6–8',  color: '#F59E0B', kg: Math.round(rm * 0.75) },
+    { label: 'Масса',             pct: 70, reps: '8–12', color: '#4A7CFF', kg: Math.round(rm * 0.70) },
+    { label: 'Выносливость',      pct: 60, reps: '12–20',color: '#34D399', kg: Math.round(rm * 0.60) },
+  ];
+}
+
+function trRender1RMCalc() {
+  return `<div class="tr-1rm-wrap">
+    <div class="tr-1rm-hero">
+      <div class="tr-1rm-title">Калькулятор 1RM</div>
+      <div class="tr-1rm-sub">Формула Эпли · weight × (1 + reps / 30)</div>
+    </div>
+    <div class="tr-1rm-inputs">
+      <label class="tr-1rm-label">
+        <span>Вес (кг)</span>
+        <input id="rm-weight" type="number" inputmode="decimal" placeholder="100" min="1" max="500" step="0.5" class="tr-1rm-input">
+      </label>
+      <div class="tr-1rm-x">×</div>
+      <label class="tr-1rm-label">
+        <span>Повторения</span>
+        <input id="rm-reps" type="number" inputmode="numeric" placeholder="5" min="1" max="30" class="tr-1rm-input">
+      </label>
+    </div>
+    <button id="rm-calc-btn" class="tr-1rm-btn">Рассчитать</button>
+    <div id="rm-result" class="tr-1rm-result" style="display:none;"></div>
+  </div>`;
+}
+
 window.Screens.training = function (mount) {
   const role = Auth.role();
   const activeId = trEnsureSeedPlan();
@@ -1152,6 +1196,7 @@ window.Screens.training = function (mount) {
       <div class="tr-tabs">
         <button class="tr-tab active" data-tab="plan">План</button>
         <button class="tr-tab" data-tab="working-weight">Рабочий вес</button>
+        <button class="tr-tab" data-tab="one-rm">1RM</button>
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
       </div>
@@ -1548,6 +1593,43 @@ window.Screens.training = function (mount) {
         if (editBtn) editBtn.addEventListener('click', trOpenExerciseEditor);
       };
       _renderWW();
+    } else if (tab === 'one-rm') {
+      content.innerHTML = trRender1RMCalc();
+      const calcBtn = document.getElementById('rm-calc-btn');
+      if (calcBtn) {
+        const doCalc = () => {
+          const w = parseFloat(document.getElementById('rm-weight').value);
+          const r = parseInt(document.getElementById('rm-reps').value);
+          if (!w || !r || w <= 0 || r <= 0) return;
+          const rm = calc1RM(w, r);
+          const zones = get1RMZones(rm);
+          const zonesHtml = zones.map(z => `
+            <div class="tr-1rm-zone" style="--zone-color:${z.color}">
+              <div class="tr-1rm-zone-bar" style="width:${z.pct}%"></div>
+              <div class="tr-1rm-zone-info">
+                <span class="tr-1rm-zone-label">${z.label}</span>
+                <span class="tr-1rm-zone-reps">${z.reps} повт.</span>
+              </div>
+              <div class="tr-1rm-zone-kg">${z.kg} кг</div>
+            </div>`).join('');
+          const resultEl = document.getElementById('rm-result');
+          resultEl.innerHTML = `
+            <div class="tr-1rm-answer">
+              <div class="tr-1rm-answer-label">Расчётный максимум</div>
+              <div class="tr-1rm-answer-num">${rm} <span>кг</span></div>
+              <div class="tr-1rm-answer-sub">при ${w} кг × ${r} повт.</div>
+            </div>
+            <div class="tr-1rm-zones-title">Зоны нагрузки</div>
+            <div class="tr-1rm-zones">${zonesHtml}</div>`;
+          resultEl.style.display = 'block';
+          resultEl.style.animation = 'tr-1rm-in 0.35s var(--ease) both';
+        };
+        calcBtn.addEventListener('click', doCalc);
+        ['rm-weight','rm-reps'].forEach(id => {
+          document.getElementById(id)?.addEventListener('keydown', e => { if(e.key==='Enter') doCalc(); });
+        });
+        setTimeout(() => document.getElementById('rm-weight')?.focus(), 100);
+      }
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
       const addBtn = document.getElementById('tr-add-measure');

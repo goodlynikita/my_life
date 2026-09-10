@@ -140,7 +140,7 @@ window.Screens.home = function(mount) {
     + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
     + '<div id="sync-status" style="font-size:11px;color:#9D9A92;"></div>'
     + '<button id="features-open-btn" style="font-size:11px;color:#A78BFA;background:none;border:none;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;padding:4px 0;">\u2736 \u0414\u043e\u0440\u0430\u0431\u043e\u0442\u043a\u0438 ('
-    + window.Features.all().filter(function(f){return f.enabled;}).length+'/'+window.Features.REGISTRY.length+')</button>'
+    + (window.Features?window.Features.all().filter(function(f){return f.enabled;}).length:0)+'/'+(window.Features?window.Features.REGISTRY.length:0)+')</button>'
     + '</div></div>'
     + '</div>';
 
@@ -188,7 +188,7 @@ window.Screens.home = function(mount) {
 
   /* ── Доработки ── */
   var featBtn = document.getElementById('features-open-btn');
-  if (featBtn) featBtn.addEventListener('click', function(){ window.Features.openPanel(); });
+  if (featBtn) featBtn.addEventListener('click', function(){ window.Features && window.Features.openPanel(); });
 
   /* ── Настройки слайдера ── */
   document.getElementById('slider-settings-btn').addEventListener('click', function(){

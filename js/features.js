@@ -4,7 +4,7 @@
    Состояние: Store → Firebase: store.features.flags
    ============================================================ */
 
-const Features = (() => {
+var Features = (() => {
 
   const REGISTRY = [
     /* ──────────── БАГИ ──────────── */

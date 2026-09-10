@@ -376,7 +376,7 @@ window.Screens.habits = function(mount) {
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
             <thead style="position:sticky;top:0;z-index:5;">
               <tr>
-                <th style="min-width:130px;text-align:left;padding:4px 8px;font-size:11px;color:#9D9A92;${window.Features&&window.Features.isOn('habit_sticky_col')?'position:sticky;left:0;z-index:6;background:#1A1C22;':''}">Привычка</th>
+                <th style="min-width:130px;text-align:left;padding:4px 8px;font-size:11px;color:#9D9A92;${(!window.Features||window.Features.isOn('habit_sticky_col'))?'position:sticky;left:0;z-index:6;background:#1A1C22;':''}">Привычка</th>
                 ${dayNums.map(d=>{
                   const dow = habDow(viewYear, viewMonth, d);
                   const isToday = isNow && d===today.getDate();
@@ -417,7 +417,7 @@ window.Screens.habits = function(mount) {
 
                 return `
                   <tr>
-                    <td style="padding:6px 8px;white-space:nowrap;${window.Features&&window.Features.isOn('habit_sticky_col')?'position:sticky;left:0;z-index:4;background:#1A1C22;':''}">
+                    <td style="padding:6px 8px;white-space:nowrap;${(!window.Features||window.Features.isOn('habit_sticky_col'))?'position:sticky;left:0;z-index:4;background:#1A1C22;':''}">
                       <div style="display:flex;align-items:center;gap:6px;cursor:pointer;" class="hab-name-edit" data-idx="${hi}">
                         <i class="ti ${h.icon}" style="color:#C8A84B;font-size:13px;"></i>
                         <span style="font-size:12px;">${h.name}</span>

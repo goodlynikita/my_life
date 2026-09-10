@@ -130,6 +130,9 @@ function habOpenModal(existing, onSave) {
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
   overlay.style.zIndex = '200';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.padding = '20px';
 
   const ICONS = ['ti-star','ti-bolt','ti-apple','ti-barbell','ti-device-mobile',
     'ti-book','ti-run','ti-heart','ti-moon','ti-sun','ti-drop',
@@ -369,7 +372,7 @@ window.Screens.habits = function(mount) {
       </div>
 
       <div class="sec-card" style="padding:0;overflow:hidden;">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;padding-bottom:120px;">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
             <thead style="position:sticky;top:0;z-index:5;">
               <tr>

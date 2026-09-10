@@ -1187,3 +1187,7 @@
   z-index: 4 !important;
   background: #1A1C22 !important;
 }
+
+/* ── Привычки: убираем лишний отступ снизу ── */
+.hab-body { padding-bottom: 32px !important; }
+.hab-dark .sec-card:last-child { margin-bottom: 0 !important; }

@@ -120,6 +120,7 @@ window.Screens.home = function(mount) {
     + '<p class="home2-date">'+DOWS[now.getDay()]+', '+now.getDate()+' '+MONTHS[now.getMonth()]+'</p>'
     + '<h1 class="home2-title">NIK \u00b7 \u0421\u0438\u0441\u0442\u0435\u043c\u0430</h1>'
     + '</div><div style="display:flex;gap:8px;">'
+    + '<button class="home2-logout" id="slides-edit-btn" title="Редактор слайдов" style="font-size:16px;"><i class="ti ti-layout"></i></button>'
     + '<button class="home2-logout" id="slider-settings-btn" style="font-size:16px;"><i class="ti ti-settings"></i></button>'
     + '<button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button>'
     + '</div></div>'
@@ -152,6 +153,12 @@ window.Screens.home = function(mount) {
 
   document.getElementById('logout-btn').addEventListener('click', function(){
     Auth.logout(); Router.go('/login');
+  });
+
+  /* ── Редактор слайдов ── */
+  var slidesEditBtn = document.getElementById('slides-edit-btn');
+  if (slidesEditBtn) slidesEditBtn.addEventListener('click', function(){
+    window.Slides && window.Slides.openEditor();
   });
 
   /* ── Настройка плановых расходов ── */

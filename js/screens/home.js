@@ -20,7 +20,10 @@ window.Screens.home = function(mount) {
   var finYears = (store.finance && store.finance.years) || {};
   var entries = (finYears[yr] && finYears[yr][mm] && finYears[yr][mm].entries) || [];
   var monthIncome = entries.reduce(function(s,e){return s+((e&&e.amount)||0);},0);
-  var cushion = monthIncome - 97000;
+  var plannedExpenses = (window.Features && window.Features.isOn('home_planned_expenses'))
+    ? ((Store.get().home && Store.get().home.plannedExpenses) || 97000)
+    : 97000;
+  var cushion = monthIncome - plannedExpenses;
 
   var habList = ((store.habits && store.habits.list) || []).filter(Boolean);
   var habMarks = ((store.habits && store.habits.months) || {})[yr+'-'+mm] || {};
@@ -86,7 +89,7 @@ window.Screens.home = function(mount) {
     + '<div class="hero-sub-text">'+MONTHS[now.getMonth()]+' '+yr+'</div>'
     + '</div>'
     + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box"><div class="hero-stat-num" style="color:'+(cushion>=0?'#4ADE80':'#F87171')+'">'+fmt(Math.abs(cushion))+'</div><div class="hero-stat-lbl">'+(cushion>=0?'подушка':'не хватает')+'</div></div>'
+    + '<div class="hero-stat-box" id="home-cushion-box" style="cursor:pointer;"><div class="hero-stat-num" style="color:'+(cushion>=0?'#4ADE80':'#F87171')+'">'+fmt(Math.abs(cushion))+'</div><div class="hero-stat-lbl">'+(cushion>=0?'подушка':'не хватает')+'<span style="font-size:8px;color:#9D9A92;"> (план '+fmt(plannedExpenses)+')</span></div></div>'
     + '<div class="hero-stat-sep"></div>'
     + '<div class="hero-stat-box"><div class="hero-stat-num" style="font-size:13px;color:#FCD34D;">'+fmt(seasonLeft)+'</div><div class="hero-stat-lbl">цели '+seasonNames[curSeason]+'</div></div>'
     + '</div></div>'
@@ -125,12 +128,52 @@ window.Screens.home = function(mount) {
     + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
     + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + '</div>'
-    + '<div class="home2-footer"><div id="sync-status" style="font-size:11px;color:#9D9A92;text-align:center;padding:8px;"></div></div>'
+    + '<div class="home2-footer">'+ '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'+ '<div id="sync-status" style="font-size:11px;color:#9D9A92;"></div>'+ '<button id="features-open-btn" style="font-size:11px;color:#A78BFA;background:none;border:none;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;padding:4px 0;">⚙ Доработки (' + window.Features.all().filter(function(f){return f.enabled;}).length + '/' + window.Features.REGISTRY.length + ')</button>'+ '</div>'+ '</div>'
     + '</div>';
 
   mount.querySelectorAll('[data-route]').forEach(function(el){
     el.addEventListener('click', function(){ Router.go(el.dataset.route); });
   });
+
+  /* ── Настройка плановых расходов ── */
+  var cushionBox = document.getElementById('home-cushion-box');
+  if (cushionBox) {
+    cushionBox.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var ov = document.createElement('div');
+      ov.className = 'tr-modal-overlay';
+      ov.innerHTML = '<div class="tr-modal">'
+        + '<p class="tr-modal-title">Плановые расходы в месяц</p>'
+        + '<div class="tr-modal-row"><label style="flex:1">Сумма, ₽<input type="number" id="plan-exp-input" value="'+plannedExpenses+'" inputmode="numeric" style="font-size:18px;font-weight:700;"></label></div>'
+        + '<p style="font-size:11px;color:#9CA3AF;margin:4px 0 12px;">Подушка = Доходы − эта сумма</p>'
+        + '<div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="plan-exp-cancel">Отмена</button><button class="tr-modal-btn-primary" id="plan-exp-save">Сохранить</button></div>'
+        + '</div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click', function(e){if(e.target===ov)ov.remove();});
+      ov.querySelector('#plan-exp-cancel').addEventListener('click', function(){ov.remove();});
+      ov.querySelector('#plan-exp-save').addEventListener('click', function(){
+        var v = parseFloat(ov.querySelector('#plan-exp-input').value)||97000;
+        Store.set('home.plannedExpenses', v);
+        ov.remove();
+        Router.go('/home');
+      });
+      setTimeout(function(){ ov.querySelector('#plan-exp-input').focus(); }, 100);
+    });
+  }
+
+  /* ── Features panel ── */
+  /* Feature guard: show slider settings btn only if feature on */
+  var sliderSettingsEl = document.getElementById('slider-settings-btn');
+  if (sliderSettingsEl && window.Features && !window.Features.isOn('home_slider_settings')) {
+    sliderSettingsEl.style.display = 'none';
+  }
+
+  var featBtn = document.getElementById('features-open-btn');
+  if (featBtn) {
+    featBtn.addEventListener('click', function() {
+      window.Features.openPanel();
+    });
+  }
   document.getElementById('logout-btn').addEventListener('click', function(){
     Auth.logout(); Router.go('/login');
   });

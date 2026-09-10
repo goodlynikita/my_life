@@ -81,6 +81,35 @@ function habDayActive(h, year, month, day) {
   return true; // для 3perweek все дни кликабельны
 }
 
+
+/* Считаем текущий стрик (дней подряд = done) до сегодня включительно */
+function habStreak(h, store) {
+  const allMonths = store.habits?.months || {};
+  const today = new Date();
+  let streak = 0;
+  let d = new Date(today);
+
+  for (let i = 0; i < 365; i++) {
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    const mk = habMonthKey(year, month);
+    const mark = allMonths[mk]?.[h.id]?.[day];
+    const active = habDayActive(h, year, month, day);
+
+    if (!active) { d.setDate(d.getDate() - 1); continue; } // не рабочий — пропускаем
+    if (mark === 'done') {
+      streak++;
+    } else if (i === 0 && (!mark || mark === '')) {
+      // Сегодня ещё не отмечено — не ломаем стрик, продолжаем смотреть вчера
+    } else {
+      break;
+    }
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
 function habNextMark(current, active) {
   if (!active) return current; // неактивный день — не меняем
   if (!current || current==='') return 'done';
@@ -273,7 +302,7 @@ window.Screens.habits = function(mount) {
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
             <thead style="position:sticky;top:0;z-index:5;">
               <tr>
-                <th style="min-width:130px;text-align:left;padding:4px 8px;font-size:11px;color:#9D9A92;">Привычка</th>
+                <th style="min-width:130px;text-align:left;padding:4px 8px;font-size:11px;color:#9D9A92;${window.Features&&window.Features.isOn('habit_sticky_col')?'position:sticky;left:0;z-index:6;background:#1A1C22;':''}">Привычка</th>
                 ${dayNums.map(d=>{
                   const dow = habDow(viewYear, viewMonth, d);
                   const isToday = isNow && d===today.getDate();
@@ -314,13 +343,16 @@ window.Screens.habits = function(mount) {
 
                 return `
                   <tr>
-                    <td style="padding:6px 8px;white-space:nowrap;position:sticky;left:0;z-index:4;background:#1A1C22;">
+                    <td style="padding:6px 8px;white-space:nowrap;${window.Features&&window.Features.isOn('habit_sticky_col')?'position:sticky;left:0;z-index:4;background:#1A1C22;':''}">
                       <div style="display:flex;align-items:center;gap:6px;cursor:pointer;" class="hab-name-edit" data-idx="${hi}">
                         <i class="ti ${h.icon}" style="color:#C8A84B;font-size:13px;"></i>
                         <span style="font-size:12px;">${h.name}</span>
                       </div>
                       ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${h.description}</div>`:''}
-                      <div style="font-size:9px;color:#444;margin-left:19px;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?`${h.target}×/нед`:'каждый день'}</div>
+                      <div style="display:flex;align-items:center;gap:6px;margin-left:19px;margin-top:1px;">
+                        <span style="font-size:9px;color:#555;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?`${h.target}×/нед`:'каждый день'}</span>
+                        ${(()=>{const s=habStreak(h,Store.get());return s>=2?`<span style="font-size:9px;font-weight:700;color:#F59E0B;">🔥 ${s}</span>`:s===1?'<span style="font-size:9px;color:#9D9A92;">🔥 1</span>':''})()}
+                      </div>
                     </td>
                     ${cells}
                     <td style="padding:4px 8px;min-width:50px;">

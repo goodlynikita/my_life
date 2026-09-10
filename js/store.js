@@ -120,6 +120,11 @@ const Store = (() => {
     d.finance = d.finance || base.finance;
     if (!d.finance.years) d.finance.years = {};
     d.goals = d.goals || base.goals;
+    /* Normalize goals.directions — Firebase может вернуть объект {0:..} вместо массива */
+    if (d.goals.directions && !Array.isArray(d.goals.directions)) {
+      d.goals.directions = toArr(d.goals.directions);
+    }
+    if (!Array.isArray(d.goals.directions)) d.goals.directions = [];
     d.nutrition = d.nutrition || base.nutrition;
     d.nutritionFoods = d.nutritionFoods || base.nutritionFoods;
     return d;

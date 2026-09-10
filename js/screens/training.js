@@ -1540,7 +1540,10 @@ window.Screens.training = function (mount) {
       const _renderWW = () => {
         content.innerHTML = trRenderWorkingWeight(plan, _baseWkIdx);
         const sel = document.getElementById('tr-base-week-sel');
-        if (sel) sel.addEventListener('change', () => { _baseWkIdx = parseInt(sel.value); _renderWW(); });
+        if (sel) {
+          if (window.Features && !window.Features.isOn('training_base_week')) sel.closest('div').style.display='none';
+          else sel.addEventListener('change', () => { _baseWkIdx = parseInt(sel.value); _renderWW(); });
+        }
         const editBtn = document.getElementById('tr-edit-exercises-ww');
         if (editBtn) editBtn.addEventListener('click', trOpenExerciseEditor);
       };
@@ -2311,7 +2314,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
 
   const w1 = first.ex.weight;
   const wN = last.ex.weight;
-  const diff = Math.round((wN - w1) * 10) / 10;
+  const diff = (window.Features && window.Features.isOn('training_rounding')) ? Math.round((wN - w1) * 10) / 10 : (wN - w1);
   const pct = w1 > 0 ? Math.round((diff / w1) * 100) : 0;
   const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
   const color = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#9D9A92';

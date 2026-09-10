@@ -69,16 +69,9 @@ function goalsGet() {
   return GOALS_INITIAL;
 }
 function goalsSave(list) {
-  /* Пишем весь чистый массив. Сначала зануляем старые индексы чтобы не было дублей */
+  /* Пишем весь массив целиком одним Store.set — Firebase получает чистый массив */
   const clean = list.filter(Boolean);
-  const prev = Store.get().goals?.directions || [];
-  const prevArr = Array.isArray(prev) ? prev : Object.values(prev);
-  /* Зануляем лишние слоты если список стал короче */
-  for (let i = clean.length; i < prevArr.length; i++) {
-    Store.set('goals.directions.' + i, null);
-  }
-  /* Пишем каждый элемент отдельно чтобы Firebase не делал дубли */
-  clean.forEach((g, i) => Store.set('goals.directions.' + i, g));
+  Store.set('goals.directions', clean);
 }
 function goalsFmt(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';

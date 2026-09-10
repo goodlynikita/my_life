@@ -149,6 +149,12 @@ window.Screens.finance = function(mount) {
 
   document.getElementById('fb').addEventListener('click',()=>Router.go('/home'));
   document.getElementById('fl').addEventListener('click',()=>{Auth.logout();Router.go('/login');});
+  /* Feature guard: tab styling */
+  if (window.Features && !window.Features.isOn('finance_tabs_style')) {
+    mount.querySelectorAll('.tochka-tab').forEach(function(t){
+      t.style.fontSize='13px'; t.style.color='#6B7280'; t.style.fontWeight='600';
+    });
+  }
   mount.querySelectorAll('.tochka-tab').forEach(btn=>{
     btn.addEventListener('click',()=>{
       mount.querySelectorAll('.tochka-tab').forEach(b=>b.classList.remove('active'));
@@ -662,6 +668,7 @@ window.Screens.finance = function(mount) {
         tbody.querySelectorAll('tr').forEach(function(r){r.style.opacity = r.dataset.idx==dragIdxL?'0.4':'1';});
       });
     });
+    if (window.Features && window.Features.isOn('finance_drag_columns')) {
     content.querySelectorAll('.exp-drag-r').forEach(function(td){
       td.addEventListener('dragstart', function(e){
         dragIdxR = parseInt(td.dataset.idx); dragIdxL = null;
@@ -709,6 +716,7 @@ window.Screens.finance = function(mount) {
         });
       });
     }
+    } // end feature:finance_drag_columns
   }
 
   function render(){

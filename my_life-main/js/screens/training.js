@@ -803,9 +803,9 @@ function trBuildSetDetailsRows(setDetails) {
       ${setDetails.map((d, i) => `
         <div class="tr-set-detail-row">
           <span class="tr-set-num">${i + 1}</span>
-          <input type="number" class="m-set-reps" value="${d.reps||''}" placeholder="повт." inputmode="numeric">
+          <input type="number" class="m-set-reps" value="${d.reps}" placeholder="повт." inputmode="numeric">
           <span class="tr-set-x">×</span>
-          <input type="number" class="m-set-weight" value="${d.weight||''}" placeholder="кг" inputmode="decimal" step="0.5">
+          <input type="number" class="m-set-weight" value="${d.weight}" placeholder="кг" inputmode="decimal" step="0.5">
           <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>
         </div>
       `).join('')}
@@ -1148,11 +1148,11 @@ function trRender1RMCalc() {
   return `<div class="tr-1rm-wrap">
     <div class="tr-1rm-hero">
       <div class="tr-1rm-title">Калькулятор 1RM</div>
-      <div class="tr-1rm-sub">weight × (1 + reps / 30) · Epley</div>
+      <div class="tr-1rm-sub">Формула Эпли · weight × (1 + reps / 30)</div>
     </div>
     <div class="tr-1rm-inputs">
       <label class="tr-1rm-label">
-        <span>Вес, кг</span>
+        <span>Вес (кг)</span>
         <input id="rm-weight" type="number" inputmode="decimal" placeholder="100" min="1" max="500" step="0.5" class="tr-1rm-input">
       </label>
       <div class="tr-1rm-x">×</div>
@@ -1184,13 +1184,12 @@ window.Screens.training = function (mount) {
         </div>
         <span style="display:flex; align-items:center; gap:8px;">
           <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
-          ${role === 'owner' ? '<button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>' : ''}
           ${role === 'coach'
             ? `<span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button>`
             : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
         </span>
       </div>
-      <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
+      <div class="tr-plan-bar">
         <select class="tr-plan-select" id="tr-plan-select"></select>
         ${role === 'owner' ? '<button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>' : ''}
       </div>
@@ -1595,25 +1594,13 @@ window.Screens.training = function (mount) {
       };
       _renderWW();
     } else if (tab === 'one-rm') {
-      /* Сброс через 1 минуту бездействия */
-      if (window._last1rmState && window._last1rmState.ts) {
-        if (Date.now() - window._last1rmState.ts > 60000) window._last1rmState = {};
-      }
-      const _saved1rm = window._last1rmState || {};
       content.innerHTML = trRender1RMCalc();
       const calcBtn = document.getElementById('rm-calc-btn');
-      const wEl = document.getElementById('rm-weight');
-      const rEl = document.getElementById('rm-reps');
-      /* Восстанавливаем прошлые значения */
-      if (_saved1rm.w) wEl.value = _saved1rm.w;
-      if (_saved1rm.r) rEl.value = _saved1rm.r;
-
       if (calcBtn) {
         const doCalc = () => {
-          const w = parseFloat(wEl.value);
-          const r = parseInt(rEl.value);
+          const w = parseFloat(document.getElementById('rm-weight').value);
+          const r = parseInt(document.getElementById('rm-reps').value);
           if (!w || !r || w <= 0 || r <= 0) return;
-          window._last1rmState = { w, r, ts: Date.now() };
           const rm = calc1RM(w, r);
           const zones = get1RMZones(rm);
           const zonesHtml = zones.map(z => `
@@ -1629,20 +1616,19 @@ window.Screens.training = function (mount) {
           resultEl.innerHTML = `
             <div class="tr-1rm-answer">
               <div class="tr-1rm-answer-label">Расчётный максимум</div>
-              <div class="tr-1rm-answer-num">${rm}<span> кг</span></div>
-              <div class="tr-1rm-answer-sub">${w} кг × ${r} повт.</div>
+              <div class="tr-1rm-answer-num">${rm} <span>кг</span></div>
+              <div class="tr-1rm-answer-sub">при ${w} кг × ${r} повт.</div>
             </div>
             <div class="tr-1rm-zones-title">Зоны нагрузки</div>
             <div class="tr-1rm-zones">${zonesHtml}</div>`;
           resultEl.style.display = 'block';
+          resultEl.style.animation = 'tr-1rm-in 0.35s var(--ease) both';
         };
         calcBtn.addEventListener('click', doCalc);
-        [wEl, rEl].forEach(el => {
-          el?.addEventListener('keydown', e => { if(e.key==='Enter') doCalc(); });
+        ['rm-weight','rm-reps'].forEach(id => {
+          document.getElementById(id)?.addEventListener('keydown', e => { if(e.key==='Enter') doCalc(); });
         });
-        /* Если были предыдущие значения - показываем результат сразу */
-        if (_saved1rm.w && _saved1rm.r) doCalc();
-        else setTimeout(() => wEl?.focus(), 100);
+        setTimeout(() => document.getElementById('rm-weight')?.focus(), 100);
       }
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
@@ -1735,19 +1721,10 @@ window.Screens.training = function (mount) {
     });
   });
 
-  /* Тоггл выбора плана */
-  const planMenuBtn = document.getElementById('tr-plan-menu-btn');
-  const planBarEl = document.getElementById('tr-plan-bar');
-  if (planMenuBtn && planBarEl) {
-    planMenuBtn.addEventListener('click', () => {
-      planBarEl.style.display = planBarEl.style.display === 'none' ? 'flex' : 'none';
-    });
-    if (trGetPlans().filter(Boolean).length > 1) planBarEl.style.display = 'flex';
-  }
   const backBtn = document.getElementById('tr-back');
   if (backBtn) backBtn.addEventListener('click', () => Router.go('/home'));
   const logoutBtn = document.getElementById('tr-logout');
-  if (logoutBtn) logoutBtn.addEventListener('click', () => { Auth.logout().then(function(){ Router.go('/login'); }); });
+  if (logoutBtn) logoutBtn.addEventListener('click', () => { Auth.logout(); Router.go('/login'); });
 
   if (undoBtn) {
     undoBtn.addEventListener('click', () => {
@@ -1763,15 +1740,10 @@ window.Screens.training = function (mount) {
 
   renderTab('plan');
 
-  /* Данные обновились с Firebase — не перерисовываем если юзер редактирует */
+  /* Данные обновились с Firebase (тренер добавил тренировку) */
   function _onRemoteUpdate() {
-    const active = document.activeElement;
-    const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
-    if (isEditing) return; /* пользователь вводит данные — не мешаем */
     populatePlanSelect();
-    /* Перерисовываем только если не на вкладке план (там идёт ввод) */
-    const activeTab = document.querySelector('.tr-tab.active')?.dataset.tab || 'plan';
-    if (activeTab !== 'plan') renderTab(activeTab);
+    renderTab(document.querySelector('.tr-tab.active')?.dataset.tab || 'plan');
   }
   window.addEventListener('firebase-remote-update', _onRemoteUpdate);
 
@@ -1826,8 +1798,8 @@ const WORKING_WEIGHT_CATEGORIES = ['Грудь', 'Спина', 'Ноги', 'Ру
 
 function trRenderWorkingWeight(plan, baseWeekIndex) {
   const _bw = (typeof baseWeekIndex === 'number') ? baseWeekIndex : 0;
-  const weekOpts = plan.weeks.map((w,i) => '<option value="'+i+'" '+(i===_bw?'selected':'')+'>'+'Нед. '+(i+1)+'</option>').join('');
-  const baseSelector = '<div style="padding:8px 16px 4px;display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:#9D9A92;white-space:nowrap;">База:</span><select id="tr-base-week-sel" style="background:#1C1E24;color:#E8E5DC;border:1px solid #2A2D35;border-radius:6px;padding:3px 6px;font-size:12px;">'+weekOpts+'</select></div>';
+  const weekOpts = plan.weeks.map((w,i) => '<option value="'+i+'" '+(i===_bw?'selected':'')+'>'+(i===0?'Нед. 1 (первая)':'Нед. '+(i+1))+'</option>').join('');
+  const baseSelector = '<div style="padding:10px 16px 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:12px;color:#9D9A92;">Сравнивать с:</span><select id="tr-base-week-sel" style="background:#1C1E24;color:#E8E5DC;border:1px solid #2A2D35;border-radius:6px;padding:4px 8px;font-size:13px;">'+weekOpts+'</select></div>';
   const latest = trCollectGymExercises(plan);
   const names = Object.keys(latest);
   if (names.length === 0) {

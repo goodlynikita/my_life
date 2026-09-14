@@ -66,7 +66,7 @@ function goalsGet() {
     const clean = arr.filter(Boolean);
     if (clean.length > 0) return clean;
   }
-  return []; /* новый пользователь — пустой список, не дефолт */
+  return GOALS_INITIAL;
 }
 function goalsSave(list) {
   /* Пишем весь массив целиком одним Store.set — Firebase получает чистый массив */
@@ -99,7 +99,7 @@ function goalsMonthsLeft(season) {
 function goalsOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
-  overlay.className = 'tr-modal-overlay modal-goals';
+  overlay.className = 'tr-modal-overlay';
   const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
   const catOpts = existingCats.map(c=>`<option value="${c}"${existing?.cat===c?' selected':''}>${c}</option>`).join('');
   const isNewCat = existing?.cat && !existingCats.includes(existing.cat);
@@ -211,7 +211,7 @@ window.Screens.goals = function(mount) {
   let activeMonth = 0;
 
   mount.innerHTML = `
-    <div class="goals-screen" style="min-height:100vh;background:#0F0B1A;">
+    <div class="goals-screen">
       <div class="goals-header" style="position:sticky;top:0;z-index:16;">
         <div style="display:flex;align-items:center;gap:10px;">
           <button class="goals-back" id="gb"><i class="ti ti-arrow-left"></i></button>
@@ -233,7 +233,7 @@ window.Screens.goals = function(mount) {
     const btn = document.createElement('button');
     btn.className = 'goals-season-tab' + (s.key==='all'?' active':'');
     btn.dataset.season = s.key;
-    btn.setAttribute('data-season-color', s.color); btn.style.cssText += ';--season-color:' + s.color + ';';
+    btn.style.setProperty('--season-color', s.color);
     btn.textContent = s.label;
     btn.addEventListener('click',()=>{
       tabsEl.querySelectorAll('.goals-season-tab').forEach(b=>b.classList.remove('active'));
@@ -256,20 +256,16 @@ window.Screens.goals = function(mount) {
     const months = [...new Set(seasonItems.filter(g => g.month).map(g => g.month))].sort((a,b)=>a-b);
     if (!months.length) { bar.style.display = 'none'; return; }
     bar.style.display = 'block';
-    /* Берём цвет текущего сезона */
-    const _seasonColor = (GOALS_SEASONS.find(s=>s.key===activeSeason)||{color:'#A78BFA'}).color;
     const MNAMES = ['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
     const btns = [0, ...months].map(m => {
       const active = activeMonth === m;
       return '<button class="goals-mbar-btn' + (active?' active':'') + '" data-m="'+m+'" style="'
-        + 'padding:4px 12px;border-radius:20px;'
-        + 'border:1px solid '+(active?_seasonColor:_seasonColor+'44')+';'
-        + 'background:'+(active?_seasonColor+'33':'none')+';'
-        + 'color:'+(active?_seasonColor:'rgba(255,255,255,0.45)')+';'
-        + 'font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">'
+        + 'padding:4px 10px;border-radius:20px;border:1px solid '+(active?'#A78BFA':'#2A2D35')+';'
+        + 'background:'+(active?'#A78BFA22':'none')+';color:'+(active?'#A78BFA':'#9D9A92')+';'
+        + 'font-size:11px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">'
         + (m===0?'Все':MNAMES[m])+'</button>';
     }).join('');
-    bar.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:2px;">'+btns+'</div>';
+    bar.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;">'+btns+'</div>';
     bar.querySelectorAll('.goals-mbar-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         activeMonth = parseInt(btn.dataset.m);

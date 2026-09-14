@@ -1737,7 +1737,7 @@ window.Screens.training = function (mount) {
   const backBtn = document.getElementById('tr-back');
   if (backBtn) backBtn.addEventListener('click', () => Router.go('/home'));
   const logoutBtn = document.getElementById('tr-logout');
-  if (logoutBtn) logoutBtn.addEventListener('click', () => { Auth.logout(); Router.go('/login'); });
+  if (logoutBtn) logoutBtn.addEventListener('click', () => { Auth.logout().then(function(){ Router.go('/login'); }); });
 
   if (undoBtn) {
     undoBtn.addEventListener('click', () => {

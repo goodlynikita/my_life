@@ -247,7 +247,7 @@ window.Screens.habits = function(mount) {
     </div>`;
 
     document.getElementById('hab-back').addEventListener('click', () => Router.go('/home'));
-  document.getElementById('hab-logout').addEventListener('click', () => { Auth.logout(); Router.go('/login'); });
+  document.getElementById('hab-logout').addEventListener('click', () => { Auth.logout().then(function(){ Router.go('/login'); }); });
 
   /* ── Настройки привычек ── */
   document.getElementById('hab-settings').addEventListener('click', () => {

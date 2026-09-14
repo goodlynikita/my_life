@@ -25,20 +25,15 @@ const Router = (() => {
 
   function render() {
     let path = currentPath();
-    const loggedRole = Auth.role();
+    const loggedIn = Auth.isLoggedIn();
 
-    if (!loggedRole && path !== '/login') {
+    if (!loggedIn && path !== '/login') {
       path = '/login';
       location.hash = path;
       return;
     }
-    if (loggedRole === 'coach' && path !== '/training') {
-      path = '/training';
-      location.hash = path;
-      return;
-    }
-    if (loggedRole && path === '/login') {
-      path = loggedRole === 'coach' ? '/training' : '/home';
+    if (loggedIn && path === '/login') {
+      path = '/home';
       location.hash = path;
       return;
     }

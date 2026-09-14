@@ -1,10 +1,9 @@
 /* ============================================================
-   APP ENTRY POINT — точно как в "Бегу к себе"
+   APP ENTRY POINT
    1. Ждём FirebaseSync (ES-модуль)
-   2. Читаем данные из Firebase для текущей роли
-   3. Если Firebase пуст — показываем пустой дефолт
-      (НЕ пишем data.json в Firebase — это убивало данные)
-   4. Рисуем экран
+   2. Ждём Firebase Auth — определяем залогинен ли юзер
+   3. Если залогинен — грузим его данные и рендерим
+   4. Если нет — показываем экран логина
    ============================================================ */
 
 function waitForFirebaseSync(maxWaitMs) {
@@ -34,21 +33,36 @@ window.addEventListener('error', function(e) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    await waitForFirebaseSync(3000);
-
-    if (window.FirebaseSync && FirebaseSync.isConfigured()) {
-      const result = await FirebaseSync.pullIntoStore();
-      if (result !== true) {
-        /* Firebase пуст или недоступен — дефолтные данные только локально,
-           в Firebase НЕ пишем чтобы не затереть данные другой роли */
-        Store.replaceAll(Store.defaultData());
-      }
-    } else {
-      Store.replaceAll(Store.defaultData());
+    const fbReady = await waitForFirebaseSync(5000);
+    if (!fbReady) {
+      Store.replaceAll({});
+      Router.render();
+      return;
     }
-  } catch (e) {
+
+    /* Ждём Firebase Auth — onAuthStateChanged вызывается один раз при инициализации */
+    await new Promise((resolve) => {
+      const unsubscribe = FirebaseSync.onAuth(async (user) => {
+        unsubscribe();
+        if (user) {
+          /* Пользователь залогинен — грузим его данные */
+          try {
+            const result = await FirebaseSync.pullIntoStore();
+            if (result !== true) Store.replaceAll({});
+          } catch(e) {
+            Store.replaceAll({});
+          }
+        } else {
+          /* Не залогинен — покажем экран входа */
+          Store.replaceAll({});
+        }
+        resolve();
+      });
+    });
+
+  } catch(e) {
     console.error('App boot error', e);
-    Store.replaceAll(Store.defaultData());
+    Store.replaceAll({});
   } finally {
     Router.render();
   }

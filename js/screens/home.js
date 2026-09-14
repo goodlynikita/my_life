@@ -152,7 +152,7 @@ window.Screens.home = function(mount) {
   });
 
   document.getElementById('logout-btn').addEventListener('click', function(){
-    Auth.logout(); Router.go('/login');
+    Auth.logout().then(function(){ Router.go('/login'); });
   });
 
   /* ── Редактор слайдов ── */

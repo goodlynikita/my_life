@@ -1,18 +1,33 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const _fbApp = initializeApp(window.FIREBASE_CONFIG);
-const _db = getDatabase(_fbApp);
-const ROOT = 'nik-data';
+const _db    = getDatabase(_fbApp);
+const _auth  = getAuth(_fbApp);
+
+/* ── Путь к данным пользователя ── */
+function userRoot() {
+  const uid = _auth.currentUser?.uid;
+  /* Владелец использует старый путь nik-data для совместимости */
+  if (uid && uid === window._OWNER_UID) return 'nik-data';
+  return uid ? 'users/' + uid : null;
+}
 
 const FirebaseSync = (() => {
-  let _loaded = false;
+  let _loaded  = false;
   let _pollTimer = null;
   let _lastWriteAt = 0;
-  let statusEl = null;
-  let hideTimer = null;
-  const _queue = new Map();
   let _flushTimer = null;
+  const _queue = new Map();
+  let hideTimer = null;
 
   function isConfigured() {
     return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL);
@@ -34,17 +49,18 @@ const FirebaseSync = (() => {
   }
 
   function setStatus(text, isError) {
-    statusEl = document.getElementById('sync-status');
-    if (!statusEl) return;
+    const el = document.getElementById('sync-status');
+    if (!el) return;
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-    statusEl.textContent = text;
-    statusEl.style.color = isError ? '#FF5C5C' : '#9D9A92';
-    statusEl.style.opacity = '1';
-    if (!isError) hideTimer = setTimeout(() => { if (statusEl) statusEl.style.opacity = '0'; }, 2500);
+    el.textContent = text;
+    el.style.color = isError ? '#FF5C5C' : '#9D9A92';
+    el.style.opacity = '1';
+    if (!isError) hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
   }
 
   async function _flushQueue() {
-    if (_queue.size === 0) return;
+    const root = userRoot();
+    if (!root || _queue.size === 0) return;
     const entries = [..._queue.entries()];
     _queue.clear();
     _lastWriteAt = Date.now();
@@ -54,9 +70,8 @@ const FirebaseSync = (() => {
       for (const [path] of entries) sections.add(path.split('.')[0]);
       for (const top of sections) {
         const data = Store.get()[top];
-        if (data !== undefined) await set(ref(_db, ROOT + '/' + top), sanitizeKeys(data));
+        if (data !== undefined) await set(ref(_db, root + '/' + top), sanitizeKeys(data));
       }
-      _lastWriteAt = Date.now();
       setStatus('Сохранено');
     } catch(e) {
       console.error('flush failed', e);
@@ -74,22 +89,23 @@ const FirebaseSync = (() => {
   }
 
   async function _silentPull() {
-    if (!_loaded) return;
+    const root = userRoot();
+    if (!_loaded || !root) return;
     if (Date.now() - _lastWriteAt < 10000) return;
     try {
-      const snap = await get(ref(_db, ROOT));
+      const snap = await get(ref(_db, root));
       if (!snap.exists()) return;
-      const remote = snap.val();
-      if (!remote) return;
-      Store.replaceAll(remote);
+      Store.replaceAll(snap.val());
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
     } catch(e) {}
   }
 
   async function pullIntoStore() {
+    const root = userRoot();
+    if (!root) { _loaded = true; return false; }
     try {
       const snap = await Promise.race([
-        get(ref(_db, ROOT)),
+        get(ref(_db, root)),
         new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 8000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
@@ -112,11 +128,10 @@ const FirebaseSync = (() => {
   }
 
   function _pushBeacon() {
-    if (!_loaded) return;
+    const root = userRoot();
+    if (!_loaded || !root) return;
     if (_queue.size > 0) _flushQueue();
-    const d = Store.get();
-    _lastWriteAt = Date.now();
-    try { set(ref(_db, ROOT), sanitizeKeys(d)).catch(() => {}); } catch(e) {}
+    try { set(ref(_db, root), sanitizeKeys(Store.get())).catch(() => {}); } catch(e) {}
   }
 
   document.addEventListener('visibilitychange', () => {
@@ -125,7 +140,38 @@ const FirebaseSync = (() => {
   });
   window.addEventListener('pagehide', _pushBeacon);
 
-  return { isConfigured, pullIntoStore, scheduleSave, pushNow: _pushBeacon, getConfig: () => window.FIREBASE_CONFIG, setConfig(){}, clearConfig(){} };
+  /* ── Firebase Auth API ── */
+  async function register(email, password, displayName) {
+    const cred = await createUserWithEmailAndPassword(_auth, email, password);
+    if (displayName) await updateProfile(cred.user, { displayName });
+    return cred.user;
+  }
+
+  async function login(email, password) {
+    const cred = await signInWithEmailAndPassword(_auth, email, password);
+    return cred.user;
+  }
+
+  async function logout() {
+    _loaded = false;
+    Store.replaceAll(Store.defaultData ? Store.defaultData() : {});
+    await signOut(_auth);
+  }
+
+  function onAuth(callback) {
+    return onAuthStateChanged(_auth, callback);
+  }
+
+  function currentUser() {
+    return _auth.currentUser;
+  }
+
+  return {
+    isConfigured, pullIntoStore, scheduleSave,
+    pushNow: _pushBeacon,
+    register, login, logout, onAuth, currentUser,
+    getConfig: () => window.FIREBASE_CONFIG
+  };
 })();
 
 window.FirebaseSync = FirebaseSync;

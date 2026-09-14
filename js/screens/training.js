@@ -1594,7 +1594,10 @@ window.Screens.training = function (mount) {
       };
       _renderWW();
     } else if (tab === 'one-rm') {
-      /* Сохраняем последний результат чтобы не слетал */
+      /* Сброс через 1 минуту бездействия */
+      if (window._last1rmState && window._last1rmState.ts) {
+        if (Date.now() - window._last1rmState.ts > 60000) window._last1rmState = {};
+      }
       const _saved1rm = window._last1rmState || {};
       content.innerHTML = trRender1RMCalc();
       const calcBtn = document.getElementById('rm-calc-btn');
@@ -1609,7 +1612,7 @@ window.Screens.training = function (mount) {
           const w = parseFloat(wEl.value);
           const r = parseInt(rEl.value);
           if (!w || !r || w <= 0 || r <= 0) return;
-          window._last1rmState = { w, r };
+          window._last1rmState = { w, r, ts: Date.now() };
           const rm = calc1RM(w, r);
           const zones = get1RMZones(rm);
           const zonesHtml = zones.map(z => `

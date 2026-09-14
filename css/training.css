@@ -54,9 +54,10 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--tr-void);
-  border-bottom: 0.5px solid var(--tr-steel-line);
-  padding: 14px 16px 12px;
+  background: #11141C;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 0 16px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -398,25 +399,26 @@
 .tr-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.75);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 200;
-  padding: 0;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .tr-modal {
   width: 100%;
-  max-width: 520px;
-  background: #1A1C22;
-  border: none;
-  border-radius: 20px 20px 0 0;
-  padding: 24px 20px max(24px, env(safe-area-inset-bottom));
-  max-height: 90vh;
+  max-width: 480px;
+  background: #1C1E26;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-height: 85vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 -4px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
 }
 
 /* Title row with close button */

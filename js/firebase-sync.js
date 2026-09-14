@@ -15,10 +15,13 @@ const _auth  = getAuth(_fbApp);
 
 /* ── Путь к данным пользователя ── */
 function userRoot() {
-  const uid = _auth.currentUser?.uid;
-  /* Владелец использует старый путь nik-data для совместимости */
-  if (uid && uid === window._OWNER_UID) return 'nik-data';
-  return uid ? 'users/' + uid : null;
+  const user = _auth.currentUser;
+  if (!user) return null;
+  /* Владелец определяется по email — использует старый путь nik-data */
+  const ownerEmail = window.AUTH_CONFIG?.ownerEmail;
+  if (ownerEmail && user.email === ownerEmail) return 'nik-data';
+  /* Остальные пользователи — изолированный путь */
+  return 'users/' + user.uid;
 }
 
 const FirebaseSync = (() => {
@@ -110,12 +113,13 @@ const FirebaseSync = (() => {
       ]);
       const remote = snap.exists() ? snap.val() : null;
       const hasData = remote && (
-        remote?.training?.plans?.length > 0 ||
+        (remote?.training?.plans && remote.training.plans.length > 0) ||
         remote?.finance?.years ||
         remote?.goals?.directions ||
-        remote?.habits?.list?.length > 0
+        (remote?.habits?.list && remote.habits.list.length > 0)
       );
       if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); }
+      /* Если у пользователя нет данных но он владелец - данные уже в nik-data */
       _loaded = true;
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 15000);
       return hasData ? true : false;

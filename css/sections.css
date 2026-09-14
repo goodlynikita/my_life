@@ -1204,101 +1204,95 @@ input, textarea, select {
 }
 
 
-/* ═══════════════════════════════════════════
-   UNIFIED HEADER SYSTEM
-   Все шапки одного размера, залиты цветом
-   ═══════════════════════════════════════════ */
 
-/* --- Базовый размер шапки (как в привычках) --- */
+/* ═══════════════════════════════════════
+   UNIFIED HEADERS — тёмные, единый размер
+   Цвет только у текста и иконок
+   ═══════════════════════════════════════ */
+
 .hab-header,
 .goals-header,
 .tr-header {
-  padding: 14px 20px !important;
+  background: #11141C !important;
+  padding: 0 20px !important;
+  height: 56px !important;
   min-height: 56px !important;
+  max-height: 56px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 20 !important;
-  border-bottom: none !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
 }
 
-/* --- Привычки — зелёная --- */
-.hab-header {
-  background: linear-gradient(135deg, #052e16 0%, #166534 100%) !important;
-}
-.hab-screen-title { color: #fff !important; font-size: 18px !important; font-weight: 800 !important; }
-.hab-back-btn { color: rgba(255,255,255,0.8) !important; }
+/* Текст заголовков */
+.hab-screen-title  { color: #4ade80 !important; font-size: 17px !important; font-weight: 800 !important; }
+.goals-screen-title { color: #C084FC !important; font-size: 17px !important; font-weight: 800 !important; }
+.tr-title          { color: #93c5fd !important; font-size: 17px !important; font-weight: 800 !important; text-transform: none !important; letter-spacing: 0 !important; }
+
+/* Кнопки в шапках */
+.hab-back-btn  { color: rgba(255,255,255,0.6) !important; }
+.goals-back    { color: rgba(255,255,255,0.6) !important; background: none !important; border: none !important; font-size: 18px !important; cursor: pointer !important; }
+.tr-back       { color: rgba(255,255,255,0.6) !important; }
+
+/* Вкладки — тёмные, цветной индикатор */
 .hab-tabs {
-  background: #0d3d1e !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  background: #11141C !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
   position: sticky !important;
   top: 56px !important;
   z-index: 15 !important;
 }
-.hab-tab { color: rgba(255,255,255,0.45) !important; font-size: 13px !important; }
+.hab-tab { color: rgba(255,255,255,0.35) !important; font-size: 13px !important; background: none !important; }
 .hab-tab.active { color: #4ade80 !important; border-bottom-color: #4ade80 !important; background: none !important; }
 
-/* --- Цели — пурпурная (цвет шапки, не сезона) --- */
-.goals-header {
-  background: linear-gradient(135deg, #1e0a3e 0%, #4c1d95 100%) !important;
-  border-bottom: none !important;
-}
-.goals-screen-title { color: #fff !important; font-size: 18px !important; font-weight: 800 !important; }
-.goals-back { color: rgba(255,255,255,0.8) !important; background: none !important; border: none !important; }
 .goals-season-tabs {
-  background: #2d1060 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  background: #11141C !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
   position: sticky !important;
   top: 56px !important;
   z-index: 15 !important;
 }
-.goals-season-tab { color: rgba(255,255,255,0.45) !important; font-size: 13px !important; }
-.goals-season-tab.active { color: #fff !important; border-bottom-color: #fff !important; }
+.goals-season-tab { color: rgba(255,255,255,0.35) !important; font-size: 13px !important; }
+.goals-season-tab.active { color: var(--season-color, #C084FC) !important; border-bottom-color: var(--season-color, #C084FC) !important; font-weight: 800 !important; }
 
-/* --- Тренировки — синяя --- */
-.tr-header {
-  background: linear-gradient(135deg, #0a1628 0%, #1e3a8a 100%) !important;
-  border-bottom: none !important;
-}
-.tr-title { color: #fff !important; }
-.tr-back { color: rgba(255,255,255,0.8) !important; }
 .tr-tabs {
-  background: #0f1e3d !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  background: #11141C !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
   position: sticky !important;
   top: 56px !important;
   z-index: 15 !important;
 }
-.tr-tab { color: rgba(255,255,255,0.45) !important; font-size: 13px !important; }
+.tr-tab { color: rgba(255,255,255,0.35) !important; }
 .tr-tab.active {
-  background: rgba(74,124,255,0.25) !important;
-  border-color: rgba(74,124,255,0.6) !important;
+  background: rgba(74,124,255,0.15) !important;
+  border-color: rgba(74,124,255,0.5) !important;
   color: #93c5fd !important;
 }
 
-/* --- Месяц бар целей --- */
+/* Месяц бар */
 #goals-month-bar {
-  background: #2d1060 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  background: #11141C !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
   position: sticky !important;
   top: 97px !important;
   z-index: 14 !important;
 }
 
-/* FIX: Metrics 3-col smaller font */
+/* Метрики — компактные */
 .sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 8px !important; }
 .sec-metric-value { font-size: 16px !important; white-space: nowrap !important; overflow: hidden !important; }
 .sec-metric-label { font-size: 9px !important; }
 .sec-metric { padding: 10px 8px !important; }
 
-/* FIX: Goals stats no overflow */
+/* Goals stats */
 .goals-sstat-val { font-size: 11px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
 .goals-sstat-label { font-size: 8px !important; }
 .goals-season-stat { padding: 6px 5px !important; min-width: 0 !important; }
 .goals-season-stats { gap: 4px !important; }
 
-/* FIX 12: Prevent zoom */
+/* Prevent zoom */
 html, body { touch-action: pan-x pan-y; overscroll-behavior: none; }
 input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }

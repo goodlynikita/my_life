@@ -129,7 +129,7 @@ function habOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:flex-end;justify-content:center;z-index:300;padding:0;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;box-sizing:border-box;';
 
   const ICONS = ['ti-star','ti-bolt','ti-apple','ti-barbell','ti-device-mobile',
     'ti-book','ti-run','ti-heart','ti-moon','ti-sun','ti-drop',
@@ -254,7 +254,7 @@ window.Screens.habits = function(mount) {
     const habits = habGetList();
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:flex-end;padding:0;';
+    ov.style.cssText = 'align-items:flex-end;padding:0;'; /* bottom sheet */
 
     function renderSettings() {
       const list = habGetList();

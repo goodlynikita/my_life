@@ -50,18 +50,7 @@
   text-shadow: 0 0 8px rgba(74,124,255,0.5);
 }
 
-.tr-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #11141C;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding: 0 16px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+
 
 .tr-back {
   background: none;

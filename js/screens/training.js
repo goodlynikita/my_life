@@ -803,9 +803,9 @@ function trBuildSetDetailsRows(setDetails) {
       ${setDetails.map((d, i) => `
         <div class="tr-set-detail-row">
           <span class="tr-set-num">${i + 1}</span>
-          <input type="number" class="m-set-reps" value="${d.reps}" placeholder="повт." inputmode="numeric">
+          <input type="number" class="m-set-reps" value="${d.reps||''}" placeholder="повт." inputmode="numeric">
           <span class="tr-set-x">×</span>
-          <input type="number" class="m-set-weight" value="${d.weight}" placeholder="кг" inputmode="decimal" step="0.5">
+          <input type="number" class="m-set-weight" value="${d.weight||''}" placeholder="кг" inputmode="decimal" step="0.5">
           <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>
         </div>
       `).join('')}
@@ -1753,10 +1753,15 @@ window.Screens.training = function (mount) {
 
   renderTab('plan');
 
-  /* Данные обновились с Firebase (тренер добавил тренировку) */
+  /* Данные обновились с Firebase — не перерисовываем если юзер редактирует */
   function _onRemoteUpdate() {
+    const active = document.activeElement;
+    const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+    if (isEditing) return; /* пользователь вводит данные — не мешаем */
     populatePlanSelect();
-    renderTab(document.querySelector('.tr-tab.active')?.dataset.tab || 'plan');
+    /* Перерисовываем только если не на вкладке план (там идёт ввод) */
+    const activeTab = document.querySelector('.tr-tab.active')?.dataset.tab || 'plan';
+    if (activeTab !== 'plan') renderTab(activeTab);
   }
   window.addEventListener('firebase-remote-update', _onRemoteUpdate);
 

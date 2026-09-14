@@ -66,7 +66,7 @@ function goalsGet() {
     const clean = arr.filter(Boolean);
     if (clean.length > 0) return clean;
   }
-  return GOALS_INITIAL;
+  return []; /* новый пользователь — пустой список, не дефолт */
 }
 function goalsSave(list) {
   /* Пишем весь массив целиком одним Store.set — Firebase получает чистый массив */

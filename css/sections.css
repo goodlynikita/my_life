@@ -1205,94 +1205,103 @@ input, textarea, select {
 
 
 
+
 /* ═══════════════════════════════════════
-   UNIFIED HEADERS — тёмные, единый размер
-   Цвет только у текста и иконок
+   HEADERS — как в финансах
+   Сплошной цвет, белый текст
    ═══════════════════════════════════════ */
 
-.hab-header,
-.goals-header,
-.tr-header {
-  background: #11141C !important;
-  padding: 0 20px !important;
-  height: 56px !important;
-  min-height: 56px !important;
-  max-height: 56px !important;
+.hab-header {
+  background: #166534 !important;
+  padding: 14px 20px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 20 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  border-bottom: none !important;
 }
+.hab-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
+.hab-back-btn { color: #fff !important; }
 
-/* Текст заголовков */
-.hab-screen-title  { color: #4ade80 !important; font-size: 17px !important; font-weight: 800 !important; }
-.goals-screen-title { color: #C084FC !important; font-size: 17px !important; font-weight: 800 !important; }
-.tr-title          { color: #93c5fd !important; font-size: 17px !important; font-weight: 800 !important; text-transform: none !important; letter-spacing: 0 !important; }
-
-/* Кнопки в шапках */
-.hab-back-btn  { color: rgba(255,255,255,0.6) !important; }
-.goals-back    { color: rgba(255,255,255,0.6) !important; background: none !important; border: none !important; font-size: 18px !important; cursor: pointer !important; }
-.tr-back       { color: rgba(255,255,255,0.6) !important; }
-
-/* Вкладки — тёмные, цветной индикатор */
-.hab-tabs {
-  background: #11141C !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+.goals-header {
+  background: #4C1D95 !important;
+  padding: 14px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   position: sticky !important;
-  top: 56px !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  border-bottom: none !important;
+}
+.goals-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
+.goals-back { color: #fff !important; background: none !important; border: none !important; font-size: 18px !important; cursor: pointer !important; }
+
+.tr-header {
+  background: #1E3A8A !important;
+  padding: 14px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  border-bottom: none !important;
+}
+.tr-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; text-transform: none !important; letter-spacing: 0 !important; }
+.tr-back { color: #fff !important; }
+
+/* Вкладки продолжают цвет шапки */
+.hab-tabs {
+  background: #14532D !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  position: sticky !important;
+  top: 53px !important;
   z-index: 15 !important;
 }
-.hab-tab { color: rgba(255,255,255,0.35) !important; font-size: 13px !important; background: none !important; }
-.hab-tab.active { color: #4ade80 !important; border-bottom-color: #4ade80 !important; background: none !important; }
+.hab-tab { color: rgba(255,255,255,0.5) !important; font-size: 13px !important; background: none !important; }
+.hab-tab.active { color: #fff !important; border-bottom-color: #4ade80 !important; background: none !important; }
 
 .goals-season-tabs {
-  background: #11141C !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  background: #3B0764 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
   position: sticky !important;
-  top: 56px !important;
+  top: 53px !important;
   z-index: 15 !important;
 }
-.goals-season-tab { color: rgba(255,255,255,0.35) !important; font-size: 13px !important; }
-.goals-season-tab.active { color: var(--season-color, #C084FC) !important; border-bottom-color: var(--season-color, #C084FC) !important; font-weight: 800 !important; }
+.goals-season-tab { color: rgba(255,255,255,0.5) !important; font-size: 13px !important; }
+.goals-season-tab.active { color: var(--season-color, #fff) !important; border-bottom-color: var(--season-color, #fff) !important; font-weight: 700 !important; }
 
 .tr-tabs {
-  background: #11141C !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  background: #1e3a8a !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
   position: sticky !important;
-  top: 56px !important;
+  top: 53px !important;
   z-index: 15 !important;
 }
-.tr-tab { color: rgba(255,255,255,0.35) !important; }
-.tr-tab.active {
-  background: rgba(74,124,255,0.15) !important;
-  border-color: rgba(74,124,255,0.5) !important;
-  color: #93c5fd !important;
-}
+.tr-tab { color: rgba(255,255,255,0.45) !important; font-size: 13px !important; }
+.tr-tab.active { background: rgba(255,255,255,0.15) !important; border-color: rgba(255,255,255,0.4) !important; color: #fff !important; }
 
-/* Месяц бар */
 #goals-month-bar {
-  background: #11141C !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  background: #3B0764 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
   position: sticky !important;
   top: 97px !important;
   z-index: 14 !important;
 }
 
-/* Метрики — компактные */
+/* Метрики */
 .sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 8px !important; }
 .sec-metric-value { font-size: 16px !important; white-space: nowrap !important; overflow: hidden !important; }
 .sec-metric-label { font-size: 9px !important; }
 .sec-metric { padding: 10px 8px !important; }
-
-/* Goals stats */
 .goals-sstat-val { font-size: 11px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
 .goals-sstat-label { font-size: 8px !important; }
 .goals-season-stat { padding: 6px 5px !important; min-width: 0 !important; }
 .goals-season-stats { gap: 4px !important; }
 
-/* Prevent zoom */
+/* No zoom */
 html, body { touch-action: pan-x pan-y; overscroll-behavior: none; }
 input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }

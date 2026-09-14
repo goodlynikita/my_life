@@ -121,7 +121,7 @@ const FirebaseSync = (() => {
       if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); }
       /* Если у пользователя нет данных но он владелец - данные уже в nik-data */
       _loaded = true;
-      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 15000);
+      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000); /* 5 минут */
       return hasData ? true : false;
     } catch(e) {
       console.error('pullIntoStore failed', e);
@@ -138,9 +138,15 @@ const FirebaseSync = (() => {
     try { set(ref(_db, root), sanitizeKeys(Store.get())).catch(() => {}); } catch(e) {}
   }
 
+  let _hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') _silentPull();
-    else _pushBeacon();
+    if (document.visibilityState === 'visible') {
+      /* Тянем данные только если были скрыты больше 2 минут */
+      if (Date.now() - _hiddenAt > 120000) _silentPull();
+    } else {
+      _hiddenAt = Date.now();
+      _pushBeacon();
+    }
   });
   window.addEventListener('pagehide', _pushBeacon);
 

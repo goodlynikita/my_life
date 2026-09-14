@@ -67,6 +67,8 @@ const Store = (() => {
     if (window.FirebaseSync && FirebaseSync.isConfigured()) {
       FirebaseSync.scheduleSave(path, value);
     }
+    /* Локальный бекап — данные не потеряются если закроешь до синка */
+    try { localStorage.setItem('nik_local_backup', JSON.stringify(obj)); } catch(e) {}
   }
 
   /* Firebase возвращает массивы как объекты вида {0:.., 1:.., 2:..}, если в
@@ -132,9 +134,22 @@ const Store = (() => {
 
   function replaceAll(newData) {
     data = ensureShape(newData);
-    /* Намеренно НЕ сохраняем в localStorage — Firebase единственное
-       постоянное хранилище. Локальный кэш был причиной рассинхрона. */
+    /* Сохраняем в localStorage как резервную копию */
+    try { localStorage.setItem('nik_local_backup', JSON.stringify(data)); } catch(e) {}
   }
 
-  return { get, set, replaceAll, load, loadSeedFromRepo, defaultData };
+  function loadFromLocalBackup() {
+    try {
+      const raw = localStorage.getItem('nik_local_backup');
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 1) {
+        data = ensureShape(parsed);
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  return { get, set, replaceAll, load, loadSeedFromRepo, defaultData, loadFromLocalBackup };
 })();

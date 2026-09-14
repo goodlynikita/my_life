@@ -403,12 +403,12 @@
   font-family: 'Montserrat', sans-serif;
 }
 .tochka-header {
-  background: #5B21B6;
+  background: linear-gradient(135deg, #4C1D95 0%, #5B21B6 60%, #6D28D9 100%);
   padding: 14px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #EAECF0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   position: sticky;
   top: 0;
   z-index: 20;

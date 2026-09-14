@@ -58,5 +58,14 @@
 <script src="js/screens/finance.js"></script>
 <script src="js/screens/goals.js"></script>
 <script src="js/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/my_life/sw.js')
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.log('SW error:', e));
+  });
+}
+</script>
 </body>
 </html>

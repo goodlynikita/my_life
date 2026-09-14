@@ -48,9 +48,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           /* Пользователь залогинен — грузим его данные */
           try {
             const result = await FirebaseSync.pullIntoStore();
-            if (result !== true) Store.replaceAll({});
+            if (result !== true) {
+              /* Firebase недоступен — пробуем локальный бекап */
+              const hasLocal = Store.loadFromLocalBackup && Store.loadFromLocalBackup();
+              if (!hasLocal) Store.replaceAll({});
+            }
           } catch(e) {
-            Store.replaceAll({});
+            /* Офлайн — берём локальный бекап */
+            const hasLocal = Store.loadFromLocalBackup && Store.loadFromLocalBackup();
+            if (!hasLocal) Store.replaceAll({});
           }
         } else {
           /* Не залогинен — покажем экран входа */

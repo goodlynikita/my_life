@@ -474,7 +474,7 @@ window.Screens.finance = function(mount) {
 
     document.getElementById('bal2-edit').addEventListener('click', ()=>{
       const ov = document.createElement('div');
-      ov.className = 'tr-modal-overlay';
+      ov.className = 'tr-modal-overlay modal-finance';
       ov.innerHTML = `<div class="tr-modal" style="max-height:85vh;overflow-y:auto;">
         <p class="tr-modal-title">Настройки баланса</p>
         <div class="tr-modal-row">
@@ -548,7 +548,7 @@ window.Screens.finance = function(mount) {
     var isExpense = side === 'expense' || !side;
     var isSrc = side === 'source';
     var ov = document.createElement('div');
-    ov.className = 'tr-modal-overlay';
+    ov.className = 'tr-modal-overlay modal-finance';
     var title = isSrc ? 'Потенциал' : isEdit ? 'Редактировать расход' : 'Новый расход';
     ov.innerHTML = '<div class="tr-modal">'
       + '<p class="tr-modal-title">'+title+'</p>'

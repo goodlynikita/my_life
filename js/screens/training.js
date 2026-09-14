@@ -1184,12 +1184,13 @@ window.Screens.training = function (mount) {
         </div>
         <span style="display:flex; align-items:center; gap:8px;">
           <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
+          ${role === 'owner' ? '<button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>' : ''}
           ${role === 'coach'
             ? `<span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button>`
             : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
         </span>
       </div>
-      <div class="tr-plan-bar">
+      <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
         <select class="tr-plan-select" id="tr-plan-select"></select>
         ${role === 'owner' ? '<button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>' : ''}
       </div>
@@ -1734,6 +1735,15 @@ window.Screens.training = function (mount) {
     });
   });
 
+  /* Тоггл выбора плана */
+  const planMenuBtn = document.getElementById('tr-plan-menu-btn');
+  const planBarEl = document.getElementById('tr-plan-bar');
+  if (planMenuBtn && planBarEl) {
+    planMenuBtn.addEventListener('click', () => {
+      planBarEl.style.display = planBarEl.style.display === 'none' ? 'flex' : 'none';
+    });
+    if (plans.filter(Boolean).length > 1) planBarEl.style.display = 'flex';
+  }
   const backBtn = document.getElementById('tr-back');
   if (backBtn) backBtn.addEventListener('click', () => Router.go('/home'));
   const logoutBtn = document.getElementById('tr-logout');

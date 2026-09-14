@@ -126,3 +126,14 @@ button { font-family: inherit; }
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+
+/* ── Единый шрифт везде (как в тренировках) ── */
+:root {
+  --app-font-xs:   11px;
+  --app-font-sm:   13px;
+  --app-font-base: 14px;
+  --app-font-md:   15px;
+  --app-font-lg:   17px;
+  --app-font-xl:   20px;
+}
+body { font-size: var(--app-font-base); font-family: 'Montserrat', sans-serif; }

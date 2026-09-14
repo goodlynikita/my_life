@@ -1206,13 +1206,16 @@ input, textarea, select {
 
 
 
-/* ═══════════════════════════════════════
-   HEADERS — как в финансах
-   Сплошной цвет, белый текст
-   ═══════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════
+   UNIFIED HEADERS — точная копия финансов по размеру
+   padding: 14px 20px, font-size: 20px, font-weight: 800
+   Только цвет фона отличается
+   ═══════════════════════════════════════════════════ */
+
+/* ПРИВЫЧКИ — зелёный градиент */
 .hab-header {
-  background: #166534 !important;
+  background: linear-gradient(135deg, #14532D 0%, #166534 60%, #15803D 100%) !important;
   padding: 14px 20px !important;
   display: flex !important;
   align-items: center !important;
@@ -1221,12 +1224,30 @@ input, textarea, select {
   top: 0 !important;
   z-index: 20 !important;
   border-bottom: none !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
 }
-.hab-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
-.hab-back-btn { color: #fff !important; }
+.hab-screen-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+}
+.hab-back-btn {
+  background: none !important;
+  border: none !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  font-size: 18px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+}
 
+/* ЦЕЛИ — красный градиент */
 .goals-header {
-  background: #4C1D95 !important;
+  background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 60%, #B91C1C 100%) !important;
   padding: 14px 20px !important;
   display: flex !important;
   align-items: center !important;
@@ -1234,74 +1255,63 @@ input, textarea, select {
   position: sticky !important;
   top: 0 !important;
   z-index: 20 !important;
-  border-bottom: none !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
 }
-.goals-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
-.goals-back { color: #fff !important; background: none !important; border: none !important; font-size: 18px !important; cursor: pointer !important; }
-
-.tr-header {
-  background: #1E3A8A !important;
-  padding: 14px 20px !important;
+.goals-screen-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+}
+.goals-back {
+  background: none !important;
+  border: none !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  font-size: 18px !important;
+  width: 32px !important;
+  height: 32px !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: space-between !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 20 !important;
-  border-bottom: none !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
 }
-.tr-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; text-transform: none !important; letter-spacing: 0 !important; }
-.tr-back { color: #fff !important; }
 
-/* Вкладки продолжают цвет шапки */
-.hab-tabs {
-  background: #14532D !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-  position: sticky !important;
-  top: 53px !important;
-  z-index: 15 !important;
+/* Вкладки сезонов — НЕ красим, оставляем стиль из оригинала */
+.goals-season-tab.active {
+  color: var(--season-color, #fff) !important;
+  border-bottom-color: var(--season-color, #fff) !important;
 }
-.hab-tab { color: rgba(255,255,255,0.5) !important; font-size: 13px !important; background: none !important; }
-.hab-tab.active { color: #fff !important; border-bottom-color: #4ade80 !important; background: none !important; }
 
-.goals-season-tabs {
-  background: #3B0764 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-  position: sticky !important;
-  top: 53px !important;
-  z-index: 15 !important;
-}
-.goals-season-tab { color: rgba(255,255,255,0.5) !important; font-size: 13px !important; }
-.goals-season-tab.active { color: var(--season-color, #fff) !important; border-bottom-color: var(--season-color, #fff) !important; font-weight: 700 !important; }
-
-.tr-tabs {
-  background: #1e3a8a !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-  position: sticky !important;
-  top: 53px !important;
-  z-index: 15 !important;
-}
-.tr-tab { color: rgba(255,255,255,0.45) !important; font-size: 13px !important; }
-.tr-tab.active { background: rgba(255,255,255,0.15) !important; border-color: rgba(255,255,255,0.4) !important; color: #fff !important; }
-
+/* Месяц бар */
 #goals-month-bar {
-  background: #3B0764 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
   position: sticky !important;
   top: 97px !important;
   z-index: 14 !important;
 }
 
-/* Метрики */
-.sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 8px !important; }
-.sec-metric-value { font-size: 16px !important; white-space: nowrap !important; overflow: hidden !important; }
-.sec-metric-label { font-size: 9px !important; }
-.sec-metric { padding: 10px 8px !important; }
+/* Метрики привычек — компактные */
+.sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 6px !important; }
+.sec-metric { padding: 8px 6px !important; }
+.sec-metric-value { font-size: 14px !important; white-space: nowrap !important; overflow: hidden !important; font-weight: 800 !important; }
+.sec-metric-label { font-size: 8px !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
+
+/* Статистика целей — компактная */
 .goals-sstat-val { font-size: 11px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
 .goals-sstat-label { font-size: 8px !important; }
-.goals-season-stat { padding: 6px 5px !important; min-width: 0 !important; }
+.goals-season-stat { padding: 6px 4px !important; min-width: 0 !important; }
 .goals-season-stats { gap: 4px !important; }
 
 /* No zoom */
 html, body { touch-action: pan-x pan-y; overscroll-behavior: none; }
 input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
+
+/* ── Унифицированный шрифт в привычках и целях ── */
+.goals-cat-v3-title { font-size: var(--app-font-md) !important; }
+.goals-item-v3-name { font-size: var(--app-font-sm) !important; }
+.goals-item-v3-amt  { font-size: var(--app-font-sm) !important; }
+.goals-hero-season-amount { font-size: 28px !important; }
+.goals-season-tab { font-size: var(--app-font-sm) !important; }
+.hab-tab { font-size: var(--app-font-sm) !important; }
+table th { font-size: var(--app-font-xs) !important; }
+table td { font-size: var(--app-font-sm) !important; }
+.hab-name-edit span { font-size: var(--app-font-sm) !important; }

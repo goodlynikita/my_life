@@ -99,7 +99,7 @@ function goalsMonthsLeft(season) {
 function goalsOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
-  overlay.className = 'tr-modal-overlay';
+  overlay.className = 'tr-modal-overlay modal-goals';
   const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
   const catOpts = existingCats.map(c=>`<option value="${c}"${existing?.cat===c?' selected':''}>${c}</option>`).join('');
   const isNewCat = existing?.cat && !existingCats.includes(existing.cat);

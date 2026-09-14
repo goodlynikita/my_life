@@ -128,7 +128,7 @@ function habMarkHtml(mark, active) {
 function habOpenModal(existing, onSave) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
-  overlay.className = 'tr-modal-overlay';
+  overlay.className = 'tr-modal-overlay modal-habits';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;box-sizing:border-box;';
 
   const ICONS = ['ti-star','ti-bolt','ti-apple','ti-barbell','ti-device-mobile',
@@ -253,7 +253,7 @@ window.Screens.habits = function(mount) {
   document.getElementById('hab-settings').addEventListener('click', () => {
     const habits = habGetList();
     const ov = document.createElement('div');
-    ov.className = 'tr-modal-overlay';
+    ov.className = 'tr-modal-overlay modal-habits';
     ov.style.cssText = 'align-items:flex-end;padding:0;'; /* bottom sheet */
 
     function renderSettings() {
@@ -658,7 +658,7 @@ window.Screens.habits = function(mount) {
     const spheres = WHEEL_SPHERES_DEFAULT;
     const scores = existing?.scores || new Array(spheres.length).fill(5);
     const overlay = document.createElement('div');
-    overlay.className = 'tr-modal-overlay';
+    overlay.className = 'tr-modal-overlay modal-habits';
 
     function buildSliders() {
       return spheres.map((name,i) => `

@@ -316,7 +316,7 @@ var Slides = (() => {
     /* ── DOM ── */
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:flex-end;padding:0;';
+    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
 
     function renderOv() {
       const curSlides = getSlides();

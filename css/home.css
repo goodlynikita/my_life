@@ -465,21 +465,85 @@ html, body {
   line-height: 1.4;
 }
 
-.home2-tile-training { border-top: 3px solid #F97316; }
-.home2-tile-training .home2-tile-name { color: #F97316; }
-.home2-tile-training .home2-tile-bg { color: #F97316; }
+/* Тренировки — синий */
+.home2-tile-training {
+  background: linear-gradient(135deg, #0f1e3a 0%, #1a2f55 60%, #0f2040 100%) !important;
+  border-top: none !important;
+  border-left: 3px solid #3B82F6 !important;
+  position: relative;
+  overflow: hidden;
+}
+.home2-tile-training::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-training .home2-tile-name { color: #93C5FD !important; }
+.home2-tile-training i { color: #60A5FA !important; }
 
-.home2-tile-habits { border-top: 3px solid #A8C97F; }
-.home2-tile-habits .home2-tile-name { color: #A8C97F; }
-.home2-tile-habits .home2-tile-bg { color: #A8C97F; }
+/* Привычки — зелёный */
+.home2-tile-habits {
+  background: linear-gradient(135deg, #052e16 0%, #14532d 60%, #052e16 100%) !important;
+  border-top: none !important;
+  border-left: 3px solid #16A34A !important;
+  position: relative;
+  overflow: hidden;
+}
+.home2-tile-habits::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(22,163,74,0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-habits .home2-tile-name { color: #86EFAC !important; }
+.home2-tile-habits i { color: #4ADE80 !important; }
 
-.home2-tile-finance { border-top: 3px solid #16A34A; }
-.home2-tile-finance .home2-tile-name { color: #16A34A; }
-.home2-tile-finance .home2-tile-bg { color: #16A34A; }
+/* Финансы — фиолетовый */
+.home2-tile-finance {
+  background: linear-gradient(135deg, #1e0a3e 0%, #3b0d8a 60%, #2d0a6e 100%) !important;
+  border-top: none !important;
+  border-left: 3px solid #7C3AED !important;
+  position: relative;
+  overflow: hidden;
+}
+.home2-tile-finance::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
+.home2-tile-finance i { color: #A78BFA !important; }
 
-.home2-tile-goals { border-top: 3px solid #A78BFA; }
-.home2-tile-goals .home2-tile-name { color: #A78BFA; }
-.home2-tile-goals .home2-tile-bg { color: #A78BFA; }
+/* Цели — красный */
+.home2-tile-goals {
+  background: linear-gradient(135deg, #1f0a0a 0%, #450a0a 60%, #3b0808 100%) !important;
+  border-top: none !important;
+  border-left: 3px solid #DC2626 !important;
+  position: relative;
+  overflow: hidden;
+}
+.home2-tile-goals::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(220,38,38,0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-goals .home2-tile-name { color: #FCA5A5 !important; }
+.home2-tile-goals i { color: #F87171 !important; }
 
 @media (max-width: 480px) {
   .home2-tile { min-height: 120px; }

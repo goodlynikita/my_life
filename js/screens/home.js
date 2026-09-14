@@ -107,12 +107,22 @@ window.Screens.home = function(mount) {
     + '<div class="hero-slide-glow slide-glow-purple"></div>'
     + '</div>';
 
-  /* Применяем sliderCfg — какие слайды показывать */
-  var sliderCfg = (store.home && store.home.sliderCfg) || {};
-  var allSlides  = [slide1, slide2, slide3];
-  var shown      = [sliderCfg.s0!==false, sliderCfg.s1!==false, sliderCfg.s2!==false];
-  var visSlides  = allSlides.filter(function(_,i){ return shown[i]; });
-  if (!visSlides.length) visSlides = allSlides;
+  /* Слайды через Slides.js если есть кастомные, иначе дефолт */
+  var _customSlides = window.Slides ? window.Slides.getSlides() : null;
+  var visSlides;
+  if (_customSlides && _customSlides.length && JSON.stringify(_customSlides) !== JSON.stringify(window.Slides.DEFAULT_SLIDES)) {
+    /* Пользователь настроил свои слайды */
+    visSlides = _customSlides.filter(function(s){ return s.enabled !== false; })
+      .map(function(s){ return window.Slides.renderSlide(s, store); });
+    if (!visSlides.length) visSlides = [slide1, slide2, slide3];
+  } else {
+    /* Дефолтные слайды с учётом sliderCfg */
+    var sliderCfg = (store.home && store.home.sliderCfg) || {};
+    var allSlides  = [slide1, slide2, slide3];
+    var shown      = [sliderCfg.s0!==false, sliderCfg.s1!==false, sliderCfg.s2!==false];
+    visSlides = allSlides.filter(function(_,i){ return shown[i]; });
+    if (!visSlides.length) visSlides = allSlides;
+  }
   var n = visSlides.length;
 
   mount.innerHTML = '<div class="home2-screen">'

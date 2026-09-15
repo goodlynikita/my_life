@@ -1429,10 +1429,7 @@ body {
 }
 .tr-modal-row input:focus { border-color: rgba(255,255,255,0.3) !important; outline: none !important; }
 
-/* ФИНАНСЫ — фиолетовый акцент */
-.modal-finance .tr-modal { background: #1E2028 !important; }
-.modal-finance .tr-modal-btn-primary { background: linear-gradient(135deg,#5B21B6,#7C3AED) !important; color:#fff !important; border:none !important; }
-.modal-finance .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+
 .modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; }
 
 /* ПРИВЫЧКИ — зелёный акцент */
@@ -1513,4 +1510,123 @@ button.hab-hist-edit, .hab-hist-btn {
   background: rgba(22,163,74,0.15) !important;
   border: 1px solid rgba(22,163,74,0.4) !important;
   color: #4ADE80 !important;
+}
+
+
+
+/* ── Привычки: ВСЁ зелёное ── */
+/* Кнопка Изменить в истории */
+.wheel-fill-btn {
+  background: rgba(22,163,74,0.12) !important;
+  border: 1px solid rgba(22,163,74,0.35) !important;
+  color: #4ADE80 !important;
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  cursor: pointer !important;
+  font-family: Montserrat, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+/* Оценки колеса */
+.wheel-score, .wheel-avg, .wheel-score-val, .wheel-avg-val,
+[class*="wheel"][class*="score"], [class*="wheel"][class*="avg"] {
+  color: #4ADE80 !important;
+}
+/* Кнопки в колесе */
+.wheel-save-btn, .wheel-close-btn, .hab-wheel-save {
+  background: linear-gradient(135deg,#14532D,#16A34A) !important;
+  color: #fff !important;
+  border: none !important;
+}
+/* История — кнопка Изменить */
+.hab-hist-btn, button[data-wheel-edit] {
+  background: rgba(22,163,74,0.12) !important;
+  border: 1px solid rgba(22,163,74,0.35) !important;
+  color: #4ADE80 !important;
+}
+/* Фиолетовое везде в привычках → зелёное */
+.hab-dark .tr-modal-btn-primary { background: linear-gradient(135deg,#14532D,#16A34A) !important; border: none !important; }
+.modal-habits .tr-modal-btn-primary { background: linear-gradient(135deg,#14532D,#16A34A) !important; border: none !important; }
+.modal-habits .tr-modal-btn-secondary { border-color: rgba(22,163,74,0.3) !important; color: #4ADE80 !important; }
+
+/* ── Цели: чекбоксы янтарные ── */
+.goals-check-v3 {
+  border-radius: 6px !important;
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+}
+.goals-check-v3.active {
+  background: transparent !important;
+  border: 2px solid rgba(242,169,59,0.4) !important;
+}
+.goals-check-v3.active:hover {
+  border-color: #F2A93B !important;
+}
+.goals-check-v3.done {
+  background: #F2A93B !important;
+  border-color: #F2A93B !important;
+}
+.goals-check-v3.maybe {
+  background: rgba(242,169,59,0.3) !important;
+  border-color: #F2A93B !important;
+}
+
+/* ── Финансы модалка: белый фон, чёрный текст ── */
+.modal-finance .tr-modal {
+  background: #ffffff !important;
+  border: 1px solid #E5E7EB !important;
+  color: #111827 !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.25) !important;
+}
+.modal-finance .tr-modal-title { color: #111827 !important; }
+.modal-finance .tr-modal-row label { color: #6B7280 !important; }
+.modal-finance .tr-modal-row input,
+.modal-finance select {
+  background: #F9FAFB !important;
+  border: 1px solid #E5E7EB !important;
+  color: #111827 !important;
+  border-radius: 10px !important;
+}
+.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; outline: none !important; }
+.modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; }
+.modal-finance .tr-modal-btn-secondary { background: #fff !important; border: 1px solid #E5E7EB !important; color: #6B7280 !important; }
+
+/* ── Привычки: все зелёное ── */
+.wheel-fill-btn {
+  background: rgba(22,163,74,0.12) !important;
+  border: 1px solid rgba(22,163,74,0.35) !important;
+  color: #4ADE80 !important;
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+.wheel-save-btn, .hab-wheel-save {
+  background: linear-gradient(135deg,#14532D,#16A34A) !important;
+  color: #fff !important; border: none !important;
+}
+.modal-habits .tr-modal-btn-primary {
+  background: linear-gradient(135deg,#14532D,#16A34A) !important;
+  color: #fff !important; border: none !important;
+}
+.modal-habits .tr-modal-btn-secondary {
+  border-color: rgba(22,163,74,0.3) !important;
+  color: #4ADE80 !important;
+}
+
+/* ── Цели: чекбоксы янтарные ── */
+.goals-check-v3.active {
+  background: transparent !important;
+  border: 2px solid rgba(242,169,59,0.45) !important;
+}
+.goals-check-v3.done {
+  background: #F2A93B !important;
+  border-color: #F2A93B !important;
+}
+.goals-check-v3.maybe {
+  background: rgba(242,169,59,0.3) !important;
+  border-color: #F2A93B !important;
 }

@@ -581,7 +581,7 @@ window.Screens.habits = function(mount) {
     const angleStep = (2 * Math.PI) / n;
 
     /* Цвета для каждой сферы */
-    const COLORS = ['#60A5FA','#A78BFA','#34D399','#F59E0B','#F87171','#38BDF8','#C084FC','#4ADE80'];
+    const COLORS = ['#60A5FA','#4ADE80','#34D399','#F59E0B','#F87171','#38BDF8','#C084FC','#4ADE80'];
 
     /* Сетка с подписями значений */
     let gridLines = '';
@@ -592,15 +592,15 @@ window.Screens.habits = function(mount) {
         return `${cx + r*Math.cos(a)},${cy + r*Math.sin(a)}`;
       }).join(' ');
       const alpha = ring === 10 ? '40' : '20';
-      gridLines += `<polygon points="${pts}" fill="none" stroke="#9333EA${alpha}" stroke-width="${ring===10?1.5:0.5}"/>`;
+      gridLines += `<polygon points="${pts}" fill="none" stroke="#16A34A${alpha}" stroke-width="${ring===10?1.5:0.5}"/>`;
       /* Подпись значения на 12 часов */
-      gridLines += `<text x="${cx}" y="${cy - r - 3}" text-anchor="middle" font-size="8" fill="#9333EA66" font-family="Montserrat,sans-serif">${ring}</text>`;
+      gridLines += `<text x="${cx}" y="${cy - r - 3}" text-anchor="middle" font-size="8" fill="#16A34A66" font-family="Montserrat,sans-serif">${ring}</text>`;
     }
 
     /* Оси */
     let axes = Array.from({length:n},(_,i) => {
       const a = i * angleStep - Math.PI/2;
-      return `<line x1="${cx}" y1="${cy}" x2="${cx + maxR*Math.cos(a)}" y2="${cy + maxR*Math.sin(a)}" stroke="#9333EA30" stroke-width="1"/>`;
+      return `<line x1="${cx}" y1="${cy}" x2="${cx + maxR*Math.cos(a)}" y2="${cy + maxR*Math.sin(a)}" stroke="#16A34A30" stroke-width="1"/>`;
     }).join('');
 
     /* Область данных — градиент */
@@ -641,16 +641,16 @@ window.Screens.habits = function(mount) {
     return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <defs>
         <radialGradient id="wg" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#9333EA" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="#9333EA" stop-opacity="0.05"/>
+          <stop offset="0%" stop-color="#16A34A" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#16A34A" stop-opacity="0.05"/>
         </radialGradient>
       </defs>
       ${gridLines}${axes}
-      <polygon points="${dataPoints}" fill="url(#wg)" stroke="#9333EA" stroke-width="2.5" stroke-linejoin="round"/>
+      <polygon points="${dataPoints}" fill="url(#wg)" stroke="#16A34A" stroke-width="2.5" stroke-linejoin="round"/>
       ${dots}${labels}
-      <circle cx="${cx}" cy="${cy}" r="28" fill="#1C1E24" stroke="#9333EA33" stroke-width="1"/>
+      <circle cx="${cx}" cy="${cy}" r="28" fill="#1C1E24" stroke="#16A34A33" stroke-width="1"/>
       <text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="20" font-weight="900" fill="${avgColor}" font-family="Montserrat,sans-serif">${avg}</text>
-      <text x="${cx}" y="${cy+11}" text-anchor="middle" font-size="8" fill="#9333EA99" font-family="Montserrat,sans-serif">avg</text>
+      <text x="${cx}" y="${cy+11}" text-anchor="middle" font-size="8" fill="#16A34A99" font-family="Montserrat,sans-serif">avg</text>
     </svg>`;
   }
 

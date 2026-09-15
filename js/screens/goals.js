@@ -226,7 +226,7 @@ window.Screens.goals = function(mount) {
   let activeMonth = 0;
 
   mount.innerHTML = `
-    <div class="goals-screen" style="min-height:100vh;background:#0F0B1A;">
+    <div class="goals-screen" style="min-height:100vh;background:#0F1117;">
       <div class="goals-header" style="position:sticky;top:0;z-index:16;">
         <div style="display:flex;align-items:center;gap:10px;">
           <button class="goals-back" id="gb"><i class="ti ti-arrow-left"></i></button>
@@ -279,7 +279,7 @@ window.Screens.goals = function(mount) {
     if (!months.length) { bar.style.display = 'none'; return; }
     bar.style.display = 'block';
     /* Берём цвет текущего сезона */
-    const _seasonColor = (GOALS_SEASONS.find(s=>s.key===activeSeason)||{color:'#A78BFA'}).color;
+    const _seasonColor = (GOALS_SEASONS.find(s=>s.key===activeSeason)||{color:'#F2A93B'}).color;
     const MNAMES = ['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
     const btns = [0, ...months].map(m => {
       const active = activeMonth === m;

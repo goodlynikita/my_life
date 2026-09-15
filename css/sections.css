@@ -216,7 +216,7 @@
   cursor: pointer;
 }
 .hab-cell.hab-active:hover {
-  border-color: #2E7FD4;
+  border-color: #4ADE80;
 }
 .hab-cell.done {
   background: #1A2A1A;
@@ -227,8 +227,8 @@
   border-color: #FF5C5C55;
 }
 .hab-cell.hab-today {
-  border-color: #2E7FD4 !important;
-  box-shadow: 0 0 0 1px #2E7FD455;
+  border-color: #4ADE80 !important;
+  box-shadow: 0 0 0 1px #4ADE8055;
 }
 .hab-cell-dot {
   width: 4px;
@@ -658,9 +658,9 @@
 .wheel-card-eyebrow { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
 .wheel-card-title { font-size: 18px; font-weight: 700; color: #111; }
 .wheel-fill-btn {
-  background: #9333EA22;
-  border: 1px solid #9333EA44;
-  color: #9333EA;
+  background: rgba(22,163,74,0.15);
+  border: 1px solid rgba(22,163,74,0.4);
+  color: #4ADE80;
   border-radius: 8px;
   padding: 7px 14px;
   font-size: 13px;
@@ -668,7 +668,7 @@
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
 }
-.wheel-fill-btn:hover { background: #9333EA33; }
+.wheel-fill-btn:hover { background: rgba(22,163,74,0.25); }
 .wheel-empty {
   padding: 32px 20px;
   text-align: center;
@@ -709,7 +709,7 @@
 .wheel-hist-avg {
   font-size: 22px;
   font-weight: 800;
-  color: #9333EA;
+  color: #4ADE80;
   min-width: 40px;
   text-align: right;
 }
@@ -726,7 +726,7 @@
 }
 .wheel-slider-val {
   font-weight: 800;
-  color: #9333EA;
+  color: #4ADE80;
   min-width: 20px;
   text-align: right;
 }
@@ -735,7 +735,7 @@
   -webkit-appearance: none;
   height: 4px;
   border-radius: 4px;
-  background: linear-gradient(to right, #9333EA var(--val, 50%), #E5E7EB var(--val, 50%));
+  background: linear-gradient(to right, #16A34A var(--val, 50%), #E5E7EB var(--val, 50%));
   outline: none;
 }
 .wheel-slider::-webkit-slider-thumb {
@@ -743,7 +743,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #9333EA;
+  background: #16A34A;
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
@@ -838,29 +838,29 @@
 
 /* ── Habits modal style ──────────────────────────── */
 .hab-modal {
-  background: #1A2A1A !important;
-  border: 1px solid #3A6A3A !important;
+  background: #1E2028 !important;
+  border: 1px solid rgba(22,163,74,0.2) !important;
 }
-.hab-modal .tr-modal-title { color: #A8C97F !important; }
-.hab-modal label { color: #D0CCC4 !important; }
+.hab-modal .tr-modal-title { color: #fff !important; }
+.hab-modal label { color: rgba(255,255,255,0.6) !important; }
 .hab-modal input, .hab-modal select {
-  background: #16181E !important;
-  border-color: #3A6A3A !important;
-  color: #F0EDE5 !important;
+  background: #2A2D35 !important;
+  border-color: rgba(22,163,74,0.25) !important;
+  color: #fff !important;
 }
 .hab-modal input:focus, .hab-modal select:focus {
-  border-color: #A8C97F !important;
-  box-shadow: 0 0 0 2px #A8C97F22 !important;
+  border-color: #16A34A !important;
+  box-shadow: 0 0 0 2px rgba(22,163,74,0.2) !important;
 }
 .hab-modal .tr-modal-btn-primary {
-  background: #A8C97F !important;
-  color: #111 !important;
+  background: linear-gradient(135deg,#14532D,#16A34A) !important;
+  color: #fff !important;
 }
 .hab-modal .tr-modal-btn-secondary {
-  border-color: #3A6A3A !important;
-  color: #A8C97F !important;
+  border-color: rgba(22,163,74,0.3) !important;
+  color: #4ADE80 !important;
 }
-.hab-modal .hab-icon-btn { background: #16181E !important; border-color: #2A2D35 !important; }
+.hab-modal .hab-icon-btn { background: #2A2D35 !important; border-color: #3A3D45 !important; color: #E8E5DC !important; }
 
 /* ── Habits readability fix ──────────────────────── */
 .hab-dark .habit-table th,
@@ -947,7 +947,7 @@
 .hab-dark .wheel-hist-month { color: #E8E5DC !important; font-size: 15px !important; }
 .hab-dark .wheel-history-title { color: #A8C97F !important; font-size: 14px !important; }
 .hab-dark .wheel-hist-row { border-bottom-color: #2A2D35 !important; }
-.hab-dark .wheel-hist-avg { color: #A78BFA !important; font-size: 16px !important; font-weight: 800 !important; }
+.hab-dark .wheel-hist-avg { color: #4ADE80 !important; font-size: 16px !important; font-weight: 800 !important; }
 
 /* Wheel card dark */
 .hab-dark .wheel-current-card {
@@ -957,9 +957,9 @@
 .hab-dark .wheel-card-title { color: #E8E5DC !important; font-size: 17px !important; }
 .hab-dark .wheel-card-eyebrow { color: #A8C97F !important; }
 .hab-dark .wheel-fill-btn {
-  background: #9333EA22 !important;
-  border-color: #9333EA !important;
-  color: #C084FC !important;
+  background: rgba(22,163,74,0.15) !important;
+  border-color: rgba(22,163,74,0.5) !important;
+  color: #4ADE80 !important;
 }
 .hab-dark .wheel-comment { color: #9D9A92 !important; }
 .hab-dark .wheel-history { background: #1C1E24 !important; border-color: #2A2D35 !important; }
@@ -1136,9 +1136,9 @@
   transition: all 0.2s;
 }
 .goals-mf-btn.active {
-  background: #A78BFA22;
-  border-color: #A78BFA;
-  color: #A78BFA;
+  background: var(--season-color, #F2A93B)22;
+  border-color: var(--season-color, #F2A93B);
+  color: var(--season-color, #F2A93B);
 }
 .goals-item-month {
   font-size: 11px;
@@ -1175,10 +1175,8 @@
 .goals-item-v3 { flex-wrap: nowrap !important; }
 
 /* ── Привычки: метрики компактные ── */
-.sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 8px !important; }
-.sec-metric { padding: 10px 8px !important; text-align: center; }
-.sec-metric-value { font-size: 20px !important; font-weight: 900 !important; }
-.sec-metric-label { font-size: 9px !important; text-transform: uppercase; letter-spacing: .06em; }
+.hab-body .sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 6px !important; }
+.hab-body .sec-metric { padding: 8px 6px !important; text-align: center; }
 
 /* ── Привычки: первая колонка прилипает ── */
 .hab-dark td:first-child,
@@ -1259,7 +1257,7 @@ input, textarea, select {
 /* Метрики */
 .sec-metric-grid { grid-template-columns: repeat(3,1fr) !important; gap: 6px !important; }
 .sec-metric { padding: 8px 6px !important; }
-.sec-metric-value { font-size: 14px !important; white-space: nowrap !important; overflow: hidden !important; font-weight: 800 !important; }
+.sec-metric-value { font-size: 14px !important; font-weight: 800 !important; }
 .sec-metric-label { font-size: 8px !important; text-transform: uppercase !important; }
 .goals-sstat-val { font-size: 11px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
 .goals-sstat-label { font-size: 8px !important; }
@@ -1271,11 +1269,13 @@ html, body { touch-action: pan-x pan-y; overscroll-behavior: none; }
 input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
 
 /* Модалки по цвету раздела */
-.modal-finance .tr-modal { background: #1A0A2E; border-color: rgba(124,58,237,0.3); }
-.modal-finance .tr-modal-title { color: #C4B5FD !important; }
-.modal-finance .tr-modal-row input, .modal-finance select { background: #2A1050; border-color: rgba(124,58,237,0.3); color: #E9D5FF; }
-.modal-finance .tr-modal-btn-primary { background: linear-gradient(135deg,#6D28D9,#7C3AED) !important; color: #fff !important; border: none !important; }
-.modal-finance .tr-modal-btn-secondary { border-color: rgba(124,58,237,0.4) !important; color: #C4B5FD !important; }
+.modal-finance .tr-modal { background: #ffffff !important; border: 1px solid #E5E7EB !important; box-shadow: 0 8px 40px rgba(0,0,0,0.25) !important; }
+.modal-finance .tr-modal-title { color: #111827 !important; }
+.modal-finance .tr-modal-row label { color: #6B7280 !important; }
+.modal-finance .tr-modal-row input, .modal-finance select { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; color: #111827 !important; }
+.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; box-shadow: 0 0 0 2px rgba(124,58,237,0.15) !important; }
+.modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; }
+.modal-finance .tr-modal-btn-secondary { background: #fff !important; border: 1px solid #E5E7EB !important; color: #6B7280 !important; }
 
 .modal-habits .tr-modal { background: #071a0e; border-color: rgba(22,163,74,0.3); }
 .modal-habits .tr-modal-title { color: #86EFAC !important; }
@@ -1359,34 +1359,6 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
   font-size: 14px !important;
 }
 
-/* п.6 — Финансы модалки: белый фон, тёмный текст, фиолетовые акценты */
-.modal-finance .tr-modal {
-  background: #fff !important;
-  border: none !important;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.3) !important;
-}
-.modal-finance .tr-modal-title { color: #1a1a2e !important; }
-.modal-finance .tr-modal-row label { color: #4B5563 !important; }
-.modal-finance .tr-modal-row input,
-.modal-finance select {
-  background: #F3F4F6 !important;
-  border: 1px solid #E5E7EB !important;
-  color: #111827 !important;
-}
-.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; }
-.modal-finance .tr-modal-btn-primary {
-  background: #7C3AED !important;
-  color: #fff !important;
-}
-.modal-finance .tr-modal-btn-secondary {
-  background: none !important;
-  border: 1px solid #E5E7EB !important;
-  color: #6B7280 !important;
-}
-
-
-
-
 
 /* ── Safe area для PWA на iOS ── */
 .hab-header,
@@ -1402,12 +1374,20 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
-/* ── Привычки: метрики — меньше текст ── */
-.sec-card-title { font-size: 13px !important; }
-.sec-metric-value { font-size: 13px !important; font-weight: 800 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-.sec-metric-label { font-size: 8px !important; }
-.sec-metric { padding: 6px 4px !important; }
-.sec-metric-grid { gap: 4px !important; }
+/* ── Привычки: метрики — компактно на мобиле ── */
+.hab-body .sec-card-title { font-size: 12px !important; }
+.hab-body .sec-metric-value {
+  font-size: clamp(11px, 3vw, 16px) !important;
+  font-weight: 800 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word !important;
+  line-height: 1.2 !important;
+}
+.hab-body .sec-metric-label { font-size: 8px !important; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px !important; }
+.hab-body .sec-metric { padding: 8px 6px !important; text-align: center !important; }
+.hab-body .sec-metric-grid { gap: 6px !important; }
 
 /* ═══════════════════════════════════════════
    МОДАЛКИ — серый фон, белый текст
@@ -1431,13 +1411,26 @@ body {
 .tr-modal-row input:focus { border-color: rgba(255,255,255,0.3) !important; outline: none !important; }
 
 
-.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; }
-
-/* ПРИВЫЧКИ — зелёный акцент */
-.modal-habits .tr-modal { background: #1E2028 !important; }
+/* ПРИВЫЧКИ — зелёный акцент, серый фон, белый текст */
+.modal-habits .tr-modal {
+  background: #1E2028 !important;
+  border: 1px solid rgba(22,163,74,0.2) !important;
+}
+.modal-habits .tr-modal-title { color: #fff !important; }
+.modal-habits .tr-modal-row label { color: rgba(255,255,255,0.6) !important; }
+.modal-habits .tr-modal-row input,
+.modal-habits .tr-modal-row select,
+.modal-habits select {
+  background: #2A2D35 !important;
+  border-color: rgba(22,163,74,0.25) !important;
+  color: #fff !important;
+}
+.modal-habits .tr-modal-row input:focus,
+.modal-habits .tr-modal-row select:focus { border-color: #16A34A !important; box-shadow: 0 0 0 2px rgba(22,163,74,0.2) !important; }
 .modal-habits .tr-modal-btn-primary { background: linear-gradient(135deg,#14532D,#16A34A) !important; color:#fff !important; border:none !important; }
-.modal-habits .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
-.modal-habits .tr-modal-row input:focus { border-color: #16A34A !important; }
+.modal-habits .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(22,163,74,0.3) !important; color:#4ADE80 !important; }
+/* Иконки внутри модалки привычек */
+.modal-habits .hab-icon-btn { background: #2A2D35 !important; border-color: #3A3D45 !important; color: #E8E5DC !important; }
 
 /* ТРЕНИРОВКИ — синий акцент */
 .tr-modal-btn-primary { background: linear-gradient(135deg,#1E3A8A,#3B82F6) !important; color:#fff !important; border:none !important; }
@@ -1573,26 +1566,6 @@ button.hab-hist-edit, .hab-hist-btn {
   background: rgba(242,169,59,0.3) !important;
   border-color: #F2A93B !important;
 }
-
-/* ── Финансы модалка: белый фон, чёрный текст ── */
-.modal-finance .tr-modal {
-  background: #ffffff !important;
-  border: 1px solid #E5E7EB !important;
-  color: #111827 !important;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.25) !important;
-}
-.modal-finance .tr-modal-title { color: #111827 !important; }
-.modal-finance .tr-modal-row label { color: #6B7280 !important; }
-.modal-finance .tr-modal-row input,
-.modal-finance select {
-  background: #F9FAFB !important;
-  border: 1px solid #E5E7EB !important;
-  color: #111827 !important;
-  border-radius: 10px !important;
-}
-.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; outline: none !important; }
-.modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; }
-.modal-finance .tr-modal-btn-secondary { background: #fff !important; border: 1px solid #E5E7EB !important; color: #6B7280 !important; }
 
 /* ── Привычки: все зелёное ── */
 .wheel-fill-btn {

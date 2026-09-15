@@ -16,7 +16,7 @@ const FIN_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн',
 const FIN_LABEL_COLORS = {
   '':       { hex: '#16A34A', name: 'Зелёный (осн.)' },
   'blue':   { hex: '#16A34A', name: 'Синий (другой источник)' },
-  'purple': { hex: '#9333EA', name: 'Фиолетовый' },
+  'purple': { hex: '#818CF8', name: 'Индиго' },
   'orange': { hex: '#F59E0B', name: 'Оранжевый' },
 };
 
@@ -75,7 +75,7 @@ function finOpenModal(existing, year, month, onSave) {
   }
 
   const overlay = document.createElement('div');
-  overlay.className = 'tr-modal-overlay';
+  overlay.className = 'tr-modal-overlay modal-finance';
   overlay.innerHTML = `
     <div class="tr-modal">
       <p class="tr-modal-title" style="margin-bottom:16px;">${isEdit?'Редактировать приход':'Новый приход'}</p>
@@ -358,7 +358,7 @@ window.Screens.finance = function(mount) {
     const SAVE_PCT = stored.savePct || 30;
 
     const DEFAULT_CATS = [
-      { id:'b1', name:'КВ',                    amt:24000, color:'#7C3AED' },
+      { id:'b1', name:'КВ',                    amt:24000, color:'#14B8A6' },
       { id:'b2', name:'Еда: продукты + рестораны', amt:30000, color:'#0EA5E9' },
       { id:'b3', name:'Зал + спортпит + тренер',  amt:15500, color:'#16A34A' },
       { id:'b4', name:'Подписки, работа',          amt:10000, color:'#F59E0B' },

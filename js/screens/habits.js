@@ -166,7 +166,7 @@ function habOpenModal(existing, onSave) {
         <div style="font-size:12px;color:#9D9A92;margin-bottom:8px;">Иконка</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
           ${ICONS.map(ic=>`
-            <button class="hab-icon-btn" data-icon="${ic}" style="width:36px;height:36px;border-radius:8px;border:0.5px solid #2A2D35;background:${(existing?.icon||'ti-star')===ic?'#2E7FD4':'#1C1E24'};color:#E8E5DC;cursor:pointer;font-size:16px;">
+            <button class="hab-icon-btn" data-icon="${ic}" style="width:36px;height:36px;border-radius:8px;border:0.5px solid ${(existing?.icon||'ti-star')===ic?'#16A34A':'#2A2D35'};background:${(existing?.icon||'ti-star')===ic?'rgba(22,163,74,0.25)':'#1C1E24'};color:${(existing?.icon||'ti-star')===ic?'#4ADE80':'#E8E5DC'};cursor:pointer;font-size:16px;">
               <i class="ti ${ic}"></i>
             </button>`).join('')}
         </div>
@@ -189,7 +189,12 @@ function habOpenModal(existing, onSave) {
   overlay.querySelectorAll('.hab-icon-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       selIcon = btn.dataset.icon;
-      overlay.querySelectorAll('.hab-icon-btn').forEach(b => b.style.background = b.dataset.icon===selIcon ? '#2E7FD4' : '#1C1E24');
+      overlay.querySelectorAll('.hab-icon-btn').forEach(b => {
+        const isSelected = b.dataset.icon === selIcon;
+        b.style.background = isSelected ? 'rgba(22,163,74,0.25)' : '#1C1E24';
+        b.style.borderColor = isSelected ? '#16A34A' : '#2A2D35';
+        b.style.color = isSelected ? '#4ADE80' : '#E8E5DC';
+      });
     });
   });
 
@@ -355,15 +360,15 @@ window.Screens.habits = function(mount) {
         <div class="sec-metric-grid" style="grid-template-columns:repeat(3,1fr);gap:10px;">
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Прогресс</div>
-            <div class="sec-metric-value accent hab-overall-pct" style="font-size:28px;font-weight:900;line-height:1;">${overallPct}%</div>
+            <div class="sec-metric-value accent hab-overall-pct" style="font-size:clamp(20px,6vw,28px);font-weight:900;line-height:1;">${overallPct}%</div>
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Лучшая</div>
-            <div class="sec-metric-value" style="font-size:12px;font-weight:700;color:#A8C97F;line-height:1.3;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Подтянуть</div>
-            <div class="sec-metric-value" style="font-size:12px;font-weight:700;color:#E0B873;line-height:1.3;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
           </div>
         </div>
       </div>
@@ -378,7 +383,7 @@ window.Screens.habits = function(mount) {
                   const dow = habDow(viewYear, viewMonth, d);
                   const isToday = isNow && d===today.getDate();
                   const isWE = dow===0||dow===6;
-                  return `<th style="min-width:22px;font-size:10px;text-align:center;color:${isToday?'#2E7FD4':isWE?'#444':'#666'};font-weight:${isToday?700:400};">${d}</th>`;
+                  return `<th style="min-width:22px;font-size:10px;text-align:center;color:${isToday?'#4ADE80':isWE?'#444':'#666'};font-weight:${isToday?700:400};">${d}</th>`;
                 }).join('')}
                 <th style="min-width:50px;font-size:10px;color:#9D9A92;padding-left:8px;">%</th>
                 <th style="min-width:36px;font-size:10px;color:#9D9A92;">Итог</th>

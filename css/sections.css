@@ -535,7 +535,7 @@
   border: 1px solid #F3F4F6;
   border-top: 3px solid var(--cat-color);
 }
-.goals-cat-main { border-top-width: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.goals-cat-main { border-top-width: 4px; border-top-color: #F2A93B !important; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
 .goals-cat-v3-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-bottom: 1px solid #F9FAFB;
@@ -1629,4 +1629,52 @@ button.hab-hist-edit, .hab-hist-btn {
 .goals-check-v3.maybe {
   background: rgba(242,169,59,0.3) !important;
   border-color: #F2A93B !important;
+}
+
+/* ── Цели: FAB кнопка + нижний фон янтарные ── */
+.goals-fab, .goals-new-v3,
+button.goals-fab, button.goals-new-v3 {
+  background: #F2A93B !important;
+  color: #1a0f00 !important;
+  box-shadow: 0 4px 16px rgba(242,169,59,0.4) !important;
+}
+.goals-fab:hover, .goals-new-v3:hover {
+  background: #d97706 !important;
+}
+/* Нижний фон (add bar) */
+.goals-add-bar, .goals-footer-bar {
+  background: rgba(242,169,59,0.08) !important;
+  border-top: 1px solid rgba(242,169,59,0.15) !important;
+}
+/* Кнопка + добавить внутри категории */
+.goals-add-v3 {
+  color: #F2A93B !important;
+  border-color: rgba(242,169,59,0.25) !important;
+}
+
+/* ── Привычки: ползунки зелёные ── */
+.wheel-slider-input {
+  accent-color: #16A34A !important;
+}
+input[type=range].wheel-slider {
+  accent-color: #16A34A !important;
+}
+/* Webkit */
+input[type=range]::-webkit-slider-thumb {
+  background: #16A34A !important;
+  box-shadow: 0 0 6px rgba(22,163,74,0.5) !important;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, #16A34A var(--val, 50%), #2A2D35 var(--val, 50%)) !important;
+}
+/* Firefox */
+input[type=range]::-moz-range-thumb { background: #16A34A !important; border: none !important; }
+input[type=range]::-moz-range-progress { background: #16A34A !important; }
+
+/* ── Кнопка Изменить в истории привычек ── */
+.hab-hist-edit-btn, .wheel-hist-edit {
+  background: rgba(22,163,74,0.12) !important;
+  border: 1px solid rgba(22,163,74,0.4) !important;
+  color: #4ADE80 !important;
+  border-radius: 20px !important;
 }

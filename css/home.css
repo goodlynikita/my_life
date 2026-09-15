@@ -723,16 +723,16 @@ html, body {
 .home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.5) !important; }
 .home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-finance { background: #080414; border: 1px solid rgba(124,58,237,0.12); }
-.home2-tile-finance::before { width:120px;height:120px;top:-20px;right:-20px;background:rgba(124,58,237,0.55);animation-delay:4s; }
-.home2-tile-finance::after  { width:90px;height:90px;bottom:-10px;left:20px;background:rgba(167,139,250,0.28);animation-duration:15s;animation-delay:4s; }
+.home2-tile-finance { background: linear-gradient(135deg,#0d0520 0%,#1a0840 100%); border: 1px solid rgba(124,58,237,0.15); }
+.home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(139,92,246,0.7);animation-delay:4s; }
+.home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(167,139,250,0.45);animation-duration:15s;animation-delay:4s; }
 .home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
 .home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.5) !important; }
 .home2-tile-finance i { color: #A78BFA !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-goals { background: #0d0700; border: 1px solid rgba(245,158,11,0.12); }
-.home2-tile-goals::before { width:120px;height:120px;top:-20px;left:-20px;background:rgba(245,158,11,0.55);animation-delay:6s; }
-.home2-tile-goals::after  { width:90px;height:90px;bottom:-10px;right:20px;background:rgba(252,211,77,0.25);animation-duration:12s;animation-delay:6s; }
+.home2-tile-goals { background: linear-gradient(135deg,#150c00 0%,#2d1a00 100%); border: 1px solid rgba(245,158,11,0.15); }
+.home2-tile-goals::before { width:130px;height:130px;top:-30px;left:-30px;background:rgba(251,191,36,0.7);animation-delay:6s; }
+.home2-tile-goals::after  { width:100px;height:100px;bottom:-20px;right:10px;background:rgba(253,230,138,0.4);animation-duration:12s;animation-delay:6s; }
 .home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
 .home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.5) !important; }
 .home2-tile-goals i { color: #F2A93B !important; font-size:22px; margin-bottom:6px; }
@@ -747,6 +747,7 @@ html, body {
   top:50%; left:50%;
   transform:translate(-50%,-50%);
   width:120%; height:120%;
+  max-height:300px;
   border-radius:50%;
   pointer-events:none; z-index:0;
   animation: slide-center-pulse 5s ease-in-out infinite;
@@ -758,3 +759,144 @@ html, body {
 
 /* Safe area */
 .home2-header { padding-top: max(16px, calc(env(safe-area-inset-top) + 8px)) !important; }
+
+/* ── Дополнительные фоны слайдов ── */
+.slide-amber   { background: linear-gradient(135deg,#1a0f00 0%,#3d2200 40%,#5a3300 70%,#2a1500 100%); }
+.slide-red     { background: linear-gradient(135deg,#1f0808 0%,#450a0a 40%,#6b1010 70%,#2d0606 100%); }
+.slide-pink    { background: linear-gradient(135deg,#1a0612 0%,#3d0a2a 40%,#5c1040 70%,#2a0620 100%); }
+.slide-teal    { background: linear-gradient(135deg,#001a1a 0%,#003d3d 40%,#005c5c 70%,#002626 100%); }
+.slide-indigo  { background: linear-gradient(135deg,#080d24 0%,#151e50 40%,#1e2d6e 70%,#0d1540 100%); }
+.slide-orange  { background: linear-gradient(135deg,#1a0a00 0%,#3d1a00 40%,#5c2800 70%,#2a1000 100%); }
+.slide-lime    { background: linear-gradient(135deg,#0a1a00 0%,#1a3d00 40%,#285c00 70%,#102a00 100%); }
+.slide-slate   { background: linear-gradient(135deg,#0d1117 0%,#1c2230 40%,#243044 70%,#141d2a 100%); }
+.slide-crimson { background: linear-gradient(135deg,#1f0a0a 0%,#4a0e0e 40%,#6b1414 70%,#2d0808 100%); }
+.slide-midnight{ background: linear-gradient(135deg,#050810 0%,#0d1225 40%,#141c38 70%,#0a1020 100%); }
+.slide-jade    { background: linear-gradient(135deg,#001a0d 0%,#00401f 40%,#005c2b 70%,#002a14 100%); }
+
+/* Glow для новых цветов */
+.slide-glow-amber   { background: radial-gradient(circle,#FCD34D 0%,#F59E0B 60%); }
+.slide-glow-red     { background: radial-gradient(circle,#FCA5A5 0%,#F87171 60%); }
+.slide-glow-pink    { background: radial-gradient(circle,#F9A8D4 0%,#F472B6 60%); }
+.slide-glow-teal    { background: radial-gradient(circle,#5EEAD4 0%,#2DD4BF 60%); }
+.slide-glow-indigo  { background: radial-gradient(circle,#A5B4FC 0%,#818CF8 60%); }
+.slide-glow-orange  { background: radial-gradient(circle,#FDBA74 0%,#FB923C 60%); }
+
+
+  25%  { transform:translate(-50%,-50%) scale(1.15); opacity:0.55; }
+  50%  { transform:translate(-50%,-50%) scale(0.9);  opacity:0.3; }
+  75%  { transform:translate(-50%,-50%) scale(1.2);  opacity:0.5; }
+  100% { transform:translate(-50%,-50%) scale(1);   opacity:0.35; }
+}
+.home2-grid {
+  position: relative;
+}
+.home2-grid::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,0.12) 0%,
+    rgba(255,255,255,0.06) 30%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: center-glow 7s ease-in-out infinite;
+  filter: blur(2px);
+}
+
+/* ═══════════════════════════════════════════════════
+   ПЛИТКИ — единая живая поверхность
+   Blob'ы движутся по всему гриду, плитки — окна в неё
+   ═══════════════════════════════════════════════════ */
+
+@keyframes blob-drift-1 {
+  0%   { transform: translate(0%, 0%)   scale(1);    }
+  25%  { transform: translate(60%, 20%) scale(1.15); }
+  50%  { transform: translate(90%, 60%) scale(0.9);  }
+  75%  { transform: translate(30%, 80%) scale(1.1);  }
+  100% { transform: translate(0%, 0%)   scale(1);    }
+}
+@keyframes blob-drift-2 {
+  0%   { transform: translate(100%, 100%) scale(1);    }
+  25%  { transform: translate(40%, 70%)  scale(1.2);  }
+  50%  { transform: translate(10%, 20%)  scale(0.85); }
+  75%  { transform: translate(70%, 10%)  scale(1.15); }
+  100% { transform: translate(100%, 100%) scale(1);   }
+}
+@keyframes blob-drift-3 {
+  0%   { transform: translate(50%, 0%)   scale(0.9);  }
+  33%  { transform: translate(80%, 80%)  scale(1.2);  }
+  66%  { transform: translate(10%, 50%)  scale(1);    }
+  100% { transform: translate(50%, 0%)   scale(0.9);  }
+}
+
+/* Грид — живая поверхность */
+.home2-grid {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Три blob'а движутся по всему гриду */
+.home2-grid::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 180px at 0% 0%,   rgba(59,130,246,0.5)  0%, transparent 70%),
+    radial-gradient(circle 160px at 100% 100%, rgba(22,163,74,0.5)  0%, transparent 70%),
+    radial-gradient(circle 150px at 100% 0%,  rgba(124,58,237,0.45) 0%, transparent 70%),
+    radial-gradient(circle 140px at 0% 100%,  rgba(245,158,11,0.45) 0%, transparent 70%),
+    radial-gradient(circle 200px at 50% 50%,  rgba(255,255,255,0.04) 0%, transparent 65%);
+  animation: blob-drift-1 18s ease-in-out infinite;
+  filter: blur(35px);
+}
+.home2-grid::after {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 200px at 100% 0%,   rgba(74,222,128,0.4)  0%, transparent 70%),
+    radial-gradient(circle 180px at 0% 100%,   rgba(167,139,250,0.4) 0%, transparent 70%),
+    radial-gradient(circle 160px at 50% 100%,  rgba(251,191,36,0.35) 0%, transparent 70%);
+  animation: blob-drift-2 22s ease-in-out infinite;
+  filter: blur(40px);
+}
+
+/* Плитки — прозрачные "окна" в поверхность */
+.home2-tile {
+  position: relative;
+  z-index: 1;
+  background: rgba(0,0,0,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(0px);
+}
+.home2-tile::before, .home2-tile::after { display: none !important; }
+.home2-tile-content { position: relative; z-index: 1; }
+
+/* Цвета текста/иконок */
+.home2-tile-training .home2-tile-name { color: #93C5FD !important; }
+.home2-tile-training .home2-tile-desc { color: rgba(147,197,253,0.55) !important; }
+.home2-tile-training i { color: #60A5FA !important; font-size:22px; margin-bottom:6px; }
+
+.home2-tile-habits .home2-tile-name { color: #86EFAC !important; }
+.home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.55) !important; }
+.home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
+
+.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
+.home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.55) !important; }
+.home2-tile-finance i { color: #A78BFA !important; font-size:22px; margin-bottom:6px; }
+
+.home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
+.home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.55) !important; }
+.home2-tile-goals i { color: #F2A93B !important; font-size:22px; margin-bottom:6px; }
+
+@media (max-width:480px) { .home2-tile { min-height:120px; } }
+@media (min-width:768px) { .home2-tile { min-height:160px; } }

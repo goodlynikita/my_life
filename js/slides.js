@@ -299,10 +299,8 @@ var Slides = (() => {
 
       const colorOpts = SLIDE_COLORS.map((c,i) => {
         const isActive = c.cssClass ? s.cssClass===c.cssClass : s.color===c.val;
-        const bg = c.cssClass
-          ? (c.cssClass==='slide-focus'?'linear-gradient(135deg,#0F172A,#1E3A5F)':c.cssClass==='slide-finance'?'linear-gradient(135deg,#052e16,#14532d)':'linear-gradient(135deg,#1e1b4b,#3b0764)')
-          : c.val;
-        return `<button class="se-color-btn" data-css-class="${c.cssClass||''}" data-glow-class="${c.glowClass||''}" data-color="${c.val||''}" data-glow="${c.glow||''}" style="width:36px;height:36px;border-radius:8px;background:${bg};border:2px solid ${isActive?'#fff':'transparent'};cursor:pointer;" title="${c.name}"></button>`;
+        const swatchBg = c.bg || c.val || '#1A2040';
+        return `<button class="se-color-btn" data-css-class="${c.cssClass||''}" data-glow-class="${c.glowClass||''}" data-color="${c.val||''}" data-glow="${c.glow||''}" data-bg="${encodeURIComponent(c.bg||c.val||'')}" style="width:36px;height:36px;border-radius:8px;background:${swatchBg};border:2px solid ${isActive?'rgba(255,255,255,0.9)':'transparent'};cursor:pointer;box-shadow:${isActive?'0 0 0 1px rgba(255,255,255,0.3)':''}" title="${c.name}"></button>`;
       }).join('');
 
       return `<div style="padding:0 20px 20px;">

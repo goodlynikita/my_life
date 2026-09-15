@@ -117,7 +117,7 @@ var Slides = (() => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const done  = goals.filter(g=>g.done).length;
         const pct   = goals.length ? Math.round(done/goals.length*100) : 0;
-        return `<div class="hero-big-text">${pct}%</div>`;
+        return `<div class="hero-big-text">${pct}%</div><div class="hero-goals-bar"><div class="hero-goals-fill" style="width:${pct}%"></div></div>`;
       },
     },
     {

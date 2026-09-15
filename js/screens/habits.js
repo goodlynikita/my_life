@@ -266,7 +266,7 @@ window.Screens.habits = function(mount) {
             <div style="font-size:11px;color:#555;margin-top:1px;">${h.schedule==='weekday'?'пн–пт':h.schedule==='3perweek'?(h.target||3)+'×/нед':h.schedule==='weekday'?'пн–пт':'каждый день'}</div>
           </div>
           <div style="display:flex;gap:6px;">
-            <button class="hab-set-edit" data-idx="${i}" style="padding:5px 10px;border-radius:8px;border:1px solid #2A2D35;background:none;color:#9D9A92;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;">Изменить</button>
+            <button class="hab-set-edit" data-idx="${i}" style="padding:5px 10px;border-radius:8px;border:1px solid #2A2D35;background:none;color:#9D9A92;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.3);color:#4ADE80;border-radius:8px;">Изменить</button>
             <button class="hab-set-del" data-idx="${i}" style="padding:5px 8px;border-radius:8px;border:1px solid #3A1A1A;background:none;color:#FF5C5C;font-size:11px;cursor:pointer;">✕</button>
           </div>
         </div>`).join('');

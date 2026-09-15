@@ -1383,31 +1383,9 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
   color: #6B7280 !important;
 }
 
-/* п.7 — Привычки: фиолетовый → зелёный */
-.wheel-slider-track { accent-color: #16A34A !important; }
-input[type=range]::-webkit-slider-thumb { background: #16A34A !important; }
-input[type=range]::-webkit-slider-runnable-track { background: #14532D !important; }
-.wheel-score { color: #4ADE80 !important; }
-.wheel-avg { color: #4ADE80 !important; }
-.hab-wheel-save, .wheel-save-btn { background: linear-gradient(135deg,#14532D,#16A34A) !important; color:#fff !important; border:none !important; }
 
-/* п.8 — Цели модалка в янтарный */
-.goals-modal { background: #1a1200 !important; border: 1px solid rgba(242,169,59,0.2) !important; }
-.goals-modal-header { border-bottom-color: rgba(242,169,59,0.15) !important; }
-.goals-modal-title { color: #FCD34D !important; }
-.goals-modal-label { color: rgba(252,211,77,0.6) !important; }
-.goals-modal-input { background: #2a1e00 !important; border-color: rgba(242,169,59,0.2) !important; color: #FEF3C7 !important; }
-.goals-modal-input:focus { border-color: #F2A93B !important; }
-.goals-modal-select { background: #2a1e00 !important; border-color: rgba(242,169,59,0.2) !important; color: #FEF3C7 !important; }
-.goals-modal-actions { border-top-color: rgba(242,169,59,0.1) !important; }
-.goals-modal-save { background: linear-gradient(135deg,#92400e,#f2a93b) !important; color:#fff !important; }
-.goals-modal-save:hover { background: linear-gradient(135deg,#78350f,#d97706) !important; }
-.goals-modal-cancel { border-color: rgba(242,169,59,0.2) !important; color: rgba(252,211,77,0.6) !important; }
-.goals-modal-del { background: rgba(127,29,29,0.3) !important; }
-.gm-status { background: #1f1500 !important; border-color: rgba(242,169,59,0.15) !important; color: rgba(252,211,77,0.5) !important; }
-.gm-status.sel { background: rgba(242,169,59,0.2) !important; border-color: #F2A93B !important; color: #F2A93B !important; }
-.goals-add-v3 { color: #F2A93B !important; border-color: rgba(242,169,59,0.3) !important; }
-.goals-add-v3:hover { background: rgba(242,169,59,0.1) !important; }
+
+
 
 /* ── Safe area для PWA на iOS ── */
 .hab-header,
@@ -1429,3 +1407,110 @@ body {
 .sec-metric-label { font-size: 8px !important; }
 .sec-metric { padding: 6px 4px !important; }
 .sec-metric-grid { gap: 4px !important; }
+
+/* ═══════════════════════════════════════════
+   МОДАЛКИ — серый фон, белый текст
+   Акцент зависит от раздела
+   ═══════════════════════════════════════════ */
+
+/* БАЗОВАЯ МОДАЛКА */
+.tr-modal {
+  background: #1E2028 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #F0EDE5 !important;
+}
+.tr-modal-title { color: #F0EDE5 !important; }
+.tr-modal-row label { color: rgba(255,255,255,0.5) !important; font-size: 11px !important; }
+.tr-modal-row input, .tr-modal select {
+  background: #2A2D35 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #F0EDE5 !important;
+  border-radius: 10px !important;
+}
+.tr-modal-row input:focus { border-color: rgba(255,255,255,0.3) !important; outline: none !important; }
+
+/* ФИНАНСЫ — фиолетовый акцент */
+.modal-finance .tr-modal { background: #1E2028 !important; }
+.modal-finance .tr-modal-btn-primary { background: linear-gradient(135deg,#5B21B6,#7C3AED) !important; color:#fff !important; border:none !important; }
+.modal-finance .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; }
+
+/* ПРИВЫЧКИ — зелёный акцент */
+.modal-habits .tr-modal { background: #1E2028 !important; }
+.modal-habits .tr-modal-btn-primary { background: linear-gradient(135deg,#14532D,#16A34A) !important; color:#fff !important; border:none !important; }
+.modal-habits .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+.modal-habits .tr-modal-row input:focus { border-color: #16A34A !important; }
+
+/* ТРЕНИРОВКИ — синий акцент */
+.tr-modal-btn-primary { background: linear-gradient(135deg,#1E3A8A,#3B82F6) !important; color:#fff !important; border:none !important; }
+.tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+
+/* ЦЕЛИ — модалка в стиле раздела */
+.goals-modal {
+  background: #1E2028 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #F0EDE5 !important;
+}
+.goals-modal-header { border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
+.goals-modal-title { color: #F0EDE5 !important; }
+.goals-modal-label { color: rgba(255,255,255,0.45) !important; }
+.goals-modal-input {
+  background: #2A2D35 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #F0EDE5 !important;
+}
+.goals-modal-input:focus { border-color: var(--season-color, #F2A93B) !important; outline: none !important; }
+.goals-modal-select {
+  background: #2A2D35 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #F0EDE5 !important;
+}
+.goals-modal-actions { border-top: 1px solid rgba(255,255,255,0.06) !important; }
+.goals-modal-cancel { background: none !important; border: 1px solid rgba(255,255,255,0.12) !important; color: rgba(255,255,255,0.5) !important; }
+.goals-modal-save {
+  background: linear-gradient(135deg, #92400e, #F2A93B) !important;
+  color: #fff !important;
+}
+.gm-status { background: #2A2D35 !important; border: 1px solid rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.5) !important; }
+.gm-status.sel {
+  background: rgba(242,169,59,0.2) !important;
+  border-color: #F2A93B !important;
+  color: #F2A93B !important;
+}
+
+/* Кнопки добавления целей — цвет сезона */
+.goals-add-v3 {
+  color: rgba(255,255,255,0.4) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  background: none !important;
+  font-size: 13px !important;
+}
+.goals-add-v3:hover {
+  color: rgba(255,255,255,0.8) !important;
+  border-color: rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* Привычки — кнопка Изменить зелёная */
+.wheel-edit-btn, button[onclick*="wheel"], .hab-wheel-edit {
+  background: rgba(22,163,74,0.15) !important;
+  border: 1px solid rgba(22,163,74,0.4) !important;
+  color: #4ADE80 !important;
+  border-radius: 20px !important;
+}
+.wheel-save-btn, .hab-wheel-save {
+  background: linear-gradient(135deg,#14532D,#16A34A) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Колесо: оценки зелёные */
+.wheel-score-val, .wheel-score { color: #4ADE80 !important; }
+.wheel-avg-val { color: #4ADE80 !important; }
+
+/* История привычек — кнопка Изменить */
+button.hab-hist-edit, .hab-hist-btn {
+  background: rgba(22,163,74,0.15) !important;
+  border: 1px solid rgba(22,163,74,0.4) !important;
+  color: #4ADE80 !important;
+}

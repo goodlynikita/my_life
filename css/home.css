@@ -323,14 +323,6 @@ html, body {
 .home2-tile-name { font-size: 14px; font-weight: 700; color: #E8E5DC; }
 .home2-tile-desc { font-size: 11px; color: #9D9A92; }
 
-.home2-tile-training i { color: #F97316; }
-.home2-tile-training { border-top: 2px solid #F97316; }
-.home2-tile-habits i { color: #16A34A; }
-.home2-tile-habits { border-top: 2px solid #16A34A; }
-.home2-tile-finance i { color: #16A34A; }
-.home2-tile-finance { border-top: 2px solid #5B21B6; }
-.home2-tile-goals i { color: #9333EA; }
-.home2-tile-goals { border-top: 2px solid #9333EA; }
 
 .home2-footer { padding: 20px 20px 0; text-align: center; }
 
@@ -478,103 +470,83 @@ html, body {
   .home2-tile-bg { font-size: 90px; }
 }
 
-/* ── Tiles v3 — no emoji, gradient cards ─────────── */
-.home2-tile {
-  background: #1C1E24 !important;
-  border: none !important;
-  border-radius: 18px !important;
-  min-height: 150px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s !important;
+
+/* ═══════════════════════════════════════════
+   ПЛИТКИ — премиальные карточки
+   Источник света снизу в углу каждой карточки
+   ═══════════════════════════════════════════ */
+
+@keyframes tile-glow {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.85; }
 }
+
+.home2-tile { position: relative; overflow: hidden; }
 .home2-tile::before {
   content: '';
   position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.25s;
-  border-radius: 18px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: tile-glow 6s ease-in-out infinite;
+  z-index: 0;
 }
-.home2-tile:hover { transform: translateY(-4px) scale(1.02) !important; }
-.home2-tile:hover::before { opacity: 1; }
-.home2-tile:active { transform: scale(0.97) !important; }
+.home2-tile-content { position: relative; z-index: 1; }
 
-.home2-tile-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 20px;
-  text-align: center;
-  width: 100%;
-}
-.home2-tile-bg { display: none !important; }
-
-.home2-tile-icon {
-  font-size: 28px;
-  margin-bottom: 4px;
-  transition: transform 0.3s;
-}
-.home2-tile:hover .home2-tile-icon { transform: scale(1.15) rotate(-5deg); }
-
-.home2-tile-name {
-  font-size: 16px !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.3px;
-}
-.home2-tile-desc {
-  font-size: 12px !important;
-  color: rgba(255,255,255,0.5) !important;
-}
-
-/* Training — orange gradient */
+/* Тренировки — синий, свет снизу-справа */
 .home2-tile-training {
-  background: linear-gradient(135deg, #0F1520 0%, #1A2535 100%) !important;
-  box-shadow: 0 4px 20px rgba(59,130,246,0.15) !important;
+  background: linear-gradient(160deg, #0a1628 0%, #0f2347 60%, #1a3878 100%);
+  border: 1px solid rgba(59,130,246,0.18);
 }
-.home2-tile-training::before { background: linear-gradient(135deg, #142030, #1E2D40); }
-.home2-tile-training .home2-tile-icon { color: #60A5FA; }
-.home2-tile-training .home2-tile-name { color: #60A5FA !important; }
+.home2-tile-training::before {
+  bottom: -60px; right: -60px;
+  background: radial-gradient(circle, rgba(59,130,246,0.5) 0%, transparent 65%);
+}
+.home2-tile-training .home2-tile-name { color: #93C5FD !important; }
+.home2-tile-training .home2-tile-desc { color: rgba(147,197,253,0.55) !important; }
+.home2-tile-training i { color: #60A5FA !important; font-size: 22px; margin-bottom: 6px; }
 
-/* Habits — green Rolex */
+/* Привычки — зелёный, свет снизу-слева */
 .home2-tile-habits {
-  background: linear-gradient(135deg, #0F1A12 0%, #162212 100%) !important;
-  box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important;
+  background: linear-gradient(160deg, #021a0a 0%, #0a2e16 60%, #0e3d1c 100%);
+  border: 1px solid rgba(22,163,74,0.18);
 }
-.home2-tile-habits::before { background: linear-gradient(135deg, #142018, #1A2A18); }
-.home2-tile-habits .home2-tile-icon { color: #22C55E; }
-.home2-tile-habits .home2-tile-name { color: #22C55E !important; }
+.home2-tile-habits::before {
+  bottom: -60px; left: -60px;
+  background: radial-gradient(circle, rgba(22,163,74,0.5) 0%, transparent 65%);
+  animation-delay: 1.5s;
+}
+.home2-tile-habits .home2-tile-name { color: #86EFAC !important; }
+.home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.55) !important; }
+.home2-tile-habits i { color: #4ADE80 !important; font-size: 22px; margin-bottom: 6px; }
 
-/* Finance — white/silver */
+/* Финансы — фиолетовый, свет сверху-справа */
 .home2-tile-finance {
-  background: linear-gradient(135deg, #1C1E24 0%, #252830 100%) !important;
-  box-shadow: 0 4px 20px rgba(255,255,255,0.05) !important;
+  background: linear-gradient(160deg, #0d0520 0%, #1a0840 60%, #280b5a 100%);
+  border: 1px solid rgba(124,58,237,0.18);
 }
-.home2-tile-finance::before { background: linear-gradient(135deg, #22242C, #2C2E38); }
-.home2-tile-finance .home2-tile-icon { color: #E8E5DC; }
-.home2-tile-finance .home2-tile-name { color: #E8E5DC !important; }
+.home2-tile-finance::before {
+  top: -60px; right: -60px;
+  background: radial-gradient(circle, rgba(124,58,237,0.5) 0%, transparent 65%);
+  animation-delay: 3s;
+}
+.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
+.home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.55) !important; }
+.home2-tile-finance i { color: #A78BFA !important; font-size: 22px; margin-bottom: 6px; }
 
-/* Goals — purple */
+/* Цели — янтарный, свет сверху-слева */
 .home2-tile-goals {
-  background: linear-gradient(135deg, #16101E 0%, #1E1428 100%) !important;
-  box-shadow: 0 4px 20px rgba(167,139,250,0.15) !important;
+  background: linear-gradient(160deg, #150c00 0%, #2a1800 60%, #3d2200 100%);
+  border: 1px solid rgba(245,158,11,0.18);
 }
-.home2-tile-goals::before { background: linear-gradient(135deg, #1E1428, #261830); }
-.home2-tile-goals .home2-tile-icon { color: #A78BFA; }
-.home2-tile-goals .home2-tile-name { color: #A78BFA !important; }
-
-@media (min-width: 768px) {
-  .home2-tile { min-height: 180px !important; }
-  .home2-tile-icon { font-size: 36px !important; }
-  .home2-tile-name { font-size: 18px !important; }
+.home2-tile-goals::before {
+  top: -60px; left: -60px;
+  background: radial-gradient(circle, rgba(245,158,11,0.5) 0%, transparent 65%);
+  animation-delay: 4.5s;
 }
+.home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
+.home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.55) !important; }
+.home2-tile-goals i { color: #F2A93B !important; font-size: 22px; margin-bottom: 6px; }
 
 /* ══ Hero slider ══════════════════════════════════ */
 .hero-slider { margin:0 16px 16px; border-radius:22px; overflow:hidden; position:relative; user-select:none; }
@@ -654,149 +626,6 @@ html, body {
 /* Mountain silhouette via CSS */
 
 
-
-/* ═══════════════════════════════════════════════════
-   ПЛИТКИ — единый источник света по центру
-   Как лучи от солнца, синхронно на все 4 карточки
-   ═══════════════════════════════════════════════════ */
-
-@keyframes grid-light-pulse {
-  0%   { opacity: 0.6; transform: scale(1); }
-  50%  { opacity: 0.9; transform: scale(1.08); }
-  100% { opacity: 0.6; transform: scale(1); }
-}
-
-/* Обёртка грида — позиционирует источник света */
-.home2-grid {
-  position: relative;
-}
-
-/* Единый источник света по центру грида */
-.home2-grid::after {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%; height: 60%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 2;
-  animation: grid-light-pulse 6s ease-in-out infinite;
-}
-
-/* Базовая плитка — убираем старые эффекты */
-.home2-tile {
-  background: #1C1E24;
-  border: 0.5px solid #2A2D35;
-  border-radius: 16px;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 140px;
-  position: relative;
-  overflow: hidden;
-}
-.home2-tile:hover { transform: translateY(-2px); }
-.home2-tile:active { transform: scale(0.98); }
-
-.home2-tile-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 16px;
-  width: 100%;
-}
-.home2-tile-name {
-  font-size: 16px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-.home2-tile-desc {
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
-  line-height: 1.4;
-}
-
-/* ТРЕНИРОВКИ — синий, свет справа-снизу */
-.home2-tile-training {
-  background: linear-gradient(145deg, #0a1628 0%, #0f2347 50%, #162d5a 100%);
-  border: 1px solid rgba(59,130,246,0.15);
-}
-.home2-tile-training::before {
-  content: '';
-  position: absolute;
-  bottom: -20%; right: -10%;
-  width: 70%; height: 70%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-training .home2-tile-name { color: #93C5FD; }
-.home2-tile-training .home2-tile-desc { color: rgba(147,197,253,0.5); }
-.home2-tile-training i { color: #60A5FA; font-size: 22px; margin-bottom: 6px; }
-
-/* ПРИВЫЧКИ — зелёный, свет слева-снизу */
-.home2-tile-habits {
-  background: linear-gradient(145deg, #021a0a 0%, #0a2e16 50%, #0f3d1e 100%);
-  border: 1px solid rgba(22,163,74,0.15);
-}
-.home2-tile-habits::before {
-  content: '';
-  position: absolute;
-  bottom: -20%; left: -10%;
-  width: 70%; height: 70%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(22,163,74,0.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-habits .home2-tile-name { color: #86EFAC; }
-.home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.5); }
-.home2-tile-habits i { color: #4ADE80; font-size: 22px; margin-bottom: 6px; }
-
-/* ФИНАНСЫ — фиолетовый, свет справа-сверху */
-.home2-tile-finance {
-  background: linear-gradient(145deg, #0d0520 0%, #1a0840 50%, #230b52 100%);
-  border: 1px solid rgba(124,58,237,0.15);
-}
-.home2-tile-finance::before {
-  content: '';
-  position: absolute;
-  top: -20%; right: -10%;
-  width: 70%; height: 70%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-finance .home2-tile-name { color: #C4B5FD; }
-.home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.5); }
-.home2-tile-finance i { color: #A78BFA; font-size: 22px; margin-bottom: 6px; }
-
-/* ЦЕЛИ — янтарный, свет слева-сверху */
-.home2-tile-goals {
-  background: linear-gradient(145deg, #150c00 0%, #2a1800 50%, #3a2200 100%);
-  border: 1px solid rgba(245,158,11,0.15);
-}
-.home2-tile-goals::before {
-  content: '';
-  position: absolute;
-  top: -20%; left: -10%;
-  width: 70%; height: 70%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-goals .home2-tile-name { color: #FCD34D; }
-.home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.5); }
-.home2-tile-goals i { color: #F2A93B; font-size: 22px; margin-bottom: 6px; }
-
-@media (max-width: 480px) { .home2-tile { min-height: 120px; } .home2-tile-name { font-size: 15px; } }
-@media (min-width: 768px) { .home2-tile { min-height: 160px; } .home2-tile-name { font-size: 18px; } }
 
 /* ── iOS safe area для PWA ── */
 .home2-header {

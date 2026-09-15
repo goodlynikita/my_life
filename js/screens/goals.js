@@ -182,12 +182,27 @@ function goalsOpenModal(existing, onSave) {
 
   /* Статус кнопки */
   let selStatus = existing?.done?'done':existing?.maybe?'maybe':'active';
+  const _seasonAccent = (GOALS_SEASONS.find(s=>s.key===activeSeason)||{color:'#F2A93B'}).color;
   overlay.querySelectorAll('.gm-status').forEach(btn=>{
     btn.addEventListener('click',()=>{
       selStatus=btn.dataset.val;
-      overlay.querySelectorAll('.gm-status').forEach(b=>b.classList.remove('sel'));
+      overlay.querySelectorAll('.gm-status').forEach(b=>{
+        b.classList.remove('sel');
+        b.style.background=''; b.style.borderColor=''; b.style.color='';
+      });
       btn.classList.add('sel');
+      btn.style.background = _seasonAccent + '25';
+      btn.style.borderColor = _seasonAccent;
+      btn.style.color = _seasonAccent;
     });
+  });
+  /* Подсвечиваем текущий активный статус */
+  overlay.querySelectorAll('.gm-status').forEach(btn=>{
+    if(btn.dataset.val===selStatus){
+      btn.style.background = _seasonAccent + '25';
+      btn.style.borderColor = _seasonAccent;
+      btn.style.color = _seasonAccent;
+    }
   });
 
   overlay.querySelector('#g-save').addEventListener('click',()=>{

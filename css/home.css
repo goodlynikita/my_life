@@ -465,85 +465,7 @@ html, body {
   line-height: 1.4;
 }
 
-/* Тренировки — синий */
-.home2-tile-training {
-  background: linear-gradient(135deg, #0f1e3a 0%, #1a2f55 60%, #0f2040 100%) !important;
-  border-top: none !important;
-  border-left: 3px solid #3B82F6 !important;
-  position: relative;
-  overflow: hidden;
-}
-.home2-tile-training::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-training .home2-tile-name { color: #93C5FD !important; }
-.home2-tile-training i { color: #60A5FA !important; }
 
-/* Привычки — зелёный */
-.home2-tile-habits {
-  background: linear-gradient(135deg, #052e16 0%, #14532d 60%, #052e16 100%) !important;
-  border-top: none !important;
-  border-left: 3px solid #16A34A !important;
-  position: relative;
-  overflow: hidden;
-}
-.home2-tile-habits::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(22,163,74,0.25) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-habits .home2-tile-name { color: #86EFAC !important; }
-.home2-tile-habits i { color: #4ADE80 !important; }
-
-/* Финансы — фиолетовый */
-.home2-tile-finance {
-  background: linear-gradient(135deg, #1e0a3e 0%, #3b0d8a 60%, #2d0a6e 100%) !important;
-  border-top: none !important;
-  border-left: 3px solid #7C3AED !important;
-  position: relative;
-  overflow: hidden;
-}
-.home2-tile-finance::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
-.home2-tile-finance i { color: #A78BFA !important; }
-
-/* Цели — красный */
-.home2-tile-goals {
-  background: linear-gradient(135deg, #1f0a0a 0%, #450a0a 60%, #3b0808 100%) !important;
-  border-top: none !important;
-  border-left: 3px solid #DC2626 !important;
-  position: relative;
-  overflow: hidden;
-}
-.home2-tile-goals::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(220,38,38,0.25) 0%, transparent 70%);
-  pointer-events: none;
-}
-.home2-tile-goals .home2-tile-name { color: #FCA5A5 !important; }
-.home2-tile-goals i { color: #F87171 !important; }
 
 @media (max-width: 480px) {
   .home2-tile { min-height: 120px; }
@@ -659,9 +581,9 @@ html, body {
 .hero-slider-wrap { overflow:hidden; }
 .hero-slides { display:flex; transition:transform 0.55s cubic-bezier(.77,0,.175,1); will-change:transform; width:300%; }
 .hero-slide { flex:0 0 33.333%; min-width:33.333%; padding:22px 20px 48px; position:relative; overflow:hidden; cursor:pointer; min-height:180px; display:flex; flex-direction:column; justify-content:space-between; }
-.slide-focus   { background: linear-gradient(135deg, #0C1628 0%, #0F3460 50%, #1A4A8A 100%); }
-.slide-finance { background: linear-gradient(135deg, #021A0C 0%, #0F4020 50%, #166534 100%); }
-.slide-goals   { background: linear-gradient(135deg, #130D2E 0%, #2D1260 50%, #4C1D95 100%); }
+.slide-focus   { background: linear-gradient(135deg, #080e1e 0%, #0c2654 40%, #1a3f8a 70%, #0d1f4a 100%); }
+.slide-finance { background: linear-gradient(135deg, #010c05 0%, #092e14 40%, #14522c 70%, #071a0c 100%); }
+.slide-goals   { background: linear-gradient(135deg, #09051a 0%, #1e0a4a 40%, #3d1580 70%, #1a0840 100%); }
 /* Glow blob — анимированное свечение */
 @keyframes glow-pulse {
   0%, 100% { opacity: 0.45; transform: scale(1); }
@@ -676,11 +598,11 @@ html, body {
 
 .hero-slide-glow {
   position: absolute;
-  width: 300px; height: 300px;
+  width: 350px; height: 350px;
   border-radius: 50%;
-  filter: blur(80px);
-  right: -80px; top: -80px;
-  opacity: 0.5;
+  filter: blur(90px);
+  right: -90px; top: -90px;
+  opacity: 0.6;
   pointer-events: none;
   animation: glow-pulse 4s ease-in-out infinite, glow-drift 8s ease-in-out infinite;
 }
@@ -700,9 +622,9 @@ html, body {
 .slide-finance::before { background: #4ADE80; }
 .slide-goals::before   { background: #C084FC; }
 
-.slide-glow-blue   { background: radial-gradient(circle, #60A5FA 0%, #3B82F6 60%); }
-.slide-glow-green  { background: radial-gradient(circle, #4ADE80 0%, #22C55E 60%); }
-.slide-glow-purple { background: radial-gradient(circle, #C084FC 0%, #A855F7 60%); }
+.slide-glow-blue   { background: radial-gradient(circle, #93C5FD 0%, #60A5FA 40%, #3B82F6 100%); }
+.slide-glow-green  { background: radial-gradient(circle, #86EFAC 0%, #4ADE80 40%, #16A34A 100%); }
+.slide-glow-purple { background: radial-gradient(circle, #DDD6FE 0%, #C084FC 40%, #A855F7 100%); }
 
 /* Aurora cloud overlay - перелив как северное сияние */
 @keyframes aurora-shift {
@@ -725,19 +647,25 @@ html, body {
   z-index: 0;
 }
 .slide-focus::after {
-  background-image: radial-gradient(ellipse at 20% 50%, rgba(147,197,253,0.6) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(96,165,250,0.5) 0%, transparent 45%),
-    radial-gradient(ellipse at 60% 80%, rgba(165,243,252,0.4) 0%, transparent 50%);
+  background-image:
+    radial-gradient(ellipse at 15% 40%, rgba(147,197,253,0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 20%, rgba(59,130,246,0.6) 0%, transparent 45%),
+    radial-gradient(ellipse at 55% 85%, rgba(165,243,252,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(96,165,250,0.4) 0%, transparent 40%);
 }
 .slide-finance::after {
-  background-image: radial-gradient(ellipse at 20% 50%, rgba(134,239,172,0.6) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(74,222,128,0.5) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 80%, rgba(187,247,208,0.4) 0%, transparent 50%);
+  background-image:
+    radial-gradient(ellipse at 15% 40%, rgba(134,239,172,0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 20%, rgba(74,222,128,0.6) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 85%, rgba(187,247,208,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 55%, rgba(52,211,153,0.4) 0%, transparent 40%);
 }
 .slide-goals::after {
-  background-image: radial-gradient(ellipse at 20% 50%, rgba(192,132,252,0.6) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.5) 0%, transparent 45%),
-    radial-gradient(ellipse at 60% 80%, rgba(216,180,254,0.4) 0%, transparent 50%);
+  background-image:
+    radial-gradient(ellipse at 15% 40%, rgba(192,132,252,0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 20%, rgba(167,139,250,0.6) 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 85%, rgba(216,180,254,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 55%, rgba(139,92,246,0.4) 0%, transparent 40%);
 }
 /* Убедимся что контент выше aurora */
 .hero-slide-label, .hero-slide-main, .hero-slide-sub, .hero-tag-row { position: relative; z-index: 1; }
@@ -765,3 +693,162 @@ html, body {
 
 /* Mountain silhouette via CSS */
 
+
+/* ═══════════════════════════════════════════════════
+   ПЛИТКИ — premium liquid surface
+   Живые переливы, глубина, свечение
+   ═══════════════════════════════════════════════════ */
+
+@keyframes tile-shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes tile-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.15); }
+}
+
+/* ТРЕНИРОВКИ — синий */
+.home2-tile-training {
+  background: linear-gradient(135deg, #0a1628 0%, #0f2347 35%, #1a3a7a 65%, #0d1f4a 100%) !important;
+  background-size: 200% 200% !important;
+  animation: tile-shimmer 8s ease infinite !important;
+  border: 1px solid rgba(59,130,246,0.2) !important;
+  border-top: none !important;
+  border-left: none !important;
+  box-shadow: inset 0 1px 0 rgba(147,197,253,0.1), 0 0 30px rgba(30,58,138,0.4) !important;
+}
+.home2-tile-training::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96,165,250,0.35) 0%, rgba(59,130,246,0.1) 50%, transparent 70%);
+  pointer-events: none;
+  animation: tile-glow-pulse 4s ease-in-out infinite;
+}
+.home2-tile-training::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(147,197,253,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-training .home2-tile-name { color: #93C5FD !important; }
+.home2-tile-training .home2-tile-desc { color: rgba(147,197,253,0.6) !important; }
+.home2-tile-training i { color: #60A5FA !important; filter: drop-shadow(0 0 8px rgba(96,165,250,0.5)); }
+
+/* ПРИВЫЧКИ — зелёный */
+.home2-tile-habits {
+  background: linear-gradient(135deg, #021a0a 0%, #0a3018 35%, #14532d 65%, #071f10 100%) !important;
+  background-size: 200% 200% !important;
+  animation: tile-shimmer 10s ease infinite !important;
+  border: 1px solid rgba(22,163,74,0.2) !important;
+  border-top: none !important;
+  border-left: none !important;
+  box-shadow: inset 0 1px 0 rgba(134,239,172,0.1), 0 0 30px rgba(5,46,22,0.5) !important;
+}
+.home2-tile-habits::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,222,128,0.3) 0%, rgba(22,163,74,0.1) 50%, transparent 70%);
+  pointer-events: none;
+  animation: tile-glow-pulse 5s ease-in-out infinite;
+}
+.home2-tile-habits::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(134,239,172,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-habits .home2-tile-name { color: #86EFAC !important; }
+.home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.6) !important; }
+.home2-tile-habits i { color: #4ADE80 !important; filter: drop-shadow(0 0 8px rgba(74,222,128,0.5)); }
+
+/* ФИНАНСЫ — фиолетовый */
+.home2-tile-finance {
+  background: linear-gradient(135deg, #0d0520 0%, #1e0a3e 35%, #3b0d8a 65%, #160840 100%) !important;
+  background-size: 200% 200% !important;
+  animation: tile-shimmer 9s ease infinite !important;
+  border: 1px solid rgba(124,58,237,0.2) !important;
+  border-top: none !important;
+  border-left: none !important;
+  box-shadow: inset 0 1px 0 rgba(196,181,253,0.1), 0 0 30px rgba(30,10,62,0.5) !important;
+}
+.home2-tile-finance::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167,139,250,0.35) 0%, rgba(124,58,237,0.1) 50%, transparent 70%);
+  pointer-events: none;
+  animation: tile-glow-pulse 6s ease-in-out infinite;
+}
+.home2-tile-finance::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,181,253,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
+.home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.6) !important; }
+.home2-tile-finance i { color: #A78BFA !important; filter: drop-shadow(0 0 8px rgba(167,139,250,0.5)); }
+
+/* ЦЕЛИ — янтарный premium */
+.home2-tile-goals {
+  background: linear-gradient(135deg, #1a0f00 0%, #2d1a00 35%, #4a2c00 65%, #1f1200 100%) !important;
+  background-size: 200% 200% !important;
+  animation: tile-shimmer 11s ease infinite !important;
+  border: 1px solid rgba(245,158,11,0.2) !important;
+  border-top: none !important;
+  border-left: none !important;
+  box-shadow: inset 0 1px 0 rgba(252,211,77,0.1), 0 0 30px rgba(42,25,0,0.5) !important;
+}
+.home2-tile-goals::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(180,110,0,0.1) 50%, transparent 70%);
+  pointer-events: none;
+  animation: tile-glow-pulse 5s ease-in-out infinite 1s;
+}
+.home2-tile-goals::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(252,211,77,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
+.home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.6) !important; }
+.home2-tile-goals i { color: #F2A93B !important; filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
+
+/* Hover — усиление свечения */
+.home2-tile-training:hover { box-shadow: inset 0 1px 0 rgba(147,197,253,0.15), 0 0 50px rgba(30,58,138,0.6) !important; }
+.home2-tile-habits:hover   { box-shadow: inset 0 1px 0 rgba(134,239,172,0.15), 0 0 50px rgba(5,46,22,0.7) !important; }
+.home2-tile-finance:hover  { box-shadow: inset 0 1px 0 rgba(196,181,253,0.15), 0 0 50px rgba(30,10,62,0.7) !important; }
+.home2-tile-goals:hover    { box-shadow: inset 0 1px 0 rgba(252,211,77,0.15), 0 0 50px rgba(42,25,0,0.7) !important; }
+
+/* Убираем квадрат при hover на кнопки (баг п.4) */
+.home2-tile:hover::before { opacity: 1; }
+.home2-logout:hover { background: rgba(255,255,255,0.08) !important; border-radius: 8px !important; }
+button:focus { outline: none !important; }
+.tr-back:hover { background: rgba(255,255,255,0.1) !important; border-radius: 8px !important; }

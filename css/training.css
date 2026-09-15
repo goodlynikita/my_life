@@ -1242,3 +1242,12 @@
   color: #FCA5A5;
 }
 .modal-goals .tr-modal-row label { color: #F87171; }
+
+/* ── Тренировки: убираем hover-квадрат ── */
+.tr-back:focus, .tr-plan-new:focus { outline: none; }
+.tr-back { border-radius: 8px !important; }
+.tr-undo-btn { border-radius: 8px !important; }
+
+/* ── Тренировки: шапка кнопки выровнены ── */
+.tr-header > div:first-child { display: flex; align-items: center; gap: 10px; }
+.tr-header > div:last-child { display: flex; align-items: center; gap: 6px; }

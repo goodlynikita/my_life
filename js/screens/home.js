@@ -43,11 +43,17 @@ window.Screens.home = function(mount) {
         var p = day.date.split('.');
         if(parseInt(p[0])===now.getDate() && parseInt(p[1])===(now.getMonth()+1)) {
           var sessions = day.sessions || [];
+          var exercises = day.exercises || [];
+          /* Из sessions берём группы мышц */
           sessions.filter(function(s){return s&&s.type!=='Отдых'&&s.type!=='10k';}).forEach(function(s){
             if(s.groups&&s.groups.length) todayGroups = todayGroups.concat(s.groups);
             else if(s.type) todayGroups.push(s.type);
           });
-          if(!todayGroups.length && sessions.some(function(s){return s&&s.type==='Отдых';})) todayWorkout='Отдых';
+          /* Если exercises есть — тренировка не пустая */
+          if(!todayGroups.length && exercises.length>0) {
+            todayWorkout = 'Тренировка';
+          }
+          if(!todayGroups.length && !exercises.length && sessions.some(function(s){return s&&s.type==='Отдых';})) todayWorkout='Отдых';
         }
       });
     });

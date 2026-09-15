@@ -1034,7 +1034,7 @@
   box-sizing: border-box;
 }
 .goals-modal-input:focus {
-  border-color: #A78BFA;
+  border-color: #F2A93B;
   outline: none;
 }
 .goals-modal-select {
@@ -1074,9 +1074,9 @@
   transition: all 0.2s;
 }
 .gm-status.sel {
-  background: #A78BFA22;
-  border-color: #A78BFA;
-  color: #A78BFA;
+  background: #F2A93B22;
+  border-color: #F2A93B;
+  color: #F2A93B;
 }
 .goals-modal-actions {
   display: flex;
@@ -1102,14 +1102,14 @@
   padding: 12px;
   border-radius: 10px;
   border: none;
-  background: #A78BFA;
+  background: linear-gradient(135deg, #d97706, #f2a93b);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
 }
-.goals-modal-save:hover { background: #9333EA; }
+.goals-modal-save:hover { background: linear-gradient(135deg, #b45309, #d97706); }
 
 /* ── Goals month filter ──────────────────────────── */
 .goals-month-filter {
@@ -1228,7 +1228,7 @@ input, textarea, select {
 
 /* ЦЕЛИ */
 .goals-header {
-  background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 60%, #B91C1C 100%) !important;
+  background: linear-gradient(135deg, #1a0f00 0%, #3d2200 60%, #78450a 100%) !important;
   padding: 14px 20px !important;
   display: flex !important;
   align-items: center !important;
@@ -1287,3 +1287,51 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
 .modal-goals .tr-modal-row input, .modal-goals select { background: #2d0808; border-color: rgba(220,38,38,0.3); color: #FEE2E2; }
 .modal-goals .tr-modal-btn-primary { background: linear-gradient(135deg,#7F1D1D,#DC2626) !important; color: #fff !important; border: none !important; }
 .modal-goals .tr-modal-btn-secondary { border-color: rgba(220,38,38,0.4) !important; color: #FCA5A5 !important; }
+
+/* ── Цели — вкладки на всю ширину ── */
+.goals-season-tabs {
+  display: flex !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+}
+.goals-season-tab {
+  flex: 1 !important;
+  padding: 14px 6px !important;
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  background: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  color: rgba(255,255,255,0.4) !important;
+  font-family: Montserrat, sans-serif !important;
+  transition: all 0.2s !important;
+}
+.goals-season-tab.active {
+  color: var(--season-color, #F2A93B) !important;
+  border-bottom-color: var(--season-color, #F2A93B) !important;
+  font-weight: 800 !important;
+}
+
+/* ── Кнопки адаптивные (п.8) ── */
+.goals-modal-cancel,
+.goals-modal-save,
+.tr-modal-btn-primary,
+.tr-modal-btn-secondary,
+.hab-add-btn {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.tr-modal-actions {
+  display: flex !important;
+  gap: 10px !important;
+}
+.tr-modal-btn-primary,
+.tr-modal-btn-secondary {
+  flex: 1 !important;
+  width: 100% !important;
+}

@@ -112,7 +112,7 @@ function trOpenExerciseEditor() {
                 <span style="display:flex; gap:4px;">
                   <button class="tr-ex-edit-rename" data-group="${group}" data-idx="${i}" title="Переименовать"><i class="ti ti-pencil"></i></button>
                   <button class="tr-ex-edit-delete" data-group="${group}" data-idx="${i}" title="Удалить"><i class="ti ti-trash"></i></button>
-                </span>
+                </div>
               </div>
             `).join('')}
           </div>
@@ -1182,7 +1182,7 @@ window.Screens.training = function (mount) {
           ${role === 'owner' ? '<button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>' : ''}
           <p class="tr-title">Тренировки</p>
         </div>
-        <span style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:6px;">
           <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
           ${role === 'owner' ? '<button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>' : ''}
           ${role === 'coach'
@@ -1735,14 +1735,17 @@ window.Screens.training = function (mount) {
     });
   });
 
-  /* Тоггл выбора плана */
+  /* Тоггл выбора плана — состояние сохраняется */
   const planMenuBtn = document.getElementById('tr-plan-menu-btn');
   const planBarEl = document.getElementById('tr-plan-bar');
   if (planMenuBtn && planBarEl) {
+    const planBarSaved = Store.get().home?.planBarVisible;
+    if (planBarSaved === true) planBarEl.style.display = 'flex';
     planMenuBtn.addEventListener('click', () => {
-      planBarEl.style.display = planBarEl.style.display === 'none' ? 'flex' : 'none';
+      const isVisible = planBarEl.style.display !== 'none';
+      planBarEl.style.display = isVisible ? 'none' : 'flex';
+      Store.set('home.planBarVisible', !isVisible);
     });
-    if (trGetPlans().filter(Boolean).length > 1) planBarEl.style.display = 'flex';
   }
   const backBtn = document.getElementById('tr-back');
   if (backBtn) backBtn.addEventListener('click', () => Router.go('/home'));

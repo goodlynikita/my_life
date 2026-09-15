@@ -55,15 +55,29 @@ var Slides = (() => {
         list.forEach(h => {
           let streak = 0, max = 0;
           const now = new Date();
-          for (let i=0;i<90;i++) {
+          for (let i=0;i<365;i++) {
             const d = new Date(now); d.setDate(d.getDate()-i);
+            const dow = d.getDay(); // 0=вс,1=пн...6=сб
             const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
             const mark = months[mk]?.[h.id]?.[d.getDate()];
-            if (mark==='done'){streak++;max=Math.max(max,streak);}else streak=0;
+            /* Проверяем активен ли день для привычки */
+            let active = true;
+            if (h.schedule === 'weekday' && (dow === 0 || dow === 6)) active = false;
+            if (h.schedule === '3perweek') active = true; // любой день потенциально активен
+            if (!active) continue; /* не рабочий день — пропускаем не ломая стрик */
+            if (mark === 'done') {
+              streak++;
+              max = Math.max(max, streak);
+            } else if (i === 0 && (!mark || mark === '')) {
+              /* Сегодня ещё не отмечено — не ломаем */
+            } else {
+              break;
+            }
           }
-          if (max>best){best=max;bestName=h.name;}
+          if (max > best) { best = max; bestName = h.name; }
         });
-        return `<div class="hero-stat-num">🔥${best}</div><div class="hero-stat-lbl">${bestName}</div>`;
+        const c = best>=14?'#FF4500':best>=7?'#F59E0B':best>=3?'#FB923C':'#9D9A92';
+        return `<div class="hero-stat-num" style="color:${c}">🔥${best}</div><div class="hero-stat-lbl">${bestName}</div>`;
       },
     },
     {
@@ -146,8 +160,9 @@ var Slides = (() => {
         const g = goals.find(x=>x.id===cfg?.goalId) || goals[0];
         if (!g) return `<div class="hero-big-text">—</div>`;
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        const icon = g.done?'✅':g.maybe?'❓':'⬜';
-        return `<div class="hero-stat-num">${icon} ${g.name}</div><div class="hero-stat-lbl">${g.amount?fmt(g.amount):''}</div>`;
+        const nameColor = g.done ? 'rgba(255,255,255,0.45)' : '#F2F4F8';
+        const nameStyle = g.done ? 'text-decoration:line-through;' : '';
+        return `<div class="hero-stat-num" style="font-size:14px;line-height:1.3;color:${nameColor};${nameStyle}">${g.name}</div><div class="hero-stat-lbl">${g.amount?fmt(g.amount):''}</div>`;
       },
     },
   ];

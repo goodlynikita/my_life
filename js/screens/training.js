@@ -831,12 +831,12 @@ function trBuildExerciseSelect(selectedGroups) {
 }
 
 function trBuildGroupCheckboxes(selected) {
-  return MUSCLE_GROUPS.map(g => `
-    <label style="flex:0 0 auto; display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--bone-soft); flex-direction:row;">
-      <input type="checkbox" class="m-group-cb" value="${g.name}" ${selected.includes(g.name) ? 'checked' : ''} style="width:auto;">
+  return `<div class="m-groups-wrap">${MUSCLE_GROUPS.map(g => `
+    <label class="m-group-label">
+      <input type="checkbox" class="m-group-cb m-group-check" value="${g.name}" ${selected.includes(g.name) ? 'checked' : ''}>
       ${g.name}
     </label>
-  `).join('');
+  `).join('')}</div>`;
 }
 
 function trBuildFormFields(typeName, selectedGroups, plan) {

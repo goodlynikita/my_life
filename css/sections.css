@@ -1228,7 +1228,7 @@ input, textarea, select {
 
 /* ЦЕЛИ */
 .goals-header {
-  background: linear-gradient(135deg, #1a0f00 0%, #3d2200 60%, #78450a 100%) !important;
+  background: linear-gradient(135deg, #150c00 0%, #2d1a00 60%, #4a2c00 100%) !important;
   padding: 14px 20px !important;
   display: flex !important;
   align-items: center !important;
@@ -1335,3 +1335,97 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
   flex: 1 !important;
   width: 100% !important;
 }
+
+/* п.3 — Финансы вкладки на всю ширину */
+.tochka-tabs {
+  display: flex !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+.tochka-tab {
+  flex: 1 !important;
+  padding: 14px 4px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: 13px !important;
+}
+
+/* п.4 — Привычки вкладки крупнее (как финансы) */
+.hab-tab {
+  padding: 14px 6px !important;
+  font-size: 14px !important;
+}
+
+/* п.6 — Финансы модалки: белый фон, тёмный текст, фиолетовые акценты */
+.modal-finance .tr-modal {
+  background: #fff !important;
+  border: none !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3) !important;
+}
+.modal-finance .tr-modal-title { color: #1a1a2e !important; }
+.modal-finance .tr-modal-row label { color: #4B5563 !important; }
+.modal-finance .tr-modal-row input,
+.modal-finance select {
+  background: #F3F4F6 !important;
+  border: 1px solid #E5E7EB !important;
+  color: #111827 !important;
+}
+.modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; }
+.modal-finance .tr-modal-btn-primary {
+  background: #7C3AED !important;
+  color: #fff !important;
+}
+.modal-finance .tr-modal-btn-secondary {
+  background: none !important;
+  border: 1px solid #E5E7EB !important;
+  color: #6B7280 !important;
+}
+
+/* п.7 — Привычки: фиолетовый → зелёный */
+.wheel-slider-track { accent-color: #16A34A !important; }
+input[type=range]::-webkit-slider-thumb { background: #16A34A !important; }
+input[type=range]::-webkit-slider-runnable-track { background: #14532D !important; }
+.wheel-score { color: #4ADE80 !important; }
+.wheel-avg { color: #4ADE80 !important; }
+.hab-wheel-save, .wheel-save-btn { background: linear-gradient(135deg,#14532D,#16A34A) !important; color:#fff !important; border:none !important; }
+
+/* п.8 — Цели модалка в янтарный */
+.goals-modal { background: #1a1200 !important; border: 1px solid rgba(242,169,59,0.2) !important; }
+.goals-modal-header { border-bottom-color: rgba(242,169,59,0.15) !important; }
+.goals-modal-title { color: #FCD34D !important; }
+.goals-modal-label { color: rgba(252,211,77,0.6) !important; }
+.goals-modal-input { background: #2a1e00 !important; border-color: rgba(242,169,59,0.2) !important; color: #FEF3C7 !important; }
+.goals-modal-input:focus { border-color: #F2A93B !important; }
+.goals-modal-select { background: #2a1e00 !important; border-color: rgba(242,169,59,0.2) !important; color: #FEF3C7 !important; }
+.goals-modal-actions { border-top-color: rgba(242,169,59,0.1) !important; }
+.goals-modal-save { background: linear-gradient(135deg,#92400e,#f2a93b) !important; color:#fff !important; }
+.goals-modal-save:hover { background: linear-gradient(135deg,#78350f,#d97706) !important; }
+.goals-modal-cancel { border-color: rgba(242,169,59,0.2) !important; color: rgba(252,211,77,0.6) !important; }
+.goals-modal-del { background: rgba(127,29,29,0.3) !important; }
+.gm-status { background: #1f1500 !important; border-color: rgba(242,169,59,0.15) !important; color: rgba(252,211,77,0.5) !important; }
+.gm-status.sel { background: rgba(242,169,59,0.2) !important; border-color: #F2A93B !important; color: #F2A93B !important; }
+.goals-add-v3 { color: #F2A93B !important; border-color: rgba(242,169,59,0.3) !important; }
+.goals-add-v3:hover { background: rgba(242,169,59,0.1) !important; }
+
+/* ── Safe area для PWA на iOS ── */
+.hab-header,
+.goals-header,
+.tr-header,
+.tochka-header {
+  padding-top: max(14px, env(safe-area-inset-top)) !important;
+}
+body {
+  padding-top: 0;
+}
+#app {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ── Привычки: метрики — меньше текст ── */
+.sec-card-title { font-size: 13px !important; }
+.sec-metric-value { font-size: 13px !important; font-weight: 800 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.sec-metric-label { font-size: 8px !important; }
+.sec-metric { padding: 6px 4px !important; }
+.sec-metric-grid { gap: 4px !important; }

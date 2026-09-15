@@ -5,9 +5,9 @@
 window.Screens = window.Screens || {};
 
 const GOALS_SEASONS = [
-  { key: 'all',      label: 'Всё',     color: '#A78BFA', bg: '#1E1B2E' },
+  { key: 'all',      label: 'Всё',     color: '#F2A93B', bg: '#1A1200' },
   { key: 'spring',   label: 'Весна',   color: '#38BDF8', bg: '#0C1A2E', end: new Date(2026,4,31) },
-  { key: 'summer',   label: 'Лето',    color: '#A78BFA', bg: '#1A1528', end: new Date(2026,7,31) },
+  { key: 'summer',   label: 'Лето',    color: '#4ADE80', bg: '#051A0A', end: new Date(2026,7,31) },
   { key: 'autumn',   label: 'Осень',   color: '#FB7185', bg: '#2A1020', end: new Date(2026,10,30) },
   { key: 'december', label: 'Декабрь', color: '#60A5FA', bg: '#0C1525', end: new Date(2026,11,31) },
 ];
@@ -233,11 +233,18 @@ window.Screens.goals = function(mount) {
     const btn = document.createElement('button');
     btn.className = 'goals-season-tab' + (s.key==='all'?' active':'');
     btn.dataset.season = s.key;
-    btn.setAttribute('data-season-color', s.color); btn.setAttribute('style', '--season-color:' + s.color);
+    btn.setAttribute('data-season-color', s.color); btn.style.setProperty('--season-color', s.color);
+    if (s.key === activeSeason) { btn.style.color = s.color; btn.style.borderBottomColor = s.color; }
     btn.textContent = s.label;
     btn.addEventListener('click',()=>{
-      tabsEl.querySelectorAll('.goals-season-tab').forEach(b=>b.classList.remove('active'));
+      tabsEl.querySelectorAll('.goals-season-tab').forEach(b=>{
+        b.classList.remove('active');
+        b.style.color = '';
+        b.style.borderBottomColor = '';
+      });
       btn.classList.add('active');
+      btn.style.color = s.color;
+      btn.style.borderBottomColor = s.color;
       activeSeason = s.key;
       activeMonth = 0;
       render();

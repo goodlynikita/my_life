@@ -137,3 +137,9 @@ button { font-family: inherit; }
   --app-font-xl:   20px;
 }
 body { font-size: var(--app-font-base); font-family: 'Montserrat', sans-serif; }
+
+/* ── iOS Safe Area ── */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}

@@ -107,17 +107,18 @@ window.Screens.home = function(mount) {
     + '<div class="hero-slide-glow slide-glow-purple"></div>'
     + '</div>';
 
+  /* sliderCfg нужен всегда — объявляем до условия */
+  var sliderCfg = (store.home && store.home.sliderCfg) || {};
+
   /* Слайды через Slides.js если есть кастомные, иначе дефолт */
   var _customSlides = window.Slides ? window.Slides.getSlides() : null;
   var visSlides;
-  if (_customSlides && _customSlides.length && JSON.stringify(_customSlides) !== JSON.stringify(window.Slides.DEFAULT_SLIDES)) {
-    /* Пользователь настроил свои слайды */
+  if (_customSlides && _customSlides.length && window.Slides.DEFAULT_SLIDES &&
+      JSON.stringify(_customSlides) !== JSON.stringify(window.Slides.DEFAULT_SLIDES)) {
     visSlides = _customSlides.filter(function(s){ return s.enabled !== false; })
       .map(function(s){ return window.Slides.renderSlide(s, store); });
     if (!visSlides.length) visSlides = [slide1, slide2, slide3];
   } else {
-    /* Дефолтные слайды с учётом sliderCfg */
-    var sliderCfg = (store.home && store.home.sliderCfg) || {};
     var allSlides  = [slide1, slide2, slide3];
     var shown      = [sliderCfg.s0!==false, sliderCfg.s1!==false, sliderCfg.s2!==false];
     visSlides = allSlides.filter(function(_,i){ return shown[i]; });
@@ -136,7 +137,7 @@ window.Screens.home = function(mount) {
     + '</div></div>'
     + '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides" style="width:'+(n*100)+'%">'
-    + visSlides.map(function(s){ return s.replace('flex:0 0 33.333%',''); }).join('')
+    + visSlides.map(function(s){ return typeof s === 'string' ? s.replace('flex:0 0 33.333%','') : ''; }).join('')
     + '</div>'
     + '<div class="hero-dots">'
     + visSlides.map(function(_,i){ return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>'; }).join('')

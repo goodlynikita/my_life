@@ -233,7 +233,7 @@ window.Screens.goals = function(mount) {
     const btn = document.createElement('button');
     btn.className = 'goals-season-tab' + (s.key==='all'?' active':'');
     btn.dataset.season = s.key;
-    btn.setAttribute('data-season-color', s.color); btn.style.cssText += ';--season-color:' + s.color + ';';
+    btn.setAttribute('data-season-color', s.color); btn.setAttribute('style', '--season-color:' + s.color);
     btn.textContent = s.label;
     btn.addEventListener('click',()=>{
       tabsEl.querySelectorAll('.goals-season-tab').forEach(b=>b.classList.remove('active'));

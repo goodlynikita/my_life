@@ -693,11 +693,17 @@ window.Screens.habits = function(mount) {
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
     overlay.querySelector('#wheel-cancel').addEventListener('click',()=>overlay.remove());
 
+    function updateTrack(sl) {
+      const pct = (sl.value - sl.min) / (sl.max - sl.min) * 100;
+      sl.style.background = `linear-gradient(to right, #16A34A ${pct}%, #2A2D35 ${pct}%)`;
+    }
     overlay.querySelectorAll('.wheel-slider').forEach(sl => {
+      updateTrack(sl);
       sl.addEventListener('input', () => {
         const i = parseInt(sl.dataset.i);
         scores[i] = parseInt(sl.value);
         overlay.querySelector(`#wsv-${i}`).textContent = scores[i];
+        updateTrack(sl);
         overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
       });
     });

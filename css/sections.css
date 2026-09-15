@@ -248,8 +248,8 @@
   margin-bottom: 12px;
 }
 .goals-hero-all {
-  background: linear-gradient(135deg, #1C1E24, #16181E);
-  border-color: #C8A84B55;
+  border-color: var(--season-color, #F2A93B)55;
+  background: var(--season-hero-bg, linear-gradient(135deg,#1A1200,#2D1A00)) !important;
 }
 .goals-hero-row {
   display: flex;
@@ -478,12 +478,13 @@
 
 /* Hero ALL */
 .goals-hero-all {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--season-hero-bg, linear-gradient(135deg, #1A1200 0%, #2D1A00 100%));
   border-radius: 16px;
   padding: 24px 20px;
   margin-bottom: 12px;
   position: relative;
   overflow: hidden;
+  border: 1px solid var(--season-color, #F2A93B)22;
 }
 .goals-hero-all::before {
   content: '';
@@ -1677,4 +1678,56 @@ input[type=range]::-moz-range-progress { background: #16A34A !important; }
   border: 1px solid rgba(22,163,74,0.4) !important;
   color: #4ADE80 !important;
   border-radius: 20px !important;
+}
+
+/* ── Колесо: ползунки зелёные с треком ── */
+.wheel-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(to right, #16A34A 50%, #2A2D35 50%);
+}
+.wheel-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: pointer;
+  border: 2px solid #16A34A;
+}
+.wheel-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #16A34A;
+  cursor: pointer;
+}
+.wheel-slider::-moz-range-progress {
+  background: #16A34A;
+  height: 6px;
+  border-radius: 3px;
+}
+.wheel-slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.wheel-slider-val {
+  color: #4ADE80;
+  font-weight: 800;
+  font-size: 15px;
+  min-width: 20px;
+  text-align: right;
+}
+.wheel-slider-row {
+  margin-bottom: 14px;
 }

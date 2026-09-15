@@ -218,7 +218,15 @@ var Slides = (() => {
     const slideClass = cfg.cssClass ? `hero-slide ${cfg.cssClass}` : 'hero-slide';
     const stylePart  = cfg.cssClass ? '' : ` style="background:${cfg.color||'#1A1C22'}"`;
     const glowClass  = cfg.glowClass || '';
-    const glowStyle  = cfg.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${cfg.glowColor||'#4A7CFF'}44 0%,transparent 70%);"`;
+    /* Для новых cssClass без glowClass — glow через inline color */
+    const _glowColorMap = {
+      'slide-amber':'#F59E0B','slide-crimson':'#F87171','slide-pink':'#F472B6',
+      'slide-teal':'#2DD4BF','slide-indigo':'#818CF8','slide-orange':'#FB923C',
+      'slide-lime':'#A3E635','slide-slate':'#94A3B8','slide-red':'#EF4444',
+      'slide-midnight':'#60A5FA','slide-jade':'#34D399'
+    };
+    const _gc = cfg.glowColor || _glowColorMap[cfg.cssClass] || '#4A7CFF';
+    const glowStyle  = cfg.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${_gc}44 0%,transparent 70%);"`;
     return `<div class="${slideClass}"${stylePart}${route}>
       <div class="hero-slide-label">${cfg.label||''}</div>
       ${mainHtml}
@@ -234,13 +242,34 @@ var Slides = (() => {
     const goals   = ((store.goals?.directions)||[]).filter(Boolean);
 
     const SLIDE_COLORS = [
-      {name:'Синий (Тренировки)',   cssClass:'slide-focus',   glowClass:'slide-glow-blue'},
-      {name:'Зелёный (Финансы)',    cssClass:'slide-finance', glowClass:'slide-glow-green'},
-      {name:'Фиолетовый (Цели)',    cssClass:'slide-goals',   glowClass:'slide-glow-purple'},
-      {name:'Ночной синий',  val:'#0F1E35', glow:'#4A7CFF'},
-      {name:'Янтарный',      val:'#1E1500', glow:'#F59E0B'},
-      {name:'Малиновый',     val:'#1E0F18', glow:'#F87171'},
-      {name:'Графит',        val:'#13151A', glow:'#9D9A92'},
+      {name:'Синий',      cssClass:'slide-focus',   glowClass:'slide-glow-blue',
+       bg:'linear-gradient(135deg,#080e1e 0%,#0c2654 40%,#1a3f8a 70%,#0d1f4a 100%)'},
+      {name:'Зелёный',    cssClass:'slide-finance', glowClass:'slide-glow-green',
+       bg:'linear-gradient(135deg,#010c05 0%,#092e14 40%,#14522c 70%,#071a0c 100%)'},
+      {name:'Фиолетовый', cssClass:'slide-goals',   glowClass:'slide-glow-purple',
+       bg:'linear-gradient(135deg,#09051a 0%,#1e0a4a 40%,#3d1580 70%,#1a0840 100%)'},
+      {name:'Янтарный',   cssClass:'slide-amber',   val:'#1a0f00', glow:'#F59E0B',
+       bg:'linear-gradient(135deg,#1a0f00 0%,#3d2200 40%,#5a3300 70%,#2a1500 100%)'},
+      {name:'Красный',    cssClass:'slide-crimson',  val:'#1f0808', glow:'#F87171',
+       bg:'linear-gradient(135deg,#1f0808 0%,#450a0a 40%,#6b1010 70%,#2d0606 100%)'},
+      {name:'Розовый',    cssClass:'slide-pink',    val:'#1a0612', glow:'#F472B6',
+       bg:'linear-gradient(135deg,#1a0612 0%,#3d0a2a 40%,#5c1040 70%,#2a0620 100%)'},
+      {name:'Бирюза',     cssClass:'slide-teal',    val:'#001a1a', glow:'#2DD4BF',
+       bg:'linear-gradient(135deg,#001a1a 0%,#003d3d 40%,#005c5c 70%,#002626 100%)'},
+      {name:'Индиго',     cssClass:'slide-indigo',  val:'#080d24', glow:'#818CF8',
+       bg:'linear-gradient(135deg,#080d24 0%,#151e50 40%,#1e2d6e 70%,#0d1540 100%)'},
+      {name:'Оранжевый',  cssClass:'slide-orange',  val:'#1a0a00', glow:'#FB923C',
+       bg:'linear-gradient(135deg,#1a0a00 0%,#3d1a00 40%,#5c2800 70%,#2a1000 100%)'},
+      {name:'Лайм',       cssClass:'slide-lime',    val:'#0a1a00', glow:'#A3E635',
+       bg:'linear-gradient(135deg,#0a1a00 0%,#1a3d00 40%,#285c00 70%,#102a00 100%)'},
+      {name:'Сланец',     cssClass:'slide-slate',   val:'#0d1117', glow:'#64748B',
+       bg:'linear-gradient(135deg,#0d1117 0%,#1c2230 40%,#243044 70%,#141d2a 100%)'},
+      {name:'Алый',       cssClass:'slide-red',     val:'#1f0a0a', glow:'#EF4444',
+       bg:'linear-gradient(135deg,#1f0a0a 0%,#4a0e0e 40%,#6b1414 70%,#2d0808 100%)'},
+      {name:'Полночь',    cssClass:'slide-midnight', val:'#050810', glow:'#60A5FA',
+       bg:'linear-gradient(135deg,#050810 0%,#0d1225 40%,#141c38 70%,#0a1020 100%)'},
+      {name:'Нефрит',     cssClass:'slide-jade',    val:'#001a0d', glow:'#34D399',
+       bg:'linear-gradient(135deg,#001a0d 0%,#00401f 40%,#005c2b 70%,#002a14 100%)'},
     ];
 
     const SECTION_ORDER = ['Тренировки','Привычки','Финансы','Цели','Общее','Кастом'];

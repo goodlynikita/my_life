@@ -1179,12 +1179,12 @@ window.Screens.training = function (mount) {
     <div class="theme-dark" style="width:100%;min-width:0;box-sizing:border-box;">
       <div class="tr-header" style="display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:14px 20px;background:linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%);position:sticky;top:0;z-index:20;">
         <div style="display:flex; align-items:center; gap:10px;">
-          ${role === 'owner' ? '<button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>' : ''}
+          <button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>
           <p class="tr-title">Тренировки</p>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
           <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
-          ${role === 'owner' ? '<button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>' : ''}
+          <button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>
           ${role === 'coach'
             ? `<span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button>`
             : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
@@ -1192,7 +1192,7 @@ window.Screens.training = function (mount) {
       </div>
       <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
         <select class="tr-plan-select" id="tr-plan-select"></select>
-        ${role === 'owner' ? '<button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>' : ''}
+        <button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>
       </div>
       <div class="tr-tabs">
         <button class="tr-tab active" data-tab="plan">План</button>
@@ -1565,7 +1565,7 @@ window.Screens.training = function (mount) {
            понятное состояние. Данные восстанавливаются из data.json (см. app.js),
            либо владелец создаёт план кнопкой «Новый план». */
         content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;line-height:1.7;letter-spacing:0.02em;">
-          Планов пока нет.${role === 'owner' ? '<br>Нажми «Новый план», чтобы создать первый.' : ''}
+          Планов пока нет.<br>Нажми «Новый план», чтобы создать первый.
         </div>`;
         return;
       }
@@ -1743,8 +1743,14 @@ window.Screens.training = function (mount) {
   const planMenuBtn = document.getElementById('tr-plan-menu-btn');
   const planBarEl = document.getElementById('tr-plan-bar');
   if (planMenuBtn && planBarEl) {
-    const planBarSaved = Store.get().home?.planBarVisible;
-    if (planBarSaved === true) planBarEl.style.display = 'flex';
+    const plans = trGetPlans().filter(Boolean);
+    // Показываем бар автоматически если планов нет
+    if (plans.length === 0) {
+      planBarEl.style.display = 'flex';
+    } else {
+      const planBarSaved = Store.get().home?.planBarVisible;
+      if (planBarSaved === true) planBarEl.style.display = 'flex';
+    }
     planMenuBtn.addEventListener('click', () => {
       const isVisible = planBarEl.style.display !== 'none';
       planBarEl.style.display = isVisible ? 'none' : 'flex';

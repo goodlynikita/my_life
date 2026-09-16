@@ -793,58 +793,19 @@ html, body {
   border-radius: 16px;
 }
 
-/* Базовый тихий фон — очень тёмный */
+/* Базовый центральный блик */
 .home2-grid::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle 60px at 50% 50%,
-      rgba(255,255,255,0.06) 0%,
-      transparent 100%);
-  animation: center-breathe 4s ease-in-out infinite;
+  background: radial-gradient(circle 40% at 50% 50%,
+    rgba(255,255,255,0.04) 0%,
+    transparent 70%);
+  animation: center-breathe 5s ease-in-out infinite;
 }
-
-/* Волновые кольца из центра */
-.home2-grid::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 50%,
-      transparent 18%,
-      rgba(255,255,255,0.025) 20%,
-      transparent 22%),
-    radial-gradient(circle at 50% 50%,
-      transparent 35%,
-      rgba(255,255,255,0.018) 37%,
-      transparent 39%),
-    radial-gradient(circle at 50% 50%,
-      transparent 52%,
-      rgba(255,255,255,0.012) 54%,
-      transparent 56%),
-    radial-gradient(circle at 50% 50%,
-      transparent 70%,
-      rgba(255,255,255,0.008) 72%,
-      transparent 74%);
-  animation: ripple-out 5s ease-in-out infinite;
-}
-
-@keyframes center-breathe {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50%       { opacity: 1;   transform: scale(1.8); }
-}
-
-@keyframes ripple-out {
-  0%   { opacity: 0;   transform: scale(0.6); }
-  20%  { opacity: 1; }
-  80%  { opacity: 0.6; }
-  100% { opacity: 0;   transform: scale(1.15); }
-}
+.home2-grid::after { display: none; }
 
 .home2-tile-content { position: relative; z-index: 1; }
 
@@ -1014,12 +975,6 @@ html, body {
 
 
 /* Волновые кольца из центра */
-@keyframes wave-ring {
-  0%   { width: 0;    height: 0;    opacity: 0.5;  border-width: 1.5px; }
-  30%  { opacity: 0.3; }
-  100% { width: 200%; height: 200%; opacity: 0;    border-width: 0.5px; }
-}
-
 /* Мерцание на каждой плитке — разные фазы */
 @keyframes tile-shimmer {
   0%,100% { opacity: 0.3; }

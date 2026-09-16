@@ -295,60 +295,40 @@ window.Screens.home = function(mount) {
     startAuto();
   }
 
-  /* ── Волны из центра плиток (как Яндекс Музыка) ── */
+  /* ── Тихий блик дрейфует по плиткам ── */
   (function() {
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
     var tiles = Array.from(grid.querySelectorAll('.home2-tile'));
 
-    // Создаём 3 волновых кольца
-    for (var w = 0; w < 3; w++) {
-      var wave = document.createElement('div');
-      wave.style.cssText = [
-        'position:absolute',
-        'left:50%', 'top:50%',
-        'width:0', 'height:0',
-        'border-radius:50%',
-        'pointer-events:none',
-        'z-index:0',
-        'transform:translate(-50%,-50%)',
-        'border:1px solid rgba(255,255,255,0.07)',
-        'animation:wave-ring ' + (4 + w * 0.4) + 's ease-out infinite',
-        'animation-delay:' + (w * 1.35) + 's',
-      ].join(';');
-      grid.appendChild(wave);
-    }
-
-    // Мягкий блик который следует за пальцем/мышью
+    // Мягкий блик
     var glow = document.createElement('div');
-    glow.style.cssText = 'position:absolute;width:160px;height:160px;border-radius:50%;pointer-events:none;z-index:0;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,0.07) 0%,transparent 70%);filter:blur(20px);left:50%;top:50%;transition:left 1.8s cubic-bezier(.25,.46,.45,.94),top 1.8s cubic-bezier(.25,.46,.45,.94);';
+    glow.style.cssText = 'position:absolute;width:220px;height:220px;border-radius:50%;pointer-events:none;z-index:0;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);filter:blur(28px);left:50%;top:50%;transition:left 2.5s cubic-bezier(.25,.46,.45,.94),top 2.5s cubic-bezier(.25,.46,.45,.94);';
     grid.appendChild(glow);
 
-    // Блики на каждой плитке с разными фазами
+    // Shimmer на каждой плитке с разными фазами
     var phases = [0, 1.1, 2.2, 3.3];
     tiles.forEach(function(tile, i) {
       tile.style.position = 'relative';
       var spot = document.createElement('div');
-      spot.style.cssText = 'position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,0.055) 0%,transparent 65%);animation:tile-shimmer 4s ease-in-out infinite;animation-delay:' + phases[i] + 's;';
+      spot.style.cssText = 'position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,0.04) 0%,transparent 65%);animation:tile-shimmer 5s ease-in-out infinite;animation-delay:' + phases[i] + 's;';
       tile.appendChild(spot);
     });
 
-    // Автодрейф — очень медленный
+    // Автодрейф
     var t = 0;
     setInterval(function() {
-      t += 0.008;
-      var px = 50 + Math.sin(t * 0.9) * 18 + Math.sin(t * 0.4) * 8;
-      var py = 50 + Math.cos(t * 0.7) * 15 + Math.cos(t * 0.5) * 6;
+      t += 0.006;
+      var px = 50 + Math.sin(t * 0.9) * 20 + Math.sin(t * 0.4) * 8;
+      var py = 50 + Math.cos(t * 0.7) * 18 + Math.cos(t * 0.5) * 6;
       glow.style.left = px + '%';
       glow.style.top  = py + '%';
-    }, 50);
+    }, 60);
 
-    // Тач двигает блик
     grid.addEventListener('touchmove', function(e) {
       var r = grid.getBoundingClientRect();
-      var touch = e.touches[0];
-      glow.style.left = ((touch.clientX - r.left) / r.width * 100) + '%';
-      glow.style.top  = ((touch.clientY - r.top)  / r.height * 100) + '%';
+      glow.style.left = ((e.touches[0].clientX - r.left) / r.width * 100) + '%';
+      glow.style.top  = ((e.touches[0].clientY - r.top)  / r.height * 100) + '%';
     }, {passive: true});
     grid.addEventListener('mousemove', function(e) {
       var r = grid.getBoundingClientRect();

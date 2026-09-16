@@ -531,7 +531,7 @@ var Slides = (() => {
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:4px;">Блоки данных</div>
         ${blockCheckboxes}
 
-        <button id="se-save-slide" style="width:100%;margin-top:16px;padding:14px;background:#4A7CFF;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить слайд</button>
+        <button id="se-save-slide" style="width:100%;margin-top:16px;margin-bottom:8px;padding:14px;background:#4A7CFF;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить слайд</button>
       </div>`;
     }
 
@@ -550,7 +550,7 @@ var Slides = (() => {
             <button id="se-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
           </div>
         </div>
-        <div style="overflow-y:auto;flex:1;padding:16px 20px 32px;">
+        <div style="overflow-y:auto;flex:1;padding:16px 20px 32px;-webkit-overflow-scrolling:touch;">
           <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Перетащи для изменения порядка (drag n drop в разработке). Нажми Изменить чтобы редактировать блоки.</div>
           ${curSlides.map((s,i) => slideCard(s,i)).join('')}
         </div>
@@ -588,6 +588,7 @@ var Slides = (() => {
           head.querySelector('span').textContent = 'Редактировать слайд';
           head.querySelector('#se-add').style.display='none';
           const body = panel.querySelectorAll('div')[1]; // scroll area
+          body.style.cssText = 'overflow-y:auto;flex:1;padding:16px 20px 80px;-webkit-overflow-scrolling:touch;';
           body.innerHTML = slideEditForm(sl[idx], idx);
 
           /* Color picker */

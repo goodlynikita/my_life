@@ -699,8 +699,7 @@ window.Screens.habits = function(mount) {
     overlay.querySelector('#wheel-cancel').addEventListener('click',()=>overlay.remove());
 
     function updateTrack(sl) {
-      const pct = (sl.value - sl.min) / (sl.max - sl.min) * 100;
-      sl.style.background = `linear-gradient(to right, #16A34A ${pct}%, #2A2D35 ${pct}%)`;
+      // трек убран — только ползунок
     }
     overlay.querySelectorAll('.wheel-slider').forEach(sl => {
       updateTrack(sl);

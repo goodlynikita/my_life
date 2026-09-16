@@ -515,10 +515,10 @@
 .goals-season-sub { font-size: 12px; margin-top: 4px; }
 .goals-ring {
   width: 56px; height: 56px; border-radius: 50%;
-  background: conic-gradient(var(--c) calc(var(--pct) * 1%), #E5E7EB 0);
+  background: conic-gradient(var(--c) calc(var(--pct) * 1%), rgba(255,255,255,0.12) 0);
   display: flex; align-items: center; justify-content: center; position: relative;
 }
-.goals-ring::before { content:''; position:absolute; width:42px; height:42px; border-radius:50%; background:#fff; }
+.goals-ring::before { content:''; position:absolute; width:42px; height:42px; border-radius:50%; background:#1A1C22; }
 .goals-ring span { position:relative; z-index:1; font-size:12px; font-weight:800; }
 
 .goals-season-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
@@ -720,7 +720,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #374151;
+  color: #9D9A92;
   font-weight: 500;
   margin-bottom: 4px;
 }
@@ -735,18 +735,18 @@
   -webkit-appearance: none;
   height: 4px;
   border-radius: 4px;
-  background: linear-gradient(to right, #16A34A var(--val, 50%), #E5E7EB var(--val, 50%));
+  background: #2A2D35;
   outline: none;
 }
 .wheel-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #16A34A;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 0 8px rgba(22,163,74,0.5), 0 1px 4px rgba(0,0,0,0.3);
 }
 
 /* ── Goals dark theme ───────────────────────────── */
@@ -1269,13 +1269,20 @@ html, body { touch-action: pan-x pan-y; overscroll-behavior: none; }
 input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
 
 /* Модалки по цвету раздела */
-.modal-finance .tr-modal { background: #ffffff !important; border: 1px solid #E5E7EB !important; box-shadow: 0 8px 40px rgba(0,0,0,0.25) !important; }
-.modal-finance .tr-modal-title { color: #111827 !important; }
-.modal-finance .tr-modal-row label { color: #6B7280 !important; }
-.modal-finance .tr-modal-row input, .modal-finance select { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; color: #111827 !important; }
+.modal-finance .tr-modal { background: #ffffff !important; border: 1px solid #E5E7EB !important; box-shadow: 0 8px 40px rgba(0,0,0,0.25) !important; border-radius: 16px !important; }
+.modal-finance .tr-modal-title { color: #111827 !important; font-size: 18px !important; font-weight: 800 !important; }
+.modal-finance .tr-modal-row label { color: #6B7280 !important; font-size: 12px !important; font-weight: 600 !important; }
+.modal-finance .tr-modal-row input,
+.modal-finance select {
+  background: #ffffff !important;
+  border: 1px solid #E5E7EB !important;
+  color: #111827 !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+}
 .modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; box-shadow: 0 0 0 2px rgba(124,58,237,0.15) !important; }
-.modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; }
-.modal-finance .tr-modal-btn-secondary { background: #fff !important; border: 1px solid #E5E7EB !important; color: #6B7280 !important; }
+.modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; }
+.modal-finance .tr-modal-btn-secondary { background: #fff !important; border: 1.5px solid #7C3AED !important; color: #7C3AED !important; border-radius: 12px !important; font-weight: 600 !important; }
 
 .modal-habits .tr-modal { background: #071a0e; border-color: rgba(22,163,74,0.3); }
 .modal-habits .tr-modal-title { color: #86EFAC !important; }
@@ -1653,7 +1660,7 @@ input[type=range]::-moz-range-progress { background: #16A34A !important; }
   border-radius: 20px !important;
 }
 
-/* ── Колесо: ползунки зелёные с треком ── */
+/* ── Колесо: ползунки зелёные без трека ── */
 .wheel-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -1662,29 +1669,29 @@ input[type=range]::-moz-range-progress { background: #16A34A !important; }
   border-radius: 3px;
   outline: none;
   cursor: pointer;
-  background: linear-gradient(to right, #16A34A 50%, #2A2D35 50%);
+  background: #2A2D35;
 }
 .wheel-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  background: #16A34A;
+  box-shadow: 0 0 10px rgba(22,163,74,0.6), 0 1px 4px rgba(0,0,0,0.4);
   cursor: pointer;
-  border: 2px solid #16A34A;
+  border: 2px solid #fff;
 }
 .wheel-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: #fff;
-  border: 2px solid #16A34A;
+  background: #16A34A;
+  border: 2px solid #fff;
   cursor: pointer;
 }
 .wheel-slider::-moz-range-progress {
-  background: #16A34A;
+  background: transparent;
   height: 6px;
   border-radius: 3px;
 }
@@ -1693,6 +1700,9 @@ input[type=range]::-moz-range-progress { background: #16A34A !important; }
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
+  color: #9D9A92;
+  font-size: 12px;
+  font-weight: 500;
 }
 .wheel-slider-val {
   color: #4ADE80;

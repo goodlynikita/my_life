@@ -723,12 +723,12 @@ html, body {
 .home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.5) !important; }
 .home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-finance { background: linear-gradient(135deg,#0d0520 0%,#1a0840 100%); border: 1px solid rgba(124,58,237,0.15); }
-.home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(139,92,246,0.7);animation-delay:4s; }
-.home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(167,139,250,0.45);animation-duration:15s;animation-delay:4s; }
-.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
-.home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.5) !important; }
-.home2-tile-finance i { color: #A78BFA !important; font-size:22px; margin-bottom:6px; }
+.home2-tile-finance { background: linear-gradient(135deg,#031a10 0%,#072e1a 100%); border: 1px solid rgba(52,211,153,0.15); }
+.home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(52,211,153,0.55);animation-delay:4s; }
+.home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(110,231,183,0.35);animation-duration:15s;animation-delay:4s; }
+.home2-tile-finance .home2-tile-name { color: #6EE7B7 !important; }
+.home2-tile-finance .home2-tile-desc { color: rgba(110,231,183,0.5) !important; }
+.home2-tile-finance i { color: #34D399 !important; font-size:22px; margin-bottom:6px; }
 
 .home2-tile-goals { background: linear-gradient(135deg,#150c00 0%,#2d1a00 100%); border: 1px solid rgba(245,158,11,0.15); }
 .home2-tile-goals::before { width:130px;height:130px;top:-30px;left:-30px;background:rgba(251,191,36,0.7);animation-delay:6s; }
@@ -890,9 +890,9 @@ html, body {
 .home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.55) !important; }
 .home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-finance .home2-tile-name { color: #C4B5FD !important; }
-.home2-tile-finance .home2-tile-desc { color: rgba(196,181,253,0.55) !important; }
-.home2-tile-finance i { color: #A78BFA !important; font-size:22px; margin-bottom:6px; }
+.home2-tile-finance .home2-tile-name { color: #6EE7B7 !important; }
+.home2-tile-finance .home2-tile-desc { color: rgba(110,231,183,0.55) !important; }
+.home2-tile-finance i { color: #34D399 !important; font-size:22px; margin-bottom:6px; }
 
 .home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
 .home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.55) !important; }
@@ -900,3 +900,215 @@ html, body {
 
 @media (max-width:480px) { .home2-tile { min-height:120px; } }
 @media (min-width:768px) { .home2-tile { min-height:160px; } }
+
+/* ═══════════════════════════════════════════════════════
+   ЖИВЫЕ АНИМАЦИИ — уникальные для каждой плитки
+   Разные направления, фазы, интенсивность
+   ═══════════════════════════════════════════════════════ */
+
+/* Тренировки: свет движется из нижнего правого угла волнами */
+@keyframes tile-train-a {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.55; }
+  25%  { transform: translate(-15px,10px) scale(1.15) rotate(12deg); opacity:.75; }
+  50%  { transform: translate(-8px,20px) scale(0.9) rotate(5deg); opacity:.5; }
+  75%  { transform: translate(10px,8px) scale(1.1) rotate(-8deg); opacity:.68; }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.55; }
+}
+@keyframes tile-train-b {
+  0%   { transform: translate(0,0) scale(1); opacity:.3; }
+  33%  { transform: translate(12px,-8px) scale(1.2); opacity:.5; }
+  66%  { transform: translate(-8px,12px) scale(0.85); opacity:.25; }
+  100% { transform: translate(0,0) scale(1); opacity:.3; }
+}
+.home2-tile-training::before { animation: tile-train-a 9s ease-in-out infinite !important; }
+.home2-tile-training::after  { animation: tile-train-b 13s ease-in-out infinite !important; }
+
+/* Привычки: свет пульсирует из левого нижнего, другая фаза */
+@keyframes tile-hab-a {
+  0%   { transform: translate(0,0) scale(1); opacity:.5; }
+  20%  { transform: translate(10px,-15px) scale(1.18); opacity:.7; }
+  55%  { transform: translate(-5px,-8px) scale(0.92); opacity:.45; }
+  80%  { transform: translate(8px,12px) scale(1.08); opacity:.62; }
+  100% { transform: translate(0,0) scale(1); opacity:.5; }
+}
+@keyframes tile-hab-b {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.28; }
+  40%  { transform: translate(-12px,8px) scale(1.25) rotate(15deg); opacity:.45; }
+  75%  { transform: translate(6px,-10px) scale(0.88) rotate(-10deg); opacity:.22; }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.28; }
+}
+.home2-tile-habits::before { animation: tile-hab-a 11s ease-in-out infinite !important; animation-delay: -3s !important; }
+.home2-tile-habits::after  { animation: tile-hab-b 14s ease-in-out infinite !important; animation-delay: -3s !important; }
+
+/* Финансы: медленный перелив сверху справа, волна наискосок */
+@keyframes tile-fin-a {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.5; }
+  30%  { transform: translate(-18px,12px) scale(1.1) rotate(-10deg); opacity:.65; }
+  60%  { transform: translate(10px,-18px) scale(1.2) rotate(8deg); opacity:.4; }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.5; }
+}
+@keyframes tile-fin-b {
+  0%   { transform: translate(0,0) scale(1); opacity:.35; }
+  45%  { transform: translate(15px,10px) scale(1.3); opacity:.55; }
+  80%  { transform: translate(-6px,-14px) scale(0.8); opacity:.3; }
+  100% { transform: translate(0,0) scale(1); opacity:.35; }
+}
+.home2-tile-finance::before { animation: tile-fin-a 12s ease-in-out infinite !important; animation-delay: -7s !important; }
+.home2-tile-finance::after  { animation: tile-fin-b 16s ease-in-out infinite !important; animation-delay: -7s !important; }
+
+/* Цели: быстрее, более интенсивное свечение, из центра-верх */
+@keyframes tile-goals-a {
+  0%   { transform: translate(0,0) scale(1); opacity:.65; }
+  15%  { transform: translate(8px,-20px) scale(1.22); opacity:.85; }
+  45%  { transform: translate(-12px,-5px) scale(0.88); opacity:.55; }
+  70%  { transform: translate(15px,10px) scale(1.15); opacity:.72; }
+  100% { transform: translate(0,0) scale(1); opacity:.65; }
+}
+@keyframes tile-goals-b {
+  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.4; }
+  35%  { transform: translate(-10px,15px) scale(1.28) rotate(-12deg); opacity:.6; }
+  65%  { transform: translate(12px,-8px) scale(0.82) rotate(8deg); opacity:.35; }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.4; }
+}
+.home2-tile-goals::before { animation: tile-goals-a 8s ease-in-out infinite !important; animation-delay: -5s !important; }
+.home2-tile-goals::after  { animation: tile-goals-b 11s ease-in-out infinite !important; animation-delay: -5s !important; }
+
+/* ═══════════════════════════════════════════════════════
+   СЛАЙДЫ — максимально живые: волны + световые дорожки
+   + переливы + глубина + полупрозрачные слои
+   ═══════════════════════════════════════════════════════ */
+
+/* Дополнительный слой: световые волны-линии */
+@keyframes slide-wave {
+  0%   { transform: translateX(-100%) skewX(-15deg); opacity:0; }
+  20%  { opacity: 0.4; }
+  80%  { opacity: 0.4; }
+  100% { transform: translateX(200%) skewX(-15deg); opacity:0; }
+}
+@keyframes slide-wave-2 {
+  0%   { transform: translateX(-100%) skewX(10deg); opacity:0; }
+  15%  { opacity: 0.25; }
+  85%  { opacity: 0.25; }
+  100% { transform: translateX(250%) skewX(10deg); opacity:0; }
+}
+@keyframes aurora-v2 {
+  0%   { background-position: 0% 50%;   opacity:.22; }
+  20%  { background-position: 60% 20%;  opacity:.35; }
+  40%  { background-position: 100% 80%; opacity:.25; }
+  60%  { background-position: 40% 100%; opacity:.38; }
+  80%  { background-position: 10% 30%;  opacity:.28; }
+  100% { background-position: 0% 50%;   opacity:.22; }
+}
+@keyframes glow-orbit {
+  0%   { transform: translate(0,0) scale(1); }
+  25%  { transform: translate(-25px,15px) scale(1.15); }
+  50%  { transform: translate(-10px,30px) scale(0.9); }
+  75%  { transform: translate(20px,10px) scale(1.1); }
+  100% { transform: translate(0,0) scale(1); }
+}
+@keyframes glow-orbit-2 {
+  0%   { transform: translate(0,0) scale(1); }
+  30%  { transform: translate(20px,-20px) scale(1.2); }
+  60%  { transform: translate(-15px,-10px) scale(0.85); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+/* Обновляем слайды — более насыщенные фоны с глубиной */
+.slide-focus {
+  background: linear-gradient(135deg,
+    #060d1f 0%, #0a1e4a 25%, #0f3060 50%, #1a4a8a 70%, #0d1f4a 100%);
+}
+.slide-finance {
+  background: linear-gradient(135deg,
+    #011208 0%, #072814 25%, #0f3d1c 50%, #165c2c 70%, #061a0c 100%);
+}
+.slide-goals {
+  background: linear-gradient(135deg,
+    #0e0820 0%, #1e0d44 25%, #2d1460 70%, #420f7a 85%, #1a0840 100%);
+}
+
+/* Главный glow — анимированный по орбите */
+.hero-slide-glow {
+  position: absolute;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  filter: blur(90px);
+  right: -90px; top: -90px;
+  opacity: 0.55;
+  pointer-events: none;
+  animation: glow-orbit 10s ease-in-out infinite;
+}
+
+/* Второй glow (::before) — снизу, другая орбита */
+.hero-slide::before {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  filter: blur(70px);
+  left: -50px; bottom: -50px;
+  opacity: 0.3;
+  pointer-events: none;
+  animation: glow-orbit-2 13s ease-in-out infinite reverse;
+}
+.slide-focus::before   { background: rgba(96,165,250,0.8); }
+.slide-finance::before { background: rgba(74,222,128,0.8); }
+.slide-goals::before   { background: rgba(192,132,252,0.8); }
+
+/* Aurora overlay — богатые переливы */
+.hero-slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: 400% 400%;
+  opacity: 0.28;
+  pointer-events: none;
+  border-radius: inherit;
+  animation: aurora-v2 14s ease-in-out infinite;
+  mix-blend-mode: screen;
+  z-index: 0;
+}
+.slide-focus::after {
+  background-image:
+    radial-gradient(ellipse at 15% 40%, rgba(147,197,253,0.7) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(96,165,250,0.6) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 90%, rgba(165,243,252,0.5) 0%, transparent 45%),
+    radial-gradient(ellipse at 75% 70%, rgba(59,130,246,0.4) 0%, transparent 35%);
+}
+.slide-finance::after {
+  background-image:
+    radial-gradient(ellipse at 15% 40%, rgba(134,239,172,0.7) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(74,222,128,0.6) 0%, transparent 40%),
+    radial-gradient(ellipse at 55% 85%, rgba(187,247,208,0.5) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 60%, rgba(52,211,153,0.4) 0%, transparent 35%);
+}
+.slide-goals::after {
+  background-image:
+    radial-gradient(ellipse at 15% 40%, rgba(192,132,252,0.7) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(167,139,250,0.6) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 85%, rgba(216,180,254,0.5) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 65%, rgba(139,92,246,0.4) 0%, transparent 35%);
+}
+
+/* Световые дорожки — анимированные линии поверх слайда */
+.hero-slide .slide-ray-1,
+.hero-slide .slide-ray-2 {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 60px;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 30px;
+  filter: blur(20px);
+}
+.slide-focus .slide-ray-1   { background: rgba(147,197,253,0.15); left:30%; animation: slide-wave 8s ease-in-out infinite; animation-delay: 0s; }
+.slide-focus .slide-ray-2   { background: rgba(96,165,250,0.1);  left:60%; animation: slide-wave-2 11s ease-in-out infinite; animation-delay: -4s; }
+.slide-finance .slide-ray-1 { background: rgba(134,239,172,0.15); left:25%; animation: slide-wave 10s ease-in-out infinite; animation-delay: -2s; }
+.slide-finance .slide-ray-2 { background: rgba(74,222,128,0.1);  left:70%; animation: slide-wave-2 13s ease-in-out infinite; animation-delay: -6s; }
+.slide-goals .slide-ray-1   { background: rgba(192,132,252,0.15); left:35%; animation: slide-wave 9s ease-in-out infinite; animation-delay: -3s; }
+.slide-goals .slide-ray-2   { background: rgba(167,139,250,0.1);  left:65%; animation: slide-wave-2 12s ease-in-out infinite; animation-delay: -1s; }
+
+/* Контент всегда выше всех слоёв */
+.hero-slide-label, .hero-slide-main, .hero-slide-sub,
+.hero-tag-row, .hero-big-text, .hero-stat-row, .hero-slide-glow { position: relative; z-index: 2; }
+

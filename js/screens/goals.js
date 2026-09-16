@@ -237,7 +237,7 @@ window.Screens.goals = function(mount) {
       <div class="goals-season-tabs" id="goals-tabs" style="position:sticky;top:53px;z-index:15;"></div>
       <div id="goals-month-bar" style="display:none;position:sticky;top:97px;z-index:14;background:#1A1C22;border-bottom:1px solid #2A2D35;padding:6px 14px;"></div>
       <div class="goals-body" id="goals-content"></div>
-      <button id="goals-new" style="position:fixed;bottom:80px;right:20px;z-index:20;background:#F2A93B;color:#1a0f00;border:none;border-radius:50%;width:52px;height:52px;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(242,169,59,0.45);font-weight:700;">+</button>
+      <button id="goals-new" style="position:fixed;bottom:80px;right:20px;z-index:20;background:${_seasonAccent};color:#000;border:none;border-radius:50%;width:52px;height:52px;font-size:26px;cursor:pointer;box-shadow:0 4px 16px ${_seasonAccent}66;font-weight:700;">+</button>
     </div>`;
 
   document.getElementById('gb').addEventListener('click',()=>Router.go('/home'));
@@ -414,7 +414,7 @@ window.Screens.goals = function(mount) {
       /* Итог = только активные (не закрытые и не под вопросом) */
       const catTotal = catItems.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
-      const catColor = isGoal ? '#F2A93B' : color;
+      const catColor = color; // всегда цвет текущего сезона
       const itemsHtml = catItems.map(g=>{
             const idx = goalsGet().findIndex(x=>x.id===g.id);
             const sInfo = GOALS_SEASONS.find(s=>s.key===g.season)||GOALS_SEASONS[0];

@@ -228,6 +228,8 @@ var Slides = (() => {
     const _gc = cfg.glowColor || _glowColorMap[cfg.cssClass] || '#4A7CFF';
     const glowStyle  = cfg.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${_gc}44 0%,transparent 70%);"`;
     return `<div class="${slideClass}"${stylePart}${route}>
+      <div class="slide-ray-1"></div>
+      <div class="slide-ray-2"></div>
       <div class="hero-slide-label">${cfg.label||''}</div>
       ${mainHtml}
       ${subHtml}

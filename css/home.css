@@ -328,7 +328,7 @@ html, body {
 .home2-tile-habits i { color: #4ADE80; }
 .home2-tile-habits { border-top: 2px solid #4ADE80; }
 .home2-tile-finance i { color: #34D399; }
-.home2-tile-finance { border-top: 2px solid #34D399; }
+.home2-tile-finance { border-top: 2px solid #7C3AED; }
 .home2-tile-goals i { color: #F2A93B; }
 .home2-tile-goals { border-top: 2px solid #F2A93B; }
 
@@ -553,12 +553,12 @@ html, body {
 
 /* Finance — white/silver */
 .home2-tile-finance {
-  background: linear-gradient(135deg, #1C1E24 0%, #252830 100%) !important;
-  box-shadow: 0 4px 20px rgba(255,255,255,0.05) !important;
+  background: linear-gradient(135deg, #0d0520 0%, #1a0840 100%) !important;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.15) !important;
 }
-.home2-tile-finance::before { background: linear-gradient(135deg, #22242C, #2C2E38); }
-.home2-tile-finance .home2-tile-icon { color: #E8E5DC; }
-.home2-tile-finance .home2-tile-name { color: #E8E5DC !important; }
+.home2-tile-finance::before { background: linear-gradient(135deg, #1a0840, #220a52); }
+.home2-tile-finance .home2-tile-icon { color: #34D399; }
+.home2-tile-finance .home2-tile-name { color: #34D399 !important; }
 
 /* Goals — amber */
 .home2-tile-goals {
@@ -723,11 +723,11 @@ html, body {
 .home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.5) !important; }
 .home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-finance { background: linear-gradient(135deg,#031a10 0%,#072e1a 100%); border: 1px solid rgba(52,211,153,0.15); }
-.home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(52,211,153,0.55);animation-delay:4s; }
-.home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(110,231,183,0.35);animation-duration:15s;animation-delay:4s; }
-.home2-tile-finance .home2-tile-name { color: #6EE7B7 !important; }
-.home2-tile-finance .home2-tile-desc { color: rgba(110,231,183,0.5) !important; }
+.home2-tile-finance { background: linear-gradient(135deg,#0d0520 0%,#1a0840 100%); border: 1px solid rgba(124,58,237,0.15); }
+.home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(139,92,246,0.6);animation-delay:4s; }
+.home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(167,139,250,0.35);animation-duration:15s;animation-delay:4s; }
+.home2-tile-finance .home2-tile-name { color: #34D399 !important; }
+.home2-tile-finance .home2-tile-desc { color: rgba(52,211,153,0.5) !important; }
 .home2-tile-finance i { color: #34D399 !important; font-size:22px; margin-bottom:6px; }
 
 .home2-tile-goals { background: linear-gradient(135deg,#150c00 0%,#2d1a00 100%); border: 1px solid rgba(245,158,11,0.15); }
@@ -1030,38 +1030,41 @@ html, body {
 /* Главный glow — анимированный по орбите */
 .hero-slide-glow {
   position: absolute;
-  width: 320px; height: 320px;
+  width: 260px; height: 260px;
   border-radius: 50%;
-  filter: blur(90px);
-  right: -90px; top: -90px;
-  opacity: 0.55;
+  filter: blur(80px);
+  right: -70px; top: -70px;
+  opacity: 0.5;
   pointer-events: none;
+  z-index: 0;
   animation: glow-orbit 10s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
-/* Второй glow (::before) — снизу, другая орбита */
+/* Второй glow ::before — снизу, другая орбита */
 .hero-slide::before {
   content: '';
   position: absolute;
-  width: 200px; height: 200px;
+  width: 160px; height: 160px;
   border-radius: 50%;
-  filter: blur(70px);
-  left: -50px; bottom: -50px;
-  opacity: 0.3;
+  filter: blur(60px);
+  left: -40px; bottom: -40px;
+  opacity: 0.25;
   pointer-events: none;
+  z-index: 0;
   animation: glow-orbit-2 13s ease-in-out infinite reverse;
 }
 .slide-focus::before   { background: rgba(96,165,250,0.8); }
 .slide-finance::before { background: rgba(74,222,128,0.8); }
 .slide-goals::before   { background: rgba(192,132,252,0.8); }
 
-/* Aurora overlay — богатые переливы */
+/* Aurora overlay */
 .hero-slide::after {
   content: '';
   position: absolute;
   inset: 0;
   background-size: 400% 400%;
-  opacity: 0.28;
+  opacity: 0.22;
   pointer-events: none;
   border-radius: inherit;
   animation: aurora-v2 14s ease-in-out infinite;
@@ -1090,25 +1093,25 @@ html, body {
     radial-gradient(ellipse at 80% 65%, rgba(139,92,246,0.4) 0%, transparent 35%);
 }
 
-/* Световые дорожки — анимированные линии поверх слайда */
+/* Световые дорожки */
 .hero-slide .slide-ray-1,
 .hero-slide .slide-ray-2 {
   position: absolute;
   top: 0; bottom: 0;
-  width: 60px;
+  width: 50px;
   pointer-events: none;
   z-index: 0;
-  border-radius: 30px;
-  filter: blur(20px);
+  border-radius: 25px;
+  filter: blur(18px);
 }
-.slide-focus .slide-ray-1   { background: rgba(147,197,253,0.15); left:30%; animation: slide-wave 8s ease-in-out infinite; animation-delay: 0s; }
-.slide-focus .slide-ray-2   { background: rgba(96,165,250,0.1);  left:60%; animation: slide-wave-2 11s ease-in-out infinite; animation-delay: -4s; }
-.slide-finance .slide-ray-1 { background: rgba(134,239,172,0.15); left:25%; animation: slide-wave 10s ease-in-out infinite; animation-delay: -2s; }
-.slide-finance .slide-ray-2 { background: rgba(74,222,128,0.1);  left:70%; animation: slide-wave-2 13s ease-in-out infinite; animation-delay: -6s; }
-.slide-goals .slide-ray-1   { background: rgba(192,132,252,0.15); left:35%; animation: slide-wave 9s ease-in-out infinite; animation-delay: -3s; }
-.slide-goals .slide-ray-2   { background: rgba(167,139,250,0.1);  left:65%; animation: slide-wave-2 12s ease-in-out infinite; animation-delay: -1s; }
+.slide-focus .slide-ray-1   { background: rgba(147,197,253,0.12); left:30%; animation: slide-wave 8s ease-in-out infinite; }
+.slide-focus .slide-ray-2   { background: rgba(96,165,250,0.08);  left:60%; animation: slide-wave-2 11s ease-in-out infinite; animation-delay:-4s; }
+.slide-finance .slide-ray-1 { background: rgba(134,239,172,0.12); left:25%; animation: slide-wave 10s ease-in-out infinite; animation-delay:-2s; }
+.slide-finance .slide-ray-2 { background: rgba(74,222,128,0.08);  left:70%; animation: slide-wave-2 13s ease-in-out infinite; animation-delay:-6s; }
+.slide-goals .slide-ray-1   { background: rgba(192,132,252,0.12); left:35%; animation: slide-wave 9s ease-in-out infinite; animation-delay:-3s; }
+.slide-goals .slide-ray-2   { background: rgba(167,139,250,0.08); left:65%; animation: slide-wave-2 12s ease-in-out infinite; animation-delay:-1s; }
 
 /* Контент всегда выше всех слоёв */
 .hero-slide-label, .hero-slide-main, .hero-slide-sub,
-.hero-tag-row, .hero-big-text, .hero-stat-row, .hero-slide-glow { position: relative; z-index: 2; }
+.hero-tag-row, .hero-big-text, .hero-stat-row { position: relative; z-index: 2; }
 

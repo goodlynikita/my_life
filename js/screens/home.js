@@ -294,4 +294,68 @@ window.Screens.home = function(mount) {
     slidesEl.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40){goTo(dx<0?cur+1:cur-1);startAuto();}});
     startAuto();
   }
+
+  /* ── Живое солнце на плитках ── */
+  (function() {
+    var grid = mount.querySelector('.home2-grid');
+    if (!grid) return;
+    var tiles = grid.querySelectorAll('.home2-tile');
+    var cx = 50, cy = 50; // текущая позиция солнца в %
+
+    // Добавляем div-солнце поверх плиток
+    var sun = document.createElement('div');
+    sun.style.cssText = 'position:absolute;width:200px;height:200px;border-radius:50%;pointer-events:none;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0.08) 35%,transparent 70%);filter:blur(18px);transition:left 1.2s cubic-bezier(.25,.46,.45,.94),top 1.2s cubic-bezier(.25,.46,.45,.94);';
+    grid.appendChild(sun);
+
+    // Блики на каждой плитке — разные интенсивности
+    var tileGlows = ['rgba(255,255,255,0.08)','rgba(255,255,255,0.06)','rgba(255,255,255,0.07)','rgba(255,255,255,0.09)'];
+    tiles.forEach(function(tile, i) {
+      var glow = document.createElement('div');
+      glow.className = 'tile-sun-glow';
+      glow.style.cssText = 'position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;opacity:0;transition:opacity 0.8s ease;background:radial-gradient(circle at 50% 50%,'+tileGlows[i%4]+' 0%,transparent 70%);';
+      tile.style.position = 'relative';
+      tile.appendChild(glow);
+    });
+
+    function moveSun(px, py) {
+      cx = px; cy = py;
+      sun.style.left = px + '%';
+      sun.style.top  = py + '%';
+      // Обновляем блики на плитках в зависимости от близости солнца
+      tiles.forEach(function(tile) {
+        var r = tile.getBoundingClientRect();
+        var gr = grid.getBoundingClientRect();
+        var tileCx = ((r.left - gr.left + r.width/2) / gr.width) * 100;
+        var tileCy = ((r.top  - gr.top  + r.height/2) / gr.height) * 100;
+        var dist = Math.sqrt(Math.pow(px - tileCx, 2) + Math.pow(py - tileCy, 2));
+        var intensity = Math.max(0, 1 - dist / 80);
+        var glow = tile.querySelector('.tile-sun-glow');
+        if (glow) glow.style.opacity = intensity;
+        // Сдвигаем точку блика внутри плитки
+        var bx = 50 + (px - tileCx) * 0.3;
+        var by = 50 + (py - tileCy) * 0.3;
+        if (glow) glow.style.background = 'radial-gradient(circle at '+bx+'% '+by+'%,rgba(255,255,255,0.12) 0%,transparent 70%)';
+      });
+    }
+
+    // Автодрейф солнца
+    var phase = 0;
+    var driftTimer = setInterval(function() {
+      phase += 0.018;
+      var px = 50 + Math.sin(phase * 1.3) * 28 + Math.sin(phase * 0.7) * 12;
+      var py = 50 + Math.cos(phase * 1.1) * 25 + Math.cos(phase * 0.9) * 10;
+      moveSun(px, py);
+    }, 50);
+
+    // Тач/мышь двигают солнце
+    grid.addEventListener('mousemove', function(e) {
+      var r = grid.getBoundingClientRect();
+      moveSun(((e.clientX - r.left) / r.width) * 100, ((e.clientY - r.top) / r.height) * 100);
+    });
+    grid.addEventListener('touchmove', function(e) {
+      var r = grid.getBoundingClientRect();
+      var t = e.touches[0];
+      moveSun(((t.clientX - r.left) / r.width) * 100, ((t.clientY - r.top) / r.height) * 100);
+    }, {passive: true});
+  })();
 };

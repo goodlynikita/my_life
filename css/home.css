@@ -682,28 +682,28 @@ html, body {
 .home2-tile::after  { animation: wave-shift-2 11s ease-in-out infinite; }
 .home2-tile-content { position: relative; z-index: 1; }
 
-.home2-tile-training { background: #080f20; border: 1px solid rgba(59,130,246,0.12); }
+.home2-tile-training { background: rgba(8,15,32,0.72); border: 1px solid rgba(59,130,246,0.2); }
 .home2-tile-training::before { width:120px;height:120px;bottom:-20px;right:-20px;background:rgba(59,130,246,0.55); }
 .home2-tile-training::after  { width:90px;height:90px;top:-10px;left:20px;background:rgba(96,165,250,0.3);animation-duration:13s; }
 .home2-tile-training .home2-tile-name { color: #93C5FD !important; }
 .home2-tile-training .home2-tile-desc { color: rgba(147,197,253,0.5) !important; }
 .home2-tile-training i { color: #60A5FA !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-habits { background: #030e07; border: 1px solid rgba(22,163,74,0.12); }
+.home2-tile-habits { background: rgba(3,14,7,0.72); border: 1px solid rgba(22,163,74,0.2); }
 .home2-tile-habits::before { width:120px;height:120px;bottom:-20px;left:-20px;background:rgba(22,163,74,0.55);animation-delay:2s; }
 .home2-tile-habits::after  { width:90px;height:90px;top:-10px;right:20px;background:rgba(74,222,128,0.28);animation-duration:14s;animation-delay:2s; }
 .home2-tile-habits .home2-tile-name { color: #86EFAC !important; }
 .home2-tile-habits .home2-tile-desc { color: rgba(134,239,172,0.5) !important; }
 .home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-finance { background: linear-gradient(135deg,#12063a 0%,#1e0a5a 100%); border: 1px solid rgba(124,58,237,0.25); }
+.home2-tile-finance { background: rgba(15,5,40,0.75); border: 1px solid rgba(124,58,237,0.25); backdrop-filter: blur(2px); }
 .home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(139,92,246,0.6);animation-delay:4s; }
 .home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(167,139,250,0.35);animation-duration:15s;animation-delay:4s; }
 .home2-tile-finance .home2-tile-name { color: #ffffff !important; }
 .home2-tile-finance .home2-tile-desc { color: rgba(255,255,255,0.6) !important; }
 .home2-tile-finance i { color: #ffffff !important; font-size:22px; margin-bottom:6px; }
 
-.home2-tile-goals { background: linear-gradient(135deg,#150c00 0%,#2d1a00 100%); border: 1px solid rgba(245,158,11,0.15); }
+.home2-tile-goals { background: rgba(20,12,0,0.72); border: 1px solid rgba(245,158,11,0.2); }
 .home2-tile-goals::before { width:130px;height:130px;top:-30px;left:-30px;background:rgba(251,191,36,0.7);animation-delay:6s; }
 .home2-tile-goals::after  { width:100px;height:100px;bottom:-20px;right:10px;background:rgba(253,230,138,0.4);animation-duration:12s;animation-delay:6s; }
 .home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
@@ -789,39 +789,91 @@ html, body {
 .home2-grid {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
+  border-radius: 16px;
 }
 
-/* Три blob'а движутся по всему гриду */
+/* Белое солнце из центральной точки пересечения плиток */
 .home2-grid::before {
   content: '';
   position: absolute;
-  inset: -20px;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle 180px at 0% 0%,   rgba(59,130,246,0.5)  0%, transparent 70%),
-    radial-gradient(circle 160px at 100% 100%, rgba(22,163,74,0.5)  0%, transparent 70%),
-    radial-gradient(circle 150px at 100% 0%,  rgba(124,58,237,0.45) 0%, transparent 70%),
-    radial-gradient(circle 140px at 0% 100%,  rgba(245,158,11,0.45) 0%, transparent 70%),
-    radial-gradient(circle 200px at 50% 50%,  rgba(255,255,255,0.04) 0%, transparent 65%);
-  animation: blob-drift-1 18s ease-in-out infinite;
-  filter: blur(35px);
+    /* Ядро — яркое белое ядро в центре */
+    radial-gradient(circle 80px at 50% 50%,
+      rgba(255,255,255,0.18) 0%,
+      rgba(255,255,255,0.08) 40%,
+      transparent 100%),
+    /* Средний ореол */
+    radial-gradient(ellipse 120% 120% at 50% 50%,
+      rgba(255,255,255,0.07) 0%,
+      rgba(200,220,255,0.04) 40%,
+      transparent 70%),
+    /* Луч на тренировки (верхний левый) */
+    radial-gradient(ellipse 90% 80% at 10% 15%,
+      rgba(255,255,255,0.06) 0%,
+      transparent 60%),
+    /* Луч на привычки (верхний правый) */
+    radial-gradient(ellipse 80% 90% at 90% 10%,
+      rgba(255,255,255,0.05) 0%,
+      transparent 60%),
+    /* Луч на финансы (нижний левый) */
+    radial-gradient(ellipse 85% 75% at 5% 90%,
+      rgba(255,255,255,0.05) 0%,
+      transparent 60%),
+    /* Луч на цели (нижний правый) */
+    radial-gradient(ellipse 75% 85% at 95% 88%,
+      rgba(255,255,255,0.06) 0%,
+      transparent 60%);
+  animation: sun-pulse 6s ease-in-out infinite;
 }
+
+/* Вращающиеся лучи — конус из центра */
 .home2-grid::after {
   content: '';
   position: absolute;
-  inset: -20px;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle 200px at 100% 0%,   rgba(74,222,128,0.4)  0%, transparent 70%),
-    radial-gradient(circle 180px at 0% 100%,   rgba(167,139,250,0.4) 0%, transparent 70%),
-    radial-gradient(circle 160px at 50% 100%,  rgba(251,191,36,0.35) 0%, transparent 70%);
-  animation: blob-drift-2 22s ease-in-out infinite;
-  filter: blur(40px);
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent           0deg,
+    rgba(255,255,255,0.04) 15deg,
+    transparent           30deg,
+    rgba(255,255,255,0.025) 55deg,
+    transparent           70deg,
+    rgba(255,255,255,0.035) 105deg,
+    transparent           120deg,
+    rgba(255,255,255,0.02) 160deg,
+    transparent           175deg,
+    rgba(255,255,255,0.04) 210deg,
+    transparent           225deg,
+    rgba(255,255,255,0.03) 260deg,
+    transparent           275deg,
+    rgba(255,255,255,0.025) 310deg,
+    transparent           325deg,
+    rgba(255,255,255,0.04) 355deg,
+    transparent           360deg
+  );
+  animation: sun-rays 25s linear infinite;
 }
 
-/* Плитки — прозрачные "окна" в поверхность */
+@keyframes sun-pulse {
+  0%, 100% { opacity: 0.7;  transform: scale(1); }
+  25%       { opacity: 1;    transform: scale(1.04); }
+  50%       { opacity: 0.85; transform: scale(0.97); }
+  75%       { opacity: 1;    transform: scale(1.03); }
+}
+@keyframes sun-rays {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Плитки — полупрозрачные окна, каждая получает свою часть лучей */
 .home2-tile-content { position: relative; z-index: 1; }
 
 /* Цвета текста/иконок */
@@ -844,77 +896,7 @@ html, body {
 @media (max-width:480px) { .home2-tile { min-height:120px; } }
 @media (min-width:768px) { .home2-tile { min-height:160px; } }
 
-/* ═══════════════════════════════════════════════════════
-   ЖИВЫЕ АНИМАЦИИ — уникальные для каждой плитки
-   Разные направления, фазы, интенсивность
-   ═══════════════════════════════════════════════════════ */
-
-/* Тренировки: свет движется из нижнего правого угла волнами */
-@keyframes tile-train-a {
-  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.55; }
-  25%  { transform: translate(-15px,10px) scale(1.15) rotate(12deg); opacity:.75; }
-  50%  { transform: translate(-8px,20px) scale(0.9) rotate(5deg); opacity:.5; }
-  75%  { transform: translate(10px,8px) scale(1.1) rotate(-8deg); opacity:.68; }
-  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.55; }
-}
-@keyframes tile-train-b {
-  0%   { transform: translate(0,0) scale(1); opacity:.3; }
-  33%  { transform: translate(12px,-8px) scale(1.2); opacity:.5; }
-  66%  { transform: translate(-8px,12px) scale(0.85); opacity:.25; }
-  100% { transform: translate(0,0) scale(1); opacity:.3; }
-}
-.home2-tile-training::before { animation: tile-train-a 9s ease-in-out infinite !important; filter: blur(55px) !important; }
-.home2-tile-training::after  { animation: tile-train-b 13s ease-in-out infinite !important; filter: blur(40px) !important; }
-
-/* Привычки: свет пульсирует из левого нижнего, другая фаза */
-@keyframes tile-hab-a {
-  0%   { transform: translate(0,0) scale(1); opacity:.5; }
-  20%  { transform: translate(10px,-15px) scale(1.18); opacity:.7; }
-  55%  { transform: translate(-5px,-8px) scale(0.92); opacity:.45; }
-  80%  { transform: translate(8px,12px) scale(1.08); opacity:.62; }
-  100% { transform: translate(0,0) scale(1); opacity:.5; }
-}
-@keyframes tile-hab-b {
-  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.28; }
-  40%  { transform: translate(-12px,8px) scale(1.25) rotate(15deg); opacity:.45; }
-  75%  { transform: translate(6px,-10px) scale(0.88) rotate(-10deg); opacity:.22; }
-  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.28; }
-}
-.home2-tile-habits::before { animation: tile-hab-a 11s ease-in-out infinite !important; animation-delay: -3s !important; filter: blur(55px) !important; }
-.home2-tile-habits::after  { animation: tile-hab-b 14s ease-in-out infinite !important; animation-delay: -3s !important; filter: blur(40px) !important; }
-
-/* Финансы: медленный перелив сверху справа, волна наискосок */
-@keyframes tile-fin-a {
-  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.5; }
-  30%  { transform: translate(-18px,12px) scale(1.1) rotate(-10deg); opacity:.65; }
-  60%  { transform: translate(10px,-18px) scale(1.2) rotate(8deg); opacity:.4; }
-  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.5; }
-}
-@keyframes tile-fin-b {
-  0%   { transform: translate(0,0) scale(1); opacity:.35; }
-  45%  { transform: translate(15px,10px) scale(1.3); opacity:.55; }
-  80%  { transform: translate(-6px,-14px) scale(0.8); opacity:.3; }
-  100% { transform: translate(0,0) scale(1); opacity:.35; }
-}
-.home2-tile-finance::before { animation: tile-fin-a 12s ease-in-out infinite !important; animation-delay: -7s !important; filter: blur(55px) !important; }
-.home2-tile-finance::after  { animation: tile-fin-b 16s ease-in-out infinite !important; animation-delay: -7s !important; filter: blur(40px) !important; }
-
-/* Цели: быстрее, более интенсивное свечение, из центра-верх */
-@keyframes tile-goals-a {
-  0%   { transform: translate(0,0) scale(1); opacity:.65; }
-  15%  { transform: translate(8px,-20px) scale(1.22); opacity:.85; }
-  45%  { transform: translate(-12px,-5px) scale(0.88); opacity:.55; }
-  70%  { transform: translate(15px,10px) scale(1.15); opacity:.72; }
-  100% { transform: translate(0,0) scale(1); opacity:.65; }
-}
-@keyframes tile-goals-b {
-  0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity:.4; }
-  35%  { transform: translate(-10px,15px) scale(1.28) rotate(-12deg); opacity:.6; }
-  65%  { transform: translate(12px,-8px) scale(0.82) rotate(8deg); opacity:.35; }
-  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:.4; }
-}
-.home2-tile-goals::before { animation: tile-goals-a 8s ease-in-out infinite !important; animation-delay: -5s !important; filter: blur(55px) !important; }
-.home2-tile-goals::after  { animation: tile-goals-b 11s ease-in-out infinite !important; animation-delay: -5s !important; filter: blur(40px) !important; }
+/* Tile animations removed — using unified grid aurora */
 
 /* ═══════════════════════════════════════════════════════
    СЛАЙДЫ — максимально живые: волны + световые дорожки

@@ -100,30 +100,9 @@
   padding: 3px 7px;
 }
 
-.tr-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 10px 12px;
-  background: var(--tr-void);
-  border-bottom: 0.5px solid var(--tr-steel-line);
-  overflow-x: auto;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
+/* tr-tabs overridden at bottom */
 
-.tr-tab {
-  background: none;
-  border: 0.5px solid var(--tr-steel-line);
-  color: var(--tr-bone-soft);
-  font-size: 12.5px;
-  font-weight: 500;
-  padding: 8px 14px;
-  border-radius: 999px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all var(--dur-base) var(--ease);
-}
+/* tr-tab overridden at bottom */
 .tr-tab.active {
   background: var(--tr-accent);
   border-color: var(--tr-accent);
@@ -1353,17 +1332,36 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
 .tr-tabs {
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, #1a3a8f 0%, #1e4fc2 100%);
-  border-bottom: 0.5px solid rgba(255,255,255,0.12);
+  background: #0f1520;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  padding: 0;
+  overflow-x: visible;
+  position: sticky;
+  top: 53px;
+  z-index: 19;
 }
 .tr-tab {
-  border-color: rgba(255,255,255,0.25) !important;
-  color: rgba(255,255,255,0.7) !important;
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--tr-font-sans);
+  transition: all 0.2s;
+  border-radius: 0;
 }
 .tr-tab.active {
-  background: rgba(255,255,255,0.2) !important;
+  background: none !important;
+  border-color: transparent !important;
   color: #fff !important;
-  border-color: rgba(255,255,255,0.5) !important;
+  border-bottom: 2px solid #60A5FA !important;
 }
 .tr-body {
   width: 100%;

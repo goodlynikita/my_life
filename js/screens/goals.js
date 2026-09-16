@@ -424,13 +424,13 @@ window.Screens.goals = function(mount) {
             const MS=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
             const mt = g.month ? ' · ' + MS[g.month] : '';
             const gStatus = g.done?'done':g.maybe?'maybe':'active';
-            const checkBg = g.done?itemColor:g.maybe?'#F59E0B':'transparent';
+            const checkBg = g.done?itemColor:g.maybe?itemColor+'aa':'transparent';
             const checkBorder = g.done||g.maybe?checkBg:(itemColor+'44');
             const checkIcon = g.done?'<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>':g.maybe?'<span style="color:#fff;font-size:12px;font-weight:800;">?</span>':'';
             const amtDisplay = g.done
               ? '<i class="ti ti-check" style="color:'+itemColor+';font-size:16px;"></i>'
               : g.maybe
-                ? '<span style="color:#F59E0B;font-size:13px;font-weight:700;">?</span>'
+                ? '<span style="color:'+itemColor+';font-size:13px;font-weight:700;">?</span>'
                 : (g.amount>0?goalsFmt(g.amount):'');
             const rowOpacity = (g.done||g.maybe)?'0.6':'1';
             return '<div class="goals-item-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+g.id+'" style="opacity:'+rowOpacity+';transition:opacity 0.3s;">'
@@ -448,7 +448,7 @@ window.Screens.goals = function(mount) {
         + '<span class="goals-cat-total goals-cat-v3-total" data-cat="'+cat+'" style="color:'+catColor+';transition:all 0.4s;">'+goalsFmt(catTotal)+'</span>'
         + '</div>'
         + itemsHtml
-        + '<button class="goals-add-v3" data-cat="'+cat+'" data-season="'+activeSeason+'">+ добавить</button>'
+        + '<button class="goals-add-v3" data-cat="'+cat+'" data-season="'+activeSeason+'" style="color:'+catColor+';">+ добавить</button>'
         + '</div>';
     });
 

@@ -1272,13 +1272,18 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
 .modal-finance .tr-modal { background: #ffffff !important; border: 1px solid #E5E7EB !important; box-shadow: 0 8px 40px rgba(0,0,0,0.25) !important; border-radius: 16px !important; }
 .modal-finance .tr-modal-title { color: #111827 !important; font-size: 18px !important; font-weight: 800 !important; }
 .modal-finance .tr-modal-row label { color: #6B7280 !important; font-size: 12px !important; font-weight: 600 !important; }
-.modal-finance .tr-modal-row input,
-.modal-finance select {
+.modal-finance .tr-modal-row input, .modal-finance select {
   background: #ffffff !important;
   border: 1px solid #E5E7EB !important;
   color: #111827 !important;
   border-radius: 10px !important;
   font-size: 15px !important;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  padding-right: 36px !important;
 }
 .modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; box-shadow: 0 0 0 2px rgba(124,58,237,0.15) !important; }
 .modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; }

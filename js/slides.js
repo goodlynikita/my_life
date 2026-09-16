@@ -165,6 +165,184 @@ var Slides = (() => {
         return `<div class="hero-stat-num" style="font-size:14px;line-height:1.3;color:${nameColor};${nameStyle}">${g.name}</div><div class="hero-stat-lbl">${g.amount?fmt(g.amount):''}</div>`;
       },
     },
+    /* ── Тренировки: доп блоки ── */
+    {
+      id: 'workout_week_count', section: 'Тренировки',
+      name: 'Тренировок на этой неделе',
+      desc: 'Количество завершённых тренировок за текущую неделю',
+      render: (store) => {
+        const plans = (store.training?.plans||[]).filter(Boolean);
+        const plan = plans.find(p=>p.status==='active') || plans.slice(-1)[0];
+        const now = new Date(); const dow = now.getDay();
+        const weekStart = new Date(now); weekStart.setDate(now.getDate() - (dow===0?6:dow-1));
+        let count = 0;
+        if (plan?.weeks) plan.weeks.forEach(w=>(w?.days||[]).forEach(d=>{
+          if (!d?.date) return;
+          const [dd,mm] = d.date.split('.');
+          const date = new Date(now.getFullYear(), +mm-1, +dd);
+          if (date >= weekStart && date <= now && (d.sessions||[]).some(s=>s&&s.type!=='Отдых')) count++;
+        }));
+        return `<div class="hero-stat-num">${count}</div><div class="hero-stat-lbl">тренировок</div>`;
+      },
+    },
+    {
+      id: 'workout_volume', section: 'Тренировки',
+      name: 'Объём за неделю (кг)',
+      desc: 'Суммарный тоннаж всех упражнений за текущую неделю',
+      render: (store) => {
+        const plans = (store.training?.plans||[]).filter(Boolean);
+        const plan = plans.find(p=>p.status==='active') || plans.slice(-1)[0];
+        const now = new Date(); const dow = now.getDay();
+        const weekStart = new Date(now); weekStart.setDate(now.getDate() - (dow===0?6:dow-1));
+        let vol = 0;
+        if (plan?.weeks) plan.weeks.forEach(w=>(w?.days||[]).forEach(d=>{
+          if (!d?.date) return;
+          const [dd,mm] = d.date.split('.');
+          const date = new Date(now.getFullYear(), +mm-1, +dd);
+          if (date >= weekStart && date <= now)
+            (d.sessions||[]).forEach(s=>(s?.exercises||[]).forEach(e=>{ vol += (e.sets||0)*(e.reps||0)*(e.weight||0); }));
+        }));
+        const fmt = n => n>=1000 ? (n/1000).toFixed(1)+'т' : Math.round(n)+'кг';
+        return `<div class="hero-big-text">${vol>0?fmt(vol):'—'}</div>`;
+      },
+    },
+    /* ── Привычки: доп блоки ── */
+    {
+      id: 'habits_month_pct', section: 'Привычки',
+      name: 'Прогресс месяца %',
+      desc: 'Средний процент выполнения привычек за текущий месяц',
+      render: (store) => {
+        const now = new Date();
+        const mm  = String(now.getMonth()+1).padStart(2,'0');
+        const list  = (store.habits?.list||[]).filter(Boolean);
+        const marks = (store.habits?.months||{})[`${now.getFullYear()}-${mm}`]||{};
+        let total = 0, done = 0;
+        list.forEach(h=>{
+          for(let d=1;d<=now.getDate();d++){
+            const m = marks[h.id]?.[d];
+            if (m==='done') { done++; total++; }
+            else if (m==='missed') total++;
+          }
+        });
+        const pct = total ? Math.round(done/total*100) : 0;
+        const c = pct>=80?'#4ADE80':pct>=50?'#F59E0B':'#F87171';
+        return `<div class="hero-stat-num" style="color:${c}">${pct}%</div><div class="hero-stat-lbl">привычек в месяц</div>`;
+      },
+    },
+    {
+      id: 'discipline_streak', section: 'Привычки',
+      name: 'Стрик дисциплины',
+      desc: 'Число дней подряд с хотя бы одной выполненной привычкой',
+      render: (store) => {
+        const list = (store.habits?.list||[]).filter(Boolean);
+        const months = store.habits?.months||{};
+        const now = new Date(); let streak = 0;
+        for(let i=0;i<365;i++){
+          const d = new Date(now); d.setDate(d.getDate()-i);
+          const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          const hasDone = list.some(h=>months[mk]?.[h.id]?.[d.getDate()]==='done');
+          if (hasDone) streak++; else if (i>0) break;
+        }
+        const c = streak>=14?'#FF4500':streak>=7?'#F59E0B':streak>=3?'#4ADE80':'#9D9A92';
+        return `<div class="hero-stat-num" style="color:${c}">🔥${streak}</div><div class="hero-stat-lbl">дней подряд</div>`;
+      },
+    },
+    /* ── Финансы: доп блоки ── */
+    {
+      id: 'finance_expenses', section: 'Финансы',
+      name: 'Расходы за месяц',
+      desc: 'Сумма фактических расходов текущего месяца',
+      render: (store) => {
+        const now = new Date();
+        const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
+        const data = store.finance?.years?.[yr]?.[mm];
+        const expenses = (data?.cats||[]).reduce((s,c)=>s+(c?.spent||0),0);
+        const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
+        return `<div class="hero-big-text">${expenses>0?fmt(expenses):'—'}</div>`;
+      },
+    },
+    {
+      id: 'finance_balance', section: 'Финансы',
+      name: 'Баланс: доход − расходы',
+      desc: 'Итоговый баланс месяца (доход минус расходы)',
+      render: (store) => {
+        const now = new Date();
+        const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
+        const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
+        const income = entries.reduce((s,e)=>s+((e?.amount)||0),0);
+        const cats = store.finance?.years?.[yr]?.[mm]?.cats || [];
+        const expenses = cats.reduce((s,c)=>s+(c?.spent||0),0);
+        const bal = income - expenses;
+        const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
+        const c = bal>=0?'#4ADE80':'#F87171';
+        return `<div class="hero-stat-num" style="color:${c}">${bal<0?'−':''}${fmt(bal)}</div><div class="hero-stat-lbl">баланс</div>`;
+      },
+    },
+    {
+      id: 'finance_savings_pct', section: 'Финансы',
+      name: 'Процент накоплений',
+      desc: 'Доля сохранённых денег от дохода',
+      render: (store) => {
+        const now = new Date();
+        const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
+        const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
+        const income = entries.reduce((s,e)=>s+((e?.amount)||0),0);
+        const planned = store.home?.plannedExpenses || 97000;
+        const pct = income > 0 ? Math.round((income-planned)/income*100) : 0;
+        const c = pct>=30?'#4ADE80':pct>=15?'#F59E0B':'#F87171';
+        return `<div class="hero-stat-num" style="color:${c}">${Math.max(0,pct)}%</div><div class="hero-stat-lbl">накоплений</div>`;
+      },
+    },
+    /* ── Цели: доп блоки ── */
+    {
+      id: 'goals_done_count', section: 'Цели',
+      name: 'Закрытых целей',
+      desc: 'Число выполненных целей всего',
+      render: (store) => {
+        const goals = ((store.goals?.directions)||[]).filter(Boolean);
+        const done = goals.filter(g=>g.done).length;
+        return `<div class="hero-stat-num">${done}<span class="hero-stat-of">/${goals.length}</span></div><div class="hero-stat-lbl">целей</div>`;
+      },
+    },
+    {
+      id: 'goals_season_pct', section: 'Цели',
+      name: 'Прогресс сезона %',
+      desc: 'Процент закрытых целей текущего сезона',
+      render: (store) => {
+        const now = new Date(); const m = now.getMonth();
+        const season = m<=4?'spring':m<=7?'summer':m<=10?'autumn':'december';
+        const goals = ((store.goals?.directions)||[]).filter(g=>g&&g.season===season);
+        const done = goals.filter(g=>g.done).length;
+        const pct = goals.length ? Math.round(done/goals.length*100) : 0;
+        const names = {spring:'Весна',summer:'Лето',autumn:'Осень',december:'Декабрь'};
+        return `<div class="hero-stat-num">${pct}%</div><div class="hero-stat-lbl">${names[season]}</div>`;
+      },
+    },
+    /* ── Общее: доп блоки ── */
+    {
+      id: 'day_of_week', section: 'Общее',
+      name: 'День недели',
+      desc: 'Текущий день недели',
+      render: () => {
+        const DOWS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+        const MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+        const now = new Date();
+        return `<div class="hero-sub-text" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;opacity:.6;">${DOWS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}</div>`;
+      },
+    },
+    {
+      id: 'motivational_quote', section: 'Кастом',
+      name: 'Мотивационная фраза',
+      desc: 'Рандомная фраза из набора каждый день',
+      render: (store, cfg) => {
+        const quotes = cfg?.quotes ? cfg.quotes.split('\n').filter(Boolean) : [
+          'Сегодня важнее вчера','Один шаг — уже движение','Дисциплина сильнее мотивации',
+          'Делай сейчас — отдохнёшь позже','Маленький прогресс — всё равно прогресс',
+        ];
+        const idx = new Date().getDate() % quotes.length;
+        return `<div class="hero-big-text" style="font-size:15px;line-height:1.4;">${quotes[idx]}</div>`;
+      },
+    },
   ];
 
   /* ── Дефолтные слайды (если юзер ещё ничего не настроил) ── */

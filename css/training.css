@@ -1319,16 +1319,16 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
   justify-content: space-between;
   width: 100%;
   box-sizing: border-box;
-  padding: 12px 16px;
+  padding: 14px 20px;
   background: linear-gradient(135deg, #1a3a8f 0%, #1e4fc2 50%, #2563eb 100%);
   border-bottom: none;
   position: sticky;
   top: 0;
   z-index: 20;
 }
-.tr-header .tr-title { color: #fff !important; font-size: 17px !important; font-weight: 700 !important; }
-.tr-header .tr-back { color: rgba(255,255,255,0.85) !important; font-size: 22px !important; }
-.tr-header .tr-back:hover { color: #fff !important; }
+.tr-header .tr-title { color: #fff !important; font-size: 20px !important; font-weight: 800 !important; }
+.tr-header .tr-back { color: rgba(255,255,255,0.85) !important; font-size: 20px !important; width: 32px !important; height: 32px !important; }
+.tr-header .tr-back:hover { color: #fff !important; background: rgba(255,255,255,0.15) !important; border-radius: 8px !important; }
 .tr-tabs {
   width: 100%;
   box-sizing: border-box;

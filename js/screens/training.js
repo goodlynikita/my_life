@@ -1177,7 +1177,7 @@ window.Screens.training = function (mount) {
 
   mount.innerHTML = `
     <div class="theme-dark" style="width:100%;min-width:0;box-sizing:border-box;">
-      <div class="tr-header" style="display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:12px 16px;background:linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%);position:sticky;top:0;z-index:20;">
+      <div class="tr-header" style="display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:14px 20px;background:linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%);position:sticky;top:0;z-index:20;">
         <div style="display:flex; align-items:center; gap:10px;">
           ${role === 'owner' ? '<button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>' : ''}
           <p class="tr-title">Тренировки</p>

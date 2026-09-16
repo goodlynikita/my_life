@@ -793,7 +793,7 @@ html, body {
   border-radius: 16px;
 }
 
-/* Белое солнце из центральной точки пересечения плиток */
+/* Базовый тихий фон — очень тёмный */
 .home2-grid::before {
   content: '';
   position: absolute;
@@ -801,79 +801,51 @@ html, body {
   z-index: 0;
   pointer-events: none;
   background:
-    /* Ядро — яркое белое ядро в центре */
-    radial-gradient(circle 80px at 50% 50%,
-      rgba(255,255,255,0.18) 0%,
-      rgba(255,255,255,0.08) 40%,
-      transparent 100%),
-    /* Средний ореол */
-    radial-gradient(ellipse 120% 120% at 50% 50%,
-      rgba(255,255,255,0.07) 0%,
-      rgba(200,220,255,0.04) 40%,
-      transparent 70%),
-    /* Луч на тренировки (верхний левый) */
-    radial-gradient(ellipse 90% 80% at 10% 15%,
+    radial-gradient(circle 60px at 50% 50%,
       rgba(255,255,255,0.06) 0%,
-      transparent 60%),
-    /* Луч на привычки (верхний правый) */
-    radial-gradient(ellipse 80% 90% at 90% 10%,
-      rgba(255,255,255,0.05) 0%,
-      transparent 60%),
-    /* Луч на финансы (нижний левый) */
-    radial-gradient(ellipse 85% 75% at 5% 90%,
-      rgba(255,255,255,0.05) 0%,
-      transparent 60%),
-    /* Луч на цели (нижний правый) */
-    radial-gradient(ellipse 75% 85% at 95% 88%,
-      rgba(255,255,255,0.06) 0%,
-      transparent 60%);
-  animation: sun-pulse 6s ease-in-out infinite;
+      transparent 100%);
+  animation: center-breathe 4s ease-in-out infinite;
 }
 
-/* Вращающиеся лучи — конус из центра */
+/* Волновые кольца из центра */
 .home2-grid::after {
   content: '';
   position: absolute;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: conic-gradient(
-    from 0deg at 50% 50%,
-    transparent           0deg,
-    rgba(255,255,255,0.04) 15deg,
-    transparent           30deg,
-    rgba(255,255,255,0.025) 55deg,
-    transparent           70deg,
-    rgba(255,255,255,0.035) 105deg,
-    transparent           120deg,
-    rgba(255,255,255,0.02) 160deg,
-    transparent           175deg,
-    rgba(255,255,255,0.04) 210deg,
-    transparent           225deg,
-    rgba(255,255,255,0.03) 260deg,
-    transparent           275deg,
-    rgba(255,255,255,0.025) 310deg,
-    transparent           325deg,
-    rgba(255,255,255,0.04) 355deg,
-    transparent           360deg
-  );
-  animation: sun-rays 25s linear infinite;
+  background:
+    radial-gradient(circle at 50% 50%,
+      transparent 18%,
+      rgba(255,255,255,0.025) 20%,
+      transparent 22%),
+    radial-gradient(circle at 50% 50%,
+      transparent 35%,
+      rgba(255,255,255,0.018) 37%,
+      transparent 39%),
+    radial-gradient(circle at 50% 50%,
+      transparent 52%,
+      rgba(255,255,255,0.012) 54%,
+      transparent 56%),
+    radial-gradient(circle at 50% 50%,
+      transparent 70%,
+      rgba(255,255,255,0.008) 72%,
+      transparent 74%);
+  animation: ripple-out 5s ease-in-out infinite;
 }
 
-@keyframes sun-pulse {
-  0%, 100% { opacity: 0.7;  transform: scale(1); }
-  25%       { opacity: 1;    transform: scale(1.04); }
-  50%       { opacity: 0.85; transform: scale(0.97); }
-  75%       { opacity: 1;    transform: scale(1.03); }
-}
-@keyframes sun-rays {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes center-breathe {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.8); }
 }
 
-/* Плитки — полупрозрачные окна, каждая получает свою часть лучей */
+@keyframes ripple-out {
+  0%   { opacity: 0;   transform: scale(0.6); }
+  20%  { opacity: 1; }
+  80%  { opacity: 0.6; }
+  100% { opacity: 0;   transform: scale(1.15); }
+}
+
 .home2-tile-content { position: relative; z-index: 1; }
 
 /* Цвета текста/иконок */
@@ -1040,3 +1012,16 @@ html, body {
 .hero-slide-label, .hero-slide-main, .hero-slide-sub,
 .hero-tag-row, .hero-big-text, .hero-stat-row { position: relative; z-index: 2; }
 
+
+/* Волновые кольца из центра */
+@keyframes wave-ring {
+  0%   { width: 0;    height: 0;    opacity: 0.5;  border-width: 1.5px; }
+  30%  { opacity: 0.3; }
+  100% { width: 200%; height: 200%; opacity: 0;    border-width: 0.5px; }
+}
+
+/* Мерцание на каждой плитке — разные фазы */
+@keyframes tile-shimmer {
+  0%,100% { opacity: 0.3; }
+  50%     { opacity: 0.7; }
+}

@@ -1273,17 +1273,19 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
 .modal-finance .tr-modal-title { color: #111827 !important; font-size: 18px !important; font-weight: 800 !important; }
 .modal-finance .tr-modal-row label { color: #6B7280 !important; font-size: 12px !important; font-weight: 600 !important; }
 .modal-finance .tr-modal-row input, .modal-finance select {
-  background: #ffffff !important;
+  background-color: #ffffff !important;
   border: 1px solid #E5E7EB !important;
   color: #111827 !important;
   border-radius: 10px !important;
   font-size: 15px !important;
   -webkit-appearance: none;
   appearance: none;
+  padding-right: 36px !important;
+}
+.modal-finance select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
-  padding-right: 36px !important;
 }
 .modal-finance .tr-modal-row input:focus { border-color: #7C3AED !important; box-shadow: 0 0 0 2px rgba(124,58,237,0.15) !important; }
 .modal-finance .tr-modal-btn-primary { background: #7C3AED !important; color: #fff !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; }
@@ -1483,15 +1485,14 @@ body {
 
 /* Кнопки добавления целей — цвет сезона */
 .goals-add-v3 {
-  color: rgba(255,255,255,0.4) !important;
-  border-color: rgba(255,255,255,0.1) !important;
-  background: none !important;
-  font-size: 13px !important;
+  border-color: rgba(255,255,255,0.1);
+  background: none;
+  font-size: 13px;
 }
 .goals-add-v3:hover {
-  color: rgba(255,255,255,0.8) !important;
-  border-color: rgba(255,255,255,0.25) !important;
-  background: rgba(255,255,255,0.05) !important;
+  color: rgba(255,255,255,0.8);
+  border-color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.05);
 }
 
 /* Привычки — кнопка Изменить зелёная */
@@ -1619,29 +1620,22 @@ button.goals-fab, button.goals-new-v3 {
   border-top: 1px solid rgba(242,169,59,0.15) !important;
 }
 /* Кнопка + добавить внутри категории */
-.goals-add-v3 {
-  color: #F2A93B !important;
-  border-color: rgba(242,169,59,0.25) !important;
-}
+/* goals-add-v3 цвет задаётся через inline style в JS */
 
 /* ── Привычки: ползунки зелёные ── */
-.wheel-slider-input {
-  accent-color: #16A34A !important;
-}
+/* wheel-slider-input — accent via specific class only */
 input[type=range].wheel-slider {
-  accent-color: #16A34A !important;
+  accent-color: #16A34A;
 }
-/* Webkit */
-input[type=range]::-webkit-slider-thumb {
-  background: #16A34A !important;
-  box-shadow: 0 0 6px rgba(22,163,74,0.5) !important;
-}
-input[type=range]::-webkit-slider-runnable-track {
-  background: linear-gradient(to right, #16A34A var(--val, 50%), #2A2D35 var(--val, 50%)) !important;
+/* Webkit — только для wheel-slider */
+.wheel-slider::-webkit-slider-runnable-track {
+  background: #2A2D35;
+  height: 6px;
+  border-radius: 3px;
 }
 /* Firefox */
-input[type=range]::-moz-range-thumb { background: #16A34A !important; border: none !important; }
-input[type=range]::-moz-range-progress { background: #16A34A !important; }
+input[type=range].wheel-slider::-moz-range-thumb { background: #16A34A; border: none; }
+input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 
 /* ── Кнопка Изменить в истории привычек ── */
 .hab-hist-edit-btn, .wheel-hist-edit {

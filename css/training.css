@@ -1326,3 +1326,46 @@ select.m-exc-sel {
 }
 select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !important; }
 
+
+/* ── Полная ширина шапки и контента ── */
+.theme-dark {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: block;
+}
+.tr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1a3a8f 0%, #1e4fc2 50%, #2563eb 100%);
+  border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.tr-header .tr-title { color: #fff !important; font-size: 17px !important; font-weight: 700 !important; }
+.tr-header .tr-back { color: rgba(255,255,255,0.85) !important; font-size: 22px !important; }
+.tr-header .tr-back:hover { color: #fff !important; }
+.tr-tabs {
+  width: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #1a3a8f 0%, #1e4fc2 100%);
+  border-bottom: 0.5px solid rgba(255,255,255,0.12);
+}
+.tr-tab {
+  border-color: rgba(255,255,255,0.25) !important;
+  color: rgba(255,255,255,0.7) !important;
+}
+.tr-tab.active {
+  background: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.5) !important;
+}
+.tr-body {
+  width: 100%;
+  box-sizing: border-box;
+}

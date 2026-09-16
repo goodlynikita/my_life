@@ -53,7 +53,7 @@ window.Screens.home = function(mount) {
           if(!todayGroups.length && exercises.length>0) {
             todayWorkout = 'Тренировка';
           }
-          if(!todayGroups.length && !exercises.length && sessions.some(function(s){return s&&s.type==='Отдых';})) todayWorkout='Отдых';
+          // Отдых не показываем — оставляем пустым → будет «Не задано»
         }
       });
     });

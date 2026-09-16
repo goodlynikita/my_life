@@ -1188,7 +1188,7 @@ window.Screens.training = function (mount) {
           ${role === 'coach'
             ? `<span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button>`
             : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
-        </span>
+        </div>
       </div>
       <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
         <select class="tr-plan-select" id="tr-plan-select"></select>

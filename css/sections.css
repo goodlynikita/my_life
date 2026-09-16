@@ -1444,9 +1444,9 @@ body {
 /* Иконки внутри модалки привычек */
 .modal-habits .hab-icon-btn { background: #2A2D35 !important; border-color: #3A3D45 !important; color: #E8E5DC !important; }
 
-/* ТРЕНИРОВКИ — синий акцент */
-.tr-modal-btn-primary { background: linear-gradient(135deg,#1E3A8A,#3B82F6) !important; color:#fff !important; border:none !important; }
-.tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+/* ТРЕНИРОВКИ — синий акцент только в тренировочных модалках */
+.theme-dark .tr-modal-btn-primary { background: linear-gradient(135deg,#1E3A8A,#3B82F6) !important; color:#fff !important; border:none !important; }
+.theme-dark .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
 
 /* ЦЕЛИ — модалка в стиле раздела */
 .goals-modal {
@@ -1570,14 +1570,7 @@ button.hab-hist-edit, .hab-hist-btn {
 .goals-check-v3.active:hover {
   border-color: #F2A93B !important;
 }
-.goals-check-v3.done {
-  background: var(--cat-color, #F2A93B) !important;
-  border-color: var(--cat-color, #F2A93B) !important;
-}
-.goals-check-v3.maybe {
-  background: color-mix(in srgb, var(--cat-color, #F2A93B) 30%, transparent) !important;
-  border-color: var(--cat-color, #F2A93B) !important;
-}
+/* check colors set via inline style in JS */
 
 /* ── Привычки: все зелёное ── */
 .wheel-fill-btn {
@@ -1608,14 +1601,7 @@ button.hab-hist-edit, .hab-hist-btn {
   background: transparent !important;
   border: 2px solid rgba(242,169,59,0.45) !important;
 }
-.goals-check-v3.done {
-  background: var(--cat-color, #F2A93B) !important;
-  border-color: var(--cat-color, #F2A93B) !important;
-}
-.goals-check-v3.maybe {
-  background: color-mix(in srgb, var(--cat-color, #F2A93B) 30%, transparent) !important;
-  border-color: var(--cat-color, #F2A93B) !important;
-}
+/* check colors set via inline style in JS */
 
 /* ── Цели: FAB кнопка + нижний фон янтарные ── */
 .goals-fab, .goals-new-v3,

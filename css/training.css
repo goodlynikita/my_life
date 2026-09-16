@@ -133,8 +133,8 @@
 .tr-body {
   padding: 16px;
   padding-bottom: 90px;
-  max-width: 900px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
 }
 
 /* week block */
@@ -1325,3 +1325,4 @@ select.m-exc-sel {
   width: 100% !important;
 }
 select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !important; }
+

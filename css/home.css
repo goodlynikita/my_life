@@ -700,8 +700,8 @@ html, body {
 .home2-tile-finance::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(139,92,246,0.6);animation-delay:4s; }
 .home2-tile-finance::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(167,139,250,0.35);animation-duration:15s;animation-delay:4s; }
 .home2-tile-finance .home2-tile-name { color: #34D399 !important; }
-.home2-tile-finance .home2-tile-desc { color: rgba(52,211,153,0.5) !important; }
-.home2-tile-finance i { color: #34D399 !important; font-size:22px; margin-bottom:6px; }
+.home2-tile-finance .home2-tile-desc { color: rgba(255,255,255,0.6) !important; }
+.home2-tile-finance i { color: rgba(255,255,255,0.9) !important; font-size:22px; margin-bottom:6px; }
 
 .home2-tile-goals { background: linear-gradient(135deg,#150c00 0%,#2d1a00 100%); border: 1px solid rgba(245,158,11,0.15); }
 .home2-tile-goals::before { width:130px;height:130px;top:-30px;left:-30px;background:rgba(251,191,36,0.7);animation-delay:6s; }
@@ -834,8 +834,8 @@ html, body {
 .home2-tile-habits i { color: #4ADE80 !important; font-size:22px; margin-bottom:6px; }
 
 .home2-tile-finance .home2-tile-name { color: #34D399 !important; }
-.home2-tile-finance .home2-tile-desc { color: rgba(52,211,153,0.5) !important; }
-.home2-tile-finance i { color: #34D399 !important; font-size:22px; margin-bottom:6px; }
+.home2-tile-finance .home2-tile-desc { color: rgba(255,255,255,0.6) !important; }
+.home2-tile-finance i { color: rgba(255,255,255,0.9) !important; font-size:22px; margin-bottom:6px; }
 
 .home2-tile-goals .home2-tile-name { color: #FCD34D !important; }
 .home2-tile-goals .home2-tile-desc { color: rgba(252,211,77,0.55) !important; }

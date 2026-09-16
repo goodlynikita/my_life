@@ -1571,12 +1571,12 @@ button.hab-hist-edit, .hab-hist-btn {
   border-color: #F2A93B !important;
 }
 .goals-check-v3.done {
-  background: #F2A93B !important;
-  border-color: #F2A93B !important;
+  background: var(--cat-color, #F2A93B) !important;
+  border-color: var(--cat-color, #F2A93B) !important;
 }
 .goals-check-v3.maybe {
-  background: rgba(242,169,59,0.3) !important;
-  border-color: #F2A93B !important;
+  background: color-mix(in srgb, var(--cat-color, #F2A93B) 30%, transparent) !important;
+  border-color: var(--cat-color, #F2A93B) !important;
 }
 
 /* ── Привычки: все зелёное ── */
@@ -1609,12 +1609,12 @@ button.hab-hist-edit, .hab-hist-btn {
   border: 2px solid rgba(242,169,59,0.45) !important;
 }
 .goals-check-v3.done {
-  background: #F2A93B !important;
-  border-color: #F2A93B !important;
+  background: var(--cat-color, #F2A93B) !important;
+  border-color: var(--cat-color, #F2A93B) !important;
 }
 .goals-check-v3.maybe {
-  background: rgba(242,169,59,0.3) !important;
-  border-color: #F2A93B !important;
+  background: color-mix(in srgb, var(--cat-color, #F2A93B) 30%, transparent) !important;
+  border-color: var(--cat-color, #F2A93B) !important;
 }
 
 /* ── Цели: FAB кнопка + нижний фон янтарные ── */

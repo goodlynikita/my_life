@@ -1251,10 +1251,14 @@ window.Screens.training = function (mount) {
   function loadCollapsedWeeks(planId, plan) {
     try {
       const raw = localStorage.getItem(collapsedWeeksKey(planId));
-      if (raw) return JSON.parse(raw);
+      const currentIdx = plan ? findCurrentWeekIndex(plan) : -1;
+      if (raw) {
+        const saved = JSON.parse(raw);
+        // Текущая неделя всегда раскрыта
+        return saved.filter(i => i !== currentIdx);
+      }
       /* Первый раз: сворачиваем все кроме текущей недели */
       if (!plan) return [];
-      const currentIdx = findCurrentWeekIndex(plan);
       return plan.weeks.map((_, i) => i).filter(i => i !== currentIdx);
     } catch (e) {
       return [];

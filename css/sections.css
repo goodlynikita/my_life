@@ -1220,10 +1220,10 @@ input, textarea, select {
   position: sticky !important;
   top: 0 !important;
   z-index: 20 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  border-bottom: none !important;
 }
 .hab-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
-.hab-back-btn { color: #fff !important; background: none !important; border: none !important; }
+.hab-back-btn { color: #fff !important; background: none !important; border: none !important; cursor: pointer !important; font-size: 18px !important; width: 32px !important; height: 32px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
 
 /* ЦЕЛИ */
 .goals-header {
@@ -1235,10 +1235,10 @@ input, textarea, select {
   position: sticky !important;
   top: 0 !important;
   z-index: 20 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  border-bottom: none !important;
 }
 .goals-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
-.goals-back { color: #fff !important; background: none !important; border: none !important; cursor: pointer !important; font-size: 18px !important; }
+.goals-back { color: #fff !important; background: none !important; border: none !important; cursor: pointer !important; font-size: 18px !important; width: 32px !important; height: 32px !important; }
 
 /* Вкладки сезонов */
 .goals-season-tabs {

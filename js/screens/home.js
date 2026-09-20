@@ -21,8 +21,11 @@ window.Screens.home = function(mount) {
   var entries = (finYears[yr] && finYears[yr][mm] && finYears[yr][mm].entries) || [];
   var monthIncome = entries.reduce(function(s,e){return s+((e&&e.amount)||0);},0);
 
-  /* Плановые расходы — настраиваемые */
-  var plannedExpenses = (store.home && store.home.plannedExpenses) || 97000;
+  /* Плановые расходы — берём из категорий финансов автоматически */
+  var finCats = (store.finance && store.finance.balance && store.finance.balance.categories) || [];
+  var plannedExpenses = finCats.length > 0
+    ? finCats.reduce(function(s,c){return s+(c&&c.amt||0);}, 0)
+    : ((store.home && store.home.plannedExpenses) || 97000);
   var cushion = monthIncome - plannedExpenses;
 
   var habList = ((store.habits && store.habits.list) || []).filter(Boolean);
@@ -178,28 +181,12 @@ window.Screens.home = function(mount) {
     window.Slides && window.Slides.openEditor();
   });
 
-  /* ── Настройка плановых расходов ── */
+  /* ── Подушка считается автоматически из финансов ── */
   var cushionBox = document.getElementById('home-cushion-box');
   if (cushionBox) {
     cushionBox.addEventListener('click', function(e){
       e.stopPropagation();
-      var ov = document.createElement('div');
-      ov.className = 'tr-modal-overlay';
-      ov.innerHTML = '<div class="tr-modal">'
-        + '<p class="tr-modal-title">Плановые расходы в месяц</p>'
-        + '<div class="tr-modal-row"><label style="flex:1">Сумма, ₽<input type="number" id="plan-exp-input" value="'+plannedExpenses+'" inputmode="numeric" style="font-size:18px;font-weight:700;"></label></div>'
-        + '<p style="font-size:11px;color:#9CA3AF;margin:4px 0 12px;">Подушка = Доходы − эта сумма</p>'
-        + '<div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="plan-exp-cancel">Отмена</button><button class="tr-modal-btn-primary" id="plan-exp-save">Сохранить</button></div>'
-        + '</div>';
-      document.body.appendChild(ov);
-      ov.addEventListener('click', function(e){if(e.target===ov)ov.remove();});
-      ov.querySelector('#plan-exp-cancel').addEventListener('click', function(){ov.remove();});
-      ov.querySelector('#plan-exp-save').addEventListener('click', function(){
-        var v = parseFloat(ov.querySelector('#plan-exp-input').value)||97000;
-        Store.set('home.plannedExpenses', v);
-        ov.remove(); Router.go('/home');
-      });
-      setTimeout(function(){ ov.querySelector('#plan-exp-input').focus(); }, 100);
+      Router.go('/finance');
     });
   }
 
@@ -214,18 +201,35 @@ window.Screens.home = function(mount) {
       { key: 'finance',  label: 'Финансы',    icon: 'ti-chart-bar',    cls: 'home2-tile-finance'  },
       { key: 'goals',    label: 'Цели',       icon: 'ti-target-arrow', cls: 'home2-tile-goals'    },
     ];
+
+    // Шаблоны: id, label, cssClass для grid, SVG-превью
     var TEMPLATES = [
-      { id:'grid2x2', label:'2×2', desc:'Четыре одинаковых', icon:'⊞', order:[0,1,2,3] },
-      { id:'top2',    label:'Акцент верх', desc:'2 больших сверху', icon:'▤', order:[0,1,2,3] },
-      { id:'left',    label:'Акцент лево', desc:'Тренировки главные', icon:'▧', order:[0,1,2,3] },
+      {
+        id: '2x2', label: '2×2', layout: 'layout-2x2', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="17" rx="3" fill="#4ADE8033" stroke="#4ADE80" stroke-width="1.5"/><rect x="28" y="1" width="23" height="17" rx="3" fill="#4ADE8033" stroke="#4ADE80" stroke-width="1.5"/><rect x="1" y="22" width="23" height="17" rx="3" fill="#4ADE8033" stroke="#4ADE80" stroke-width="1.5"/><rect x="28" y="22" width="23" height="17" rx="3" fill="#4ADE8033" stroke="#4ADE80" stroke-width="1.5"/></svg>'
+      },
+      {
+        id: 'row', label: 'В строку', layout: 'layout-row', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="50" height="7" rx="3" fill="#60A5FA33" stroke="#60A5FA" stroke-width="1.5"/><rect x="1" y="12" width="50" height="7" rx="3" fill="#60A5FA33" stroke="#60A5FA" stroke-width="1.5"/><rect x="1" y="23" width="50" height="7" rx="3" fill="#60A5FA33" stroke="#60A5FA" stroke-width="1.5"/><rect x="1" y="34" width="50" height="7" rx="3" fill="#60A5FA33" stroke="#60A5FA" stroke-width="1.5"/></svg>'
+      },
+      {
+        id: 'bigfirst', label: 'Акцент 1', layout: 'layout-bigfirst', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="50" height="17" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="1" y="22" width="23" height="17" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="28" y="22" width="23" height="17" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/></svg>'
+      },
+      {
+        id: 'biglast', label: 'Акцент 4', layout: 'layout-biglast', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="17" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="28" y="1" width="23" height="17" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="1" y="22" width="50" height="17" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/></svg>'
+      },
     ];
 
-    var saved = (Store.get().home && Store.get().home.tileOrder) || [0,1,2,3];
-    var order = saved.slice();
+    var savedLayout = (Store.get().home && Store.get().home.tileLayout) || '2x2';
+    var savedOrder  = (Store.get().home && Store.get().home.tileOrder)  || [0,1,2,3];
+    var layout = savedLayout;
+    var order  = savedOrder.slice();
 
     var ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:flex-end;padding:0;';
+    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
 
     function buildHtml() {
       var tileItems = order.map(function(ti, pos) {
@@ -241,26 +245,28 @@ window.Screens.home = function(mount) {
           + '</div>';
       }).join('');
 
-      return '<div style="background:#13151A;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
-        + '<div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;">'
+      var tmplBtns = TEMPLATES.map(function(tmpl, i) {
+        var isActive = layout === tmpl.id;
+        return '<button class="tso-tmpl" data-tmpl="'+i+'" style="'
+          + 'flex:1;min-width:0;padding:10px 4px 8px;background:#1C1E24;'
+          + 'border:2px solid '+(isActive?'#4ADE80':'#2A2D35')+';'
+          + 'border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">'
+          + tmpl.svg
+          + '<div style="font-size:10px;color:'+(isActive?'#4ADE80':'#9D9A92')+';font-weight:600;white-space:nowrap;">'+tmpl.label+'</div>'
+          + '</button>';
+      }).join('');
+
+      return '<div style="background:#13151A;border-radius:16px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+        + '<div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;">'
         + '<span style="font-size:17px;font-weight:800;color:#E8E5DC;">Настройка плиток</span>'
         + '<button id="tso-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>'
         + '</div>'
         + '<div style="padding:16px 20px;">'
-        /* Шаблоны */
-        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Шаблон расположения</div>'
-        + '<div style="display:flex;gap:8px;margin-bottom:20px;">'
-        + '<button class="tso-tmpl" data-tmpl="0" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[0,1,2,3]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">⊞<div style="font-size:10px;color:#9D9A92;margin-top:4px;">2×2</div></button>'
-        + '<button class="tso-tmpl" data-tmpl="1" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[0,2,1,3]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">▤<div style="font-size:10px;color:#9D9A92;margin-top:4px;">Акцент</div></button>'
-        + '<button class="tso-tmpl" data-tmpl="2" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[1,0,3,2]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">▧<div style="font-size:10px;color:#9D9A92;margin-top:4px;">Привычки 1</div></button>'
-        + '<button class="tso-tmpl" data-tmpl="3" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[2,3,0,1]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">▨<div style="font-size:10px;color:#9D9A92;margin-top:4px;">Финансы 1</div></button>'
-        + '</div>'
-        /* Порядок */
-        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Порядок плиток</div>'
-        + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Перетащи за ⠿ чтобы изменить порядок</div>'
-        + '<div id="tile-sort-list" style="display:flex;flex-direction:column;gap:8px;">'
-        + tileItems
-        + '</div>'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Сетка</div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:20px;">' + tmplBtns + '</div>'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:6px;">Порядок</div>'
+        + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Перетащи за ⠿ чтобы изменить</div>'
+        + '<div id="tile-sort-list" style="display:flex;flex-direction:column;gap:8px;">' + tileItems + '</div>'
         + '<button id="tso-save" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#14532D,#16A34A);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить</button>'
         + '</div></div>';
     }
@@ -271,12 +277,12 @@ window.Screens.home = function(mount) {
     ov.querySelector('#tso-close').addEventListener('click', function() { ov.remove(); });
 
     /* Шаблоны */
-    var TMPL_ORDERS = [[0,1,2,3],[0,2,1,3],[1,0,3,2],[2,3,0,1]];
+    var TMPL_ORDERS = [[0,1,2,3],[0,1,2,3],[0,1,2,3],[0,1,2,3]];
     ov.querySelectorAll('.tso-tmpl').forEach(function(btn) {
       btn.addEventListener('click', function() {
+        layout = TEMPLATES[parseInt(btn.dataset.tmpl)].id;
         order = TMPL_ORDERS[parseInt(btn.dataset.tmpl)].slice();
-        ov.innerHTML = buildHtml();
-        rebind();
+        ov.innerHTML = buildHtml(); rebind();
       });
     });
 
@@ -329,10 +335,15 @@ window.Screens.home = function(mount) {
 
     function saveTiles() {
       Store.set('home.tileOrder', order);
+      Store.set('home.tileLayout', layout);
       ov.remove();
-      /* Перерисовываем плитки в новом порядке */
+      /* Применяем layout */
       var grid = mount.querySelector('.home2-grid');
       if (grid) {
+        grid.classList.remove('layout-2x2','layout-row','layout-bigfirst','layout-biglast');
+        var tmpl = TEMPLATES.find(function(t){return t.id===layout;});
+        if (tmpl) grid.classList.add(tmpl.layout);
+        /* Применяем порядок */
         var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
         var sorted = order.map(function(ti) { return tileEls.find(function(el) { return el.classList.contains(TILES[ti].cls); }); }).filter(Boolean);
         sorted.forEach(function(el) { grid.appendChild(el); });
@@ -343,18 +354,26 @@ window.Screens.home = function(mount) {
     rebind();
   });
 
-  /* ── Применяем сохранённый порядок плиток при загрузке ── */
+  /* ── Применяем сохранённый порядок и сетку плиток при загрузке ── */
   (function() {
-    var savedOrder = Store.get().home && Store.get().home.tileOrder;
-    if (!savedOrder || !savedOrder.length) return;
+    var savedOrder  = Store.get().home && Store.get().home.tileOrder;
+    var savedLayout = Store.get().home && Store.get().home.tileLayout;
     var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals'];
+    var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
-    var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
-    var sorted = savedOrder.map(function(ti) {
-      return tileEls.find(function(el) { return el.classList.contains(TILE_CLS[ti]); });
-    }).filter(Boolean);
-    sorted.forEach(function(el) { grid.appendChild(el); });
+    /* Применяем сетку */
+    if (savedLayout && LAYOUT_MAP[savedLayout]) {
+      grid.classList.add(LAYOUT_MAP[savedLayout]);
+    }
+    /* Применяем порядок */
+    if (savedOrder && savedOrder.length) {
+      var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
+      var sorted = savedOrder.map(function(ti) {
+        return tileEls.find(function(el) { return el.classList.contains(TILE_CLS[ti]); });
+      }).filter(Boolean);
+      sorted.forEach(function(el) { grid.appendChild(el); });
+    }
   })();
 
   /* ── Настройки слайдера ── */
@@ -364,8 +383,8 @@ window.Screens.home = function(mount) {
     var autoOn = cfg2.autoplay !== false;
     var ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:flex-end;padding:0;';
-    ov.innerHTML = '<div style="background:#1A1C22;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;overflow-y:auto;padding:0 0 36px;">'
+    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+    ov.innerHTML = '<div style="background:#1A1C22;border-radius:16px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;padding:0 0 36px;">'
       + '<div style="padding:18px 20px 14px;border-bottom:1px solid #2A2D35;display:flex;align-items:center;justify-content:space-between;">'
       +   '<span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайдер</span>'
       +   '<button id="sl-close-x" style="background:#2A2D35;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>'

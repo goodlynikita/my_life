@@ -181,114 +181,137 @@ const MUSCLE_BLOCK_EXERCISES = trLoadExercises();
 function trOpenExerciseEditor() {
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
-  
+
+  const GYM_TYPES = ['Зал', 'Зал ТРЕН'];
+  const groups = Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT);
+
+  let step = 'type';
+  let selType = null;
+  let selGroup = null;
+
+  function render() { overlay.innerHTML = buildHtml(); bind(); }
+
   function buildHtml() {
-    const groupsHtml = Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT).map(group => {
-      const exercises = MUSCLE_BLOCK_EXERCISES[group] || [];
-      return `
-        <div class="tr-ex-edit-group" data-group="${group}">
-          <div class="tr-ex-edit-group-title">${group}</div>
-          <div class="tr-ex-edit-list">
-            ${exercises.map((ex, i) => `
-              <div class="tr-ex-edit-item" data-idx="${i}">
-                <span class="tr-ex-edit-name">${ex}</span>
-                <span style="display:flex; gap:4px;">
-                  <button class="tr-ex-edit-rename" data-group="${group}" data-idx="${i}" title="Переименовать"><i class="ti ti-pencil"></i></button>
-                  <button class="tr-ex-edit-delete" data-group="${group}" data-idx="${i}" title="Удалить"><i class="ti ti-trash"></i></button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          <div style="margin-top:6px; display:flex; gap:6px;">
-            <input type="text" class="tr-ex-edit-input" data-group="${group}" placeholder="Новое упражнение…" style="flex:1; padding:6px 8px; border-radius:6px; border:1px solid #2A2D35; background:#0F1117; color:#E8E5DC; font-size:13px;">
-            <button class="tr-ex-edit-add" data-group="${group}" style="padding:6px 10px; border-radius:6px; background:#2E7FD4; color:#fff; border:none; cursor:pointer; font-size:13px;">+</button>
-          </div>
-        </div>`;
-    }).join('');
+    if (step === 'type') return buildTypeStep();
+    if (step === 'group') return buildGroupStep();
+    return buildExStep();
+  }
 
-    return `
-      <div class="tr-modal" style="max-height:80vh; overflow-y:auto; width:100%; max-width:420px; box-sizing:border-box; overflow-x:hidden;">
-        <p class="tr-modal-title">Редактор упражнений</p>
-        ${groupsHtml}
-        <div class="tr-modal-actions" style="margin-top:16px;">
-          <button class="tr-modal-btn-secondary" id="tr-ex-reset">Сбросить</button>
-          <button class="tr-modal-btn-primary" id="tr-ex-close">Готово</button>
+  function buildTypeStep() {
+    const typeGroups = {};
+    TRAINING_TYPES.forEach(t => {
+      if (!typeGroups[t.group]) typeGroups[t.group] = [];
+      typeGroups[t.group].push(t);
+    });
+    const html = Object.entries(typeGroups).map(([grp, types]) =>
+      `<div style="margin-bottom:16px;">
+        <div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">${grp}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${types.map(t => `<button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>${t.name}</button>`).join('')}
         </div>
-      </div>`;
+      </div>`
+    ).join('');
+    return modal('Редактор · Тип', `<div style="padding:4px 0 8px;font-size:13px;color:#9D9A92;">Выбери тип тренировки</div>${html}`,
+      `<button id="ed-close" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">Закрыть</button>`);
   }
 
-  overlay.innerHTML = buildHtml();
+  function buildGroupStep() {
+    const COLOR_MAP = {'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'};
+    const html = groups.map(g => {
+      const count = (MUSCLE_BLOCK_EXERCISES[g]||[]).length;
+      const c = COLOR_MAP[g]||'#9D9A92';
+      return `<button class="tr-grp-sel-btn" data-group="${g}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid ${c}22;background:${c}10;cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;"><div style="display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></span><span style="font-size:14px;font-weight:700;color:#E8E5DC;">${g}</span></div><span style="font-size:12px;color:${c};">${count} упр.</span></button>`;
+    }).join('');
+    return modal(`Зал → Группа мышц`, html,
+      `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">← Назад</button>
+       <button id="ed-close" style="flex:1;padding:11px;border-radius:10px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Готово</button>`);
+  }
+
+  function buildExStep() {
+    const exercises = MUSCLE_BLOCK_EXERCISES[selGroup]||[];
+    const items = exercises.length
+      ? exercises.map((ex,i) => `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);min-width:0;"><span style="flex:1;font-size:13px;color:#E8E5DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ex}</span><button class="tr-ex-ren" data-idx="${i}" style="background:none;border:none;color:#9D9A92;cursor:pointer;padding:4px;"><i class="ti ti-pencil" style="font-size:14px;"></i></button><button class="tr-ex-del" data-idx="${i}" style="background:none;border:none;color:#F87171;cursor:pointer;padding:4px;"><i class="ti ti-trash" style="font-size:14px;"></i></button></div>`).join('')
+      : '<div style="color:#555;font-size:13px;padding:16px 0;text-align:center;">Список пуст — добавь упражнения</div>';
+    const isGym = GYM_TYPES.includes(selType);
+    return modal(`${selType} → ${selGroup}`,
+      `<div style="overflow-y:auto;flex:1;min-height:0;">${items}</div>
+       <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+         <input id="tr-ex-new" type="text" placeholder="Новое упражнение…" style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#E8E5DC;font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;min-width:0;">
+         <button id="tr-ex-add" style="padding:9px 14px;border-radius:8px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:20px;font-weight:700;flex-shrink:0;">+</button>
+       </div>`,
+      `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:12px;font-family:inherit;">${isGym?'← '+selType:'← Назад'}</button>
+       <button id="tr-ex-clear" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:#F87171;cursor:pointer;font-size:12px;font-family:inherit;">🗑 Очистить</button>
+       <button id="ed-close" style="flex:2;padding:11px;border-radius:10px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Готово</button>`);
+  }
+
+  function modal(title, body, footer) {
+    return `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
+      <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:15px;font-weight:800;color:#E8E5DC;">${title}</span>
+        <button id="ed-x" style="background:none;border:none;color:#9D9A92;cursor:pointer;font-size:24px;line-height:1;padding:0;">×</button>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;">${body}</div>
+      <div style="padding:12px 18px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;flex-shrink:0;">${footer}</div>
+    </div>`;
+  }
+
+  function bind() {
+    overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+    overlay.querySelector('#ed-x')?.addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#ed-close')?.addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#ed-back')?.addEventListener('click', () => {
+      if (step==='exercises' && GYM_TYPES.includes(selType)) { step='group'; }
+      else { step='type'; selType=null; selGroup=null; }
+      render();
+    });
+    overlay.querySelectorAll('.tr-type-sel-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selType = btn.dataset.type;
+        if (GYM_TYPES.includes(selType)) { step='group'; }
+        else { step='exercises'; selGroup=selType; if(!MUSCLE_BLOCK_EXERCISES[selGroup]) MUSCLE_BLOCK_EXERCISES[selGroup]=[]; }
+        render();
+      });
+    });
+    overlay.querySelectorAll('.tr-grp-sel-btn').forEach(btn => {
+      btn.addEventListener('click', () => { selGroup=btn.dataset.group; step='exercises'; render(); });
+    });
+    const addInput = overlay.querySelector('#tr-ex-new');
+    const doAdd = () => {
+      const val = addInput?.value?.trim(); if(!val) return;
+      if(!MUSCLE_BLOCK_EXERCISES[selGroup]) MUSCLE_BLOCK_EXERCISES[selGroup]=[];
+      MUSCLE_BLOCK_EXERCISES[selGroup].push(val); trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
+    };
+    overlay.querySelector('#tr-ex-add')?.addEventListener('click', doAdd);
+    addInput?.addEventListener('keydown', e => { if(e.key==='Enter') doAdd(); });
+    overlay.querySelectorAll('.tr-ex-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        MUSCLE_BLOCK_EXERCISES[selGroup].splice(parseInt(btn.dataset.idx),1);
+        trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
+      });
+    });
+    overlay.querySelectorAll('.tr-ex-ren').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i=parseInt(btn.dataset.idx);
+        const span=btn.closest('div').querySelector('span');
+        const inp=document.createElement('input');
+        inp.value=MUSCLE_BLOCK_EXERCISES[selGroup][i];
+        inp.style.cssText='flex:1;background:rgba(255,255,255,0.08);border:1px solid #2E7FD4;border-radius:6px;color:#E8E5DC;font-size:13px;padding:3px 8px;font-family:inherit;min-width:0;';
+        span.replaceWith(inp); inp.focus(); inp.select();
+        const save=()=>{ const v=inp.value.trim(); if(v) MUSCLE_BLOCK_EXERCISES[selGroup][i]=v; trSaveExercises(MUSCLE_BLOCK_EXERCISES); render(); };
+        inp.addEventListener('blur',save); inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();});
+      });
+    });
+    overlay.querySelector('#tr-ex-clear')?.addEventListener('click', () => {
+      const count=(MUSCLE_BLOCK_EXERCISES[selGroup]||[]).length;
+      if(!count||!confirm(`Удалить все ${count} упражнений из «${selGroup}»?`)) return;
+      MUSCLE_BLOCK_EXERCISES[selGroup]=[]; trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
+    });
+  }
+
+  render();
   document.body.appendChild(overlay);
-
-  function rebind() {
-    overlay.innerHTML = buildHtml();
-    bindEvents();
-  }
-
-  function bindEvents() {
-    overlay.querySelector('#tr-ex-close').addEventListener('click', () => overlay.remove());
-    overlay.querySelector('#tr-ex-reset').addEventListener('click', () => {
-      if (!confirm('Сбросить все упражнения к стандартным?')) return;
-      Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT).forEach(g => {
-        MUSCLE_BLOCK_EXERCISES[g] = [...MUSCLE_BLOCK_EXERCISES_DEFAULT[g]];
-      });
-      trSaveExercises(MUSCLE_BLOCK_EXERCISES);
-      rebind();
-    });
-
-    overlay.querySelectorAll('.tr-ex-edit-delete').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const g = btn.dataset.group, i = parseInt(btn.dataset.idx);
-        MUSCLE_BLOCK_EXERCISES[g].splice(i, 1);
-        trSaveExercises(MUSCLE_BLOCK_EXERCISES);
-        rebind();
-      });
-    });
-
-    overlay.querySelectorAll('.tr-ex-edit-rename').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const g = btn.dataset.group, i = parseInt(btn.dataset.idx);
-        const newName = prompt('Новое название:', MUSCLE_BLOCK_EXERCISES[g][i]);
-        if (newName && newName.trim()) {
-          MUSCLE_BLOCK_EXERCISES[g][i] = newName.trim();
-          trSaveExercises(MUSCLE_BLOCK_EXERCISES);
-          rebind();
-        }
-      });
-    });
-
-    overlay.querySelectorAll('.tr-ex-edit-add').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const g = btn.dataset.group;
-        const input = overlay.querySelector(`.tr-ex-edit-input[data-group="${g}"]`);
-        const val = input.value.trim();
-        if (!val) return;
-        if (!MUSCLE_BLOCK_EXERCISES[g]) MUSCLE_BLOCK_EXERCISES[g] = [];
-        MUSCLE_BLOCK_EXERCISES[g].push(val);
-        trSaveExercises(MUSCLE_BLOCK_EXERCISES);
-        input.value = '';
-        rebind();
-      });
-    });
-
-    overlay.querySelectorAll('.tr-ex-edit-input').forEach(input => {
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          const g = input.dataset.group;
-          const val = input.value.trim();
-          if (!val) return;
-          if (!MUSCLE_BLOCK_EXERCISES[g]) MUSCLE_BLOCK_EXERCISES[g] = [];
-          MUSCLE_BLOCK_EXERCISES[g].push(val);
-          trSaveExercises(MUSCLE_BLOCK_EXERCISES);
-          input.value = '';
-          rebind();
-        }
-      });
-    });
-  }
-
-  bindEvents();
 }
+
 
 function trExercisesForGroups(groupNames) {
   const set = new Set();
@@ -926,51 +949,111 @@ function trBuildExerciseSelect(selectedGroups) {
 }
 
 function trBuildGroupCheckboxes(selected) {
-  // Маппинг групп мышц на зоны силуэта (SVG paths)
-  const MUSCLE_SVG = {
-    'Грудь':    'M28,28 C28,22 36,18 44,18 C52,18 60,22 60,28 L62,38 C62,42 58,44 44,44 C30,44 26,42 26,38 Z',
-    'Спина':    'M28,28 C28,22 36,18 44,18 C52,18 60,22 60,28 L62,38 C62,42 58,44 44,44 C30,44 26,42 26,38 Z',
-    'Руки':     'M20,28 L26,52 L30,52 L28,28 Z M58,28 L62,52 L66,52 L68,28 Z',
-    'Ноги':     'M30,76 L34,108 L40,108 L44,76 Z M44,76 L48,108 L54,108 L58,76 Z',
-    'Плечи':    'M18,24 L28,28 L28,36 L18,32 Z M70,24 L60,28 L60,36 L70,32 Z',
-    'FULL BODY':'M28,28 C28,22 36,18 44,18 C52,18 60,22 60,28 L62,38 C62,42 58,44 44,44 C30,44 26,42 26,38 Z M20,28 L26,52 L30,52 L28,28 Z M58,28 L62,52 L66,52 L68,28 Z M30,76 L34,108 L40,108 L44,76 Z M44,76 L48,108 L54,108 L58,76 Z',
-  };
   const COLOR_MAP = {
-    'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','FULL BODY':'#34D399'
+    'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC',
+    'Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'
   };
 
   const pills = MUSCLE_GROUPS.map(g => {
     const active = selected.includes(g.name);
     const c = COLOR_MAP[g.name] || g.color;
-    return `<label class="m-group-label" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;border:1.5px solid ${active ? c : 'rgba(255,255,255,0.12)'};background:${active ? c+'22' : 'transparent'};cursor:pointer;font-size:12px;font-weight:600;color:${active ? c : 'rgba(255,255,255,0.5)'};transition:all 0.15s;white-space:nowrap;">
+    return `<label class="m-group-label" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;border:1.5px solid ${active ? c : 'rgba(255,255,255,0.2)'};background:${active ? c+'28' : 'rgba(255,255,255,0.05)'};cursor:pointer;font-size:12px;font-weight:600;color:${active ? c : 'rgba(255,255,255,0.6)'};transition:all 0.15s;white-space:nowrap;">
       <input type="checkbox" class="m-group-cb m-group-check" value="${g.name}" ${active ? 'checked' : ''} style="display:none;">
-      ${active ? `<span style="width:14px;height:14px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:9px;color:#000;flex-shrink:0;">✓</span>` : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;"></span>`}
+      ${active
+        ? `<span style="width:14px;height:14px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:9px;color:#000;flex-shrink:0;">✓</span>`
+        : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);flex-shrink:0;"></span>`}
       ${g.name}
     </label>`;
   }).join('');
 
-  // Мини SVG силуэт тела
-  const activePaths = MUSCLE_GROUPS
-    .filter(g => selected.includes(g.name))
-    .map(g => `<path d="${MUSCLE_SVG[g.name]||''}" fill="${COLOR_MAP[g.name]||g.color}" opacity="0.85"/>`)
-    .join('');
+  const fb = selected.includes('FULL BODY');
+  const has = n => fb || selected.includes(n);
+  const c = n => COLOR_MAP[n];
 
-  const silhouette = `<svg viewBox="0 0 88 120" width="56" height="76" style="flex-shrink:0;opacity:0.9;">
-    <!-- Тело базовый силуэт -->
-    <ellipse cx="44" cy="10" rx="8" ry="9" fill="#2A2D35"/>
-    <rect x="26" y="18" width="36" height="44" rx="6" fill="#1E2028"/>
-    <rect x="20" y="20" width="8" height="28" rx="4" fill="#1E2028"/>
-    <rect x="60" y="20" width="8" height="28" rx="4" fill="#1E2028"/>
-    <rect x="30" y="62" width="14" height="36" rx="5" fill="#1E2028"/>
-    <rect x="44" y="62" width="14" height="36" rx="5" fill="#1E2028"/>
-    <!-- Активные мышцы -->
-    ${activePaths}
-    <!-- Переопределяем paths точнее -->
-    ${selected.includes('Грудь') || selected.includes('FULL BODY') ? `<rect x="29" y="22" width="30" height="18" rx="4" fill="${COLOR_MAP['Грудь']}" opacity="0.75"/>` : ''}
-    ${selected.includes('Спина') || selected.includes('FULL BODY') ? `<rect x="29" y="22" width="30" height="18" rx="4" fill="${COLOR_MAP['Спина']}" opacity="0.6"/>` : ''}
-    ${selected.includes('Плечи') || selected.includes('FULL BODY') ? `<ellipse cx="24" cy="24" rx="5" ry="7" fill="${COLOR_MAP['Плечи']}" opacity="0.85"/><ellipse cx="64" cy="24" rx="5" ry="7" fill="${COLOR_MAP['Плечи']}" opacity="0.85"/>` : ''}
-    ${selected.includes('Руки') || selected.includes('FULL BODY') ? `<rect x="20" y="26" width="7" height="22" rx="3.5" fill="${COLOR_MAP['Руки']}" opacity="0.85"/><rect x="61" y="26" width="7" height="22" rx="3.5" fill="${COLOR_MAP['Руки']}" opacity="0.85"/>` : ''}
-    ${selected.includes('Ноги') || selected.includes('FULL BODY') ? `<rect x="30" y="63" width="13" height="34" rx="5" fill="${COLOR_MAP['Ноги']}" opacity="0.85"/><rect x="45" y="63" width="13" height="34" rx="5" fill="${COLOR_MAP['Ноги']}" opacity="0.85"/>` : ''}
+  const silhouette = `<svg viewBox="0 0 60 130" width="56" height="122" style="flex-shrink:0;">
+    <!-- ГОЛОВА -->
+    <ellipse cx="30" cy="8" rx="6" ry="7" fill="#2A2D35"/>
+
+    <!-- ШЕЯ -->
+    <rect x="27.5" y="14" width="5" height="5" rx="1.5" fill="#222530"/>
+
+    <!-- ТРАПЕЦИЯ / ШЕЯ -->
+    <path d="M22,19 Q30,16 38,19 L36,24 Q30,22 24,24 Z" fill="${has('Плечи') ? c('Плечи') : '#252830'}" opacity="${has('Плечи') ? '0.9' : '1'}"/>
+
+    <!-- ПЛЕЧИ - дельты -->
+    <ellipse cx="17" cy="24" rx="7" ry="5.5" transform="rotate(-10,17,24)" fill="${has('Плечи') ? c('Плечи') : '#252830'}" opacity="${has('Плечи') ? '0.95' : '1'}"/>
+    <ellipse cx="43" cy="24" rx="7" ry="5.5" transform="rotate(10,43,24)" fill="${has('Плечи') ? c('Плечи') : '#252830'}" opacity="${has('Плечи') ? '0.95' : '1'}"/>
+
+    <!-- ГРУДЬ - левая и правая -->
+    <path d="M24,23 Q30,21 36,23 L37,34 Q33,37 30,37 Q27,37 23,34 Z" fill="${has('Грудь') ? c('Грудь') : '#1E2028'}" opacity="${has('Грудь') ? '0.9' : '1'}"/>
+    <path d="M24,23 Q27,24 30,24 L30,37 Q27,37 23,34 Z" fill="${has('Грудь') ? c('Грудь') : '#1A1C24'}" opacity="${has('Грудь') ? '0.75' : '1'}"/>
+    <path d="M30,24 Q33,24 36,23 L37,34 Q33,37 30,37 Z" fill="${has('Грудь') ? c('Грудь') : '#1A1C24'}" opacity="${has('Грудь') ? '0.75' : '1'}"/>
+
+    <!-- СПИНА поверх груди если выбрана -->
+    ${has('Спина') ? `<path d="M24,23 Q30,21 36,23 L37,34 Q30,37 23,34 Z" fill="${c('Спина')}" opacity="0.4"/>
+    <line x1="30" y1="23" x2="30" y2="37" stroke="${c('Спина')}" stroke-width="1.5" opacity="0.6"/>` : ''}
+
+    <!-- БИЦЕПС левый -->
+    <path d="M11,24 Q8,28 9,38 L14,39 Q13,30 16,26 Z" fill="${has('Руки') ? c('Руки') : '#1C1E28'}" opacity="${has('Руки') ? '0.9' : '1'}"/>
+    <!-- ТРИЦЕПС левый -->
+    <path d="M16,25 Q13,29 14,39 L18,38 Q17,30 19,26 Z" fill="${has('Руки') ? c('Руки') : '#1C1E28'}" opacity="${has('Руки') ? '0.7' : '1'}"/>
+    <!-- ПРЕДПЛЕЧЬЕ левое -->
+    <path d="M9,39 Q8,50 10,54 L15,53 Q14,48 14,39 Z" fill="${has('Руки') ? c('Руки') : '#1C1E28'}" opacity="${has('Руки') ? '0.75' : '1'}"/>
+
+    <!-- БИЦЕПС правый -->
+    <path d="M49,24 Q52,28 51,38 L46,39 Q47,30 44,26 Z" fill="${has('Руки') ? c('Руки') : '#1C1E28'}" opacity="${has('Руки') ? '0.9' : '1'}"/>
+    <!-- ТРИЦЕПС правый -->
+    <path d="M44,25 Q47,29 46,39 L42,38 Q43,30 41,26 Z" fill="${has('Руки') ? c('Руки') : '#1C1E28'}" opacity="${has('Руки') ? '0.7' : '1'}"/>
+    <!-- ПРЕДПЛЕЧЬЕ правое -->
+    <path d="M51,39 Q52,50 50,54 L45,53 Q46,48 46,39 Z" fill="${has('Руки') ? c('Руки') : '#1C1E28'}" opacity="${has('Руки') ? '0.75' : '1'}"/>
+
+    <!-- ПРЕСС / КОР - 6 кубиков -->
+    <path d="M23,37 Q30,40 37,37 L37,56 Q30,59 23,56 Z" fill="${has('Кор') ? c('Кор') : '#18191F'}" opacity="${has('Кор') ? '0.85' : '1'}"/>
+    ${has('Кор') ? `
+    <!-- кубики пресса -->
+    <rect x="25.5" y="39" width="3.5" height="4" rx="1" fill="#fff" opacity="0.18"/>
+    <rect x="31" y="39" width="3.5" height="4" rx="1" fill="#fff" opacity="0.18"/>
+    <rect x="25.5" y="45" width="3.5" height="4" rx="1" fill="#fff" opacity="0.14"/>
+    <rect x="31" y="45" width="3.5" height="4" rx="1" fill="#fff" opacity="0.14"/>
+    <rect x="25.5" y="51" width="3.5" height="3.5" rx="1" fill="#fff" opacity="0.1"/>
+    <rect x="31" y="51" width="3.5" height="3.5" rx="1" fill="#fff" opacity="0.1"/>
+    <line x1="30" y1="38" x2="30" y2="58" stroke="#0006" stroke-width="1"/>` : ''}
+
+    <!-- ТАЗ -->
+    <path d="M21,56 Q30,60 39,56 L40,65 Q30,68 20,65 Z" fill="#1E2028"/>
+
+    <!-- КВАДРИЦЕПС левый -->
+    <path d="M20,65 Q16,78 18,90 L26,90 Q26,78 26,65 Z" fill="${has('Ноги') ? c('Ноги') : '#191B22'}" opacity="${has('Ноги') ? '0.9' : '1'}"/>
+    <!-- внутренняя часть бедра левого -->
+    <path d="M26,65 Q28,76 27,90 L26,90 Q26,78 26,65 Z" fill="${has('Ноги') ? c('Ноги') : '#191B22'}" opacity="${has('Ноги') ? '0.55' : '1'}"/>
+    <!-- линия разделения квадро левый -->
+    ${has('Ноги') ? `<path d="M19,70 Q21,78 20,88" stroke="#0005" stroke-width="1.5" fill="none"/>` : ''}
+
+    <!-- КВАДРИЦЕПС правый -->
+    <path d="M40,65 Q44,78 42,90 L34,90 Q34,78 34,65 Z" fill="${has('Ноги') ? c('Ноги') : '#191B22'}" opacity="${has('Ноги') ? '0.9' : '1'}"/>
+    <!-- внутренняя часть бедра правого -->
+    <path d="M34,65 Q32,76 33,90 L34,90 Q34,78 34,65 Z" fill="${has('Ноги') ? c('Ноги') : '#191B22'}" opacity="${has('Ноги') ? '0.55' : '1'}"/>
+
+    <!-- КОЛЕНИ -->
+    <ellipse cx="22" cy="91" rx="5" ry="3" fill="#252830"/>
+    <ellipse cx="38" cy="91" rx="5" ry="3" fill="#252830"/>
+
+    <!-- ГОЛЕНЬ левая (икроножная) -->
+    <path d="M18,93 Q15,104 17,112 L24,112 Q25,104 26,93 Z" fill="${has('Ноги') ? c('Ноги') : '#17191F'}" opacity="${has('Ноги') ? '0.7' : '1'}"/>
+    <!-- берцовая кость -->
+    <path d="M24,93 Q25,104 24,112 L26,112 Q26,104 26,93 Z" fill="${has('Ноги') ? c('Ноги') : '#17191F'}" opacity="${has('Ноги') ? '0.4' : '1'}"/>
+
+    <!-- ГОЛЕНЬ правая -->
+    <path d="M42,93 Q45,104 43,112 L36,112 Q35,104 34,93 Z" fill="${has('Ноги') ? c('Ноги') : '#17191F'}" opacity="${has('Ноги') ? '0.7' : '1'}"/>
+    <path d="M36,93 Q35,104 36,112 L34,112 Q34,104 34,93 Z" fill="${has('Ноги') ? c('Ноги') : '#17191F'}" opacity="${has('Ноги') ? '0.4' : '1'}"/>
+
+    <!-- ЛОДЫЖКИ -->
+    <ellipse cx="21" cy="113" rx="4" ry="2.5" fill="#222530"/>
+    <ellipse cx="39" cy="113" rx="4" ry="2.5" fill="#222530"/>
+
+    <!-- СТУПНИ -->
+    <path d="M17,115 Q16,120 22,120 L27,118 Q25,115 21,115 Z" fill="#1C1E26"/>
+    <path d="M43,115 Q44,120 38,120 L33,118 Q35,115 39,115 Z" fill="#1C1E26"/>
   </svg>`;
 
   return `<div style="display:flex;align-items:flex-start;gap:10px;">

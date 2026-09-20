@@ -645,10 +645,11 @@ html, body {
 .hero-goals-bar { height:5px; background:rgba(255,255,255,0.2); border-radius:4px; overflow:hidden; margin-top:10px; }
 .hero-goals-fill { height:100%; background:linear-gradient(90deg,#A855F7,#EC4899); border-radius:4px; transition:width 1s cubic-bezier(.34,1.56,.64,1); }
 .hero-slide-sub { position:relative; z-index:1; }
-.hero-stat-row { display:flex; align-items:center; gap:0; }
-.hero-stat-box { flex:1; }
-.hero-stat-sep { width:1px; height:32px; background:rgba(255,255,255,0.2); margin:0 16px; flex-shrink:0; }
-.hero-stat-num { font-size:22px; font-weight:800; color:#fff; line-height:1; }
+.hero-stat-row { display:flex; align-items:center; gap:0; width:100%; overflow:hidden; }
+.hero-stat-box { flex:1; min-width:0; }
+.sb-block { flex:1; min-width:0; overflow:hidden; }
+.hero-stat-sep { width:1px; height:32px; background:rgba(255,255,255,0.2); margin:0 12px; flex-shrink:0; }
+.hero-stat-num { font-size:20px; font-weight:800; color:#fff; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .hero-stat-of { font-size:14px; font-weight:500; opacity:0.6; }
 .hero-stat-lbl { font-size:11px; color:rgba(255,255,255,0.5); margin-top:3px; }
 .hero-dots { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:10; }
@@ -979,4 +980,31 @@ html, body {
 @keyframes tile-shimmer {
   0%,100% { opacity: 0.3; }
   50%     { opacity: 0.7; }
+}
+
+/* ── Шаблоны сетки плиток ── */
+.home2-grid.layout-2x2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+.home2-grid.layout-row {
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(4, auto);
+}
+.home2-grid.layout-row .home2-tile {
+  min-height: 100px;
+}
+.home2-grid.layout-bigfirst {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+.home2-grid.layout-bigfirst .home2-tile:first-child {
+  grid-column: 1 / -1;
+}
+.home2-grid.layout-biglast {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+.home2-grid.layout-biglast .home2-tile:last-child {
+  grid-column: 1 / -1;
 }

@@ -96,28 +96,32 @@ var Slides = (() => {
     {
       id: 'finance_cushion', section: 'Финансы',
       name: 'Финансовая подушка',
-      desc: 'Доход минус плановые расходы',
+      desc: 'Доход минус фактические расходы месяца',
       render: (store) => {
         const now = new Date();
         const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income  = entries.reduce((s,e)=>s+((e?.amount)||0),0);
-        const planned = store.home?.plannedExpenses || 97000;
-        const cushion = income - planned;
+        const cats = store.finance?.balance?.categories || [];
+        const spent = cats.reduce((s,c)=>s+(c?.spent||0), 0);
+        /* Если нет фактических трат — берём плановые */
+        const expenses = spent > 0 ? spent : cats.reduce((s,c)=>s+(c?.amt||0), 0);
+        const cushion = income - expenses;
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const color = cushion>=0?'#4ADE80':'#F87171';
-        return `<div class="hero-stat-num" style="color:${color}">${fmt(cushion)}</div><div class="hero-stat-lbl">${cushion>=0?'подушка':'не хватает'}</div>`;
+        return `<div class="hero-stat-num" style="color:${color}">${cushion<0?'−':''}${fmt(cushion)}</div><div class="hero-stat-lbl">${cushion>=0?'свободно':'не хватает'}</div>`;
       },
     },
     {
       id: 'goals_pct', section: 'Цели',
       name: 'Прогресс целей %',
       desc: 'Процент закрытых целей',
-      render: (store) => {
+      render: (store, cfg, slideColor) => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const done  = goals.filter(g=>g.done).length;
         const pct   = goals.length ? Math.round(done/goals.length*100) : 0;
-        return `<div class="hero-big-text">${pct}%</div><div class="hero-goals-bar"><div class="hero-goals-fill" style="width:${pct}%"></div></div>`;
+        const color = slideColor || '#A78BFA';
+        return `<div class="hero-big-text">${pct}%</div><div class="hero-goals-bar"><div class="hero-goals-fill" style="width:${pct}%;background:${color};"></div></div>`;
       },
     },
     {
@@ -126,11 +130,11 @@ var Slides = (() => {
       desc: 'Сумма незакрытых целей текущего сезона',
       render: (store) => {
         const now = new Date(); const m = now.getMonth();
-        const season = m<=7?'summer':m<=10?'autumn':'december';
+        const season = m<=1||m===11 ? 'winter' : m<=4?'spring':m<=7?'summer':'autumn';
         const goals  = ((store.goals?.directions)||[]).filter(Boolean);
         const left   = goals.filter(g=>g.season===season&&!g.done&&!g.maybe).reduce((s,g)=>s+(g.amount||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        const names  = {summer:'Лето',autumn:'Осень',december:'Декабрь'};
+        const names  = {spring:'Весна',summer:'Лето',autumn:'Осень',winter:'Зима'};
         return `<div class="hero-stat-num" style="font-size:13px;">${fmt(left)}</div><div class="hero-stat-lbl">цели ${names[season]}</div>`;
       },
     },
@@ -281,16 +285,19 @@ var Slides = (() => {
     {
       id: 'finance_savings_pct', section: 'Финансы',
       name: 'Процент накоплений',
-      desc: 'Доля сохранённых денег от дохода',
+      desc: 'Доля сохранённых денег от дохода (доход − расходы)',
       render: (store) => {
         const now = new Date();
         const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income = entries.reduce((s,e)=>s+((e?.amount)||0),0);
-        const planned = store.home?.plannedExpenses || 97000;
-        const pct = income > 0 ? Math.round((income-planned)/income*100) : 0;
+        const cats = store.finance?.balance?.categories || [];
+        const spent = cats.reduce((s,c)=>s+(c?.spent||0), 0);
+        const expenses = spent > 0 ? spent : cats.reduce((s,c)=>s+(c?.amt||0), 0);
+        const saved = Math.max(0, income - expenses);
+        const pct = income > 0 ? Math.round(saved / income * 100) : 0;
         const c = pct>=30?'#4ADE80':pct>=15?'#F59E0B':'#F87171';
-        return `<div class="hero-stat-num" style="color:${c}">${Math.max(0,pct)}%</div><div class="hero-stat-lbl">накоплений</div>`;
+        return `<div class="hero-stat-num" style="color:${c}">${pct}%</div><div class="hero-stat-lbl">накоплений</div>`;
       },
     },
     /* ── Цели: доп блоки ── */
@@ -355,7 +362,7 @@ var Slides = (() => {
     {
       id: 's_finance', label: 'ФИНАНСОВЫЙ ПУЛЬС', cssClass: 'slide-finance', glowClass: 'slide-glow-green',
       enabled: true, route: '/finance',
-      blocks: ['finance_income','finance_cushion'],
+      blocks: ['finance_income','finance_cushion','finance_savings_pct'],
     },
     {
       id: 's_goals', label: 'ПРОГРЕСС ЦЕЛЕЙ', cssClass: 'slide-goals', glowClass: 'slide-glow-purple',
@@ -374,11 +381,19 @@ var Slides = (() => {
 
   /* ── Рендер одного слайда — структура как в оригинале ── */
   function renderSlide(cfg, store) {
+    const _glowColorMap = {
+      'slide-amber':'#F59E0B','slide-crimson':'#F87171','slide-pink':'#F472B6',
+      'slide-teal':'#2DD4BF','slide-indigo':'#818CF8','slide-orange':'#FB923C',
+      'slide-lime':'#A3E635','slide-slate':'#94A3B8','slide-red':'#EF4444',
+      'slide-midnight':'#60A5FA','slide-jade':'#34D399'
+    };
+    const slideColor = cfg.glowColor || _glowColorMap[cfg.cssClass] || '#4A7CFF';
+
     const rendered = (cfg.blocks||[]).map(bid => {
       const def = BLOCK_LIBRARY.find(b=>b.id===bid);
       if (!def) return null;
       const blockCfg = cfg.blockCfgs?.[bid];
-      try { return { html: def.render(store, blockCfg) }; }
+      try { return { html: def.render(store, blockCfg, slideColor) }; }
       catch(e) { return null; }
     }).filter(Boolean);
 
@@ -397,12 +412,6 @@ var Slides = (() => {
     const stylePart  = cfg.cssClass ? '' : ` style="background:${cfg.color||'#1A1C22'}"`;
     const glowClass  = cfg.glowClass || '';
     /* Для новых cssClass без glowClass — glow через inline color */
-    const _glowColorMap = {
-      'slide-amber':'#F59E0B','slide-crimson':'#F87171','slide-pink':'#F472B6',
-      'slide-teal':'#2DD4BF','slide-indigo':'#818CF8','slide-orange':'#FB923C',
-      'slide-lime':'#A3E635','slide-slate':'#94A3B8','slide-red':'#EF4444',
-      'slide-midnight':'#60A5FA','slide-jade':'#34D399'
-    };
     const _gc = cfg.glowColor || _glowColorMap[cfg.cssClass] || '#4A7CFF';
     const glowStyle  = cfg.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${_gc}44 0%,transparent 70%);"`;
     return `<div class="${slideClass}"${stylePart}${route}>
@@ -538,19 +547,19 @@ var Slides = (() => {
     /* ── DOM ── */
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:flex-end;justify-content:center;padding:0;box-sizing:border-box;';
+    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
 
     function renderOv() {
       const curSlides = getSlides();
-      ov.innerHTML = `<div id="se-panel" style="background:#13151A;border-radius:20px 20px 0 0;width:100%;max-width:600px;margin:0 auto;height:88vh;max-height:88vh;display:flex;flex-direction:column;box-sizing:border-box;">
-        <div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:20px 20px 0 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+      ov.innerHTML = `<div id="se-panel" style="background:#13151A;border-radius:16px;width:100%;max-width:520px;margin:0 auto;max-height:85vh;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">
+        <div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:16px 16px 0 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайды</span>
           <div style="display:flex;gap:8px;">
             <button id="se-add" style="padding:6px 14px;border-radius:10px;border:1px solid #4A7CFF;background:rgba(74,124,255,.15);color:#4A7CFF;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Новый</button>
             <button id="se-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
           </div>
         </div>
-        <div style="overflow-y:auto;flex:1;padding:16px 20px 40px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;">
+        <div style="overflow-y:auto;flex:1;min-height:0;padding:16px 20px 40px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;">
           <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Перетащи для изменения порядка (drag n drop в разработке). Нажми Изменить чтобы редактировать блоки.</div>
           ${curSlides.map((s,i) => slideCard(s,i)).join('')}
         </div>
@@ -588,7 +597,7 @@ var Slides = (() => {
           head.querySelector('span').textContent = 'Редактировать слайд';
           head.querySelector('#se-add').style.display='none';
           const body = panel.querySelectorAll('div')[1]; // scroll area
-          body.style.cssText = 'overflow-y:auto;flex:1;padding:16px 20px 80px;-webkit-overflow-scrolling:touch;';
+          body.style.cssText = 'overflow-y:auto;flex:1;min-height:0;padding:16px 20px 80px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;';
           body.innerHTML = slideEditForm(sl[idx], idx);
 
           /* Color picker */

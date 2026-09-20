@@ -8,7 +8,7 @@ const GOALS_SEASONS = [
   { key: 'all',    label: 'Всё',   color: '#F2A93B', bg: '#1A1200' },
   { key: 'spring', label: 'Весна', color: '#A8C97F', bg: '#0A1A0A', end: new Date(new Date().getFullYear(),5,0) },
   { key: 'summer', label: 'Лето',  color: '#4ADE80', bg: '#051A0A', end: new Date(new Date().getFullYear(),8,0) },
-  { key: 'autumn', label: 'Осень', color: '#F59E0B', bg: '#1A1000', end: new Date(new Date().getFullYear(),11,0) },
+  { key: 'autumn', label: 'Осень', color: '#FB923C', bg: '#1A0E00', end: new Date(new Date().getFullYear(),11,0) },
   { key: 'winter', label: 'Зима',  color: '#60A5FA', bg: '#0C1525', end: new Date(new Date().getFullYear()+1,2,0) },
 ];
 
@@ -121,18 +121,23 @@ function goalsMonthsLeft(season) {
   const s = GOALS_SEASONS.find(x=>x.key===season);
   if (!s?.end) return null;
   const now = new Date();
-  /* Считаем только месяцы внутри сезона начиная со следующего.
-     Лето: июн-авг, Осень: сен-ноя, Декабрь: дек
-     Если сейчас июль — до конца лета 1 мес (август), осень 3 (сен+окт+ноя), декабрь 1 */
+  const curMonth = now.getMonth(); // 0-11
   const SEASON_MONTHS = {
-    summer:   [5,6,7],   // июн=5, июл=6, авг=7
-    autumn:   [8,9,10],  // сен=8, окт=9, ноя=10
-    december: [11],      // дек=11
+    spring: [2,3,4],    // мар=2, апр=3, май=4
+    summer: [5,6,7],    // июн=5, июл=6, авг=7
+    autumn: [8,9,10],   // сен=8, окт=9, ноя=10
+    winter: [11,0,1],   // дек=11, янв=0, фев=1
   };
   const sMths = SEASON_MONTHS[season];
   if (!sMths) return null;
-  const curMonth = now.getMonth();
-  // Считаем месяцы сезона >= текущего месяца
+  // Для зимы особый учёт (переход через год)
+  if (season === 'winter') {
+    // Текущий месяц входит в зиму?
+    if (curMonth === 11) return 3; // дек — осталось 3 (дек+янв+фев)
+    if (curMonth === 0)  return 2; // янв — 2 (янв+фев)
+    if (curMonth === 1)  return 1; // фев — 1
+    return 3; // вне зимы — показываем полный сезон
+  }
   const left = sMths.filter(m => m >= curMonth).length;
   return Math.max(1, left);
 }
@@ -174,7 +179,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
             <option value="spring"${existing?.season==='spring'?' selected':''}>Весна</option>
             <option value="summer"${existing?.season==='summer'?' selected':''}>Лето</option>
             <option value="autumn"${existing?.season==='autumn'?' selected':''}>Осень</option>
-            <option value="december"${existing?.season==='december'?' selected':''}>Декабрь</option>
+            <option value="winter"${existing?.season==='winter'?' selected':''}>Зима</option>
           </select>
         </div>
         <div class="goals-modal-field">
@@ -352,7 +357,8 @@ window.Screens.goals = function(mount) {
     const bg = season.bg;
 
     const items = activeSeason==='all' ? all : all.filter(g=>g.season===activeSeason);
-    const monthsLeft = goalsMonthsLeft(activeSeason);
+    /* Если выбран конкретный месяц — осталось 1 месяц, иначе считаем по сезону */
+    const monthsLeft = activeMonth > 0 ? 1 : goalsMonthsLeft(activeSeason);
     /* filteredByMonth = при активном фильтре — только цели с этим месяцем (без месяца не показываем) */
     const filteredByMonth = (activeMonth > 0) ? items.filter(g=>g.month===activeMonth) : items;
     /* totalAmt = все суммы сезона (включая закрытые) для показа общего */
@@ -392,14 +398,14 @@ window.Screens.goals = function(mount) {
       const goalItems = all.filter(g=>g.cat==='Цель');
       const goalTotal = goalItems.filter(g=>!g.done).reduce((s,g)=>s+g.amount,0);
       const otherItems = all.filter(g=>g.cat!=='Цель'&&g.season!=='all');
-      /* "На год" = все суммы незакрытых по сезонам */
       const otherTotal = otherItems.reduce((s,g)=>s+((g.done||g.maybe)?0:g.amount),0);
-      /* grandTotal = незакрытые цели + незакрытые сезонные */
+      /* grandTotal = все незакрытые (Цель + сезонные) */
       const grandTotal = goalTotal + otherTotal;
-      /* Закрыто = только сезонные закрытые (не цель) */
-      const doneOtherTotal = all.filter(g=>g.done&&g.amount>0&&g.season!=='all').reduce((s,g)=>s+g.amount,0);
-      /* Осталось не может быть отрицательным */
-      const remainOther = Math.max(0, otherTotal - doneOtherTotal);
+      /* На год = всё включая Цель */
+      const naGodTotal = grandTotal;
+      /* Закрыто = все закрытые с суммой */
+      const doneTotal = all.filter(g=>g.done&&g.amount>0).reduce((s,g)=>s+g.amount,0);
+      const remainTotal = Math.max(0, grandTotal);
       const allDone = all.filter(g=>g.done).length;
       const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
       heroHtml = `
@@ -407,9 +413,9 @@ window.Screens.goals = function(mount) {
           <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>
           <div class="goals-hero-big">${goalsFmt(grandTotal)}</div>
           <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
-            <span>На год: ${goalsFmt(otherTotal)}</span>
-            <span style="color:#A8C97F;">Закрыто: ${goalsFmt(doneOtherTotal)}</span>
-            <span style="color:#9D9A92;">Осталось: ${goalsFmt(remainOther)}</span>
+            <span>На год: ${goalsFmt(naGodTotal)}</span>
+            <span style="color:#A8C97F;">Закрыто: ${goalsFmt(doneTotal)}</span>
+            <span style="color:#9D9A92;">Осталось: ${goalsFmt(remainTotal)}</span>
           </div>
           <div class="goals-all-progress"><div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div></div>
           <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>

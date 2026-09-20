@@ -1385,7 +1385,7 @@ body {
   padding-top: 0;
 }
 #app {
-  padding-top: env(safe-area-inset-top);
+  padding-top: 0;
 }
 
 /* ── Привычки: метрики — компактно на мобиле ── */
@@ -1566,10 +1566,9 @@ button.hab-hist-edit, .hab-hist-btn {
 }
 .goals-check-v3.active {
   background: transparent !important;
-  border: 2px solid rgba(242,169,59,0.4) !important;
 }
 .goals-check-v3.active:hover {
-  border-color: #F2A93B !important;
+  opacity: 0.8;
 }
 /* check colors set via inline style in JS */
 
@@ -1600,7 +1599,6 @@ button.hab-hist-edit, .hab-hist-btn {
 /* ── Цели: чекбоксы янтарные ── */
 .goals-check-v3.active {
   background: transparent !important;
-  border: 2px solid rgba(242,169,59,0.45) !important;
 }
 /* check colors set via inline style in JS */
 

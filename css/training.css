@@ -792,11 +792,12 @@
 /* ── Редактор упражнений ───────────────────────────── */
 .tr-ex-edit-group {
   margin-bottom: 16px;
+  width: 100%;
 }
 .tr-ex-edit-group-title {
   font-size: 12px;
   font-weight: 700;
-  color: #2E7FD4;
+  color: #60A5FA;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 6px;
@@ -807,10 +808,17 @@
   justify-content: space-between;
   padding: 5px 0;
   border-bottom: 1px solid #2A2D3520;
+  min-width: 0;
 }
 .tr-ex-edit-name {
   font-size: 13px;
   color: #E8E5DC;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 .tr-ex-edit-rename, .tr-ex-edit-delete {
   background: none;
@@ -1265,33 +1273,15 @@
 .m-groups-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0;
+  gap: 6px;
+  padding: 2px 0;
 }
 .m-group-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(59,130,246,0.25);
-  background: rgba(15,35,71,0.6);
-  color: rgba(255,255,255,0.6);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.2s;
   user-select: none;
+  transition: all 0.15s;
 }
-.m-group-label:has(.m-group-check:checked) {
-  border-color: #3B82F6;
-  background: rgba(59,130,246,0.2);
-  color: #93C5FD;
-}
-.m-group-label:hover {
-  border-color: rgba(59,130,246,0.5);
-  color: rgba(255,255,255,0.9);
-}
+.m-group-label:active { opacity: 0.75; transform: scale(0.96); }
 
 /* Select упражнения */
 select.m-exc-sel {
@@ -1333,7 +1323,7 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
   width: 100%;
   box-sizing: border-box;
   background: #0f1520;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   display: flex;
   padding: 0;
   overflow-x: visible;

@@ -512,15 +512,15 @@ var Slides = (() => {
         return `<button class="se-color-btn" data-css-class="${c.cssClass||''}" data-glow-class="${c.glowClass||''}" data-color="${c.val||''}" data-glow="${c.glow||''}" data-bg="${encodeURIComponent(c.bg||c.val||'')}" style="width:36px;height:36px;border-radius:8px;background:${swatchBg};border:2px solid ${isActive?'rgba(255,255,255,0.9)':'transparent'};cursor:pointer;box-shadow:${isActive?'0 0 0 1px rgba(255,255,255,0.3)':''}" title="${c.name}"></button>`;
       }).join('');
 
-      return `<div style="padding:0 20px 20px;">
+      return `<div style="padding:0 20px 20px;box-sizing:border-box;width:100%;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:8px;">Название слайда</div>
-        <input type="text" id="se-label" value="${s.label||''}" placeholder="ФОКУС ДНЯ" style="width:100%;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:14px;">
+        <input type="text" id="se-label" value="${s.label||''}" placeholder="ФОКУС ДНЯ" style="width:100%;box-sizing:border-box;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:14px;">
 
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:8px;">Цвет фона</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${colorOpts}</div>
+        <div style="display:grid;grid-template-columns:repeat(6,36px);gap:8px;margin-bottom:16px;">${colorOpts}</div>
 
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:4px;">Ссылка при нажатии</div>
-        <select id="se-route" style="width:100%;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;margin-bottom:16px;">
+        <select id="se-route" style="width:100%;box-sizing:border-box;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;margin-bottom:16px;">
           <option value="">Никуда</option>
           <option value="/training" ${s.route==='/training'?'selected':''}>Тренировки</option>
           <option value="/habits"   ${s.route==='/habits'?'selected':''}>Привычки</option>
@@ -531,18 +531,18 @@ var Slides = (() => {
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:4px;">Блоки данных</div>
         ${blockCheckboxes}
 
-        <button id="se-save-slide" style="width:100%;margin-top:16px;margin-bottom:8px;padding:14px;background:#4A7CFF;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить слайд</button>
+        <button id="se-save-slide" style="width:100%;box-sizing:border-box;margin-top:16px;margin-bottom:8px;padding:14px;background:#4A7CFF;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить слайд</button>
       </div>`;
     }
 
     /* ── DOM ── */
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+    ov.style.cssText = 'align-items:flex-end;justify-content:center;padding:0;box-sizing:border-box;';
 
     function renderOv() {
       const curSlides = getSlides();
-      ov.innerHTML = `<div id="se-panel" style="background:#13151A;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;max-height:88vh;display:flex;flex-direction:column;">
+      ov.innerHTML = `<div id="se-panel" style="background:#13151A;border-radius:20px 20px 0 0;width:100%;max-width:600px;margin:0 auto;height:88vh;max-height:88vh;display:flex;flex-direction:column;box-sizing:border-box;">
         <div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:20px 20px 0 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайды</span>
           <div style="display:flex;gap:8px;">
@@ -550,7 +550,7 @@ var Slides = (() => {
             <button id="se-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
           </div>
         </div>
-        <div style="overflow-y:auto;flex:1;padding:16px 20px 32px;-webkit-overflow-scrolling:touch;">
+        <div style="overflow-y:auto;flex:1;padding:16px 20px 40px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;">
           <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Перетащи для изменения порядка (drag n drop в разработке). Нажми Изменить чтобы редактировать блоки.</div>
           ${curSlides.map((s,i) => slideCard(s,i)).join('')}
         </div>

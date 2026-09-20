@@ -5,11 +5,39 @@
 window.Screens = window.Screens || {};
 
 const GOALS_SEASONS = [
-  { key: 'all',      label: 'Всё',     color: '#F2A93B', bg: '#1A1200' },
-  { key: 'spring',   label: 'Весна',   color: '#38BDF8', bg: '#0C1A2E', end: new Date(2026,4,31) },
-  { key: 'summer',   label: 'Лето',    color: '#4ADE80', bg: '#051A0A', end: new Date(2026,7,31) },
-  { key: 'autumn',   label: 'Осень',   color: '#FB7185', bg: '#2A1020', end: new Date(2026,10,30) },
-  { key: 'december', label: 'Декабрь', color: '#60A5FA', bg: '#0C1525', end: new Date(2026,11,31) },
+  { key: 'all',    label: 'Всё',   color: '#F2A93B', bg: '#1A1200' },
+  { key: 'spring', label: 'Весна', color: '#A8C97F', bg: '#0A1A0A', end: new Date(new Date().getFullYear(),5,0) },
+  { key: 'summer', label: 'Лето',  color: '#4ADE80', bg: '#051A0A', end: new Date(new Date().getFullYear(),8,0) },
+  { key: 'autumn', label: 'Осень', color: '#F59E0B', bg: '#1A1000', end: new Date(new Date().getFullYear(),11,0) },
+  { key: 'winter', label: 'Зима',  color: '#60A5FA', bg: '#0C1525', end: new Date(new Date().getFullYear()+1,2,0) },
+];
+
+/* Демо-цели для НОВЫХ пользователей — популярные желания по сезонам */
+const GOALS_DEMO = [
+  /* Весна */
+  { id:'demo_sp1', cat:'Здоровье',    name:'Записаться к врачу / чекап',  amount:5000,  done:false, season:'spring' },
+  { id:'demo_sp2', cat:'Спорт',       name:'Купить кроссовки для бега',    amount:8000,  done:false, season:'spring' },
+  { id:'demo_sp3', cat:'Развитие',    name:'Пройти онлайн-курс',           amount:10000, done:false, season:'spring' },
+  { id:'demo_sp4', cat:'Дом',         name:'Обновить гардероб',            amount:15000, done:false, season:'spring' },
+  { id:'demo_sp5', cat:'Отдых',       name:'Поездка на майские',           amount:30000, done:false, season:'spring' },
+  /* Лето */
+  { id:'demo_su1', cat:'Отдых',       name:'Отпуск / путешествие',         amount:80000, done:false, season:'summer' },
+  { id:'demo_su2', cat:'Спорт',       name:'Велосипед или самокат',        amount:20000, done:false, season:'summer' },
+  { id:'demo_su3', cat:'Здоровье',    name:'Стоматолог',                   amount:15000, done:false, season:'summer' },
+  { id:'demo_su4', cat:'Дом',         name:'Ремонт / обновление интерьера',amount:50000, done:false, season:'summer' },
+  { id:'demo_su5', cat:'Техника',     name:'Новый гаджет / телефон',       amount:40000, done:false, season:'summer' },
+  /* Осень */
+  { id:'demo_au1', cat:'Одежда',      name:'Куртка / пальто на осень',     amount:12000, done:false, season:'autumn' },
+  { id:'demo_au2', cat:'Развитие',    name:'Книги / обучение',             amount:5000,  done:false, season:'autumn' },
+  { id:'demo_au3', cat:'Финансы',     name:'Создать подушку безопасности', amount:50000, done:false, season:'autumn' },
+  { id:'demo_au4', cat:'Дом',         name:'Уютный декор / текстиль',      amount:8000,  done:false, season:'autumn' },
+  { id:'demo_au5', cat:'Спорт',       name:'Абонемент в зал / бассейн',    amount:10000, done:false, season:'autumn' },
+  /* Зима */
+  { id:'demo_wi1', cat:'Подарки',     name:'Подарки близким',              amount:20000, done:false, season:'winter' },
+  { id:'demo_wi2', cat:'Отдых',       name:'Новогодние праздники',         amount:30000, done:false, season:'winter' },
+  { id:'demo_wi3', cat:'Спорт',       name:'Зимний отдых / горы',          amount:60000, done:false, season:'winter' },
+  { id:'demo_wi4', cat:'Развитие',    name:'Цели на следующий год',        amount:0,     done:false, season:'winter' },
+  { id:'demo_wi5', cat:'Финансы',     name:'Инвестиции / накопления',      amount:30000, done:false, season:'winter' },
 ];
 
 const GOALS_INITIAL = [
@@ -53,10 +81,10 @@ const GOALS_INITIAL = [
   {"id":"g_o13","cat":"Лыжный комплект","name":"Рации","amount":4000,"done":false,"season":"autumn"},
   {"id":"g_o14","cat":"Здоровье","name":"Чек-ап организма","amount":15000,"done":false,"season":"autumn"},
   {"id":"g_o15","cat":"Разное","name":"Одежда на осень-зиму","amount":40000,"done":false,"season":"autumn"},
-  {"id":"g_d1","cat":"Бизнес","name":"Налог 4 КВ","amount":12375,"done":false,"season":"december"},
-  {"id":"g_d2","cat":"Бизнес","name":"Налог УСН","amount":20000,"done":false,"season":"december"},
-  {"id":"g_d3","cat":"Бизнес","name":"Налог АВТО","amount":8500,"done":false,"season":"december"},
-  {"id":"g_d4","cat":"Разное","name":"Парфюм зима+весна","amount":25000,"done":false,"season":"december"},
+  {"id":"g_d1","cat":"Бизнес","name":"Налог 4 КВ","amount":12375,"done":false,"season":"winter"},
+  {"id":"g_d2","cat":"Бизнес","name":"Налог УСН","amount":20000,"done":false,"season":"winter"},
+  {"id":"g_d3","cat":"Бизнес","name":"Налог АВТО","amount":8500,"done":false,"season":"winter"},
+  {"id":"g_d4","cat":"Разное","name":"Парфюм зима+весна","amount":25000,"done":false,"season":"winter"},
 ];
 
 function goalsGet() {
@@ -64,9 +92,22 @@ function goalsGet() {
   if (s) {
     const arr = Array.isArray(s) ? s : Object.values(s);
     const clean = arr.filter(Boolean);
-    if (clean.length > 0) return clean;
+    if (clean.length > 0) {
+      /* Мигрируем december → winter */
+      let migrated = false;
+      clean.forEach(g => { if (g.season === 'december') { g.season = 'winter'; migrated = true; } });
+      if (migrated) goalsSave(clean);
+      return clean;
+    }
   }
-  return []; /* новый пользователь — пустой список, не дефолт */
+  /* Новый пользователь — показываем демо-цели (не сохраняем, только для показа) */
+  return JSON.parse(JSON.stringify(GOALS_DEMO));
+}
+function goalsIsDemo() {
+  const s = Store.get().goals?.directions;
+  if (!s) return true;
+  const arr = Array.isArray(s) ? s : Object.values(s);
+  return arr.filter(Boolean).length === 0;
 }
 function goalsSave(list) {
   /* Пишем весь массив целиком одним Store.set — Firebase получает чистый массив */
@@ -96,7 +137,7 @@ function goalsMonthsLeft(season) {
   return Math.max(1, left);
 }
 
-function goalsOpenModal(existing, onSave) {
+function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   const isEdit = !!existing;
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay modal-goals';
@@ -182,7 +223,7 @@ function goalsOpenModal(existing, onSave) {
 
   /* Статус кнопки */
   let selStatus = existing?.done?'done':existing?.maybe?'maybe':'active';
-  const _seasonAccent = (GOALS_SEASONS.find(s=>s.key===activeSeason)||{color:'#F2A93B'}).color;
+  const _seasonAccent = (GOALS_SEASONS.find(s=>s.key===(_activeSeasonOverride||window._goalsActiveSeason||'all'))||{color:'#F2A93B'}).color;
   overlay.querySelectorAll('.gm-status').forEach(btn=>{
     btn.addEventListener('click',()=>{
       selStatus=btn.dataset.val;
@@ -223,6 +264,7 @@ function goalsOpenModal(existing, onSave) {
 
 window.Screens.goals = function(mount) {
   let activeSeason = 'all';
+  window._goalsActiveSeason = 'all';
   let activeMonth = 0;
 
   mount.innerHTML = `
@@ -261,6 +303,7 @@ window.Screens.goals = function(mount) {
       btn.style.color = s.color;
       btn.style.borderBottomColor = s.color;
       activeSeason = s.key;
+      window._goalsActiveSeason = s.key;
       activeMonth = 0;
       render();
     });
@@ -454,7 +497,17 @@ window.Screens.goals = function(mount) {
 
     /* ── Рендер HTML ── */
     const addNewCatBtn = '<div style="padding:16px;"><button class="goals-add-v3" data-cat="" data-season="'+activeSeason+'" style="width:100%;">+ новая категория</button></div>';
-    content.innerHTML = heroHtml + catsHtml.join('') + addNewCatBtn;
+    const isDemoMode = goalsIsDemo();
+    const demoBanner = isDemoMode ? `
+      <div id="goals-demo-banner" style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:12px 14px;margin:12px 0;display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:18px;flex-shrink:0;">💡</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:#86EFAC;margin-bottom:3px;">Это демо-цели</div>
+          <div style="font-size:12px;color:rgba(134,239,172,0.7);line-height:1.4;">Популярные желания по сезонам — как пример заполнения. Замените их своими.</div>
+          <button id="goals-clear-demo" style="margin-top:8px;padding:6px 14px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);border-radius:8px;color:#4ADE80;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">✏️ Заполнить своё</button>
+        </div>
+      </div>` : '';
+    content.innerHTML = heroHtml + demoBanner + catsHtml.join('') + addNewCatBtn;
 
     /* Чекбокс: закрыть/открыть цель */
     content.querySelectorAll('.goals-check-v3').forEach(chk=>{
@@ -478,7 +531,7 @@ window.Screens.goals = function(mount) {
         const list = goalsGet();
         const item = list.find(g=>g.id===gid);
         if(!item) return;
-        goalsOpenModal({...item}, result=>{
+        goalsOpenModal({...item}, result=>{ // edit
           const fresh = goalsGet(); /* берём свежий список */
           if(result===null) {
             const filtered = fresh.filter(g=>g.id!==gid);
@@ -504,9 +557,19 @@ window.Screens.goals = function(mount) {
     document.getElementById('goals-new').addEventListener('click',()=>{
       goalsOpenModal({season:activeSeason==='all'?'all':activeSeason},result=>{
         if(!result)return;
-        const list=goalsGet();list.push(result);goalsSave(list);render();
+        /* При первом сохранении своей цели — инициализируем пустой список (сбрасываем демо) */
+        const current = goalsIsDemo() ? [] : goalsGet();
+        current.push(result); goalsSave(current); render();
       });
     });
+    // Кнопка «Заполнить своё» — очищает демо-цели
+    const clearDemoBtn = document.getElementById('goals-clear-demo');
+    if (clearDemoBtn) {
+      clearDemoBtn.addEventListener('click', () => {
+        if (!confirm('Удалить демо-цели и начать с чистого листа?')) return;
+        goalsSave([]); render();
+      });
+    }
     // цвет кнопки + под текущий сезон
     const _newBtn = document.getElementById('goals-new');
     if (_newBtn) { _newBtn.style.background = color; _newBtn.style.boxShadow = `0 4px 16px ${color}66`; }

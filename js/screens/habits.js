@@ -28,8 +28,21 @@ function habMonthKey(year, month) {
   return `${year}-${String(month+1).padStart(2,'0')}`;
 }
 
+const HABITS_DEMO = [
+  { id:'hd1', name:'Физическая активность', description:'Минимум 30 мин движения', icon:'ti-run', schedule:'daily',    target:7  },
+  { id:'hd2', name:'Читать книгу',           description:'Хотя бы 10 страниц',      icon:'ti-book', schedule:'daily',   target:7  },
+  { id:'hd3', name:'Вода 2 литра',           description:'Выпить 2л воды за день',  icon:'ti-droplet', schedule:'daily',target:7  },
+  { id:'hd4', name:'Без соцсетей утром',     description:'Первый час без телефона', icon:'ti-device-mobile-off', schedule:'weekday', target:5 },
+  { id:'hd5', name:'Тренировка в зале',      description:'Полноценная тренировка',  icon:'ti-barbell', schedule:'3perweek', target:3 },
+  { id:'hd6', name:'Медитация',              description:'5–10 минут тишины',       icon:'ti-brain',  schedule:'daily',   target:7  },
+  { id:'hd7', name:'Планирование дня',       description:'Записать 3 главных дела', icon:'ti-checklist', schedule:'weekday', target:5 },
+];
+
 function habGetList() {
   return (Store.get().habits?.list || []).filter(Boolean);
+}
+function habIsDemo() {
+  return habGetList().length === 0;
 }
 
 function habGetMarks(monthKey) {
@@ -58,12 +71,21 @@ function habProgress(h, marks, year, month) {
   let total = 0;
 
   if (h.schedule === 'weekday') {
-    /* Цель: все рабочие дни месяца */
     for (let d=1; d<=daysInMonth; d++) {
       if (habIsWorkday(year, month, d)) total++;
     }
+  } else if (h.schedule === 'weekend') {
+    for (let d=1; d<=daysInMonth; d++) {
+      const dow = new Date(year, month, d).getDay();
+      if (dow===0||dow===6) total++;
+    }
+  } else if (h.schedule === 'custom') {
+    const days = h.customDays||[];
+    for (let d=1; d<=daysInMonth; d++) {
+      const dow = new Date(year, month, d).getDay()||7; // 1=пн..7=вс
+      if (days.includes(dow)) total++;
+    }
   } else if (h.schedule === '3perweek') {
-    /* Цель: target * кол-во недель в месяце */
     const fullWeeks = Math.floor(daysInMonth / 7);
     const remainder = daysInMonth % 7;
     total = fullWeeks * (h.target||3) + Math.round(remainder/7 * (h.target||3));
@@ -78,7 +100,9 @@ function habProgress(h, marks, year, month) {
 /* Является ли день активным для этой привычки */
 function habDayActive(h, year, month, day) {
   if (h.schedule==='weekday') return habIsWorkday(year, month, day);
-  return true; // для 3perweek все дни кликабельны
+  if (h.schedule==='weekend') { const dow=new Date(year,month,day).getDay(); return dow===0||dow===6; }
+  if (h.schedule==='custom') { const dow=new Date(year,month,day).getDay()||7; return (h.customDays||[]).includes(dow); }
+  return true;
 }
 
 
@@ -151,16 +175,31 @@ function habOpenModal(existing, onSave) {
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Расписание
           <select id="h-sched" class="tr-color-select">
-            <option value="weekday" ${(existing?.schedule||'weekday')==='weekday'?'selected':''}>Пн – Пт (каждый рабочий день)</option>
-            <option value="3perweek" ${existing?.schedule==='3perweek'?'selected':''}>3 раза в неделю</option>
-            <option value="daily" ${existing?.schedule==='daily'?'selected':''}>Каждый день</option>
+            <option value="daily"    ${existing?.schedule==='daily'   ?'selected':''}>Каждый день</option>
+            <option value="weekday"  ${(existing?.schedule||'weekday')==='weekday'?'selected':''}>Пн – Пт (рабочие дни)</option>
+            <option value="3perweek" ${existing?.schedule==='3perweek'?'selected':''}>N раз в неделю</option>
+            <option value="weekend"  ${existing?.schedule==='weekend' ?'selected':''}>Сб – Вс (выходные)</option>
+            <option value="custom"   ${existing?.schedule==='custom'  ?'selected':''}>Своё расписание</option>
           </select>
         </label>
       </div>
-      <div class="tr-modal-row" id="h-target-row" style="${(existing?.schedule||'weekday')==='3perweek'?'':'display:none;'}">
-        <label>Цель / нед
+      <div class="tr-modal-row" id="h-target-row" style="${existing?.schedule==='3perweek'?'':'display:none;'}">
+        <label>Раз в неделю
           <input type="number" id="h-target" value="${existing?.target||3}" min="1" max="7" inputmode="numeric">
         </label>
+      </div>
+      <div id="h-custom-days-row" style="${existing?.schedule==='custom'?'':'display:none;'}">
+        <div style="font-size:12px;color:#9D9A92;margin-bottom:8px;">Выбери дни</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map((d,i)=>{
+            const val = i+1;
+            const checked = (existing?.customDays||[]).includes(val);
+            return `<label style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+              <input type="checkbox" class="h-custom-day-cb" value="${val}" ${checked?'checked':''} style="display:none;">
+              <span class="h-day-pill" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:1.5px solid ${checked?'#16A34A':'#2A2D35'};background:${checked?'rgba(22,163,74,0.2)':'transparent'};color:${checked?'#4ADE80':'#9D9A92'};transition:all 0.15s;">${d}</span>
+            </label>`;
+          }).join('')}
+        </div>
       </div>
       <div style="margin-bottom:12px;">
         <div style="font-size:12px;color:#9D9A92;margin-bottom:8px;">Иконка</div>
@@ -183,7 +222,23 @@ function habOpenModal(existing, onSave) {
   let selIcon = existing?.icon||'ti-star';
 
   overlay.querySelector('#h-sched').addEventListener('change', e => {
-    overlay.querySelector('#h-target-row').style.display = e.target.value==='3perweek' ? '' : 'none';
+    const v = e.target.value;
+    overlay.querySelector('#h-target-row').style.display = v==='3perweek' ? '' : 'none';
+    overlay.querySelector('#h-custom-days-row').style.display = v==='custom' ? '' : 'none';
+  });
+
+  // Pill-кнопки для дней недели
+  overlay.querySelectorAll('.h-custom-day-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const pill = cb.nextElementSibling;
+      if (cb.checked) {
+        pill.style.borderColor='#16A34A'; pill.style.background='rgba(22,163,74,0.2)'; pill.style.color='#4ADE80';
+      } else {
+        pill.style.borderColor='#2A2D35'; pill.style.background='transparent'; pill.style.color='#9D9A92';
+      }
+    });
+    // Клик на pill тоже тоглит чекбокс
+    cb.nextElementSibling.addEventListener('click', () => { cb.checked=!cb.checked; cb.dispatchEvent(new Event('change')); });
   });
 
   overlay.querySelectorAll('.hab-icon-btn').forEach(btn => {
@@ -212,13 +267,17 @@ function habOpenModal(existing, onSave) {
     if (!name) return;
     const sched = overlay.querySelector('#h-sched').value;
     const target = parseInt(overlay.querySelector('#h-target').value)||3;
+    const customDays = sched==='custom'
+      ? Array.from(overlay.querySelectorAll('.h-custom-day-cb:checked')).map(c=>parseInt(c.value))
+      : [];
     onSave({
       id: existing?.id||'h_'+Date.now(),
       name,
       description: overlay.querySelector('#h-desc').value.trim(),
       icon: selIcon,
       schedule: sched,
-      target: sched==='3perweek' ? target : sched==='weekday' ? 5 : 7
+      target: sched==='3perweek' ? target : sched==='weekday' ? 5 : sched==='weekend' ? 2 : sched==='custom' ? customDays.length : 7,
+      customDays,
     });
     overlay.remove();
   });
@@ -333,22 +392,33 @@ window.Screens.habits = function(mount) {
 
   /* ── Сетка месяца ───────────────────────────── */
   function renderGrid() {
-    const habits = habGetList();
+    const isDemo = habIsDemo();
+    const habits = isDemo ? HABITS_DEMO : habGetList();
     const mk = habMonthKey(viewYear, viewMonth);
-    const marks = habGetMarks(mk);
+    const marks = isDemo ? {} : habGetMarks(mk);
     const daysInMonth = habDaysInMonth(viewYear, viewMonth);
     const isNow = today.getFullYear()===viewYear && today.getMonth()===viewMonth;
 
     const dayNums = Array.from({length:daysInMonth},(_,i)=>i+1);
 
-    // Итог месяца
     const progresses = habits.map(h => habProgress(h, marks, viewYear, viewMonth));
     const overallPct = progresses.length ? Math.round(progresses.reduce((s,p)=>s+p.pct,0)/progresses.length) : 0;
     const bestIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>a.pct>b.pct?a:b)) : -1;
     const worstIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>a.pct<b.pct?a:b)) : -1;
 
+    const demoBanner = isDemo ? `
+      <div id="hab-demo-banner" style="background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:12px;padding:12px 14px;margin:0 0 12px;display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:18px;flex-shrink:0;">💡</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:#86EFAC;margin-bottom:3px;">Это демо-привычки</div>
+          <div style="font-size:12px;color:rgba(134,239,172,0.7);line-height:1.5;">Популярные привычки для примера. Добавь свои — нажми «+ Добавить привычку».</div>
+          <button id="hab-clear-demo" style="margin-top:8px;padding:6px 14px;background:rgba(22,163,74,0.15);border:1px solid rgba(22,163,74,0.35);border-radius:8px;color:#4ADE80;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">✏️ Начать с чистого листа</button>
+        </div>
+      </div>` : '';
+
     content.innerHTML = `
       <div class="sec-card">
+      ${demoBanner}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="sec-card-title" style="margin:0;">Итог месяца</div>
           <div style="display:flex;gap:6px;align-items:center;">
@@ -495,10 +565,21 @@ window.Screens.habits = function(mount) {
       });
     });
 
+    // Кнопка «Начать с чистого листа» — сохраняем пустой список чтобы убрать демо
+    const clearDemoBtn = document.getElementById('hab-clear-demo');
+    if (clearDemoBtn) {
+      clearDemoBtn.addEventListener('click', () => {
+        if (!confirm('Удалить демо-привычки и начать с нуля?')) return;
+        habSaveList([]);
+        renderGrid();
+      });
+    }
+
     document.getElementById('hab-add').addEventListener('click', () => {
       habOpenModal(null, result => {
         if (!result) return;
-        const list = habGetList();
+        /* При первом добавлении своей привычки — инициализируем пустой список (сбрасываем демо) */
+        const list = habIsDemo() ? [] : habGetList();
         list.push(result);
         habSaveList(list);
         renderGrid();
@@ -719,23 +800,35 @@ window.Screens.habits = function(mount) {
     });
   }
 
+  /* Состояние выбранного месяца для колеса */
+  if (typeof renderWheel._selYear === 'undefined') {
+    const _init = new Date();
+    renderWheel._selYear = _init.getFullYear();
+    renderWheel._selMonth = _init.getMonth();
+  }
+
   function renderWheel() {
-    /* Список всех сохранённых колёс */
     const allWheels = Store.get().habits?.wheel || {};
     const keys = Object.keys(allWheels).sort((a,b)=>b.localeCompare(a));
-
-    /* Колесо — всегда реальный текущий месяц (не зависит от навигации по гриду) */
     const _wNow = new Date();
-    const currentMk = habMonthKey(_wNow.getFullYear(), _wNow.getMonth());
+    const selYear = renderWheel._selYear;
+    const selMonth = renderWheel._selMonth;
+    const currentMk = habMonthKey(selYear, selMonth);
     const currentData = wheelGetData(currentMk);
+    const isRealNow = selYear === _wNow.getFullYear() && selMonth === _wNow.getMonth();
+    const eyebrow = isRealNow ? 'Текущий месяц' : 'Выбранный месяц';
 
     content.innerHTML = `
       <div class="wheel-screen">
         <div class="wheel-current-card">
           <div class="wheel-card-head">
-            <div>
-              <div class="wheel-card-eyebrow">Текущий месяц</div>
-              <div class="wheel-card-title">${HAB_MONTHS_RU[_wNow.getMonth()]} ${_wNow.getFullYear()}</div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button id="wheel-prev-month" style="background:none;border:none;color:#9D9A92;cursor:pointer;font-size:18px;padding:4px;"><i class="ti ti-chevron-left"></i></button>
+              <div>
+                <div class="wheel-card-eyebrow">${eyebrow}</div>
+                <div class="wheel-card-title">${HAB_MONTHS_RU[selMonth]} ${selYear}</div>
+              </div>
+              <button id="wheel-next-month" style="background:none;border:none;color:${isRealNow?'#2A2D3540':'#9D9A92'};cursor:pointer;font-size:18px;padding:4px;${isRealNow?'pointer-events:none;':''}"><i class="ti ti-chevron-right"></i></button>
             </div>
             <button id="wheel-fill-now" class="wheel-fill-btn">
               ${currentData ? '✏️ Изменить' : '+ Заполнить'}
@@ -767,6 +860,20 @@ window.Screens.habits = function(mount) {
           }).join('')}
         </div>` : ''}
       </div>`;
+
+    document.getElementById('wheel-prev-month').addEventListener('click',()=>{
+      renderWheel._selMonth--;
+      if(renderWheel._selMonth < 0){ renderWheel._selMonth=11; renderWheel._selYear--; }
+      renderWheel();
+    });
+    const nextBtn = document.getElementById('wheel-next-month');
+    if(nextBtn) nextBtn.addEventListener('click',()=>{
+      const now = new Date();
+      if(renderWheel._selYear >= now.getFullYear() && renderWheel._selMonth >= now.getMonth()) return;
+      renderWheel._selMonth++;
+      if(renderWheel._selMonth > 11){ renderWheel._selMonth=0; renderWheel._selYear++; }
+      renderWheel();
+    });
 
     document.getElementById('wheel-fill-now').addEventListener('click',()=>{
       wheelOpenForm(currentMk, currentData, result=>{

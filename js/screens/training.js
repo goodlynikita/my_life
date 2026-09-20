@@ -30,67 +30,150 @@ function trUid() {
 }
 
 const TRAINING_TYPES = [
-  { name: 'Зал', color: '#A8C97F' },
-  { name: 'Зал ТРЕН', color: '#A8C97F' },
-  { name: 'Теннис', color: '#7FB3D9' },
-  { name: 'Кардио', color: '#3D6FB4' },
-  { name: 'Бокс', color: '#D98A85' },
-  { name: '10k', color: '#B6A4D9' },
-  { name: 'Лыжи', color: '#3D6FB4' },
-  { name: 'Отдых', color: '#8A8985' }
+  /* Зал */
+  { name: 'Зал',        color: '#4ADE80', group: 'Зал' },
+  { name: 'Зал ТРЕН',   color: '#4ADE80', group: 'Зал' },
+  /* Кардио */
+  { name: 'Бег',        color: '#60A5FA', group: 'Кардио' },
+  { name: 'Велосипед',  color: '#60A5FA', group: 'Кардио' },
+  { name: 'Дорожка',    color: '#60A5FA', group: 'Кардио' },
+  { name: 'Эллипс',     color: '#60A5FA', group: 'Кардио' },
+  { name: 'Плавание',   color: '#38BDF8', group: 'Кардио' },
+  { name: 'Гребля',     color: '#38BDF8', group: 'Кардио' },
+  { name: 'Кардио',     color: '#60A5FA', group: 'Кардио' },
+  /* Шаги */
+  { name: '10k',        color: '#A78BFA', group: 'Шаги' },
+  { name: 'Ходьба',     color: '#A78BFA', group: 'Шаги' },
+  /* Спорт */
+  { name: 'Теннис',     color: '#F59E0B', group: 'Спорт' },
+  { name: 'Бокс',       color: '#F87171', group: 'Спорт' },
+  { name: 'Борьба',     color: '#F87171', group: 'Спорт' },
+  { name: 'Баскетбол',  color: '#FB923C', group: 'Спорт' },
+  { name: 'Футбол',     color: '#4ADE80', group: 'Спорт' },
+  { name: 'Волейбол',   color: '#FBBF24', group: 'Спорт' },
+  /* Зима */
+  { name: 'Лыжи',       color: '#93C5FD', group: 'Зима' },
+  { name: 'Сноуборд',   color: '#93C5FD', group: 'Зима' },
+  { name: 'Коньки',     color: '#93C5FD', group: 'Зима' },
+  /* Прочее */
+  { name: 'Йога',       color: '#C084FC', group: 'Прочее' },
+  { name: 'Растяжка',   color: '#C084FC', group: 'Прочее' },
+  { name: 'Отдых',      color: '#6B7280', group: 'Прочее' },
 ];
 
 const MUSCLE_GROUPS = [
-  { name: 'Грудь', color: '#A8C97F' },
-  { name: 'Спина', color: '#7FB3D9' },
-  { name: 'Руки', color: '#9C9A95' },
-  { name: 'Ноги', color: '#E0B873' },
-  { name: 'Плечи', color: '#B6A4D9' },
-  { name: 'FULL BODY', color: '#2E7FD4' }
+  { name: 'Грудь',     color: '#A8C97F' },
+  { name: 'Спина',     color: '#7FB3D9' },
+  { name: 'Руки',      color: '#9C9A95' },
+  { name: 'Ноги',      color: '#E0B873' },
+  { name: 'Плечи',     color: '#B6A4D9' },
+  { name: 'Кор',       color: '#F87171' },
+  { name: 'FULL BODY', color: '#2E7FD4' },
 ];
 
-const CARDIO_DIRECTIONS = ['Бег', 'Велосипед', 'Плавание'];
+const CARDIO_DIRECTIONS = ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'];
 
 function trIsGymType(typeName) {
   return typeName === 'Зал' || typeName === 'Зал ТРЕН';
 }
-
 function trIsRestType(typeName) {
   return typeName === 'Отдых';
 }
-
 function trIsTimeCalorieType(typeName) {
-  return typeName === 'Теннис' || typeName === 'Бокс' || typeName === 'Лыжи';
+  return ['Теннис', 'Бокс', 'Борьба', 'Баскетбол', 'Футбол', 'Волейбол', 'Йога', 'Растяжка', 'Лыжи', 'Сноуборд', 'Коньки'].includes(typeName);
 }
-
 function trIsCardioType(typeName) {
-  return typeName === 'Кардио';
+  return ['Кардио', 'Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'].includes(typeName);
 }
-
 function trIsStepsType(typeName) {
-  return typeName === '10k';
+  return typeName === '10k' || typeName === 'Ходьба';
 }
 
 const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
-  'Грудь': ['Жим гантели', 'Жим штанга', 'Жим гантели наклон', 'Жим штанга наклон', 'Кроссовер сверху', 'Кроссовер снизу', 'Разведения', 'Бабочка', 'Брусья'],
-  'Спина': ['Пуловер', 'Тяга штанги', 'Тяга верхнего блока', 'Тяга нижнего блока', 'Гиперэкстензия', 'Тяга гантелей', 'Подтягивания'],
-  'Руки': ['Подъём штанги', 'Французский жим', 'Молотки гантель', 'Подъём гантель', 'Разгибания канаты', 'Разгибания из-за головы', 'Бицепс наклон', 'Молотки стоя'],
-  'Ноги': ['Присяд штанга', 'Присяд гакк', 'Жим ногами', 'Пресс', 'Разгибания', 'Сгибания'],
-  'Плечи': ['Махи', 'Жим', 'Разведения']
+  'Грудь': [
+    'Жим штанги лёжа', 'Жим гантелей лёжа', 'Жим штанги наклон', 'Жим гантелей наклон',
+    'Жим штанги обратный наклон', 'Жим гантелей обратный наклон',
+    'Разведения гантелей лёжа', 'Разведения на наклонной', 'Бабочка (тренажёр)',
+    'Кроссовер сверху', 'Кроссовер снизу', 'Кроссовер средний',
+    'Отжимания', 'Отжимания на брусьях', 'Пуловер гантель',
+    'Жим в Смите', 'Жим в Хаммере',
+  ],
+  'Спина': [
+    'Подтягивания широкий хват', 'Подтягивания узкий хват', 'Подтягивания нейтральный',
+    'Тяга верхнего блока широкий', 'Тяга верхнего блока узкий', 'Тяга верхнего блока обратный',
+    'Тяга нижнего блока', 'Тяга нижнего блока широкий',
+    'Тяга штанги в наклоне', 'Тяга гантели одной рукой', 'Тяга Т-грифа',
+    'Гиперэкстензия', 'Гиперэкстензия с весом',
+    'Пуловер на верхнем блоке', 'Становая тяга', 'Становая тяга румынская',
+    'Шраги штанга', 'Шраги гантели',
+  ],
+  'Руки': [
+    /* Бицепс */
+    'Подъём штанги на бицепс', 'Подъём гантелей на бицепс', 'Молотки гантели',
+    'Молотки канат', 'Подъём на скамье Скотта', 'Концентрированный подъём',
+    'Подъём на нижнем блоке', 'Подъём обратным хватом',
+    /* Трицепс */
+    'Французский жим штанга', 'Французский жим EZ-гриф', 'Французский жим гантели',
+    'Разгибания на верхнем блоке канат', 'Разгибания на верхнем блоке прямой',
+    'Разгибания из-за головы гантель', 'Разгибания из-за головы канат',
+    'Отжимания на брусьях (трицепс)', 'Кикбэк гантели',
+  ],
+  'Ноги': [
+    'Приседания со штангой', 'Приседания Смит', 'Приседания гакк-машина',
+    'Жим ногами', 'Жим ногами узкий хват', 'Жим ногами широкий хват',
+    'Разгибания ног', 'Сгибания ног лёжа', 'Сгибания ног стоя', 'Сгибания ног сидя',
+    'Румынская тяга', 'Выпады со штангой', 'Выпады гантели', 'Болгарские сплит-приседания',
+    'Сумо-присед', 'Ягодичный мостик', 'Ягодичный мостик штанга',
+    'Подъём на носки стоя', 'Подъём на носки сидя',
+    'Отведение ног в тренажёре', 'Приведение ног в тренажёре',
+  ],
+  'Плечи': [
+    'Жим штанги сидя', 'Жим гантелей сидя', 'Жим гантелей стоя', 'Жим Арнольда',
+    'Жим штанги из-за головы', 'Армейский жим',
+    'Махи гантелей в стороны', 'Махи на нижнем блоке', 'Махи в кроссовере',
+    'Тяга штанги к подбородку', 'Тяга гантели к подбородку',
+    'Разведения в наклоне', 'Разведения на заднюю дельту в тренажёре',
+    'Обратная бабочка (задняя дельта)',
+  ],
+  'Кор': [
+    'Скручивания', 'Обратные скручивания', 'Велосипед',
+    'Планка', 'Боковая планка', 'Динамическая планка',
+    'Подъём ног лёжа', 'Подъём ног в висе', 'Подъём коленей в висе',
+    'Русский твист', 'Русский твист с весом',
+    'Скручивания на верхнем блоке', 'Скручивания с весом',
+    'Гиперэкстензия (поясница)', 'Вакуум',
+    'Ab Wheel', 'Дровосек на блоке',
+  ],
+  'FULL BODY': [
+    'Бёрпи', 'Турецкий подъём', 'Рывок гири', 'Толчок гири',
+    'Становая тяга', 'Тяга сумо', 'Трастеры',
+    'Тяга саней', 'Фермерская ходьба', 'Прогулка фермера гантели',
+    'Прыжки на ящик', 'Прыжки через скакалку',
+    'Баттл-рейпс', 'Маховые движения гирей',
+  ],
 };
-/* При загрузке сбрасываем локальный кэш упражнений чтобы применить актуальный список */
-try { localStorage.removeItem('nik_exercises_v1'); } catch(e) {}
 
+/* Ключ v2 — новые пользователи получат полный список, у старых (v1) остаются их данные */
 function trLoadExercises() {
   try {
-    const saved = localStorage.getItem('nik_exercises_v1');
+    const saved = localStorage.getItem('nik_exercises_v2');
     if (saved) return JSON.parse(saved);
+    /* Проверяем есть ли у пользователя старые данные v1 — если есть, мигрируем */
+    const old = localStorage.getItem('nik_exercises_v1');
+    if (old) {
+      const parsed = JSON.parse(old);
+      /* Добавляем новые группы которых не было (Кор, FULL BODY) */
+      if (!parsed['Кор']) parsed['Кор'] = JSON.parse(JSON.stringify(MUSCLE_BLOCK_EXERCISES_DEFAULT['Кор']));
+      if (!parsed['FULL BODY']) parsed['FULL BODY'] = JSON.parse(JSON.stringify(MUSCLE_BLOCK_EXERCISES_DEFAULT['FULL BODY']));
+      localStorage.setItem('nik_exercises_v2', JSON.stringify(parsed));
+      return parsed;
+    }
   } catch(e) {}
   return JSON.parse(JSON.stringify(MUSCLE_BLOCK_EXERCISES_DEFAULT));
 }
 
 function trSaveExercises(data) {
-  try { localStorage.setItem('nik_exercises_v1', JSON.stringify(data)); } catch(e) {}
+  try { localStorage.setItem('nik_exercises_v2', JSON.stringify(data)); } catch(e) {}
 }
 
 const MUSCLE_BLOCK_EXERCISES = trLoadExercises();
@@ -124,7 +207,7 @@ function trOpenExerciseEditor() {
     }).join('');
 
     return `
-      <div class="tr-modal" style="max-height:80vh; overflow-y:auto; width:100%; max-width:420px;">
+      <div class="tr-modal" style="max-height:80vh; overflow-y:auto; width:100%; max-width:420px; box-sizing:border-box; overflow-x:hidden;">
         <p class="tr-modal-title">Редактор упражнений</p>
         ${groupsHtml}
         <div class="tr-modal-actions" style="margin-top:16px;">
@@ -222,9 +305,21 @@ function trBadgeColor(list, name) {
 }
 
 function trBuildSelect(id, list, current) {
-  const options = list.map(item =>
-    `<option value="${item.name}" ${item.name === current ? 'selected' : ''}>${item.name}</option>`
-  ).join('');
+  /* Если в списке есть группы — делаем optgroup */
+  const hasGroups = list.some(i => i.group);
+  let options;
+  if (hasGroups) {
+    const groups = [...new Set(list.map(i => i.group).filter(Boolean))];
+    const groupLabels = { 'Зал': '🏋️ Зал', 'Кардио': '🏃 Кардио', 'Шаги': '🚶 Шаги', 'Спорт': '⚽ Спорт', 'Зима': '⛷️ Зима', 'Прочее': '➕ Прочее' };
+    options = groups.map(g => {
+      const items = list.filter(i => i.group === g);
+      return `<optgroup label="${groupLabels[g]||g}">${items.map(i => `<option value="${i.name}" ${i.name===current?'selected':''}>${i.name}</option>`).join('')}</optgroup>`;
+    }).join('');
+  } else {
+    options = list.map(item =>
+      `<option value="${item.name}" ${item.name === current ? 'selected' : ''}>${item.name}</option>`
+    ).join('');
+  }
   return `<select id="${id}" class="tr-color-select">${options}</select>`;
 }
 
@@ -616,7 +711,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     return `
       <div class="tr-session">
         <div class="tr-session-head">
-          <span class="tr-day-tag has-session" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${session.type}</span>${groupTags}
+          <span class="tr-day-tag has-session tr-session-type-tag" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" title="Изменить тип" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55; cursor:pointer;">${session.type} <i class="ti ti-pencil" style="font-size:10px;opacity:0.6;"></i></span>${groupTags}
           <span class="tr-session-actions">
             <button class="tr-session-move" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день" style="background:none; border:none; cursor:pointer; color:#9D9A92; padding:4px 6px; font-size:15px;"><i class="ti ti-calendar-share"></i></button>
             ${!isRest ? `<button class="tr-day-add tr-session-add-ex" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Добавить упражнение" title="Добавить упражнение в эту тренировку"><i class="ti ti-plus"></i></button>` : ''}
@@ -831,12 +926,57 @@ function trBuildExerciseSelect(selectedGroups) {
 }
 
 function trBuildGroupCheckboxes(selected) {
-  return `<div class="m-groups-wrap">${MUSCLE_GROUPS.map(g => `
-    <label class="m-group-label">
-      <input type="checkbox" class="m-group-cb m-group-check" value="${g.name}" ${selected.includes(g.name) ? 'checked' : ''}>
+  // Маппинг групп мышц на зоны силуэта (SVG paths)
+  const MUSCLE_SVG = {
+    'Грудь':    'M28,28 C28,22 36,18 44,18 C52,18 60,22 60,28 L62,38 C62,42 58,44 44,44 C30,44 26,42 26,38 Z',
+    'Спина':    'M28,28 C28,22 36,18 44,18 C52,18 60,22 60,28 L62,38 C62,42 58,44 44,44 C30,44 26,42 26,38 Z',
+    'Руки':     'M20,28 L26,52 L30,52 L28,28 Z M58,28 L62,52 L66,52 L68,28 Z',
+    'Ноги':     'M30,76 L34,108 L40,108 L44,76 Z M44,76 L48,108 L54,108 L58,76 Z',
+    'Плечи':    'M18,24 L28,28 L28,36 L18,32 Z M70,24 L60,28 L60,36 L70,32 Z',
+    'FULL BODY':'M28,28 C28,22 36,18 44,18 C52,18 60,22 60,28 L62,38 C62,42 58,44 44,44 C30,44 26,42 26,38 Z M20,28 L26,52 L30,52 L28,28 Z M58,28 L62,52 L66,52 L68,28 Z M30,76 L34,108 L40,108 L44,76 Z M44,76 L48,108 L54,108 L58,76 Z',
+  };
+  const COLOR_MAP = {
+    'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','FULL BODY':'#34D399'
+  };
+
+  const pills = MUSCLE_GROUPS.map(g => {
+    const active = selected.includes(g.name);
+    const c = COLOR_MAP[g.name] || g.color;
+    return `<label class="m-group-label" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;border:1.5px solid ${active ? c : 'rgba(255,255,255,0.12)'};background:${active ? c+'22' : 'transparent'};cursor:pointer;font-size:12px;font-weight:600;color:${active ? c : 'rgba(255,255,255,0.5)'};transition:all 0.15s;white-space:nowrap;">
+      <input type="checkbox" class="m-group-cb m-group-check" value="${g.name}" ${active ? 'checked' : ''} style="display:none;">
+      ${active ? `<span style="width:14px;height:14px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:9px;color:#000;flex-shrink:0;">✓</span>` : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;"></span>`}
       ${g.name}
-    </label>
-  `).join('')}</div>`;
+    </label>`;
+  }).join('');
+
+  // Мини SVG силуэт тела
+  const activePaths = MUSCLE_GROUPS
+    .filter(g => selected.includes(g.name))
+    .map(g => `<path d="${MUSCLE_SVG[g.name]||''}" fill="${COLOR_MAP[g.name]||g.color}" opacity="0.85"/>`)
+    .join('');
+
+  const silhouette = `<svg viewBox="0 0 88 120" width="56" height="76" style="flex-shrink:0;opacity:0.9;">
+    <!-- Тело базовый силуэт -->
+    <ellipse cx="44" cy="10" rx="8" ry="9" fill="#2A2D35"/>
+    <rect x="26" y="18" width="36" height="44" rx="6" fill="#1E2028"/>
+    <rect x="20" y="20" width="8" height="28" rx="4" fill="#1E2028"/>
+    <rect x="60" y="20" width="8" height="28" rx="4" fill="#1E2028"/>
+    <rect x="30" y="62" width="14" height="36" rx="5" fill="#1E2028"/>
+    <rect x="44" y="62" width="14" height="36" rx="5" fill="#1E2028"/>
+    <!-- Активные мышцы -->
+    ${activePaths}
+    <!-- Переопределяем paths точнее -->
+    ${selected.includes('Грудь') || selected.includes('FULL BODY') ? `<rect x="29" y="22" width="30" height="18" rx="4" fill="${COLOR_MAP['Грудь']}" opacity="0.75"/>` : ''}
+    ${selected.includes('Спина') || selected.includes('FULL BODY') ? `<rect x="29" y="22" width="30" height="18" rx="4" fill="${COLOR_MAP['Спина']}" opacity="0.6"/>` : ''}
+    ${selected.includes('Плечи') || selected.includes('FULL BODY') ? `<ellipse cx="24" cy="24" rx="5" ry="7" fill="${COLOR_MAP['Плечи']}" opacity="0.85"/><ellipse cx="64" cy="24" rx="5" ry="7" fill="${COLOR_MAP['Плечи']}" opacity="0.85"/>` : ''}
+    ${selected.includes('Руки') || selected.includes('FULL BODY') ? `<rect x="20" y="26" width="7" height="22" rx="3.5" fill="${COLOR_MAP['Руки']}" opacity="0.85"/><rect x="61" y="26" width="7" height="22" rx="3.5" fill="${COLOR_MAP['Руки']}" opacity="0.85"/>` : ''}
+    ${selected.includes('Ноги') || selected.includes('FULL BODY') ? `<rect x="30" y="63" width="13" height="34" rx="5" fill="${COLOR_MAP['Ноги']}" opacity="0.85"/><rect x="45" y="63" width="13" height="34" rx="5" fill="${COLOR_MAP['Ноги']}" opacity="0.85"/>` : ''}
+  </svg>`;
+
+  return `<div style="display:flex;align-items:flex-start;gap:10px;">
+    <div class="m-groups-wrap" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;">${pills}</div>
+    <div id="m-silhouette" style="flex-shrink:0;">${silhouette}</div>
+  </div>`;
 }
 
 function trBuildFormFields(typeName, selectedGroups, plan) {
@@ -926,6 +1066,15 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
         const groups = selectedGroupsNow();
         const wrap = overlay.querySelector('#m-name-wrap');
         if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
+        // Обновляем pill стили и силуэт
+        const newHtml = trBuildGroupCheckboxes(groups);
+        const tmpDiv = document.createElement('div');
+        tmpDiv.innerHTML = newHtml;
+        const mWrap = overlay.querySelector('.m-groups-wrap');
+        const sil = overlay.querySelector('#m-silhouette');
+        if (mWrap) mWrap.innerHTML = tmpDiv.querySelector('.m-groups-wrap')?.innerHTML || '';
+        if (sil) sil.innerHTML = tmpDiv.querySelector('#m-silhouette')?.innerHTML || '';
+        bindGroupCheckboxes();
       });
     });
   }
@@ -1177,7 +1326,7 @@ window.Screens.training = function (mount) {
 
   mount.innerHTML = `
     <div class="theme-dark" style="width:100%;min-width:0;box-sizing:border-box;">
-      <div class="tr-header" style="display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:14px 20px;background:linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%);position:sticky;top:0;z-index:20;">
+      <div class="tr-header" style="display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:14px 20px;padding-top:max(14px,env(safe-area-inset-top));background:linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%);position:sticky;top:0;z-index:20;">
         <div style="display:flex; align-items:center; gap:10px;">
           <button class="tr-back" id="tr-back"><i class="ti ti-arrow-left"></i></button>
           <p class="tr-title">Тренировки</p>
@@ -1513,6 +1662,46 @@ window.Screens.training = function (mount) {
         renderTab('plan');
       });
     });
+
+    // Клик на тег типа — быстрая смена типа
+    content.querySelectorAll('.tr-session-type-tag').forEach(tag => {
+      tag.addEventListener('click', () => {
+        const w = parseInt(tag.dataset.week, 10);
+        const d = parseInt(tag.dataset.day, 10);
+        const s = parseInt(tag.dataset.session, 10);
+        const session = plan.weeks[w].days[d].sessions[s];
+        const overlay = document.createElement('div');
+        overlay.className = 'tr-modal-overlay';
+        const opts = TRAINING_TYPES.map(t =>
+          `<button class="tr-type-pick-btn" data-type="${t.name}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid #2A2D35;color:${t.name===session.type?trBadgeColor(TRAINING_TYPES,t.name):'#E8E5DC'};cursor:pointer;font-size:13px;font-weight:${t.name===session.type?700:400};text-align:left;font-family:inherit;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${trBadgeColor(TRAINING_TYPES,t.name)};flex-shrink:0;"></span>
+            ${t.name}
+            ${t.name===session.type?'<i class="ti ti-check" style="margin-left:auto;font-size:14px;"></i>':''}
+          </button>`
+        ).join('');
+        overlay.innerHTML = `<div class="tr-modal" style="max-height:70vh;overflow-y:auto;width:100%;max-width:340px;padding:0;">
+          <div style="padding:14px 16px;border-bottom:1px solid #2A2D35;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:15px;font-weight:700;color:#E8E5DC;">Тип тренировки</span>
+            <button id="tr-type-close" style="background:none;border:none;color:#9D9A92;cursor:pointer;font-size:20px;line-height:1;">×</button>
+          </div>
+          ${opts}
+        </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+        overlay.querySelector('#tr-type-close').addEventListener('click', () => overlay.remove());
+        overlay.querySelectorAll('.tr-type-pick-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            trSnapshotBeforeChange();
+            session.type = btn.dataset.type;
+            // Сбрасываем группы если тип не зал
+            if (!trIsGymType(session.type)) session.groups = [];
+            trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
+            overlay.remove();
+            renderTab('plan');
+          });
+        });
+      });
+    });
     content.querySelectorAll('.tr-day-add:not(.tr-day-clear):not(.tr-session-add-ex)').forEach(btn => {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
@@ -1561,11 +1750,43 @@ window.Screens.training = function (mount) {
     if (!plan || !plan.weeks) {
       const hasAnyPlan = trGetPlans().length > 0;
       if (!hasAnyPlan) {
-        /* Планов нет вообще. Ничего не пишем в хранилище — просто показываем
-           понятное состояние. Данные восстанавливаются из data.json (см. app.js),
-           либо владелец создаёт план кнопкой «Новый план». */
-        content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:#9D9A92;font-size:13px;line-height:1.7;letter-spacing:0.02em;">
-          Планов пока нет.<br>Нажми «Новый план», чтобы создать первый.
+        content.innerHTML = `<div style="padding:32px 20px 60px;max-width:480px;margin:0 auto;">
+          <div style="text-align:center;margin-bottom:28px;">
+            <div style="font-size:36px;margin-bottom:12px;">🏋️</div>
+            <div style="font-size:18px;font-weight:800;color:#E8E5DC;margin-bottom:8px;">Начни свой первый план</div>
+            <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Нажми «Новый план» — и приложение создаст тебе 8-недельную сетку. Ты сам заполняешь её под себя.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+              <span style="font-size:20px;">📅</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Добавляй тренировки по дням</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Нажми «+» рядом с нужным днём → выбери тип (Зал, Бег, Теннис…) → добавь упражнения.</div>
+              </div>
+            </div>
+            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+              <span style="font-size:20px;">💪</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Упражнения — в Рабочем весе</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Рабочий вес» видишь все свои упражнения и прогресс. Там же редактор упражнений — можно убрать лишнее и добавить своё.</div>
+              </div>
+            </div>
+            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+              <span style="font-size:20px;">🔄</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тип и группы — кликай на тег</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">После добавления тренировки нажми на тег типа (например «Зал ✏️») — появится быстрый выбор. Группы мышц выбираются при добавлении упражнения.</div>
+              </div>
+            </div>
+            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+              <span style="font-size:20px;">📈</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Данные сохраняются между планами</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Список упражнений, рабочие веса и прогресс переходят в следующий план автоматически.</div>
+              </div>
+            </div>
+          </div>
+          <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1a3a8f,#2563eb);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;">+ Создать первый план</button>
         </div>`;
         return;
       }
@@ -1723,11 +1944,50 @@ window.Screens.training = function (mount) {
   const newPlanBtn = document.getElementById('tr-new-plan');
   if (newPlanBtn) {
     newPlanBtn.addEventListener('click', () => {
-      if (!confirm('Текущий план переходит в архив, начинаем новый план на 8 недель. Продолжить?')) return;
-      currentPlanId = trCreateNextPlan();
-      collapsedWeeks = [];
-      populatePlanSelect();
-      renderTab('plan');
+      const isFirst = trGetPlans().length === 0;
+      const ov = document.createElement('div');
+      ov.className = 'tr-modal-overlay';
+      ov.innerHTML = `<div class="tr-modal" style="max-width:360px;padding:24px 20px;">
+        <div style="font-size:22px;text-align:center;margin-bottom:12px;">${isFirst ? '🏋️' : '🔄'}</div>
+        <p class="tr-modal-title" style="text-align:center;margin-bottom:8px;">${isFirst ? 'Создать первый план' : 'Начать новый план'}</p>
+        <p style="font-size:13px;color:#9D9A92;text-align:center;line-height:1.6;margin-bottom:20px;">${isFirst
+          ? 'Создаётся 8-недельная сетка. Заполняй её под себя — тип тренировки, группы мышц, упражнения.'
+          : 'Текущий план перейдёт в архив. Рабочие веса и упражнения сохранятся в новом плане.'
+        }</p>
+        <div class="tr-modal-actions">
+          <button class="tr-modal-btn-secondary" id="tr-new-plan-cancel">Отмена</button>
+          <button class="tr-modal-btn-primary" id="tr-new-plan-confirm">${isFirst ? 'Создать' : 'Новый план'}</button>
+        </div>
+      </div>`;
+      document.body.appendChild(ov);
+      ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+      ov.querySelector('#tr-new-plan-cancel').addEventListener('click', () => ov.remove());
+      ov.querySelector('#tr-new-plan-confirm').addEventListener('click', () => {
+        ov.remove();
+        currentPlanId = trCreateNextPlan();
+        collapsedWeeks = [];
+        populatePlanSelect();
+        renderTab('plan');
+        /* Баннер-подсказка показывается только при создании первого плана */
+        if (isFirst) {
+          const banner = document.createElement('div');
+          banner.id = 'tr-onboarding-banner';
+          banner.style.cssText = 'background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:flex-start;gap:10px;';
+          banner.innerHTML = `<span style="font-size:18px;flex-shrink:0;">💡</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:700;color:#93C5FD;margin-bottom:4px;">Как заполнить план?</div>
+              <div style="font-size:12px;color:rgba(147,197,253,0.75);line-height:1.5;">
+                Нажми <b style="color:#93C5FD;">+</b> рядом с днём → выбери тип и упражнения.<br>
+                Тип тренировки меняется кликом на тег <b style="color:#93C5FD;">«Зал ✏️»</b>.<br>
+                Список упражнений → вкладка <b style="color:#93C5FD;">«Рабочий вес» → «Редактор»</b>.
+              </div>
+              <button id="tr-banner-close" style="margin-top:8px;padding:4px 10px;background:none;border:1px solid rgba(147,197,253,0.3);border-radius:6px;color:rgba(147,197,253,0.7);font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;">Понятно ✓</button>
+            </div>`;
+          const contentEl = mount.querySelector('.tr-body');
+          if (contentEl) contentEl.prepend(banner);
+          banner.querySelector('#tr-banner-close')?.addEventListener('click', () => banner.remove());
+        }
+      });
     });
   }
 
@@ -1835,7 +2095,7 @@ function trCollectGymExercises(plan) {
   return latest;
 }
 
-const WORKING_WEIGHT_CATEGORIES = ['Грудь', 'Спина', 'Ноги', 'Руки', 'Плечи'];
+const WORKING_WEIGHT_CATEGORIES = ['Грудь', 'Спина', 'Ноги', 'Руки', 'Плечи', 'Кор', 'FULL BODY'];
 
 function trRenderWorkingWeight(plan, baseWeekIndex) {
   const _bw = (typeof baseWeekIndex === 'number') ? baseWeekIndex : 0;

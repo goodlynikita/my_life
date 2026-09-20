@@ -358,14 +358,29 @@ window.Screens.finance = function(mount) {
     const SAVE_PCT = stored.savePct || 30;
 
     const DEFAULT_CATS = [
-      { id:'b1', name:'КВ',                    amt:24000, color:'#14B8A6' },
-      { id:'b2', name:'Еда: продукты + рестораны', amt:30000, color:'#0EA5E9' },
-      { id:'b3', name:'Зал + спортпит + тренер',  amt:15500, color:'#16A34A' },
-      { id:'b4', name:'Подписки, работа',          amt:10000, color:'#F59E0B' },
-      { id:'b5', name:'Всякое разное',             amt:10000, color:'#EF4444' },
-      { id:'b6', name:'Машина',                    amt:5000,  color:'#6B7280' },
-      { id:'b7', name:'Стрижка',                   amt:2500,  color:'#EC4899' },
-      { id:'b8', name:'Стоматолог',                amt:6000,  color:'#14B8A6' },
+      /* Жильё */
+      { id:'b1',  name:'Аренда / ипотека',          amt:30000, color:'#14B8A6' },
+      { id:'b2',  name:'Коммунальные услуги',        amt:5000,  color:'#06B6D4' },
+      /* Еда */
+      { id:'b3',  name:'Продукты',                   amt:15000, color:'#10B981' },
+      { id:'b4',  name:'Кафе и рестораны',           amt:8000,  color:'#34D399' },
+      /* Транспорт */
+      { id:'b5',  name:'Автомобиль (бензин, обсл.)', amt:8000,  color:'#6B7280' },
+      { id:'b6',  name:'Такси / общественный транспорт', amt:3000, color:'#9CA3AF' },
+      /* Здоровье */
+      { id:'b7',  name:'Спорт / фитнес',             amt:5000,  color:'#16A34A' },
+      { id:'b8',  name:'Медицина / аптека',           amt:3000,  color:'#F87171' },
+      /* Развлечения */
+      { id:'b9',  name:'Развлечения / хобби',         amt:5000,  color:'#F59E0B' },
+      { id:'b10', name:'Подписки (стриминг, ПО)',     amt:2000,  color:'#8B5CF6' },
+      /* Одежда и уход */
+      { id:'b11', name:'Одежда и обувь',              amt:5000,  color:'#EC4899' },
+      { id:'b12', name:'Красота / уход за собой',     amt:3000,  color:'#F472B6' },
+      /* Связь */
+      { id:'b13', name:'Телефон / интернет',          amt:1500,  color:'#60A5FA' },
+      /* Прочее */
+      { id:'b14', name:'Подарки',                     amt:3000,  color:'#FBBF24' },
+      { id:'b15', name:'Непредвиденные расходы',      amt:5000,  color:'#EF4444' },
     ];
     const cats = stored.categories || DEFAULT_CATS;
     const totalBase = cats.reduce((s,c)=>s+(c.amt||0),0);
@@ -423,6 +438,20 @@ window.Screens.finance = function(mount) {
           </div>
         </div>
 
+        <!-- Демо-плашка для новых пользователей -->
+        ${!stored.categories ? `
+        <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:18px;flex-shrink:0;">💡</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:#C4B5FD;margin-bottom:3px;">Это пример бюджета</div>
+            <div style="font-size:12px;color:rgba(196,181,253,0.7);line-height:1.4;">Категории и суммы заполнены автоматически как ориентир. Отредактируйте под свои расходы.</div>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button id="fin-edit-demo-cats" style="padding:6px 14px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:8px;color:#C4B5FD;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">✏️ Настроить расходы</button>
+              <button id="fin-clear-demo-cats" style="padding:6px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#FCA5A5;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">🗑 Начать с нуля</button>
+            </div>
+          </div>
+        </div>` : ''}
+
         <!-- Таблица расходов -->
         <div class="bal2-cats-table">
           <div class="bal2-cats-head">
@@ -473,6 +502,18 @@ window.Screens.finance = function(mount) {
     `;
 
     document.getElementById('bal2-edit').addEventListener('click', ()=>{
+      openBudgetEdit();
+    });
+    const demoCatsBtn = document.getElementById('fin-edit-demo-cats');
+    if (demoCatsBtn) demoCatsBtn.addEventListener('click', () => openBudgetEdit());
+    const clearDemoCatsBtn = document.getElementById('fin-clear-demo-cats');
+    if (clearDemoCatsBtn) clearDemoCatsBtn.addEventListener('click', () => {
+      if (!confirm('Удалить все демо-категории и начать с нуля?')) return;
+      Store.set('finance.balance', { categories: [], goalIncome: GOAL_INCOME, savePct: SAVE_PCT });
+      renderBalance();
+    });
+
+    function openBudgetEdit() {
       const ov = document.createElement('div');
       ov.className = 'tr-modal-overlay modal-finance';
       ov.innerHTML = `<div class="tr-modal" style="max-height:85vh;overflow-y:auto;">
@@ -536,7 +577,7 @@ window.Screens.finance = function(mount) {
         renderBalance();
       });
     });
-  }
+    } // end openBudgetEdit
 
 
   /* ═══ РАСХОДЫ — хелперы ════════════════════════ */

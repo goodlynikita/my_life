@@ -138,6 +138,7 @@ window.Screens.home = function(mount) {
     + '<h1 class="home2-title">NIK \u00b7 \u0421\u0438\u0441\u0442\u0435\u043c\u0430</h1>'
     + '</div><div style="display:flex;gap:8px;">'
     + '<button class="home2-logout" id="slides-edit-btn" title="Редактор слайдов" style="font-size:16px;"><i class="ti ti-layout"></i></button>'
+    + '<button class="home2-logout" id="tile-settings-btn" title="Настройка плиток" style="font-size:16px;"><i class="ti ti-layout-grid"></i></button>'
     + '<button class="home2-logout" id="slider-settings-btn" style="font-size:16px;"><i class="ti ti-settings"></i></button>'
     + '<button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button>'
     + '</div></div>'
@@ -202,6 +203,159 @@ window.Screens.home = function(mount) {
     });
   }
 
+
+
+
+  /* ── Настройки плиток ── */
+  document.getElementById('tile-settings-btn').addEventListener('click', function() {
+    var TILES = [
+      { key: 'training', label: 'Тренировки', icon: 'ti-flame',        cls: 'home2-tile-training' },
+      { key: 'habits',   label: 'Привычки',   icon: 'ti-checklist',    cls: 'home2-tile-habits'   },
+      { key: 'finance',  label: 'Финансы',    icon: 'ti-chart-bar',    cls: 'home2-tile-finance'  },
+      { key: 'goals',    label: 'Цели',       icon: 'ti-target-arrow', cls: 'home2-tile-goals'    },
+    ];
+    var TEMPLATES = [
+      { id:'grid2x2', label:'2×2', desc:'Четыре одинаковых', icon:'⊞', order:[0,1,2,3] },
+      { id:'top2',    label:'Акцент верх', desc:'2 больших сверху', icon:'▤', order:[0,1,2,3] },
+      { id:'left',    label:'Акцент лево', desc:'Тренировки главные', icon:'▧', order:[0,1,2,3] },
+    ];
+
+    var saved = (Store.get().home && Store.get().home.tileOrder) || [0,1,2,3];
+    var order = saved.slice();
+
+    var ov = document.createElement('div');
+    ov.className = 'tr-modal-overlay';
+    ov.style.cssText = 'align-items:flex-end;padding:0;';
+
+    function buildHtml() {
+      var tileItems = order.map(function(ti, pos) {
+        var t = TILES[ti];
+        return '<div class="tile-sort-item" data-ti="'+ti+'" style="'
+          + 'display:flex;align-items:center;gap:12px;padding:12px 16px;'
+          + 'background:#1C1E24;border-radius:10px;border:1px solid #2A2D35;'
+          + 'cursor:grab;user-select:none;touch-action:none;">'
+          + '<span style="color:#555;font-size:18px;cursor:grab;">⠿</span>'
+          + '<span style="font-size:20px;"><i class="ti '+t.icon+'"></i></span>'
+          + '<span style="flex:1;font-size:14px;font-weight:600;color:#E8E5DC;">'+t.label+'</span>'
+          + '<span style="color:#555;font-size:12px;">#'+(pos+1)+'</span>'
+          + '</div>';
+      }).join('');
+
+      return '<div style="background:#13151A;border-radius:20px 20px 0 0;width:100%;max-width:520px;margin:0 auto;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+        + '<div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;">'
+        + '<span style="font-size:17px;font-weight:800;color:#E8E5DC;">Настройка плиток</span>'
+        + '<button id="tso-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>'
+        + '</div>'
+        + '<div style="padding:16px 20px;">'
+        /* Шаблоны */
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Шаблон расположения</div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:20px;">'
+        + '<button class="tso-tmpl" data-tmpl="0" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[0,1,2,3]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">⊞<div style="font-size:10px;color:#9D9A92;margin-top:4px;">2×2</div></button>'
+        + '<button class="tso-tmpl" data-tmpl="1" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[0,2,1,3]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">▤<div style="font-size:10px;color:#9D9A92;margin-top:4px;">Акцент</div></button>'
+        + '<button class="tso-tmpl" data-tmpl="2" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[1,0,3,2]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">▧<div style="font-size:10px;color:#9D9A92;margin-top:4px;">Привычки 1</div></button>'
+        + '<button class="tso-tmpl" data-tmpl="3" style="flex:1;padding:10px 6px;background:#1C1E24;border:1.5px solid '+(JSON.stringify(order)==='[2,3,0,1]'?'#4ADE80':'#2A2D35')+';border-radius:10px;cursor:pointer;color:#E8E5DC;font-size:20px;">▨<div style="font-size:10px;color:#9D9A92;margin-top:4px;">Финансы 1</div></button>'
+        + '</div>'
+        /* Порядок */
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Порядок плиток</div>'
+        + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Перетащи за ⠿ чтобы изменить порядок</div>'
+        + '<div id="tile-sort-list" style="display:flex;flex-direction:column;gap:8px;">'
+        + tileItems
+        + '</div>'
+        + '<button id="tso-save" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#14532D,#16A34A);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить</button>'
+        + '</div></div>';
+    }
+
+    ov.innerHTML = buildHtml();
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e) { if (e.target===ov) ov.remove(); });
+    ov.querySelector('#tso-close').addEventListener('click', function() { ov.remove(); });
+
+    /* Шаблоны */
+    var TMPL_ORDERS = [[0,1,2,3],[0,2,1,3],[1,0,3,2],[2,3,0,1]];
+    ov.querySelectorAll('.tso-tmpl').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        order = TMPL_ORDERS[parseInt(btn.dataset.tmpl)].slice();
+        ov.innerHTML = buildHtml();
+        rebind();
+      });
+    });
+
+    /* Drag-to-reorder */
+    function rebind() {
+      ov.querySelector('#tso-close').addEventListener('click', function() { ov.remove(); });
+      ov.querySelectorAll('.tso-tmpl').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          order = TMPL_ORDERS[parseInt(btn.dataset.tmpl)].slice();
+          ov.innerHTML = buildHtml(); rebind();
+        });
+      });
+      ov.querySelector('#tso-save').addEventListener('click', saveTiles);
+
+      var list = ov.querySelector('#tile-sort-list');
+      var dragging = null, startY = 0, startIdx = 0;
+
+      list.querySelectorAll('.tile-sort-item').forEach(function(item, idx) {
+        item.addEventListener('pointerdown', function(e) {
+          dragging = item; startY = e.clientY; startIdx = idx;
+          item.style.opacity = '0.7'; item.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+          item.setPointerCapture(e.pointerId);
+          e.preventDefault();
+        });
+        item.addEventListener('pointermove', function(e) {
+          if (!dragging || dragging !== item) return;
+          var dy = e.clientY - startY;
+          item.style.transform = 'translateY('+dy+'px)';
+          /* Определяем куда перетаскиваем */
+          var items = Array.from(list.querySelectorAll('.tile-sort-item'));
+          var targetIdx = startIdx;
+          items.forEach(function(other, i) {
+            if (other === item) return;
+            var r = other.getBoundingClientRect();
+            if (e.clientY > r.top && e.clientY < r.bottom) targetIdx = i;
+          });
+          if (targetIdx !== startIdx) {
+            var newOrder = order.slice();
+            var moved = newOrder.splice(startIdx, 1)[0];
+            newOrder.splice(targetIdx, 0, moved);
+            order = newOrder; startIdx = targetIdx;
+            ov.innerHTML = buildHtml(); rebind();
+          }
+        });
+        item.addEventListener('pointerup', function() {
+          if (dragging) { dragging.style.opacity='1'; dragging.style.transform=''; dragging.style.boxShadow=''; dragging=null; }
+        });
+      });
+    }
+
+    function saveTiles() {
+      Store.set('home.tileOrder', order);
+      ov.remove();
+      /* Перерисовываем плитки в новом порядке */
+      var grid = mount.querySelector('.home2-grid');
+      if (grid) {
+        var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
+        var sorted = order.map(function(ti) { return tileEls.find(function(el) { return el.classList.contains(TILES[ti].cls); }); }).filter(Boolean);
+        sorted.forEach(function(el) { grid.appendChild(el); });
+      }
+    }
+
+    ov.querySelector('#tso-save').addEventListener('click', saveTiles);
+    rebind();
+  });
+
+  /* ── Применяем сохранённый порядок плиток при загрузке ── */
+  (function() {
+    var savedOrder = Store.get().home && Store.get().home.tileOrder;
+    if (!savedOrder || !savedOrder.length) return;
+    var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals'];
+    var grid = mount.querySelector('.home2-grid');
+    if (!grid) return;
+    var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
+    var sorted = savedOrder.map(function(ti) {
+      return tileEls.find(function(el) { return el.classList.contains(TILE_CLS[ti]); });
+    }).filter(Boolean);
+    sorted.forEach(function(el) { grid.appendChild(el); });
+  })();
 
   /* ── Настройки слайдера ── */
   document.getElementById('slider-settings-btn').addEventListener('click', function(){

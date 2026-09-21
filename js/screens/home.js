@@ -180,8 +180,8 @@ window.Screens.home = function(mount) {
     document.body.appendChild(ov);
     ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
     ov.querySelector('#hm-slides').addEventListener('click', function(){ ov.remove(); window.Slides && window.Slides.openEditor(); });
-    ov.querySelector('#hm-tiles').addEventListener('click', function(){ ov.remove(); });
-    ov.querySelector('#hm-settings').addEventListener('click', function(){ ov.remove(); });
+    ov.querySelector('#hm-tiles').addEventListener('click', function(){ ov.remove(); openTileSettings(); });
+    ov.querySelector('#hm-settings').addEventListener('click', function(){ ov.remove(); openSliderSettings(); });
     ov.querySelector('#hm-logout').addEventListener('click', function(){ ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
   });
 
@@ -198,7 +198,7 @@ window.Screens.home = function(mount) {
 
 
   /* ── Настройки плиток ── */
-  document.getElementById('tile-settings-btn').addEventListener('click', function() {
+  function openTileSettings() {
     var TILES = [
       { key: 'training', label: 'Тренировки', icon: 'ti-flame',        cls: 'home2-tile-training' },
       { key: 'habits',   label: 'Привычки',   icon: 'ti-checklist',    cls: 'home2-tile-habits'   },
@@ -408,7 +408,7 @@ window.Screens.home = function(mount) {
   })();
 
   /* ── Настройки слайдера ── */
-  document.getElementById('slider-settings-btn').addEventListener('click', function(){
+  function openSliderSettings() {
     var cfg2 = (Store.get().home && Store.get().home.sliderCfg) || {};
     var intVal = Math.round((cfg2.interval||4500)/1000);
     var autoOn = cfg2.autoplay !== false;

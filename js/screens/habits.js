@@ -770,9 +770,46 @@ window.Screens.habits = function(mount) {
         </div>`).join('');
     }
 
+    // Парсим monthKey для навигации внутри модалки
+    let _formYear  = parseInt(monthKey.split('-')[0]);
+    let _formMonth = parseInt(monthKey.split('-')[1]) - 1; // 0-based
+
+    function rebuildForm() {
+      const _mk = habMonthKey(_formYear, _formMonth);
+      const _ex = wheelGetData(_mk);
+      const _sc = _ex?.scores || new Array(spheres.length).fill(5);
+      // обновляем scores и перерисовываем
+      for (let i=0; i<spheres.length; i++) scores[i] = _sc[i];
+      overlay.querySelector('#wheel-sliders').innerHTML = buildSliders();
+      overlay.querySelector('#wheel-comment').value = _ex?.comment || '';
+      overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
+      overlay.querySelector('#wf-month-label').textContent =
+        HAB_MONTHS_RU[_formMonth] + ' ' + _formYear;
+      const _now = new Date();
+      const _isNow = _formYear === _now.getFullYear() && _formMonth === _now.getMonth();
+      overlay.querySelector('#wf-next').style.opacity = _isNow ? '0.3' : '1';
+      overlay.querySelector('#wf-next').disabled = _isNow;
+      // перевешиваем слайдеры
+      overlay.querySelectorAll('.wheel-slider').forEach(sl => {
+        sl.addEventListener('input', () => {
+          const i = parseInt(sl.dataset.i);
+          scores[i] = parseInt(sl.value);
+          overlay.querySelector('#wsv-'+i).textContent = sl.value;
+          overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
+        });
+      });
+    }
+
     overlay.innerHTML = `
       <div class="tr-modal" style="max-height:90vh;overflow-y:auto;">
-        <p class="tr-modal-title">Колесо жизни · ${HAB_MONTHS_RU[parseInt(monthKey.split('-')[1])-1]} ${monthKey.split('-')[0]}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <p class="tr-modal-title" style="margin:0;">Колесо жизни</p>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="wf-prev" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-left"></i></button>
+            <span id="wf-month-label" style="font-size:13px;font-weight:700;color:#E8E5DC;white-space:nowrap;min-width:110px;text-align:center;">${HAB_MONTHS_RU[_formMonth]} ${_formYear}</span>
+            <button id="wf-next" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-right"></i></button>
+          </div>
+        </div>
         <div id="wheel-preview" style="display:flex;justify-content:center;margin-bottom:12px;">
           ${wheelDrawSVG(scores, 220, false)}
         </div>
@@ -792,6 +829,20 @@ window.Screens.habits = function(mount) {
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
     overlay.querySelector('#wheel-cancel').addEventListener('click',()=>overlay.remove());
 
+    // Навигация по месяцам внутри модалки
+    overlay.querySelector('#wf-prev').addEventListener('click', () => {
+      _formMonth--;
+      if (_formMonth < 0) { _formMonth = 11; _formYear--; }
+      rebuildForm();
+    });
+    overlay.querySelector('#wf-next').addEventListener('click', () => {
+      const _now = new Date();
+      if (_formYear >= _now.getFullYear() && _formMonth >= _now.getMonth()) return;
+      _formMonth++;
+      if (_formMonth > 11) { _formMonth = 0; _formYear++; }
+      rebuildForm();
+    });
+
     function updateTrack(sl) {
       // трек убран — только ползунок
     }
@@ -807,6 +858,7 @@ window.Screens.habits = function(mount) {
     });
 
     overlay.querySelector('#wheel-save').addEventListener('click',()=>{
+      monthKey = habMonthKey(_formYear, _formMonth); // сохраняем в выбранный месяц
       const comment = overlay.querySelector('#wheel-comment').value.trim();
       onSave({ scores: [...scores], comment, savedAt: new Date().toISOString() });
       overlay.remove();

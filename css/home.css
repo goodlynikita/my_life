@@ -1019,186 +1019,28 @@ html, body {
   display: none !important;
 }
 
-/* ═══════════ PATCH v74 — atmosphere upgrade ═══════════
-   Горный силуэт в hero, усиленные переливы, чище footer
-   ══════════════════════════════════════════════════════ */
+/* ─── minimal patch v74g ─── */
 
-/* Убираем footer */
+/* убираем footer */
 .home2-footer { display: none !important; }
-
-/* Скрываем sync внизу если он там есть */
-.home2-footer #sync-status { display: none; }
-
-/* Переделываем hero-slider — скругление и отступы */
-.hero-slider {
-  margin: 0 0 14px !important;
-  border-radius: 0 !important;
-}
-
-/* Слайды: убираем старые фоны, добавляем новые насыщенные */
-.slide-focus {
-  background: linear-gradient(155deg,
-    #0a0818 0%, #150d35 25%, #1e1050 50%, #2d1570 75%, #1a0d45 100%) !important;
-}
-.slide-finance {
-  background: linear-gradient(155deg,
-    #010f06 0%, #041c0c 25%, #07280e 50%, #0a3512 75%, #041808 100%) !important;
-}
-.slide-goals {
-  background: linear-gradient(155deg,
-    #100820 0%, #1e0d3e 25%, #2e1260 50%, #420f80 75%, #1e0a40 100%) !important;
-}
-
-/* Горный силуэт — через псевдоэлемент на слайде */
-/* Используем clip-path прямо на ::after слайда — переопределяем */
-.hero-slide::after {
-  content: '' !important;
-  position: absolute !important;
-  right: 0; bottom: 0;
-  width: 60%; height: 100% !important;
-  background: inherit !important;
-  background-image: none !important;
-  /* горный силуэт */
-  clip-path: polygon(
-    100% 100%, 0% 100%,
-    0% 72%,
-    12% 60%, 22% 68%, 30% 45%,
-    38% 52%, 48% 28%, 55% 38%,
-    62% 18%, 70% 32%, 78% 12%,
-    85% 28%, 92% 8%, 100% 22%
-  ) !important;
-  opacity: 0.18 !important;
-  filter: brightness(1.6) !important;
-  animation: none !important;
-  pointer-events: none !important;
-  z-index: 0 !important;
-  mix-blend-mode: screen !important;
-  border-radius: 0 !important;
-}
-
-/* Горы для каждого слайда разного цвета */
-.slide-focus::after   { background: linear-gradient(to top, #60A5FA, #93C5FD) !important; }
-.slide-finance::after { background: linear-gradient(to top, #4ADE80, #86EFAC) !important; }
-.slide-goals::after   { background: linear-gradient(to top, #C084FC, #DDD6FE) !important; }
-
-/* Второй гора-слой — ещё правее, темнее, дальше */
-.hero-slide .slide-mountain-far {
-  position: absolute;
-  right: 0; bottom: 0;
-  width: 50%; height: 100%;
-  clip-path: polygon(
-    100% 100%, 0% 100%,
-    0% 80%,
-    15% 65%, 28% 72%, 40% 52%,
-    52% 60%, 62% 38%, 72% 50%,
-    82% 22%, 90% 36%, 100% 15%
-  );
-  opacity: 0.09;
-  pointer-events: none;
-  z-index: 0;
-}
-.slide-focus   .slide-mountain-far { background: linear-gradient(to top, #3B82F6, #60A5FA); }
-.slide-finance .slide-mountain-far { background: linear-gradient(to top, #22C55E, #4ADE80); }
-.slide-goals   .slide-mountain-far { background: linear-gradient(to top, #A855F7, #C084FC); }
-
-/* Glow усиленный — делаем крупнее и ярче */
-.hero-slide-glow {
-  width: 320px !important;
-  height: 320px !important;
-  opacity: 0.65 !important;
-  right: -100px !important;
-  top: -100px !important;
-}
-
-/* Усиливаем aurora overlay на слайдах */
-.hero-slide::before {
-  opacity: 0.35 !important;
-}
-
-/* Плитки — усиливаем blob-анимации */
-.home2-tile-training::before { background: rgba(59,130,246,0.7) !important; }
-.home2-tile-training::after  { background: rgba(96,165,250,0.35) !important; }
-.home2-tile-habits::before   { background: rgba(22,163,74,0.7) !important; }
-.home2-tile-habits::after    { background: rgba(74,222,128,0.32) !important; }
-.home2-tile-finance::before  { background: rgba(139,92,246,0.75) !important; }
-.home2-tile-finance::after   { background: rgba(167,139,250,0.4) !important; }
-.home2-tile-goals::before    { background: rgba(251,191,36,0.85) !important; }
-.home2-tile-goals::after     { background: rgba(253,230,138,0.5) !important; }
-
-/* Плитки чуть выше минимальную высоту */
-.home2-tile { min-height: 155px !important; }
-
-/* Header: скрываем sync-status из footer, показываем в правильном месте */
-#sync-status { font-size: 11px; color: rgba(255,255,255,0.2); }
-
-/* Grid — небольшой отступ снизу вместо footer */
 .home2-grid { padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px)); }
 
-/* Тонкий разделитель под hero-slider */
-.hero-slider::after {
-  display: none !important;
+/* кружки привычек */
+.h2-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
 }
-
-
-/* ═══ PATCH v74b — mountain z-index fix + sync cleanup ══ */
-
-/* Горный силуэт поверх glow но под контентом */
-.slide-mountain-far {
-  position: absolute !important;
-  right: 0; bottom: 0;
-  width: 55%; height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  clip-path: polygon(
-    100% 100%, 0% 100%,
-    0% 78%,
-    10% 65%, 20% 72%, 30% 50%,
-    40% 58%, 50% 34%, 58% 44%,
-    66% 20%, 74% 34%, 82% 10%,
-    90% 26%, 96% 6%, 100% 18%
-  );
-  opacity: 0.1;
+.h2-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
 }
-.slide-focus   .slide-mountain-far { background: linear-gradient(to top, rgba(96,165,250,0.9), rgba(147,197,253,0.6)); }
-.slide-finance .slide-mountain-far { background: linear-gradient(to top, rgba(74,222,128,0.9), rgba(134,239,172,0.6)); }
-.slide-goals   .slide-mountain-far { background: linear-gradient(to top, rgba(192,132,252,0.9), rgba(221,214,254,0.6)); }
-
-/* Передние горы — ярче, другой силуэт */
-.hero-slide::after {
-  z-index: 0 !important;
-  width: 50% !important;
-  height: 100% !important;
-  bottom: 0 !important; right: 0 !important;
-  top: auto !important; left: auto !important;
-  opacity: 0.16 !important;
-  clip-path: polygon(
-    100% 100%, 0% 100%,
-    0% 82%,
-    8% 72%, 18% 78%, 28% 56%,
-    36% 64%, 46% 38%, 54% 50%,
-    62% 22%, 70% 38%, 80% 8%,
-    88% 24%, 95% 4%, 100% 16%
-  ) !important;
-  filter: none !important;
-  animation: none !important;
-  mix-blend-mode: screen !important;
-  border-radius: 0 !important;
+.h2-dot.done {
+  background: #4ADE80;
+  border-color: transparent;
+  box-shadow: 0 0 5px rgba(74,222,128,0.55);
 }
-.slide-focus::after   { background: linear-gradient(to top, rgba(59,130,246,0.95), rgba(96,165,250,0.7)) !important; }
-.slide-finance::after { background: linear-gradient(to top, rgba(22,163,74,0.95), rgba(74,222,128,0.7)) !important; }
-.slide-goals::after   { background: linear-gradient(to top, rgba(139,92,246,0.95), rgba(192,132,252,0.7)) !important; }
-
-/* Контент слайдов — всё поверх гор */
-.hero-slide-label, .hero-slide-main, .hero-slide-sub,
-.hero-tag-row, .hero-big-text, .hero-stat-row, .hero-slide-glow,
-.hero-dots { position: relative !important; z-index: 2 !important; }
-
-/* Hero-slider на всю ширину без скруглений */
-.hero-slider {
-  margin: 0 0 12px !important;
-  border-radius: 0 !important;
-}
-
-/* Sync-status — убираем старое место */
-.home2-footer { display: none !important; }
-

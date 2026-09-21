@@ -444,11 +444,6 @@ window.Screens.habits = function(mount) {
       </div>
 
       <div class="sec-card" style="padding:0;overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:1px solid rgba(255,255,255,0.06);">
-          <button id="hab-grid-prev" style="background:rgba(255,255,255,0.06);border:none;border-radius:8px;width:32px;height:32px;color:#9D9A92;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="ti ti-chevron-left"></i></button>
-          <span style="font-size:13px;font-weight:700;color:#E8E5DC;">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</span>
-          <button id="hab-grid-next" ${isNow?'disabled style="opacity:0.3;pointer-events:none;"':''} style="background:rgba(255,255,255,0.06);border:none;border-radius:8px;width:32px;height:32px;color:#9D9A92;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="ti ti-chevron-right"></i></button>
-        </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
             <thead style="position:sticky;top:0;z-index:5;">
@@ -591,14 +586,6 @@ window.Screens.habits = function(mount) {
       });
     });
 
-    const habGridPrev = document.getElementById('hab-grid-prev');
-    const habGridNext = document.getElementById('hab-grid-next');
-    if (habGridPrev) habGridPrev.addEventListener('click', () => {
-      viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderGrid();
-    });
-    if (habGridNext && !habGridNext.disabled) habGridNext.addEventListener('click', () => {
-      viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderGrid();
-    });
     document.getElementById('hab-prev').addEventListener('click', () => {
       viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderGrid();
     });
@@ -770,46 +757,9 @@ window.Screens.habits = function(mount) {
         </div>`).join('');
     }
 
-    // Парсим monthKey для навигации внутри модалки
-    let _formYear  = parseInt(monthKey.split('-')[0]);
-    let _formMonth = parseInt(monthKey.split('-')[1]) - 1; // 0-based
-
-    function rebuildForm() {
-      const _mk = habMonthKey(_formYear, _formMonth);
-      const _ex = wheelGetData(_mk);
-      const _sc = _ex?.scores || new Array(spheres.length).fill(5);
-      // обновляем scores и перерисовываем
-      for (let i=0; i<spheres.length; i++) scores[i] = _sc[i];
-      overlay.querySelector('#wheel-sliders').innerHTML = buildSliders();
-      overlay.querySelector('#wheel-comment').value = _ex?.comment || '';
-      overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
-      overlay.querySelector('#wf-month-label').textContent =
-        HAB_MONTHS_RU[_formMonth] + ' ' + _formYear;
-      const _now = new Date();
-      const _isNow = _formYear === _now.getFullYear() && _formMonth === _now.getMonth();
-      overlay.querySelector('#wf-next').style.opacity = _isNow ? '0.3' : '1';
-      overlay.querySelector('#wf-next').disabled = _isNow;
-      // перевешиваем слайдеры
-      overlay.querySelectorAll('.wheel-slider').forEach(sl => {
-        sl.addEventListener('input', () => {
-          const i = parseInt(sl.dataset.i);
-          scores[i] = parseInt(sl.value);
-          overlay.querySelector('#wsv-'+i).textContent = sl.value;
-          overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
-        });
-      });
-    }
-
     overlay.innerHTML = `
       <div class="tr-modal" style="max-height:90vh;overflow-y:auto;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <p class="tr-modal-title" style="margin:0;">Колесо жизни</p>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button id="wf-prev" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-left"></i></button>
-            <span id="wf-month-label" style="font-size:13px;font-weight:700;color:#E8E5DC;white-space:nowrap;min-width:110px;text-align:center;">${HAB_MONTHS_RU[_formMonth]} ${_formYear}</span>
-            <button id="wf-next" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-right"></i></button>
-          </div>
-        </div>
+        <p class="tr-modal-title">Колесо жизни · ${HAB_MONTHS_RU[parseInt(monthKey.split('-')[1])-1]} ${monthKey.split('-')[0]}</p>
         <div id="wheel-preview" style="display:flex;justify-content:center;margin-bottom:12px;">
           ${wheelDrawSVG(scores, 220, false)}
         </div>
@@ -829,20 +779,6 @@ window.Screens.habits = function(mount) {
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
     overlay.querySelector('#wheel-cancel').addEventListener('click',()=>overlay.remove());
 
-    // Навигация по месяцам внутри модалки
-    overlay.querySelector('#wf-prev').addEventListener('click', () => {
-      _formMonth--;
-      if (_formMonth < 0) { _formMonth = 11; _formYear--; }
-      rebuildForm();
-    });
-    overlay.querySelector('#wf-next').addEventListener('click', () => {
-      const _now = new Date();
-      if (_formYear >= _now.getFullYear() && _formMonth >= _now.getMonth()) return;
-      _formMonth++;
-      if (_formMonth > 11) { _formMonth = 0; _formYear++; }
-      rebuildForm();
-    });
-
     function updateTrack(sl) {
       // трек убран — только ползунок
     }
@@ -858,32 +794,16 @@ window.Screens.habits = function(mount) {
     });
 
     overlay.querySelector('#wheel-save').addEventListener('click',()=>{
-      monthKey = habMonthKey(_formYear, _formMonth); // сохраняем в выбранный месяц
       const comment = overlay.querySelector('#wheel-comment').value.trim();
       onSave({ scores: [...scores], comment, savedAt: new Date().toISOString() });
       overlay.remove();
     });
   }
 
-  /* Состояние выбранного месяца для колеса — сбрасываем при каждом открытии экрана.
-     Если текущий месяц ещё не заполнен — показываем предыдущий (он скорее всего только закончился). */
+  /* Состояние выбранного месяца для колеса — сбрасываем на текущий при каждом открытии экрана */
   const _wheelNow = new Date();
-  {
-    const _wy = _wheelNow.getFullYear();
-    const _wm = _wheelNow.getMonth();
-    const _allW = Store.get().habits?.wheel || {};
-    const _curKey = habMonthKey(_wy, _wm);
-    // Если текущий месяц не заполнен, дефолт — предыдущий
-    if (!_allW[_curKey]) {
-      const _pm = _wm === 0 ? 11 : _wm - 1;
-      const _py = _wm === 0 ? _wy - 1 : _wy;
-      window._wheelSelYear  = _py;
-      window._wheelSelMonth = _pm;
-    } else {
-      window._wheelSelYear  = _wy;
-      window._wheelSelMonth = _wm;
-    }
-  }
+  window._wheelSelYear = _wheelNow.getFullYear();
+  window._wheelSelMonth = _wheelNow.getMonth();
 
   function renderWheel() {
     const allWheels = Store.get().habits?.wheel || {};

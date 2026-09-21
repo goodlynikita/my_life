@@ -9,52 +9,46 @@
 
 window.Screens = window.Screens || {};
 
-// Guard: prevent re-declaration errors on SPA navigation
-if (!window._finConsts) {
-  window._finConsts = true;
-  window.FIN_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                      'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  window.FIN_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  window.FIN_LABEL_COLORS = {
-    '':       { hex: '#16A34A', name: 'Зелёный (осн.)' },
-    'blue':   { hex: '#16A34A', name: 'Синий (другой источник)' },
-    'purple': { hex: '#818CF8', name: 'Индиго' },
-    'orange': { hex: '#F59E0B', name: 'Оранжевый' },
-  };
-}
-var FIN_MONTHS = window.FIN_MONTHS;
-var FIN_MONTHS_SHORT = window.FIN_MONTHS_SHORT;
-var FIN_LABEL_COLORS = window.FIN_LABEL_COLORS;
+const FIN_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь',
+                    'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const FIN_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
-window.finEntries = window.finEntries || function(year, month) {
+const FIN_LABEL_COLORS = {
+  '':       { hex: '#16A34A', name: 'Зелёный (осн.)' },
+  'blue':   { hex: '#16A34A', name: 'Синий (другой источник)' },
+  'purple': { hex: '#818CF8', name: 'Индиго' },
+  'orange': { hex: '#F59E0B', name: 'Оранжевый' },
+};
+
+function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
   return Store.get().finance?.years?.[year]?.[mm]?.entries || [];
 }
 
-window.finSave = window.finSave || function(year, month, entries) {
+function finSave(year, month, entries) {
   const mm = String(month+1).padStart(2,'0');
   Store.set(`finance.years.${year}.${mm}.entries`, entries);
 }
 
-window.finSum = window.finSum || function(entries) {
+function finSum(entries) {
   return entries.reduce((s,e) => s+(e.amount||0), 0);
 }
 
-window.finFmt = window.finFmt || function(n) {
+function finFmt(n) {
   if (n >= 1000000) return (n/1000000).toFixed(1).replace('.',',') + ' млн₽';
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
 }
 
-window.finFmtFull = window.finFmtFull || function(n) {
+function finFmtFull(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
 }
 
-window.finPct = window.finPct || function(cur, prev) {
+function finPct(cur, prev) {
   if (!prev) return null;
   return Math.round((cur-prev)/prev*100);
 }
 
-window.finPctBadge = window.finPctBadge || function(pct, size) {
+function finPctBadge(pct, size) {
   if (pct===null) return '<span style="color:#555;">—</span>';
   const sign = pct>0?'+':'';
   const color = pct>0?'#A8C97F':pct<0?'#FF5C5C':'#9D9A92';
@@ -64,13 +58,13 @@ window.finPctBadge = window.finPctBadge || function(pct, size) {
 }
 
 /* Дата из строки dd.mm.yyyy → Date */
-window.finParseDate = window.finParseDate || function(str) {
+function finParseDate(str) {
   const [d,m,y] = str.split('.');
   return new Date(+y,+m-1,+d);
 }
 
 /* Модалка добавления/редактирования */
-window.finOpenModal = window.finOpenModal || function(existing, year, month, onSave) {
+function finOpenModal(existing, year, month, onSave) {
   const isEdit = !!existing;
   const now = new Date();
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -129,17 +123,6 @@ window.finOpenModal = window.finOpenModal || function(existing, year, month, onS
 }
 
 window.Screens.finance = function(mount) {
-  // Local aliases for helper functions
-  var finEntries = window.finEntries;
-  var finSave = window.finSave;
-  var finSum = window.finSum;
-  var finFmt = window.finFmt;
-  var finFmtFull = window.finFmtFull;
-  var finPct = window.finPct;
-  var finPctBadge = window.finPctBadge;
-  var finParseDate = window.finParseDate;
-  var finOpenModal = window.finOpenModal;
-
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();

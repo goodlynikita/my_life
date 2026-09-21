@@ -2259,3 +2259,293 @@ html, body {
 @media (prefers-reduced-motion:reduce) {
   .home2-tile,.hero-slides { transition:none !important; }
 }
+
+/* ==========================================================
+   WINTER ARC — FINAL REFERENCE LOCK
+   Reference-driven visual layer. Data and routes are untouched.
+   ========================================================== */
+
+/* Keep the reference's quiet, almost-black canvas. */
+.home2-screen {
+  background: #07090d !important;
+}
+
+/* ---------- SLIDER: exact visual language ---------- */
+.hero-slider {
+  margin: 16px 20px 14px !important;
+  height: 180px !important;
+  min-height: 180px !important;
+  border-radius: 15px !important;
+  background: #210817 !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: none !important;
+}
+.hero-slider::before {
+  background:
+    linear-gradient(90deg, rgba(245,73,171,.025) 0%, transparent 42%, rgba(139,24,99,.18) 100%),
+    linear-gradient(180deg, rgba(255,255,255,.018), transparent 38%) !important;
+}
+.hero-slider::after {
+  width: 40% !important;
+  background: url('../img/mountain.jpg') right center / cover no-repeat !important;
+  opacity: .64 !important;
+  mix-blend-mode: screen !important;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.15) 14%, rgba(0,0,0,.8) 50%, #000 100%) !important;
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.15) 14%, rgba(0,0,0,.8) 50%, #000 100%) !important;
+}
+.hero-slide {
+  background: linear-gradient(108deg,#180812 0%,#250d1e 45%,#430d31 77%,#26091f 100%) !important;
+}
+
+/* ---------- TILES ---------- */
+.home2-grid {
+  gap: 10px !important;
+  padding: 0 20px !important;
+}
+.home2-tile {
+  min-height: 194px !important;
+  height: 194px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,.085) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 8px 20px rgba(0,0,0,.18) !important;
+}
+.home2-tile-content {
+  padding: 27px 36px 24px !important;
+}
+.home2-tile-index {
+  font-size: 27px !important;
+  font-weight: 400 !important;
+}
+.home2-tile-name {
+  color: #f1f2f4 !important;
+  font-size: 25px !important;
+  font-weight: 400 !important;
+  letter-spacing: -.025em !important;
+}
+.home2-tile-rule {
+  width: 33px !important;
+  margin: 11px 0 8px !important;
+}
+.home2-tile-data {
+  color: rgba(255,255,255,.42) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: .08em !important;
+}
+.home2-tile-arrow {
+  right: 39px !important;
+  bottom: 29px !important;
+  font-size: 26px !important;
+  font-weight: 300 !important;
+  line-height: 1 !important;
+}
+
+/* TRAINING — the photo is a rectangular right-side visual, never a circle.
+   The source image already contains the visual language; the CSS only fades
+   its left edge into the card. */
+.home2-tile-training {
+  background: linear-gradient(105deg,#08111d 0%,#0b1622 55%,#0a1019 100%) !important;
+}
+.home2-tile-training::after {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: 1 !important;
+  inset: 0 0 0 auto !important;
+  width: 54% !important;
+  height: 100% !important;
+  background: url('../img/training-body-ref.jpg') center right / cover no-repeat !important;
+  opacity: .92 !important;
+  mix-blend-mode: screen !important;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 16%, rgba(0,0,0,.72) 42%, #000 70%, #000 100%) !important;
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 16%, rgba(0,0,0,.72) 42%, #000 70%, #000 100%) !important;
+}
+.home2-tile-training .home2-tile-index,
+.home2-tile-training .home2-tile-arrow { color: #5d9fff !important; }
+.home2-tile-training .home2-tile-name { color: #f1f2f4 !important; }
+
+/* The arrow is UI, not part of the training photograph. Hide the source
+   image's diagonal arrow by placing the card arrow over it with a right-arrow. */
+.home2-tile-training .home2-tile-arrow { z-index: 5 !important; }
+
+/* HABITS */
+.home2-tile-habits {
+  background: linear-gradient(105deg,#08150d 0%,#0a180f 56%,#07110b 100%) !important;
+}
+.home2-tile-habits .home2-tile-index,
+.home2-tile-habits .home2-tile-arrow { color:#4ce57a !important; }
+.home2-tile-habits .home2-tile-name { color:#f1f2f4 !important; }
+.home2-tile-habits .h2-dots {
+  right: 38px !important;
+  top: 57px !important;
+  width: 172px !important;
+  display:grid !important;
+  grid-template-columns:repeat(6,1fr) !important;
+  gap:11px 14px !important;
+  z-index:4 !important;
+}
+.home2-tile-habits .h2-dot {
+  width:11px !important;height:11px !important;
+  border:1px solid rgba(84,232,131,.48) !important;
+  background:transparent !important;
+}
+.home2-tile-habits .h2-dot.done {
+  background:#4ee67b !important;
+  border-color:#4ee67b !important;
+  box-shadow:0 0 9px rgba(78,230,123,.30) !important;
+}
+
+/* FINANCE */
+.home2-tile-finance {
+  background:linear-gradient(110deg,#110a20 0%,#150b2b 55%,#0d0918 100%) !important;
+}
+.home2-tile-finance .home2-tile-index,
+.home2-tile-finance .home2-tile-arrow { color:#9856ff !important; }
+.home2-tile-finance .home2-tile-name { color:#f1f2f4 !important; }
+.home2-finance-chart {
+  width:53% !important;height:63% !important;right:3% !important;bottom:4% !important;
+  color:#9856ff !important;opacity:.86 !important;
+  filter:drop-shadow(0 0 6px rgba(152,86,255,.28)) !important;
+  z-index:2 !important;
+}
+.home2-finance-chart path { stroke-width:1.8 !important; }
+.home2-finance-chart circle { r:4 !important; }
+
+/* GOALS */
+.home2-tile-goals {
+  background:linear-gradient(110deg,#171000 0%,#1a1304 56%,#0f0c06 100%) !important;
+}
+.home2-tile-goals .home2-tile-index,
+.home2-tile-goals .home2-tile-arrow { color:#f2a93b !important; }
+.home2-tile-goals .home2-tile-name { color:#f1f2f4 !important; }
+.home2-goals-radar {
+  width:245px !important;height:245px !important;right:-4px !important;top:-25px !important;
+  opacity:.85 !important;z-index:1 !important;
+}
+
+/* ---------- PHONE: same 2×2 composition, scaled rather than redesigned ---------- */
+@media (max-width:700px) {
+  .hero-slider {
+    margin: 10px 12px 9px !important;
+    height: 132px !important;
+    min-height: 132px !important;
+    border-radius: 13px !important;
+  }
+  .hero-slide {
+    height:132px !important;min-height:132px !important;
+    padding:15px 16px 34px !important;
+    border-radius:13px !important;
+  }
+  .hero-slider::after { width:46% !important; opacity:.58 !important; }
+  .hero-slide-label { font-size:8px !important; }
+  .hero-big-text { font-size:25px !important; }
+  .hero-slide-sub { left:16px !important;right:16px !important;bottom:22px !important; }
+  .hero-stat-num { font-size:11px !important; }
+  .hero-stat-lbl { font-size:8px !important; }
+
+  .home2-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-auto-rows:104px !important;
+    gap:6px !important;
+    padding:0 12px !important;
+  }
+  .home2-tile {
+    min-width:0 !important;
+    min-height:104px !important;
+    height:104px !important;
+    border-radius:11px !important;
+  }
+  .home2-tile-content { padding:13px 14px 12px !important; }
+  .home2-tile-top { height:17px !important; }
+  .home2-tile-index { font-size:17px !important; }
+  .home2-tile-name { margin-top:7px !important;font-size:12px !important; }
+  .home2-tile-rule { width:20px !important;margin:6px 0 5px !important; }
+  .home2-tile-data { max-width:68% !important;font-size:6.5px !important;letter-spacing:.055em !important; }
+  .home2-tile-arrow { right:13px !important;bottom:10px !important;font-size:16px !important; }
+
+  .home2-tile-training::after {
+    width:54% !important;
+    background-size:cover !important;
+    background-position:center right !important;
+    opacity:.86 !important;
+  }
+  .home2-tile-habits .h2-dots {
+    right:11px !important;top:29px !important;width:78px !important;
+    gap:6px !important;
+  }
+  .home2-tile-habits .h2-dot { width:7px !important;height:7px !important; }
+  .home2-finance-chart { width:55% !important;height:68% !important;right:1% !important;bottom:-1% !important; }
+  .home2-goals-radar { width:124px !important;height:124px !important;right:-17px !important;top:-10px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home2-tile-training::after,.home2-finance-chart,.home2-tile-habits .h2-dot,.home2-goals-radar,.home2-tile-arrow { animation:none !important; }
+}
+
+/* ── Goals tile: target / route artwork ───────────────────── */
+.home2-target-art {
+  position:absolute;
+  right:-10px;
+  top:0;
+  width:58%;
+  height:100%;
+  pointer-events:none;
+  opacity:.72;
+  z-index:0;
+  overflow:hidden;
+  mask-image:linear-gradient(90deg, transparent 0%, #000 18%, #000 100%);
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 18%, #000 100%);
+}
+.home2-target-art svg { width:100%; height:100%; display:block; overflow:visible; }
+.home2-target-art .target-ring {
+  fill:none;
+  stroke:#F59E0B;
+  stroke-width:1.15;
+  opacity:.18;
+  transform-origin:255px 110px;
+  animation: target-breathe 5s ease-in-out infinite;
+}
+.home2-target-art .ring-2 { opacity:.24; animation-delay:-1s; }
+.home2-target-art .ring-3 { opacity:.34; animation-delay:-2s; }
+.home2-target-art .target-route {
+  fill:none;
+  stroke:#F59E0B;
+  stroke-width:1.6;
+  stroke-dasharray:5 5;
+  opacity:.55;
+  filter:drop-shadow(0 0 4px rgba(245,158,11,.3));
+  stroke-linecap:round;
+  animation: target-route-flow 6s linear infinite;
+}
+.home2-target-art .target-dot { fill:#F59E0B; }
+.home2-target-art .target-start { opacity:.55; }
+.home2-target-art .target-end {
+  filter:drop-shadow(0 0 8px rgba(245,158,11,.85));
+  animation: target-pulse 2.4s ease-in-out infinite;
+}
+.home2-target-art .target-core {
+  fill:#F59E0B;
+  opacity:.25;
+  filter:blur(1px);
+}
+@keyframes target-breathe {
+  0%,100% { transform:scale(1); opacity:.75; }
+  50% { transform:scale(1.025); opacity:1; }
+}
+@keyframes target-pulse {
+  0%,100% { r:7; opacity:1; }
+  50% { r:9; opacity:.72; }
+}
+@keyframes target-route-flow { to { stroke-dashoffset:-40; } }
+
+.home2-tile-goals .home2-tile-content,
+.home2-tile-goals .home2-tile-arrow { z-index:2; }
+
+@media (max-width: 700px) {
+  .home2-target-art { width:61%; right:-18px; opacity:.62; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home2-target-art .target-ring,
+  .home2-target-art .target-route,
+  .home2-target-art .target-end { animation:none; }
+}

@@ -1,0 +1,601 @@
+/* ═══════════════════════════════════════════════════════
+   NIK TRACKER — WINTER ARC HOME REDESIGN
+   Стиль: крупные карточки, живые переливы, номера секций
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Progress Hero Banner ─────────────────────────────── */
+.wa-hero {
+  margin: 0 16px 14px;
+  background: linear-gradient(135deg, #1a0528 0%, #2d0f45 40%, #3d1560 70%, #1f0835 100%);
+  border-radius: 20px;
+  padding: 20px 20px 18px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease);
+}
+.wa-hero:active { transform: scale(0.98); }
+
+/* Mountain silhouette */
+.wa-hero::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0;
+  width: 50%; height: 100%;
+  background:
+    linear-gradient(to bottom left,
+      rgba(120,50,180,0.0) 0%,
+      rgba(120,50,180,0.0) 40%,
+      rgba(60,20,100,0.6) 60%,
+      rgba(40,10,70,0.8) 80%,
+      rgba(20,5,40,0.9) 100%
+    );
+  clip-path: polygon(40% 100%, 65% 10%, 75% 35%, 90% 5%, 100% 30%, 100% 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Aurora overlay on hero */
+.wa-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 20% 60%, rgba(192,132,252,0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 30%, rgba(139,92,246,0.3) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(236,72,153,0.25) 0%, transparent 40%);
+  background-size: 300% 300%;
+  animation: wa-aurora 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+@keyframes wa-aurora {
+  0%   { background-position: 0% 50%;   opacity: 0.7; }
+  25%  { background-position: 80% 20%;  opacity: 1;   }
+  50%  { background-position: 100% 80%; opacity: 0.8; }
+  75%  { background-position: 20% 90%;  opacity: 1;   }
+  100% { background-position: 0% 50%;   opacity: 0.7; }
+}
+
+/* Glow orb в углу */
+.wa-hero-glow {
+  position: absolute;
+  width: 220px; height: 220px;
+  right: -60px; top: -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167,139,250,0.5) 0%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+  animation: wa-glow-pulse 6s ease-in-out infinite;
+}
+@keyframes wa-glow-pulse {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50%     { opacity: 0.9; transform: scale(1.15); }
+}
+
+.wa-hero-content { position: relative; z-index: 1; }
+.wa-hero-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 6px;
+}
+.wa-hero-pct {
+  font-size: 42px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.wa-hero-bar-track {
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.wa-hero-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #C084FC, #EC4899, #F472B6);
+  border-radius: 2px;
+  transition: width 1.2s cubic-bezier(.34,1.56,.64,1);
+  box-shadow: 0 0 8px rgba(236,72,153,0.6);
+}
+.wa-hero-stats {
+  display: flex;
+  gap: 20px;
+}
+.wa-hero-stat {}
+.wa-hero-stat-num {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+.wa-hero-stat-lbl {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Дополнительный слайд-индикатор (точки) */
+.wa-hero-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 2;
+}
+.wa-hero-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.wa-hero-dot.active {
+  width: 18px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.8);
+}
+
+/* ── WA Grid — 2×2 карточки ──────────────────────────── */
+.wa-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 16px;
+  position: relative;
+}
+
+.wa-card {
+  border-radius: 20px;
+  padding: 20px 18px;
+  min-height: 165px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.28s cubic-bezier(.34,1.4,.64,1), box-shadow 0.28s;
+  -webkit-tap-highlight-color: transparent;
+}
+.wa-card:hover { transform: translateY(-4px) scale(1.02); }
+.wa-card:active { transform: scale(0.97); }
+
+/* Номер секции */
+.wa-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+.wa-card-num {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  font-family: 'Montserrat', sans-serif;
+}
+.wa-card-cat {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+/* Большое название */
+.wa-card-title {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+/* Подпись снизу */
+.wa-card-sub {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  position: relative;
+  z-index: 2;
+}
+
+/* Стрелка / иконка в углу */
+.wa-card-arrow {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font-size: 16px;
+  opacity: 0.5;
+  z-index: 2;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.wa-card:hover .wa-card-arrow {
+  opacity: 0.9;
+  transform: translate(2px, -2px);
+}
+
+/* Визуальный элемент внутри карточки */
+.wa-card-visual {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Live glows на каждой карточке */
+.wa-card::before, .wa-card::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(45px);
+  z-index: 0;
+}
+.wa-card::before { animation: wa-blob-a 9s ease-in-out infinite; }
+.wa-card::after  { animation: wa-blob-b 12s ease-in-out infinite; }
+
+@keyframes wa-blob-a {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(-15px,10px) scale(1.2); }
+  66%     { transform: translate(10px,-8px) scale(0.85); }
+}
+@keyframes wa-blob-b {
+  0%,100% { transform: translate(0,0) scale(1); }
+  40%     { transform: translate(12px,-14px) scale(1.15); }
+  70%     { transform: translate(-8px,10px) scale(0.9); }
+}
+
+/* ── 01 ТРЕНИРОВКИ (синяя) ─────────────────────────── */
+.wa-card-training {
+  background: linear-gradient(145deg, #080f1f 0%, #0d1e3a 50%, #152d55 100%);
+  border: 1px solid rgba(59,130,246,0.2);
+  box-shadow: 0 6px 24px rgba(59,130,246,0.12);
+  color: #93C5FD;
+}
+.wa-card-training .wa-card-title { color: #fff; }
+.wa-card-training .wa-card-arrow { color: #60A5FA; }
+.wa-card-training::before {
+  width: 110px; height: 110px;
+  bottom: -15px; right: -10px;
+  background: rgba(59,130,246,0.5);
+}
+.wa-card-training::after {
+  width: 80px; height: 80px;
+  top: -10px; left: 15px;
+  background: rgba(96,165,250,0.25);
+  animation-delay: -4s;
+}
+
+/* Блик мышцы (body image через CSS) */
+.wa-card-training .wa-card-visual {
+  width: 90px; height: 90px;
+  background: url('../img/body.png') center/contain no-repeat;
+  opacity: 0.12;
+  right: 8px;
+  filter: grayscale(1);
+}
+
+/* ── 02 ПРИВЫЧКИ (зелёная) ──────────────────────────── */
+.wa-card-habits {
+  background: linear-gradient(145deg, #030e07 0%, #071a0d 50%, #0d2814 100%);
+  border: 1px solid rgba(34,197,94,0.2);
+  box-shadow: 0 6px 24px rgba(34,197,94,0.1);
+  color: #86EFAC;
+}
+.wa-card-habits .wa-card-title { color: #fff; }
+.wa-card-habits .wa-card-arrow { color: #4ADE80; }
+.wa-card-habits::before {
+  width: 110px; height: 110px;
+  top: -15px; left: -10px;
+  background: rgba(22,163,74,0.5);
+  animation-delay: -2s;
+}
+.wa-card-habits::after {
+  width: 80px; height: 80px;
+  bottom: -10px; right: 20px;
+  background: rgba(74,222,128,0.25);
+  animation-delay: -6s;
+}
+
+/* Пузырьки привычек */
+.wa-habits-dots {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: grid;
+  grid-template-columns: repeat(6, 9px);
+  gap: 5px;
+  z-index: 1;
+}
+.wa-habits-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+}
+.wa-habits-dot.done { background: #4ADE80; box-shadow: 0 0 6px rgba(74,222,128,0.6); }
+.wa-habits-dot.empty { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); }
+
+/* ── 03 ФИНАНСЫ (фиолетовая) ────────────────────────── */
+.wa-card-finance {
+  background: linear-gradient(145deg, #0c0420 0%, #160838 50%, #1d0a4a 100%);
+  border: 1px solid rgba(139,92,246,0.25);
+  box-shadow: 0 6px 24px rgba(139,92,246,0.12);
+  color: #C4B5FD;
+}
+.wa-card-finance .wa-card-title { color: #fff; }
+.wa-card-finance .wa-card-arrow { color: #A78BFA; }
+.wa-card-finance::before {
+  width: 130px; height: 130px;
+  top: -30px; right: -30px;
+  background: rgba(139,92,246,0.55);
+  animation-delay: -3s;
+}
+.wa-card-finance::after {
+  width: 90px; height: 90px;
+  bottom: -15px; left: 10px;
+  background: rgba(167,139,250,0.3);
+  animation-delay: -7s;
+}
+
+/* Мини-линия графика */
+.wa-finance-chart {
+  position: absolute;
+  right: 0; bottom: 28px;
+  width: 110px; height: 50px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── 04 ЦЕЛИ (оранжевая) ────────────────────────────── */
+.wa-card-goals {
+  background: linear-gradient(145deg, #140900 0%, #221000 50%, #2e1600 100%);
+  border: 1px solid rgba(245,158,11,0.2);
+  box-shadow: 0 6px 24px rgba(245,158,11,0.1);
+  color: #FCD34D;
+}
+.wa-card-goals .wa-card-title { color: #fff; }
+.wa-card-goals .wa-card-arrow { color: #F59E0B; }
+.wa-card-goals::before {
+  width: 120px; height: 120px;
+  top: -25px; left: -25px;
+  background: rgba(251,191,36,0.65);
+  animation-delay: -5s;
+}
+.wa-card-goals::after {
+  width: 90px; height: 90px;
+  bottom: -15px; right: 10px;
+  background: rgba(253,230,138,0.35);
+  animation-delay: -1s;
+}
+
+/* Орбита целей */
+.wa-goals-orbit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 75px; height: 75px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+.wa-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin: 16px 16px 0;
+}
+.wa-footer-left {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.35);
+}
+.wa-footer-sep {
+  width: 1px; height: 14px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.wa-footer-tagline {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+.wa-footer-right {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+
+/* ── Header ───────────────────────────────────────────── */
+.wa-header {
+  padding: max(18px, calc(env(safe-area-inset-top) + 10px)) 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wa-header-left {}
+.wa-header-date {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.wa-header-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.wa-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.wa-btn-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  transition: background 0.2s, color 0.2s;
+}
+.wa-btn-icon:hover {
+  background: rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── Entrance animations ──────────────────────────────── */
+@keyframes wa-slide-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wa-hero { animation: wa-slide-up 0.4s var(--ease) forwards; }
+.wa-card { opacity: 0; animation: wa-slide-up 0.4s var(--ease) forwards; }
+.wa-card:nth-child(1) { animation-delay: 0.08s; }
+.wa-card:nth-child(2) { animation-delay: 0.14s; }
+.wa-card:nth-child(3) { animation-delay: 0.20s; }
+.wa-card:nth-child(4) { animation-delay: 0.26s; }
+
+/* ── Logo mark ─────────────────────────────────────────── */
+.wa-logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  border-radius: 6px;
+  position: relative;
+}
+.wa-logo-mark::before,
+.wa-logo-mark::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.45);
+}
+.wa-logo-mark::before { top: 5px; left: 5px; width: 5px; height: 5px; }
+.wa-logo-mark::after  { bottom: 5px; right: 5px; width: 5px; height: 5px; background: rgba(255,255,255,0.25); }
+
+/* ── Mobile adaptive ──────────────────────────────────── */
+@media (max-width: 380px) {
+  .wa-card { min-height: 140px; padding: 16px 14px; }
+  .wa-card-title { font-size: 22px; }
+  .wa-hero-pct { font-size: 36px; }
+}
+@media (min-width: 768px) {
+  .wa-card { min-height: 200px; }
+  .wa-card-title { font-size: 30px; }
+  .wa-hero-pct { font-size: 52px; }
+  .wa-grid { gap: 16px; }
+}
+
+/* ── Shimmer на wa-hero bar ──────────────────────────── */
+@keyframes shimmer-bar {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.wa-hero-bar-fill {
+  background: linear-gradient(
+    90deg,
+    #C084FC 0%, #A855F7 30%, #EC4899 60%, #F472B6 80%, #C084FC 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-bar 3s linear infinite;
+}
+
+/* ── Finance sparkline (SVG-like via CSS) ─────────────── */
+.wa-finance-line {
+  position: absolute;
+  right: 8px; bottom: 20px;
+  width: 90px; height: 44px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ── Orbit animation for goals ───────────────────────── */
+@keyframes orbit-rotate {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to   { transform: translateY(-50%) rotate(360deg); }
+}
+.wa-orbit-ring {
+  width: 70px; height: 70px;
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%; right: 16px;
+  transform: translateY(-50%);
+  animation: orbit-rotate 12s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+.wa-orbit-ring::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #F59E0B;
+  box-shadow: 0 0 10px rgba(245,158,11,0.8);
+  top: -4px; left: 50%;
+  transform: translateX(-50%);
+}
+.wa-orbit-center {
+  position: absolute;
+  top: 50%; right: 35px;
+  transform: translate(50%, -50%);
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: rgba(251,191,36,0.3);
+  box-shadow: 0 0 20px rgba(251,191,36,0.4);
+  z-index: 1;
+  animation: wa-glow-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Перелив для всего screen-а ───────────────────────── */
+.wa-screen {
+  min-height: 100vh;
+  background: #0F1117;
+  padding: 0 0 max(40px, calc(env(safe-area-inset-bottom) + 20px));
+  font-family: 'Montserrat', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+

@@ -787,5 +787,5 @@ window.Screens.finance = function(mount) {
     }
   }
   render();
-  }; // end renderBalance scope
+}
 }; // window.Screens.finance end

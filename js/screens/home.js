@@ -383,7 +383,7 @@ window.Screens.home = function(mount) {
 
     ov.querySelector('#tso-save').addEventListener('click', saveTiles);
     rebind();
-  });
+  }
 
   /* ── Применяем сохранённый порядок и сетку плиток при загрузке ── */
   (function() {
@@ -482,7 +482,7 @@ window.Screens.home = function(mount) {
       });
       ov.remove(); Router.go('/home');
     });
-  });
+  }
 
   /* ── Слайдер ── */
   var slidesEl = document.getElementById('hero-slides');

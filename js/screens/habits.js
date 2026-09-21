@@ -614,7 +614,13 @@ window.Screens.habits = function(mount) {
 
       return `
         <div class="sec-card">
-          <div class="sec-card-title">${HAB_MONTHS_RU[m-1]} ${y} · <span style="color:#C8A84B;">${overallPct}%</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="hab-hist-prev-mk" data-mk="${mk}" style="background:rgba(255,255,255,0.06);border:none;border-radius:7px;width:26px;height:26px;color:#9D9A92;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-left"></i></button>
+              <span class="sec-card-title" style="margin:0;">${HAB_MONTHS_RU[m-1]} ${y} · <span style="color:#C8A84B;">${overallPct}%</span></span>
+              <button class="hab-hist-next-mk" data-mk="${mk}" style="background:rgba(255,255,255,0.06);border:none;border-radius:7px;width:26px;height:26px;color:#9D9A92;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-right"></i></button>
+            </div>
+          </div>
           <table style="width:100%;border-collapse:collapse;">
             <thead>
               <tr>
@@ -644,6 +650,38 @@ window.Screens.habits = function(mount) {
           </table>
         </div>`;
     }).join('');
+
+    // Обработчики стрелок переименования месяца
+    content.querySelectorAll('.hab-hist-prev-mk, .hab-hist-next-mk').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const oldMk = btn.dataset.mk;
+        const [oy, om] = oldMk.split('-').map(Number);
+        const isPrev = btn.classList.contains('hab-hist-prev-mk');
+        let nm = om + (isPrev ? -1 : 1);
+        let ny = oy;
+        if (nm < 1) { nm = 12; ny--; }
+        if (nm > 12) { nm = 1; ny++; }
+        const newMk = ny + '-' + String(nm).padStart(2, '0');
+
+        const store = Store.get();
+        const allMonths = store.habits?.months || {};
+
+        // Проверяем что целевой ключ свободен
+        if (allMonths[newMk]) {
+          if (!confirm('В ' + HAB_MONTHS_RU[nm-1] + ' ' + ny + ' уже есть данные. Перезаписать?')) return;
+        }
+
+        // Перемещаем данные
+        const data = allMonths[oldMk];
+        delete allMonths[oldMk];
+        allMonths[newMk] = data;
+
+        if (!store.habits) store.habits = {};
+        store.habits.months = allMonths;
+        Store.save(store);
+        renderHistory();
+      });
+    });
   }
 
 

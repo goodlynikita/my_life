@@ -1018,3 +1018,62 @@ html, body {
 .home2-tile.tile-hidden {
   display: none !important;
 }
+
+/* ═══ PATCH — хаотичные blob'ы + убрать подсветку снизу ══ */
+
+/* Новые хаотичные анимации — каждая плитка своя траектория */
+@keyframes blob-chaos-1 {
+  0%   { transform: translate(0%, 0%); }
+  20%  { transform: translate(60%, 30%); }
+  40%  { transform: translate(20%, 80%); }
+  60%  { transform: translate(80%, 50%); }
+  80%  { transform: translate(40%, 10%); }
+  100% { transform: translate(0%, 0%); }
+}
+@keyframes blob-chaos-2 {
+  0%   { transform: translate(0%, 0%); }
+  25%  { transform: translate(-40%, 60%); }
+  50%  { transform: translate(50%, 90%); }
+  75%  { transform: translate(70%, 20%); }
+  100% { transform: translate(0%, 0%); }
+}
+@keyframes blob-chaos-3 {
+  0%   { transform: translate(0%, 0%); }
+  30%  { transform: translate(70%, -20%); }
+  55%  { transform: translate(10%, 70%); }
+  80%  { transform: translate(-30%, 40%); }
+  100% { transform: translate(0%, 0%); }
+}
+@keyframes blob-chaos-4 {
+  0%   { transform: translate(0%, 0%); }
+  20%  { transform: translate(-60%, 40%); }
+  45%  { transform: translate(40%, -30%); }
+  70%  { transform: translate(80%, 70%); }
+  100% { transform: translate(0%, 0%); }
+}
+
+/* Переопределяем позиции blob'ов — стартуют из центра, двигаются хаотично */
+.home2-tile::before, .home2-tile::after {
+  top: 30% !important;
+  left: 30% !important;
+  bottom: auto !important;
+  right: auto !important;
+}
+
+.home2-tile-training::before { animation: blob-chaos-1 9s ease-in-out infinite !important; }
+.home2-tile-training::after  { animation: blob-chaos-2 13s ease-in-out infinite !important; animation-delay: -3s !important; }
+
+.home2-tile-habits::before { animation: blob-chaos-3 10s ease-in-out infinite !important; animation-delay: -2s !important; }
+.home2-tile-habits::after  { animation: blob-chaos-4 14s ease-in-out infinite !important; animation-delay: -5s !important; }
+
+.home2-tile-finance::before { animation: blob-chaos-2 11s ease-in-out infinite !important; animation-delay: -4s !important; }
+.home2-tile-finance::after  { animation: blob-chaos-1 15s ease-in-out infinite !important; animation-delay: -7s !important; }
+
+.home2-tile-goals::before { animation: blob-chaos-4 10s ease-in-out infinite !important; animation-delay: -1s !important; }
+.home2-tile-goals::after  { animation: blob-chaos-3 13s ease-in-out infinite !important; animation-delay: -6s !important; }
+
+/* Убираем некрасивую подсветку снизу плиток — это .home2-tile-grid-glow или box-shadow */
+.home2-grid::after { display: none !important; }
+.home2-tile { box-shadow: none !important; }
+.home2-grid-glow { display: none !important; }
+

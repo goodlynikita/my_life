@@ -73,7 +73,7 @@ const MUSCLE_GROUPS = [
 const CARDIO_DIRECTIONS = ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'];
 
 const TRAINING_CATEGORIES = [
-  { id: 'Зал',    label: 'Тренировочный зал', color: '#4ADE80', desc: 'Силовые по группам мышц' },
+  { id: 'Тренажерный зал', label: 'Тренажерный зал', color: '#4ADE80', desc: 'Силовые по группам мышц' },
   { id: 'Фитнес', label: 'Фитнес',            color: '#C084FC', desc: 'Растяжка, пилатес, йога' },
   { id: 'Кардио', label: 'Кардио',            color: '#60A5FA', desc: 'Бег, велосипед, плавание' },
   { id: 'Спорт',  label: 'Спорт',             color: '#F59E0B', desc: 'Игровые и зимние виды' },
@@ -214,8 +214,15 @@ function trOpenExerciseEditor() {
     const html = Object.entries(typeGroups).map(([grp, types]) =>
       `<div style="margin-bottom:16px;">
         <div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">${grp}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${types.map(t => `<button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>${t.name}</button>`).join('')}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" data-group="${grp}">
+          ${types.map(t => `
+            <div style="position:relative;display:inline-flex;">
+              <button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px 8px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>${t.name}
+              </button>
+              <button class="tr-type-del-btn" data-type="${t.name}" title="Удалить" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:#F87171;border:none;color:#fff;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">×</button>
+            </div>`).join('')}
+          <button class="tr-type-add-btn" data-group="${grp}" style="padding:8px 12px;border-radius:10px;border:1.5px dashed rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:18px;font-family:inherit;line-height:1;">+</button>
         </div>
       </div>`
     ).join('');
@@ -280,6 +287,35 @@ function trOpenExerciseEditor() {
         render();
       });
     });
+
+    // Удалить тип
+    overlay.querySelectorAll('.tr-type-del-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const typeName = btn.dataset.type;
+        if (!confirm('Удалить тип «' + typeName + '»?')) return;
+        const idx = TRAINING_TYPES.findIndex(t => t.name === typeName);
+        if (idx !== -1) TRAINING_TYPES.splice(idx, 1);
+        // Удаляем упражнения этого типа
+        delete MUSCLE_BLOCK_EXERCISES[typeName];
+        render();
+      });
+    });
+
+    // Добавить новый тип в группу
+    overlay.querySelectorAll('.tr-type-add-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const grp = btn.dataset.group;
+        const name = prompt('Название нового типа в группе «' + grp + '»:');
+        if (!name || !name.trim()) return;
+        const trimmed = name.trim();
+        if (TRAINING_TYPES.find(t => t.name === trimmed)) { alert('Такой тип уже есть'); return; }
+        const colors = {'Зал':'#4ADE80','Фитнес':'#C084FC','Кардио':'#60A5FA','Спорт':'#F59E0B','Шаги':'#A78BFA','Отдых':'#6B7280'};
+        TRAINING_TYPES.push({ name: trimmed, color: colors[grp] || '#9D9A92', group: grp });
+        render();
+      });
+    });
     overlay.querySelectorAll('.tr-grp-sel-btn').forEach(btn => {
       btn.addEventListener('click', () => { selGroup=btn.dataset.group; step='exercises'; render(); });
     });
@@ -341,7 +377,7 @@ function trBuildSelect(id, list, current) {
   let options;
   if (hasGroups) {
     const groups = [...new Set(list.map(i => i.group).filter(Boolean))];
-    const groupLabels = { 'Зал': '🏋️ Зал', 'Кардио': '🏃 Кардио', 'Шаги': '🚶 Шаги', 'Спорт': '⚽ Спорт', 'Зима': '⛷️ Зима', 'Прочее': '➕ Прочее' };
+    const groupLabels = { 'Зал': 'Зал', 'Кардио': 'Кардио', 'Шаги': 'Шаги', 'Спорт': 'Спорт', 'Зима': 'Зима', 'Прочее': 'Прочее' };
     options = groups.map(g => {
       const items = list.filter(i => i.group === g);
       return `<optgroup label="${groupLabels[g]||g}">${items.map(i => `<option value="${i.name}" ${i.name===current?'selected':''}>${i.name}</option>`).join('')}</optgroup>`;
@@ -742,7 +778,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     return `
       <div class="tr-session">
         <div class="tr-session-head">
-          <span class="tr-day-tag has-session tr-session-type-tag" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" title="Изменить тип" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55; cursor:pointer;">${session.type} <i class="ti ti-pencil" style="font-size:10px;opacity:0.6;"></i></span>${groupTags}
+          <span class="tr-day-tag has-session" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" style="background:${typeColor}22; color:${typeColor}; border-color:${typeColor}55;">${session.type}</span>${groupTags}
           <span class="tr-session-actions">
             <button class="tr-session-move" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день" style="background:none; border:none; cursor:pointer; color:#9D9A92; padding:4px 6px; font-size:15px;"><i class="ti ti-calendar-share"></i></button>
             ${!isRest ? `<button class="tr-day-add tr-session-add-ex" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Добавить упражнение" title="Добавить упражнение в эту тренировку"><i class="ti ti-plus"></i></button>` : ''}
@@ -979,19 +1015,27 @@ function trBuildGroupCheckboxes(selected) {
   const c = n => COLOR_MAP[n];
 
   const MASKS = {
-    'Плечи':  `<ellipse cx="22" cy="55" rx="12" ry="11" fill="${c('Плечи')}"/><ellipse cx="88" cy="55" rx="12" ry="11" fill="${c('Плечи')}"/>`,
-    'Грудь':  `<path d="M35,52 Q55,46 75,52 L78,76 Q55,82 32,76Z" fill="${c('Грудь')}"/>`,
-    'Спина':  `<path d="M35,52 Q55,46 75,52 L78,76 Q55,82 32,76Z" fill="${c('Спина')}" opacity="0.5"/>`,
-    'Руки':   `<path d="M15,54 Q8,70 10,90 L22,88 Q22,72 26,58Z" fill="${c('Руки')}"/><path d="M95,54 Q102,70 100,90 L88,88 Q88,72 84,58Z" fill="${c('Руки')}"/><path d="M10,90 Q7,108 9,116 L21,114 Q22,102 22,88Z" fill="${c('Руки')}" opacity="0.8"/><path d="M100,90 Q103,108 101,116 L89,114 Q88,102 88,88Z" fill="${c('Руки')}" opacity="0.8"/>`,
-    'Кор':    `<path d="M38,76 Q55,82 72,76 L72,108 Q55,114 38,108Z" fill="${c('Кор')}"/>`,
-    'Ноги':   `<path d="M32,114 Q26,138 28,158 L48,158 Q48,138 46,114Z" fill="${c('Ноги')}"/><path d="M78,114 Q84,138 82,158 L62,158 Q62,138 64,114Z" fill="${c('Ноги')}"/><path d="M28,160 Q26,178 28,188 L46,188 Q47,178 48,160Z" fill="${c('Ноги')}" opacity="0.8"/><path d="M82,160 Q84,178 82,188 L64,188 Q63,178 62,160Z" fill="${c('Ноги')}" opacity="0.8"/>`,
+    // Плечи: эллипсы точно на дельтах (y=20–36, x: лево 14–28, право 81–96)
+    'Плечи': `<ellipse cx="21" cy="28" rx="7" ry="8" fill="${c('Плечи')}" opacity="0.75"/>
+              <ellipse cx="88" cy="28" rx="7" ry="8" fill="${c('Плечи')}" opacity="0.75"/>`,
+    // Грудь: торс y=36–62, x=44–65
+    'Грудь': `<rect x="38" y="36" width="33" height="26" rx="4" fill="${c('Грудь')}" opacity="0.7"/>`,
+    // Спина совпадает с грудью (вид спереди/сзади — одна зона)
+    'Спина': `<rect x="38" y="36" width="33" height="26" rx="4" fill="${c('Спина')}" opacity="0.65"/>`,
+    // Руки: лево x=23–35, право x=74–86, y=51–95
+    'Руки':  `<rect x="22" y="50" width="14" height="46" rx="5" fill="${c('Руки')}" opacity="0.75"/>
+              <rect x="73" y="50" width="14" height="46" rx="5" fill="${c('Руки')}" opacity="0.75"/>`,
+    // Кор: y=62–98, x=43–66
+    'Кор':   `<rect x="40" y="62" width="29" height="36" rx="4" fill="${c('Кор')}" opacity="0.7"/>`,
+    // Ноги: лево x=36–51, право x=58–73, y=98–163
+    'Ноги':  `<rect x="35" y="97" width="17" height="67" rx="5" fill="${c('Ноги')}" opacity="0.75"/>
+              <rect x="57" y="97" width="17" height="67" rx="5" fill="${c('Ноги')}" opacity="0.75"/>`,
   };
   const activeMasks = Object.entries(MASKS).filter(([name]) => has(name)).map(([,svg]) => svg).join('');
 
-  const silhouette = `<svg viewBox="0 0 110 220" width="72" height="144" style="flex-shrink:0;display:block;">
-    <defs><mask id="body-mask"><image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/></mask></defs>
+  const silhouette = `<svg viewBox="0 0 110 165" width="80" height="120" style="flex-shrink:0;display:block;">
     <image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/>
-    ${activeMasks ? `<g mask="url(#body-mask)" opacity="0.65">${activeMasks}</g>` : ''}
+    ${activeMasks ? `<g opacity="0.72">${activeMasks}</g>` : ''}
   </svg>`;
 
   return `<div style="display:flex;align-items:flex-start;gap:10px;">
@@ -1081,22 +1125,33 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
     hintEl.innerHTML = hint ? hint.html : '';
   }
 
+  function refreshMuscleUI() {
+    const groups = selectedGroupsNow();
+    const wrap = overlay.querySelector('#m-name-wrap');
+    if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
+    const newHtml = trBuildGroupCheckboxes(groups);
+    const tmpDiv = document.createElement('div');
+    tmpDiv.innerHTML = newHtml;
+    const mWrap = overlay.querySelector('.m-groups-wrap');
+    const sil = overlay.querySelector('#m-silhouette');
+    if (mWrap) mWrap.innerHTML = tmpDiv.querySelector('.m-groups-wrap')?.innerHTML || '';
+    if (sil) sil.innerHTML = tmpDiv.querySelector('#m-silhouette')?.innerHTML || '';
+    bindGroupCheckboxes();
+  }
+
   function bindGroupCheckboxes() {
-    overlay.querySelectorAll('.m-group-cb').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const groups = selectedGroupsNow();
-        const wrap = overlay.querySelector('#m-name-wrap');
-        if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
-        // Обновляем pill стили и силуэт
-        const newHtml = trBuildGroupCheckboxes(groups);
-        const tmpDiv = document.createElement('div');
-        tmpDiv.innerHTML = newHtml;
-        const mWrap = overlay.querySelector('.m-groups-wrap');
-        const sil = overlay.querySelector('#m-silhouette');
-        if (mWrap) mWrap.innerHTML = tmpDiv.querySelector('.m-groups-wrap')?.innerHTML || '';
-        if (sil) sil.innerHTML = tmpDiv.querySelector('#m-silhouette')?.innerHTML || '';
-        bindGroupCheckboxes();
+    overlay.querySelectorAll('.m-group-label').forEach(lbl => {
+      lbl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cb = lbl.querySelector('.m-group-cb');
+        if (!cb) return;
+        cb.checked = !cb.checked;
+        refreshMuscleUI();
       });
+    });
+    // fallback для change
+    overlay.querySelectorAll('.m-group-cb').forEach(cb => {
+      cb.addEventListener('change', refreshMuscleUI);
     });
   }
   bindGroupCheckboxes();
@@ -1165,7 +1220,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     <div class="tr-modal">
       <p class="tr-modal-title">${day.date} ${day.dow}${day.sessions.length > 0 ? ' · новая тренировка' : ''}</p>
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', TRAINING_TYPES, initialType)}</label>
+        <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', SESSION_TYPES.map(function(t){return {name:t.id,color:t.color};}), initialType)}</label>
       </div>
       <div id="m-fields-wrap">${trBuildFormFields(initialType, [], plan)}</div>
       <div class="tr-modal-actions">

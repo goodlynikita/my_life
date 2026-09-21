@@ -526,7 +526,7 @@ var Slides = (() => {
         <input type="text" id="se-label" value="${s.label||''}" placeholder="ФОКУС ДНЯ" style="width:100%;box-sizing:border-box;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:14px;">
 
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:8px;">Цвет фона</div>
-        <div style="display:grid;grid-template-columns:repeat(6,36px);gap:8px;margin-bottom:16px;">${colorOpts}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">${colorOpts}</div>
 
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:4px;">Ссылка при нажатии</div>
         <select id="se-route" style="width:100%;box-sizing:border-box;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;margin-bottom:16px;">

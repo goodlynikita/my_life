@@ -136,15 +136,9 @@ window.Screens.home = function(mount) {
   var n = visSlides.length;
 
   mount.innerHTML = '<div class="home2-screen">'
-    + '<div class="home2-header"><div>'
-    + '<p class="home2-date">'+DOWS[now.getDay()]+', '+now.getDate()+' '+MONTHS[now.getMonth()]+'</p>'
-    + '<h1 class="home2-title">YOU</h1>'
-    + '</div><div style="display:flex;gap:8px;">'
-    + '<button class="home2-logout" id="slides-edit-btn" title="Редактор слайдов" style="font-size:16px;"><i class="ti ti-layout"></i></button>'
-    + '<button class="home2-logout" id="tile-settings-btn" title="Настройка плиток" style="font-size:16px;"><i class="ti ti-layout-grid"></i></button>'
-    + '<button class="home2-logout" id="slider-settings-btn" style="font-size:16px;"><i class="ti ti-settings"></i></button>'
-    + '<button class="home2-logout" id="logout-btn"><i class="ti ti-logout"></i></button>'
-    + '</div></div>'
+    + '<div class="home2-header">'
+    + '<button class="home2-logout" id="home-menu-btn" style="font-size:18px;"><i class="ti ti-dots"></i></button>'
+    + '</div>'
     + '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides" style="width:'+(n*100)+'%">'
     + visSlides.map(function(s){ return typeof s === 'string' ? s.replace('flex:0 0 33.333%','') : ''; }).join('')
@@ -171,14 +165,24 @@ window.Screens.home = function(mount) {
     el.addEventListener('click', function(){ Router.go(el.dataset.route); });
   });
 
-  document.getElementById('logout-btn').addEventListener('click', function(){
-    Auth.logout().then(function(){ Router.go('/login'); });
-  });
-
-  /* ── Редактор слайдов ── */
-  var slidesEditBtn = document.getElementById('slides-edit-btn');
-  if (slidesEditBtn) slidesEditBtn.addEventListener('click', function(){
-    window.Slides && window.Slides.openEditor();
+  // Единое меню
+  var menuBtn = document.getElementById('home-menu-btn');
+  if (menuBtn) menuBtn.addEventListener('click', function() {
+    var ov = document.createElement('div');
+    ov.className = 'tr-modal-overlay';
+    ov.innerHTML = '<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:340px;overflow:hidden;">'
+      + '<div style="padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase;">Меню</div>'
+      + '<button id="hm-slides" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout" style="font-size:18px;color:#9D9A92;"></i>Редактор слайдов</button>'
+      + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
+      + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-settings" style="font-size:18px;color:#9D9A92;"></i>Настройки</button>'
+      + '<button id="hm-logout" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#F87171;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button>'
+      + '</div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    ov.querySelector('#hm-slides').addEventListener('click', function(){ ov.remove(); window.Slides && window.Slides.openEditor(); });
+    ov.querySelector('#hm-tiles').addEventListener('click', function(){ ov.remove(); });
+    ov.querySelector('#hm-settings').addEventListener('click', function(){ ov.remove(); });
+    ov.querySelector('#hm-logout').addEventListener('click', function(){ ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
   });
 
   /* ── Подушка считается автоматически из финансов ── */

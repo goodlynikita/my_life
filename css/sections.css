@@ -1697,3 +1697,21 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 .wheel-slider-row {
   margin-bottom: 14px;
 }
+
+/* ═══ PATCH — единый размер шапки везде как в тренировках ══ */
+.hab-header,
+.tochka-header,
+.goals-header,
+.sec-header {
+  padding: 14px 20px !important;
+  min-height: auto !important;
+}
+
+.hab-screen-title,
+.tochka-screen-title,
+.goals-screen-title,
+.sec-screen-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}

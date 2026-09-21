@@ -559,8 +559,8 @@ var Slides = (() => {
             <button id="se-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
           </div>
         </div>
-        <div style="overflow-y:auto;flex:1;min-height:0;padding:16px 20px 40px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;">
-          <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Перетащи для изменения порядка (drag n drop в разработке). Нажми Изменить чтобы редактировать блоки.</div>
+        <div id="se-body" style="overflow-y:auto;flex:1;min-height:0;padding:16px 20px 40px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;">
+          <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Нажми Изменить чтобы редактировать блоки слайда.</div>
           ${curSlides.map((s,i) => slideCard(s,i)).join('')}
         </div>
       </div>`;
@@ -596,7 +596,7 @@ var Slides = (() => {
           const head  = panel.querySelector('[style*="sticky"]');
           head.querySelector('span').textContent = 'Редактировать слайд';
           head.querySelector('#se-add').style.display='none';
-          const body = panel.querySelectorAll('div')[1]; // scroll area
+          const body = panel.querySelector('#se-body');
           body.style.cssText = 'overflow-y:auto;flex:1;min-height:0;padding:16px 20px 80px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;';
           body.innerHTML = slideEditForm(sl[idx], idx);
 

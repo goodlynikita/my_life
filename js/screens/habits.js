@@ -800,12 +800,10 @@ window.Screens.habits = function(mount) {
     });
   }
 
-  /* Состояние выбранного месяца для колеса — на уровне модуля */
+  /* Состояние выбранного месяца для колеса — сбрасываем на текущий при каждом открытии экрана */
   const _wheelNow = new Date();
-  if (typeof window._wheelSelYear === 'undefined') {
-    window._wheelSelYear = _wheelNow.getFullYear();
-    window._wheelSelMonth = _wheelNow.getMonth();
-  }
+  window._wheelSelYear = _wheelNow.getFullYear();
+  window._wheelSelMonth = _wheelNow.getMonth();
 
   function renderWheel() {
     const allWheels = Store.get().habits?.wheel || {};
@@ -818,17 +816,23 @@ window.Screens.habits = function(mount) {
     const isRealNow = selYear === _wNow.getFullYear() && selMonth === _wNow.getMonth();
     const eyebrow = isRealNow ? 'Текущий месяц' : 'Выбранный месяц';
 
+    const monthOptions = HAB_MONTHS_RU.map((name, i) =>
+      `<option value="${i}" ${i===selMonth?'selected':''}>${name}</option>`
+    ).join('');
+    const yearOptions = [selYear-1, selYear, selYear+1].filter(y => y <= _wNow.getFullYear()).map(y =>
+      `<option value="${y}" ${y===selYear?'selected':''}>${y}</option>`
+    ).join('');
+
     content.innerHTML = `
       <div class="wheel-screen">
         <div class="wheel-current-card">
           <div class="wheel-card-head">
-            <div style="display:flex;align-items:center;gap:4px;">
-              <button id="wheel-prev-month" style="background:none;border:none;color:#9D9A92;cursor:pointer;font-size:18px;padding:4px;"><i class="ti ti-chevron-left"></i></button>
-              <div>
-                <div class="wheel-card-eyebrow">${eyebrow}</div>
-                <div class="wheel-card-title">${HAB_MONTHS_RU[selMonth]} ${selYear}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <select id="wheel-sel-month" style="background:#1C1E26;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#E8E5DC;font-size:14px;font-weight:700;padding:5px 8px;font-family:Montserrat,sans-serif;cursor:pointer;">${monthOptions}</select>
+                <select id="wheel-sel-year" style="background:#1C1E26;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#E8E5DC;font-size:14px;font-weight:700;padding:5px 8px;font-family:Montserrat,sans-serif;cursor:pointer;">${yearOptions}</select>
               </div>
-              <button id="wheel-next-month" style="background:none;border:none;color:${isRealNow?'#2A2D3540':'#9D9A92'};cursor:pointer;font-size:18px;padding:4px;${isRealNow?'pointer-events:none;':''}"><i class="ti ti-chevron-right"></i></button>
+              ${!isRealNow ? `<span style="font-size:10px;color:#555;background:#1C1E26;padding:3px 8px;border-radius:6px;">не текущий</span>` : ''}
             </div>
             <button id="wheel-fill-now" class="wheel-fill-btn">
               ${currentData ? '✏️ Изменить' : '+ Заполнить'}
@@ -861,17 +865,21 @@ window.Screens.habits = function(mount) {
         </div>` : ''}
       </div>`;
 
-    document.getElementById('wheel-prev-month').addEventListener('click',()=>{
-      window._wheelSelMonth--;
-      if(window._wheelSelMonth < 0){ window._wheelSelMonth=11; window._wheelSelYear--; }
+    document.getElementById('wheel-sel-month').addEventListener('change', e => {
+      window._wheelSelMonth = parseInt(e.target.value);
+      // Не даём выбрать будущее
+      const now = new Date();
+      if (window._wheelSelYear >= now.getFullYear() && window._wheelSelMonth > now.getMonth()) {
+        window._wheelSelMonth = now.getMonth();
+      }
       renderWheel();
     });
-    const nextBtn = document.getElementById('wheel-next-month');
-    if(nextBtn) nextBtn.addEventListener('click',()=>{
+    document.getElementById('wheel-sel-year').addEventListener('change', e => {
+      window._wheelSelYear = parseInt(e.target.value);
       const now = new Date();
-      if(window._wheelSelYear >= now.getFullYear() && window._wheelSelMonth >= now.getMonth()) return;
-      window._wheelSelMonth++;
-      if(window._wheelSelMonth > 11){ window._wheelSelMonth=0; window._wheelSelYear++; }
+      if (window._wheelSelYear >= now.getFullYear() && window._wheelSelMonth > now.getMonth()) {
+        window._wheelSelMonth = now.getMonth();
+      }
       renderWheel();
     });
 

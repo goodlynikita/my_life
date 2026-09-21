@@ -27,7 +27,7 @@ var FIN_LABEL_COLORS = window.FIN_LABEL_COLORS;
 
 function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
-  return Store.get().finance?.years?.[year]?.[mm]?.entries || [];
+  return ((Store.get().finance||{}).years||{})[year] && (((Store.get().finance.years||{})[year]||{})[mm]||{}).entries || [];
 }
 
 function finSave(year, month, entries) {
@@ -128,15 +128,6 @@ function finOpenModal(existing, year, month, onSave) {
 }
 
 window.Screens.finance = function(mount) {
-  var finEntries   = window.finEntries;
-  var finSave      = window.finSave;
-  var finSum       = window.finSum;
-  var finFmt       = window.finFmt;
-  var finFmtFull   = window.finFmtFull;
-  var finPct       = window.finPct;
-  var finPctBadge  = window.finPctBadge;
-  var finParseDate = window.finParseDate;
-  var finOpenModal = window.finOpenModal;
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();

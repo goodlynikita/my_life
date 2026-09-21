@@ -791,7 +791,7 @@ window.Screens.habits = function(mount) {
 
   function wheelOpenForm(monthKey, existing, onSave) {
     const spheres = WHEEL_SPHERES_DEFAULT;
-    const scores = existing?.scores || new Array(spheres.length).fill(5);
+    const scores = (existing && existing.scores) || new Array(spheres.length).fill(5);
     const overlay = document.createElement('div');
     overlay.className = 'tr-modal-overlay modal-habits';
 
@@ -813,7 +813,7 @@ window.Screens.habits = function(mount) {
     function _wfRebuild() {
       const _mk = habMonthKey(_wfYear, _wfMonth);
       const _ex = wheelGetData(_mk);
-      const _sc = _ex?.scores || new Array(spheres.length).fill(5);
+      const _sc = (_ex && _ex.scores) || new Array(spheres.length).fill(5);
       for (let i=0; i<spheres.length; i++) scores[i] = _sc[i];
       overlay.querySelector('#wheel-sliders').innerHTML = buildSliders();
       overlay.querySelector('#wheel-comment').value = _ex?.comment || '';
@@ -851,7 +851,7 @@ window.Screens.habits = function(mount) {
         <div id="wheel-sliders">${buildSliders()}</div>
         <div class="tr-modal-row" style="margin-top:8px;">
           <label style="flex:1 1 100%">Комментарий к месяцу
-            <input type="text" id="wheel-comment" value="${existing?.comment||''}" placeholder="Как прошёл месяц?">
+            <input type="text" id="wheel-comment" value="${(existing && existing.comment)||''}" placeholder="Как прошёл месяц?">
           </label>
         </div>
         <div class="tr-modal-actions">

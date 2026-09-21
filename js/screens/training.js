@@ -88,13 +88,16 @@ function trIsRestType(typeName) {
   return typeName === 'Отдых';
 }
 function trIsTimeCalorieType(typeName) {
-  return ['Теннис', 'Бокс', 'Борьба', 'Баскетбол', 'Футбол', 'Волейбол', 'Йога', 'Растяжка', 'Лыжи', 'Сноуборд', 'Коньки'].includes(typeName);
+  return typeName === 'Спорт' || ['Теннис', 'Бокс', 'Борьба', 'Баскетбол', 'Футбол', 'Волейбол', 'Йога', 'Растяжка', 'Лыжи', 'Сноуборд', 'Коньки'].includes(typeName);
 }
 function trIsCardioType(typeName) {
-  return ['Кардио', 'Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'].includes(typeName);
+  return typeName === 'Кардио' || ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'].includes(typeName);
 }
 function trIsStepsType(typeName) {
-  return typeName === '10k' || typeName === 'Ходьба';
+  return typeName === 'Шаги' || typeName === '10k' || typeName === 'Ходьба';
+}
+function trIsFitnessType(typeName) {
+  return typeName === 'Фитнес' || ['Растяжка', 'Стрейчинг', 'Пилатес', 'Йога', 'Функциональная'].includes(typeName);
 }
 
 const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
@@ -998,46 +1001,75 @@ function trBuildGroupCheckboxes(selected) {
     'Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'
   };
 
-  const pills = MUSCLE_GROUPS.map(g => {
-    const active = selected.includes(g.name);
-    const c = COLOR_MAP[g.name] || g.color;
-    return `<label class="m-group-label" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;border:1.5px solid ${active ? c : 'rgba(255,255,255,0.2)'};background:${active ? c+'28' : 'rgba(255,255,255,0.05)'};cursor:pointer;font-size:12px;font-weight:600;color:${active ? c : 'rgba(255,255,255,0.6)'};transition:all 0.15s;white-space:nowrap;">
-      <input type="checkbox" class="m-group-cb m-group-check" value="${g.name}" ${active ? 'checked' : ''} style="display:none;">
-      ${active
-        ? `<span style="width:14px;height:14px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:9px;color:#000;flex-shrink:0;">✓</span>`
-        : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);flex-shrink:0;"></span>`}
-      ${g.name}
+  function pill(name) {
+    const active = selected.includes(name);
+    const col = COLOR_MAP[name] || '#9D9A92';
+    const isFull = name === 'FULL BODY';
+    return `<label class="m-group-label" data-group="${name}" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:${isFull?'0 10px':'6px 10px'};${isFull?'height:100%;':''}border-radius:10px;border:1.5px solid ${active ? col : 'rgba(255,255,255,0.2)'};background:${active ? col+'28' : 'rgba(255,255,255,0.05)'};cursor:pointer;font-size:12px;font-weight:600;color:${active ? col : 'rgba(255,255,255,0.6)'};transition:all 0.15s;white-space:nowrap;width:100%;box-sizing:border-box;">
+      <input type="checkbox" class="m-group-cb m-group-check" value="${name}" ${active ? 'checked' : ''} style="display:none;">
+      <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:${active ? col : 'transparent'};border:${active ? 'none' : '1.5px solid rgba(255,255,255,0.3)'};">${active ? '' : ''}</span>
+      ${name}
     </label>`;
-  }).join('');
+  }
+
+  // Layout: 3 колонки + FULL BODY
+  const row1 = ['Грудь','Спина','Ноги'];
+  const row2 = ['Руки','Плечи','Кор'];
 
   const fb = selected.includes('FULL BODY');
   const has = n => fb || selected.includes(n);
-  const c = n => COLOR_MAP[n];
+  const cm = n => COLOR_MAP[n];
 
-  const MASKS = {
-    'Плечи': `<ellipse cx="21" cy="28" rx="8" ry="9" fill="${c('Плечи')}" opacity="0.7"/>
-              <ellipse cx="89" cy="28" rx="8" ry="9" fill="${c('Плечи')}" opacity="0.7"/>`,
-    'Грудь': `<path d="M30,36 Q55,30 80,36 L78,60 Q55,66 32,60 Z" fill="${c('Грудь')}" opacity="0.7"/>`,
-    'Спина': `<path d="M30,36 Q55,30 80,36 L78,60 Q55,66 32,60 Z" fill="${c('Спина')}" opacity="0.65"/>`,
-    'Руки':  `<path d="M13,34 Q6,50 8,70 L20,68 Q20,52 22,36 Z" fill="${c('Руки')}" opacity="0.75"/>
-              <path d="M97,34 Q104,50 102,70 L90,68 Q90,52 88,36 Z" fill="${c('Руки')}" opacity="0.75"/>
-              <path d="M8,70 Q6,88 8,98 L20,96 Q20,84 20,68 Z" fill="${c('Руки')}" opacity="0.6"/>
-              <path d="M102,70 Q104,88 102,98 L90,96 Q90,84 90,68 Z" fill="${c('Руки')}" opacity="0.6"/>`,
-    'Кор':   `<path d="M32,60 Q55,66 78,60 L76,92 Q55,98 34,92 Z" fill="${c('Кор')}" opacity="0.7"/>`,
-    'Ноги':  `<path d="M34,98 Q28,122 30,148 L46,148 Q46,122 46,98 Z" fill="${c('Ноги')}" opacity="0.75"/>
-              <path d="M76,98 Q82,122 80,148 L64,148 Q64,122 64,98 Z" fill="${c('Ноги')}" opacity="0.75"/>
-              <path d="M30,148 Q28,158 30,165 L46,165 Q47,158 46,148 Z" fill="${c('Ноги')}" opacity="0.6"/>
-              <path d="M80,148 Q82,158 80,165 L64,165 Q63,158 64,148 Z" fill="${c('Ноги')}" opacity="0.6"/>`,
+  // Точные маски по пикселям body.png 110x165
+  const masks = [
+    has('Плечи') ? `<rect x="29" y="28" width="13" height="20" rx="4" fill="${cm('Плечи')}" opacity="0.7"/><rect x="68" y="28" width="12" height="20" rx="4" fill="${cm('Плечи')}" opacity="0.7"/>` : '',
+    has('Грудь') ? `<rect x="43" y="36" width="23" height="28" rx="4" fill="${cm('Грудь')}" opacity="0.75"/>` : '',
+    has('Спина') ? `<rect x="43" y="36" width="23" height="28" rx="4" fill="${cm('Спина')}" opacity="0.65"/>` : '',
+    has('Руки')  ? `<rect x="24" y="54" width="11" height="30" rx="4" fill="${cm('Руки')}" opacity="0.75"/><rect x="75" y="54" width="11" height="30" rx="4" fill="${cm('Руки')}" opacity="0.75"/>` : '',
+    has('Кор')   ? `<rect x="43" y="64" width="23" height="34" rx="4" fill="${cm('Кор')}" opacity="0.75"/>` : '',
+    has('Ноги')  ? `<rect x="37" y="100" width="13" height="62" rx="4" fill="${cm('Ноги')}" opacity="0.75"/><rect x="59" y="100" width="13" height="62" rx="4" fill="${cm('Ноги')}" opacity="0.75"/>` : '',
+    fb ? `<rect x="29" y="20" width="52" height="143" rx="6" fill="rgba(52,211,153,0.2)"/>` : '',
+  ].join('');
+
+  // Если выбрана одна группа с картинкой — показываем её
+  const IMG_SINGLE = {
+    'Грудь':  '/my_life/img/muscle_chest.png',
+    'Спина':  '/my_life/img/muscle_back.png',
+    'Руки':   '/my_life/img/muscle_arms.png',
+    'Ноги':   '/my_life/img/muscle_legs.png',
+    'Плечи':  '/my_life/img/muscle_shoulders.png',
+    'Кор':    '/my_life/img/muscle_core.png',
+    'FULL BODY': '/my_life/img/muscle_fullbody.png',
   };
-  const activeMasks = Object.entries(MASKS).filter(([name]) => has(name)).map(([,svg]) => svg).join('');
+  const IMG_COMBO = {
+    'Грудь+Плечи': '/my_life/img/muscle_chest_shoulders.png',
+    'Грудь+Руки': '/my_life/img/muscle_chest_arms.png',
+    'Руки+Спина': '/my_life/img/muscle_back_arms.png',
+    'Плечи+Спина': '/my_life/img/muscle_back_shoulders.png',
+    'Кор+Ноги': '/my_life/img/muscle_legs_core.png',
+    'Грудь+Плечи+Руки': '/my_life/img/muscle_chest_shoulders_arms.png',
+    'Плечи+Руки+Спина': '/my_life/img/muscle_back_shoulders_arms.png',
+  };
+  const activeGroups = selected.filter(g => g !== 'FULL BODY');
+  const isFull = selected.includes('FULL BODY');
+  const comboKey = activeGroups.slice().sort().join('+');
+  const singleImg = isFull ? IMG_SINGLE['FULL BODY']
+    : activeGroups.length === 1 ? IMG_SINGLE[activeGroups[0]]
+    : IMG_COMBO[comboKey] || null;
 
-  const silhouette = `<svg viewBox="0 0 110 165" width="80" height="120" style="flex-shrink:0;display:block;">
-    <image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/>
-    ${activeMasks ? `<g opacity="0.72">${activeMasks}</g>` : ''}
-  </svg>`;
+  const silhouette = singleImg
+    ? `<img src="${singleImg}" style="width:80px;height:120px;object-fit:contain;display:block;" />`
+    : `<svg viewBox="0 0 110 165" width="80" height="120" style="display:block;">
+        <image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/>
+        ${masks ? `<g>${masks}</g>` : ''}
+      </svg>`;
 
   return `<div style="display:flex;align-items:flex-start;gap:10px;">
-    <div class="m-groups-wrap" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;">${pills}</div>
+    <div class="m-groups-wrap" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;grid-template-rows:auto auto;gap:5px;flex:1;align-items:stretch;">
+      ${row1.map(pill).join('')}
+      <div style="grid-row:1/3;display:flex;">${pill('FULL BODY')}</div>
+      ${row2.map(pill).join('')}
+    </div>
     <div id="m-silhouette" style="flex-shrink:0;">${silhouette}</div>
   </div>`;
 }
@@ -1086,7 +1118,22 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
         <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" placeholder="—" inputmode="numeric"></label>
       </div>`;
   }
-  return '';
+  if (trIsFitnessType(typeName)) {
+    return `
+      <div class="tr-modal-row">
+        <label style="flex:1 1 100%">Вид занятия<input type="text" id="m-fitness-name" placeholder="Напр. Растяжка, Йога..."></label>
+      </div>
+      <div class="tr-modal-row">
+        <label>Время, мин<input type="number" id="m-duration" placeholder="—" inputmode="numeric"></label>
+        <label>Калории<input type="number" id="m-calories" placeholder="—" inputmode="numeric"></label>
+      </div>`;
+  }
+  // Фолбэк для любого другого типа
+  return `
+    <div class="tr-modal-row">
+      <label>Время, мин<input type="number" id="m-duration" placeholder="—" inputmode="numeric"></label>
+      <label>Калории<input type="number" id="m-calories" placeholder="—" inputmode="numeric"></label>
+    </div>`;
 }
 
 function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, onSave) {
@@ -1125,16 +1172,78 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
 
   function refreshMuscleUI() {
     const groups = selectedGroupsNow();
+
+    // Обновляем стиль каждой кнопки без перестройки DOM
+    const COLOR_MAP = {
+      'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC',
+      'Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'
+    };
+    overlay.querySelectorAll('.m-group-label').forEach(lbl => {
+      const cb = lbl.querySelector('.m-group-cb');
+      if (!cb) return;
+      const name = cb.value;
+      const active = cb.checked;
+      const c = COLOR_MAP[name] || '#9D9A92';
+      lbl.style.border = '1.5px solid ' + (active ? c : 'rgba(255,255,255,0.2)');
+      lbl.style.background = active ? c + '28' : 'rgba(255,255,255,0.05)';
+      lbl.style.color = active ? c : 'rgba(255,255,255,0.6)';
+      const dot = lbl.querySelector('span');
+      if (dot) {
+        if (active) {
+          dot.style.background = c;
+          dot.style.border = 'none';
+          dot.textContent = '✓';
+          dot.style.display = 'flex';
+          dot.style.alignItems = 'center';
+          dot.style.justifyContent = 'center';
+          dot.style.fontSize = '9px';
+          dot.style.color = '#000';
+        } else {
+          dot.style.background = 'transparent';
+          dot.style.border = '1.5px solid rgba(255,255,255,0.3)';
+          dot.textContent = '';
+        }
+      }
+    });
+
+    // Обновляем силуэт
+    const sil = overlay.querySelector('#m-silhouette');
+    if (sil) {
+
+      const fb = groups.includes('FULL BODY');
+      const has = n => fb || groups.includes(n);
+      const cm = n => ({'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171'})[n] || '#9D9A92';
+      const masks = [
+        // Плечи: y=20-36, x=30-45 лево, x=64-79 право
+        has('Плечи') ? `<ellipse cx="37" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/><ellipse cx="72" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/>` : '',
+        // Грудь: торс y=36-65, x=43-66
+        has('Грудь') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Грудь')}" opacity="0.7"/>` : '',
+        // Спина = те же координаты (вид спереди)
+        has('Спина') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Спина')}" opacity="0.65"/>` : '',
+        // Руки: лево x=23-35 y=52-85, право x=74-87 y=52-85
+        has('Руки')  ? `<rect x="23" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/><rect x="74" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/>` : '',
+        // Кор: y=65-101, x=43-66
+        has('Кор')   ? `<rect x="43" y="65" width="24" height="36" rx="4" fill="${cm('Кор')}" opacity="0.7"/>` : '',
+        // Ноги лево: x=37-51 y=100-163, право: x=59-73 y=100-163
+        has('Ноги')  ? `<rect x="37" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/><rect x="59" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/>` : '',
+        fb ? `<rect x="23" y="20" width="64" height="143" rx="6" fill="rgba(52,211,153,0.2)"/>` : '',
+      ].join('');
+      const _IMG_S = {'Грудь':'/my_life/img/muscle_chest.png','Спина':'/my_life/img/muscle_back.png','Руки':'/my_life/img/muscle_arms.png','Ноги':'/my_life/img/muscle_legs.png','Плечи':'/my_life/img/muscle_shoulders.png','Кор':'/my_life/img/muscle_core.png','FULL BODY':'/my_life/img/muscle_fullbody.png'};
+      const _IMG_C = {'Грудь+Спина': '/my_life/img/muscle_chest_back.png','Грудь+Руки': '/my_life/img/muscle_chest_arms.png','Грудь+Ноги': '/my_life/img/muscle_chest_legs.png','Грудь+Плечи': '/my_life/img/muscle_chest_shoulders.png','Грудь+Кор': '/my_life/img/muscle_chest_core.png','Руки+Спина': '/my_life/img/muscle_back_arms.png','Ноги+Спина': '/my_life/img/muscle_back_legs.png','Плечи+Спина': '/my_life/img/muscle_back_shoulders.png','Кор+Спина': '/my_life/img/muscle_back_core.png','Ноги+Руки': '/my_life/img/muscle_arms_legs.png','Плечи+Руки': '/my_life/img/muscle_arms_shoulders.png','Кор+Руки': '/my_life/img/muscle_arms_core.png','Ноги+Плечи': '/my_life/img/muscle_legs_shoulders.png','Кор+Ноги': '/my_life/img/muscle_legs_core.png','Кор+Плечи': '/my_life/img/muscle_shoulders_core.png','Грудь+Руки+Спина': '/my_life/img/muscle_chest_back_arms.png','Грудь+Ноги+Спина': '/my_life/img/muscle_chest_back_legs.png','Грудь+Плечи+Спина': '/my_life/img/muscle_chest_back_shoulders.png','Грудь+Кор+Спина': '/my_life/img/muscle_chest_back_core.png','Грудь+Ноги+Руки': '/my_life/img/muscle_chest_arms_legs.png','Грудь+Плечи+Руки': '/my_life/img/muscle_chest_arms_shoulders.png','Грудь+Кор+Руки': '/my_life/img/muscle_chest_arms_core.png','Грудь+Ноги+Плечи': '/my_life/img/muscle_chest_legs_shoulders.png','Грудь+Кор+Ноги': '/my_life/img/muscle_chest_legs_core.png','Грудь+Кор+Плечи': '/my_life/img/muscle_chest_shoulders_core.png','Ноги+Руки+Спина': '/my_life/img/muscle_back_arms_legs.png','Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_shoulders.png','Кор+Руки+Спина': '/my_life/img/muscle_back_arms_core.png','Ноги+Плечи+Спина': '/my_life/img/muscle_back_legs_shoulders.png','Кор+Ноги+Спина': '/my_life/img/muscle_back_legs_core.png','Кор+Плечи+Спина': '/my_life/img/muscle_back_shoulders_core.png','Ноги+Плечи+Руки': '/my_life/img/muscle_arms_legs_shoulders.png','Кор+Ноги+Руки': '/my_life/img/muscle_arms_legs_core.png','Кор+Плечи+Руки': '/my_life/img/muscle_arms_shoulders_core.png','Кор+Ноги+Плечи': '/my_life/img/muscle_legs_shoulders_core.png','Грудь+Ноги+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs.png','Грудь+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_shoulders.png','Грудь+Кор+Руки+Спина': '/my_life/img/muscle_chest_back_arms_core.png','Грудь+Ноги+Плечи+Спина': '/my_life/img/muscle_chest_back_legs_shoulders.png','Грудь+Кор+Ноги+Спина': '/my_life/img/muscle_chest_back_legs_core.png','Грудь+Кор+Плечи+Спина': '/my_life/img/muscle_chest_back_shoulders_core.png','Грудь+Ноги+Плечи+Руки': '/my_life/img/muscle_chest_arms_legs_shoulders.png','Грудь+Кор+Ноги+Руки': '/my_life/img/muscle_chest_arms_legs_core.png','Грудь+Кор+Плечи+Руки': '/my_life/img/muscle_chest_arms_shoulders_core.png','Грудь+Кор+Ноги+Плечи': '/my_life/img/muscle_chest_legs_shoulders_core.png','Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_legs_shoulders.png','Кор+Ноги+Руки+Спина': '/my_life/img/muscle_back_arms_legs_core.png','Кор+Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_shoulders_core.png','Кор+Ноги+Плечи+Спина': '/my_life/img/muscle_back_legs_shoulders_core.png','Кор+Ноги+Плечи+Руки': '/my_life/img/muscle_arms_legs_shoulders_core.png','Грудь+Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs_shoulders.png','Грудь+Кор+Ноги+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs_core.png','Грудь+Кор+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_shoulders_core.png','Грудь+Кор+Ноги+Плечи+Спина': '/my_life/img/muscle_chest_back_legs_shoulders_core.png','Грудь+Кор+Ноги+Плечи+Руки': '/my_life/img/muscle_chest_arms_legs_shoulders_core.png','Кор+Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_legs_shoulders_core.png','Грудь+Кор+Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs_shoulders_core.png',};
+      const _activeG = groups.filter(g => g !== 'FULL BODY');
+      const _isFull = groups.includes('FULL BODY');
+      const _comboKey = _activeG.slice().sort().join('+');
+      const _singleImg = _isFull ? _IMG_S['FULL BODY'] : _activeG.length === 1 ? _IMG_S[_activeG[0]] : _IMG_C[_comboKey] || null;
+      if (_singleImg) {
+        sil.innerHTML = '<img src="' + _singleImg + '" style="width:80px;height:120px;object-fit:contain;display:block;" />';
+      } else {
+        sil.innerHTML = '<svg viewBox="0 0 110 165" width="80" height="120" style="flex-shrink:0;display:block;"><image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/><g opacity="0.8">' + masks + '</g></svg>';
+      }
+    }
+
+    // Обновляем список упражнений
     const wrap = overlay.querySelector('#m-name-wrap');
     if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
-    const newHtml = trBuildGroupCheckboxes(groups);
-    const tmpDiv = document.createElement('div');
-    tmpDiv.innerHTML = newHtml;
-    const mWrap = overlay.querySelector('.m-groups-wrap');
-    const sil = overlay.querySelector('#m-silhouette');
-    if (mWrap) mWrap.innerHTML = tmpDiv.querySelector('.m-groups-wrap')?.innerHTML || '';
-    if (sil) sil.innerHTML = tmpDiv.querySelector('#m-silhouette')?.innerHTML || '';
-    bindGroupCheckboxes();
   }
 
   function bindGroupCheckboxes() {
@@ -1146,10 +1255,6 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
         cb.checked = !cb.checked;
         refreshMuscleUI();
       });
-    });
-    // fallback для change
-    overlay.querySelectorAll('.m-group-cb').forEach(cb => {
-      cb.addEventListener('change', refreshMuscleUI);
     });
   }
   bindGroupCheckboxes();
@@ -1257,12 +1362,63 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     bindNameSelect();
   }
 
+  function refreshAddMuscleUI() {
+    const groups = selectedGroupsNow();
+    const COLOR_MAP = {'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'};
+    overlay.querySelectorAll('.m-group-label').forEach(lbl => {
+      const cb = lbl.querySelector('.m-group-cb');
+      if (!cb) return;
+      const active = cb.checked;
+      const col = COLOR_MAP[cb.value] || '#9D9A92';
+      lbl.style.border = '1.5px solid ' + (active ? col : 'rgba(255,255,255,0.2)');
+      lbl.style.background = active ? col + '28' : 'rgba(255,255,255,0.05)';
+      lbl.style.color = active ? col : 'rgba(255,255,255,0.6)';
+      const dot = lbl.querySelector('span');
+      if (dot) {
+        dot.style.background = active ? col : 'transparent';
+        dot.style.border = active ? 'none' : '1.5px solid rgba(255,255,255,0.3)';
+        dot.textContent = active ? '✓' : '';
+      }
+    });
+    const sil = overlay.querySelector('#m-silhouette');
+    if (sil) {
+
+      const fb = groups.includes('FULL BODY');
+      const has = n => fb || groups.includes(n);
+      const cm = n => ({'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171'})[n] || '#9D9A92';
+      const masks = [
+        has('Плечи') ? `<ellipse cx="37" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/><ellipse cx="72" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/>` : '',
+        has('Грудь') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Грудь')}" opacity="0.7"/>` : '',
+        has('Спина') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Спина')}" opacity="0.65"/>` : '',
+        has('Руки')  ? `<rect x="23" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/><rect x="74" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/>` : '',
+        has('Кор')   ? `<rect x="43" y="65" width="24" height="36" rx="4" fill="${cm('Кор')}" opacity="0.7"/>` : '',
+        has('Ноги')  ? `<rect x="37" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/><rect x="59" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/>` : '',
+        fb ? `<rect x="23" y="20" width="64" height="143" rx="6" fill="rgba(52,211,153,0.2)"/>` : '',
+      ].join('');
+      const _IMG_S = {'Грудь':'/my_life/img/muscle_chest.png','Спина':'/my_life/img/muscle_back.png','Руки':'/my_life/img/muscle_arms.png','Ноги':'/my_life/img/muscle_legs.png','Плечи':'/my_life/img/muscle_shoulders.png','Кор':'/my_life/img/muscle_core.png','FULL BODY':'/my_life/img/muscle_fullbody.png'};
+      const _IMG_C = {'Грудь+Спина': '/my_life/img/muscle_chest_back.png','Грудь+Руки': '/my_life/img/muscle_chest_arms.png','Грудь+Ноги': '/my_life/img/muscle_chest_legs.png','Грудь+Плечи': '/my_life/img/muscle_chest_shoulders.png','Грудь+Кор': '/my_life/img/muscle_chest_core.png','Руки+Спина': '/my_life/img/muscle_back_arms.png','Ноги+Спина': '/my_life/img/muscle_back_legs.png','Плечи+Спина': '/my_life/img/muscle_back_shoulders.png','Кор+Спина': '/my_life/img/muscle_back_core.png','Ноги+Руки': '/my_life/img/muscle_arms_legs.png','Плечи+Руки': '/my_life/img/muscle_arms_shoulders.png','Кор+Руки': '/my_life/img/muscle_arms_core.png','Ноги+Плечи': '/my_life/img/muscle_legs_shoulders.png','Кор+Ноги': '/my_life/img/muscle_legs_core.png','Кор+Плечи': '/my_life/img/muscle_shoulders_core.png','Грудь+Руки+Спина': '/my_life/img/muscle_chest_back_arms.png','Грудь+Ноги+Спина': '/my_life/img/muscle_chest_back_legs.png','Грудь+Плечи+Спина': '/my_life/img/muscle_chest_back_shoulders.png','Грудь+Кор+Спина': '/my_life/img/muscle_chest_back_core.png','Грудь+Ноги+Руки': '/my_life/img/muscle_chest_arms_legs.png','Грудь+Плечи+Руки': '/my_life/img/muscle_chest_arms_shoulders.png','Грудь+Кор+Руки': '/my_life/img/muscle_chest_arms_core.png','Грудь+Ноги+Плечи': '/my_life/img/muscle_chest_legs_shoulders.png','Грудь+Кор+Ноги': '/my_life/img/muscle_chest_legs_core.png','Грудь+Кор+Плечи': '/my_life/img/muscle_chest_shoulders_core.png','Ноги+Руки+Спина': '/my_life/img/muscle_back_arms_legs.png','Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_shoulders.png','Кор+Руки+Спина': '/my_life/img/muscle_back_arms_core.png','Ноги+Плечи+Спина': '/my_life/img/muscle_back_legs_shoulders.png','Кор+Ноги+Спина': '/my_life/img/muscle_back_legs_core.png','Кор+Плечи+Спина': '/my_life/img/muscle_back_shoulders_core.png','Ноги+Плечи+Руки': '/my_life/img/muscle_arms_legs_shoulders.png','Кор+Ноги+Руки': '/my_life/img/muscle_arms_legs_core.png','Кор+Плечи+Руки': '/my_life/img/muscle_arms_shoulders_core.png','Кор+Ноги+Плечи': '/my_life/img/muscle_legs_shoulders_core.png','Грудь+Ноги+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs.png','Грудь+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_shoulders.png','Грудь+Кор+Руки+Спина': '/my_life/img/muscle_chest_back_arms_core.png','Грудь+Ноги+Плечи+Спина': '/my_life/img/muscle_chest_back_legs_shoulders.png','Грудь+Кор+Ноги+Спина': '/my_life/img/muscle_chest_back_legs_core.png','Грудь+Кор+Плечи+Спина': '/my_life/img/muscle_chest_back_shoulders_core.png','Грудь+Ноги+Плечи+Руки': '/my_life/img/muscle_chest_arms_legs_shoulders.png','Грудь+Кор+Ноги+Руки': '/my_life/img/muscle_chest_arms_legs_core.png','Грудь+Кор+Плечи+Руки': '/my_life/img/muscle_chest_arms_shoulders_core.png','Грудь+Кор+Ноги+Плечи': '/my_life/img/muscle_chest_legs_shoulders_core.png','Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_legs_shoulders.png','Кор+Ноги+Руки+Спина': '/my_life/img/muscle_back_arms_legs_core.png','Кор+Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_shoulders_core.png','Кор+Ноги+Плечи+Спина': '/my_life/img/muscle_back_legs_shoulders_core.png','Кор+Ноги+Плечи+Руки': '/my_life/img/muscle_arms_legs_shoulders_core.png','Грудь+Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs_shoulders.png','Грудь+Кор+Ноги+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs_core.png','Грудь+Кор+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_shoulders_core.png','Грудь+Кор+Ноги+Плечи+Спина': '/my_life/img/muscle_chest_back_legs_shoulders_core.png','Грудь+Кор+Ноги+Плечи+Руки': '/my_life/img/muscle_chest_arms_legs_shoulders_core.png','Кор+Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_back_arms_legs_shoulders_core.png','Грудь+Кор+Ноги+Плечи+Руки+Спина': '/my_life/img/muscle_chest_back_arms_legs_shoulders_core.png',};
+      const _activeG = groups.filter(g => g !== 'FULL BODY');
+      const _isFull = groups.includes('FULL BODY');
+      const _comboKey = _activeG.slice().sort().join('+');
+      const _singleImg = _isFull ? _IMG_S['FULL BODY'] : _activeG.length === 1 ? _IMG_S[_activeG[0]] : _IMG_C[_comboKey] || null;
+      if (_singleImg) {
+        sil.innerHTML = '<img src="' + _singleImg + '" style="width:80px;height:120px;object-fit:contain;display:block;" />';
+      } else {
+        sil.innerHTML = '<svg viewBox="0 0 110 165" width="80" height="120" style="flex-shrink:0;display:block;"><image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/><g opacity="0.8">' + masks + '</g></svg>';
+      }
+    }
+    const wrap = overlay.querySelector('#m-name-wrap');
+    if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
+  }
+
   function bindGroupCheckboxes() {
-    overlay.querySelectorAll('.m-group-cb').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const groups = selectedGroupsNow();
-        const wrap = overlay.querySelector('#m-name-wrap');
-        if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
+    overlay.querySelectorAll('.m-group-label').forEach(lbl => {
+      lbl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cb = lbl.querySelector('.m-group-cb');
+        if (!cb) return;
+        cb.checked = !cb.checked;
+        refreshAddMuscleUI();
       });
     });
   }
@@ -1341,6 +1497,24 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       onSave();
       return;
     }
+
+    if (trIsFitnessType(type)) {
+      const nameEl = overlay.querySelector('#m-fitness-name');
+      const name = nameEl ? nameEl.value.trim() || type : type;
+      const duration = parseFloat(overlay.querySelector('#m-duration')?.value) || 0;
+      const calories = parseFloat(overlay.querySelector('#m-calories')?.value) || 0;
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name, duration, calories }] });
+      overlay.remove();
+      onSave();
+      return;
+    }
+
+    // Фолбэк — сохраняем с duration/calories
+    const duration = parseFloat(overlay.querySelector('#m-duration')?.value) || 0;
+    const calories = parseFloat(overlay.querySelector('#m-calories')?.value) || 0;
+    day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: type, duration, calories }] });
+    overlay.remove();
+    onSave();
   });
 }
 

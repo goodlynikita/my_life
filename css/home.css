@@ -536,7 +536,7 @@ html, body {
 /* Training — orange gradient */
 .home2-tile-training {
   background: linear-gradient(135deg, #0F1520 0%, #1A2535 100%) !important;
-  box-shadow: 0 4px 20px rgba(59,130,246,0.15) !important;
+  box-shadow: none !important;
 }
 .home2-tile-training::before { background: linear-gradient(135deg, #142030, #1E2D40); }
 .home2-tile-training .home2-tile-icon { color: #60A5FA; }
@@ -545,7 +545,7 @@ html, body {
 /* Habits — green Rolex */
 .home2-tile-habits {
   background: linear-gradient(135deg, #0F1A12 0%, #162212 100%) !important;
-  box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important;
+  box-shadow: none !important;
 }
 .home2-tile-habits::before { background: linear-gradient(135deg, #142018, #1A2A18); }
 .home2-tile-habits .home2-tile-icon { color: #22C55E; }
@@ -554,7 +554,7 @@ html, body {
 /* Finance — white/silver */
 .home2-tile-finance {
   background: linear-gradient(135deg, #0d0520 0%, #1a0840 100%) !important;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.15) !important;
+  box-shadow: none !important;
 }
 .home2-tile-finance::before { background: linear-gradient(135deg, #1a0840, #220a52); }
 .home2-tile-finance .home2-tile-icon { color: #ffffff; }
@@ -563,7 +563,7 @@ html, body {
 /* Goals — amber */
 .home2-tile-goals {
   background: linear-gradient(135deg, #150e00 0%, #1E1400 100%) !important;
-  box-shadow: 0 4px 20px rgba(242,169,59,0.12) !important;
+  box-shadow: none !important;
 }
 .home2-tile-goals::before { background: linear-gradient(135deg, #1E1400, #2A1E00); }
 .home2-tile-goals .home2-tile-icon { color: #F2A93B; }
@@ -713,7 +713,7 @@ html, body {
 .home2-tile-goals i { color: #F2A93B !important; font-size:22px; margin-bottom:6px; }
 
 /* Слайды: перелив из центра */
-.hero-slide-label,.hero-slide-main,.hero-slide-sub,.hero-tag-row,.hero-big-text,.hero-stat-row,.hero-slide-glow { position:relative; z-index:1; }
+.hero-slide-label,.hero-slide-main,.hero-slide-sub,.hero-tag-row,.hero-big-text,.hero-stat-row { position:relative; z-index:1; }
 
 /* Safe area */
 .home2-header { padding-top: max(16px, calc(env(safe-area-inset-top) + 8px)) !important; }

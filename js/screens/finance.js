@@ -759,8 +759,6 @@ window.Screens.finance = function(mount) {
     } // end feature:finance_drag_columns
   }
 
-  } // close renderExpenses or orphan
-
   function render(){
     if(activeTab==='month')renderMonth();
     else if(activeTab==='expenses')renderExpenses();
@@ -769,4 +767,5 @@ window.Screens.finance = function(mount) {
     else renderAll();
   }
   render();
+} // close Screens.finance function body
 }; // window.Screens.finance end

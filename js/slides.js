@@ -547,19 +547,19 @@ var Slides = (() => {
     /* ── DOM ── */
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+    ov.style.cssText = 'align-items:flex-start;justify-content:flex-start;padding:0;overflow-y:auto;background:#0D0F14;';
 
     function renderOv() {
       const curSlides = getSlides();
-      ov.innerHTML = `<div id="se-panel" style="background:#13151A;border-radius:16px;width:100%;max-width:520px;margin:0 auto;max-height:85vh;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">
-        <div style="position:sticky;top:0;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:16px 16px 0 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+      ov.innerHTML = `<div id="se-panel" style="background:#0D0F14;width:100%;min-height:100%;display:flex;flex-direction:column;box-sizing:border-box;">
+        <div style="background:#13151A;padding:16px 20px 14px;border-bottom:1px solid #1E2028;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
           <span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайды</span>
           <div style="display:flex;gap:8px;">
             <button id="se-add" style="padding:6px 14px;border-radius:10px;border:1px solid #4A7CFF;background:rgba(74,124,255,.15);color:#4A7CFF;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Новый</button>
             <button id="se-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
           </div>
         </div>
-        <div id="se-body" style="overflow-y:auto;flex:1;min-height:0;padding:16px 20px 40px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;">
+        <div id="se-body" style="padding:16px 20px 80px;box-sizing:border-box;width:100%;">
           <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Нажми Изменить чтобы редактировать блоки слайда.</div>
           ${curSlides.map((s,i) => slideCard(s,i)).join('')}
         </div>
@@ -597,7 +597,7 @@ var Slides = (() => {
           head.querySelector('span').textContent = 'Редактировать слайд';
           head.querySelector('#se-add').style.display='none';
           const body = panel.querySelector('#se-body');
-          body.style.cssText = 'overflow-y:auto;flex:1;min-height:0;padding:16px 20px 80px;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;';
+          body.style.cssText = 'padding:16px 20px 80px;box-sizing:border-box;width:100%;';
           body.innerHTML = slideEditForm(sl[idx], idx);
 
           /* Color picker */

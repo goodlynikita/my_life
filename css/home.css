@@ -1019,184 +1019,186 @@ html, body {
   display: none !important;
 }
 
-/* ═══════════ WINTER ARC HOME SECTION — injected ═══════════ */
-/* (file appended — see home_new_section.css for full source)  */
+/* ═══════════ PATCH v74 — atmosphere upgrade ═══════════
+   Горный силуэт в hero, усиленные переливы, чище footer
+   ══════════════════════════════════════════════════════ */
 
-.wa-screen {
-  min-height: 100vh;
-  background: #0F1117;
-  padding: 0 0 max(40px, calc(env(safe-area-inset-bottom) + 20px));
-  font-family: 'Montserrat', sans-serif;
+/* Убираем footer */
+.home2-footer { display: none !important; }
+
+/* Скрываем sync внизу если он там есть */
+.home2-footer #sync-status { display: none; }
+
+/* Переделываем hero-slider — скругление и отступы */
+.hero-slider {
+  margin: 0 0 14px !important;
+  border-radius: 0 !important;
 }
 
-.wa-header {
-  padding: max(18px, calc(env(safe-area-inset-top) + 10px)) 20px 14px;
-  display: flex; align-items: center; justify-content: space-between;
+/* Слайды: убираем старые фоны, добавляем новые насыщенные */
+.slide-focus {
+  background: linear-gradient(155deg,
+    #0a0818 0%, #150d35 25%, #1e1050 50%, #2d1570 75%, #1a0d45 100%) !important;
 }
-.wa-header-date { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
-.wa-header-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
-.wa-header-actions { display: flex; gap: 6px; align-items: center; }
-.wa-btn-icon {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.45);
-  cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;
-  transition: background 0.2s, color 0.2s;
+.slide-finance {
+  background: linear-gradient(155deg,
+    #010f06 0%, #041c0c 25%, #07280e 50%, #0a3512 75%, #041808 100%) !important;
 }
-.wa-btn-icon:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.8); }
-
-/* ─── Progress banner ─── */
-.wa-hero {
-  margin: 0 16px 14px;
-  background: linear-gradient(135deg, #1a0528 0%, #2d0f45 40%, #3d1560 70%, #1f0835 100%);
-  border-radius: 20px; padding: 20px 20px 30px;
-  position: relative; overflow: hidden; cursor: pointer;
-  transition: transform 0.25s;
+.slide-goals {
+  background: linear-gradient(155deg,
+    #100820 0%, #1e0d3e 25%, #2e1260 50%, #420f80 75%, #1e0a40 100%) !important;
 }
-.wa-hero:active { transform: scale(0.98); }
-.wa-hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image:
-    radial-gradient(ellipse at 20% 60%, rgba(192,132,252,0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 30%, rgba(139,92,246,0.3) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 100%, rgba(236,72,153,0.25) 0%, transparent 40%);
-  background-size: 300% 300%;
-  animation: wa-aurora 12s ease-in-out infinite;
-  pointer-events: none; z-index: 0; border-radius: inherit;
+
+/* Горный силуэт — через псевдоэлемент на слайде */
+/* Используем clip-path прямо на ::after слайда — переопределяем */
+.hero-slide::after {
+  content: '' !important;
+  position: absolute !important;
+  right: 0; bottom: 0;
+  width: 60%; height: 100% !important;
+  background: inherit !important;
+  background-image: none !important;
+  /* горный силуэт */
+  clip-path: polygon(
+    100% 100%, 0% 100%,
+    0% 72%,
+    12% 60%, 22% 68%, 30% 45%,
+    38% 52%, 48% 28%, 55% 38%,
+    62% 18%, 70% 32%, 78% 12%,
+    85% 28%, 92% 8%, 100% 22%
+  ) !important;
+  opacity: 0.18 !important;
+  filter: brightness(1.6) !important;
+  animation: none !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  mix-blend-mode: screen !important;
+  border-radius: 0 !important;
 }
-/* Mountain */
-.wa-hero::after {
-  content: '';
-  position: absolute; right: 0; top: 0; width: 55%; height: 100%;
-  background: linear-gradient(155deg, transparent 0%, rgba(60,15,100,0.5) 40%, rgba(30,5,60,0.85) 100%);
-  clip-path: polygon(35% 100%, 55% 18%, 68% 42%, 82% 5%, 95% 35%, 100% 20%, 100% 100%);
-  pointer-events: none; z-index: 0;
+
+/* Горы для каждого слайда разного цвета */
+.slide-focus::after   { background: linear-gradient(to top, #60A5FA, #93C5FD) !important; }
+.slide-finance::after { background: linear-gradient(to top, #4ADE80, #86EFAC) !important; }
+.slide-goals::after   { background: linear-gradient(to top, #C084FC, #DDD6FE) !important; }
+
+/* Второй гора-слой — ещё правее, темнее, дальше */
+.hero-slide .slide-mountain-far {
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 50%; height: 100%;
+  clip-path: polygon(
+    100% 100%, 0% 100%,
+    0% 80%,
+    15% 65%, 28% 72%, 40% 52%,
+    52% 60%, 62% 38%, 72% 50%,
+    82% 22%, 90% 36%, 100% 15%
+  );
+  opacity: 0.09;
+  pointer-events: none;
+  z-index: 0;
 }
-@keyframes wa-aurora {
-  0%   { background-position: 0% 50%;   opacity: 0.7; }
-  25%  { background-position: 80% 20%;  opacity: 1;   }
-  50%  { background-position: 100% 80%; opacity: 0.8; }
-  75%  { background-position: 20% 90%;  opacity: 1;   }
-  100% { background-position: 0% 50%;   opacity: 0.7; }
+.slide-focus   .slide-mountain-far { background: linear-gradient(to top, #3B82F6, #60A5FA); }
+.slide-finance .slide-mountain-far { background: linear-gradient(to top, #22C55E, #4ADE80); }
+.slide-goals   .slide-mountain-far { background: linear-gradient(to top, #A855F7, #C084FC); }
+
+/* Glow усиленный — делаем крупнее и ярче */
+.hero-slide-glow {
+  width: 320px !important;
+  height: 320px !important;
+  opacity: 0.65 !important;
+  right: -100px !important;
+  top: -100px !important;
 }
-.wa-hero-glow {
-  position: absolute; width: 200px; height: 200px;
-  right: -50px; top: -50px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(167,139,250,0.5) 0%, transparent 70%);
-  filter: blur(50px); pointer-events: none; z-index: 0;
-  animation: wa-glow-pulse 6s ease-in-out infinite;
+
+/* Усиливаем aurora overlay на слайдах */
+.hero-slide::before {
+  opacity: 0.35 !important;
 }
-@keyframes wa-glow-pulse { 0%,100%{opacity:0.6;transform:scale(1);} 50%{opacity:0.9;transform:scale(1.15);} }
 
-.wa-hero-content { position: relative; z-index: 1; }
-.wa-hero-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
-.wa-hero-pct { font-size: 42px; font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1; margin-bottom: 10px; }
-.wa-hero-bar-track { height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
-.wa-hero-bar-fill {
-  height: 100%; border-radius: 2px;
-  background: linear-gradient(90deg, #C084FC 0%, #A855F7 30%, #EC4899 60%, #F472B6 80%, #C084FC 100%);
-  background-size: 200% 100%;
-  animation: shimmer-bar 3s linear infinite;
-  box-shadow: 0 0 8px rgba(236,72,153,0.6);
-  transition: width 1.2s cubic-bezier(.34,1.56,.64,1);
+/* Плитки — усиливаем blob-анимации */
+.home2-tile-training::before { background: rgba(59,130,246,0.7) !important; }
+.home2-tile-training::after  { background: rgba(96,165,250,0.35) !important; }
+.home2-tile-habits::before   { background: rgba(22,163,74,0.7) !important; }
+.home2-tile-habits::after    { background: rgba(74,222,128,0.32) !important; }
+.home2-tile-finance::before  { background: rgba(139,92,246,0.75) !important; }
+.home2-tile-finance::after   { background: rgba(167,139,250,0.4) !important; }
+.home2-tile-goals::before    { background: rgba(251,191,36,0.85) !important; }
+.home2-tile-goals::after     { background: rgba(253,230,138,0.5) !important; }
+
+/* Плитки чуть выше минимальную высоту */
+.home2-tile { min-height: 155px !important; }
+
+/* Header: скрываем sync-status из footer, показываем в правильном месте */
+#sync-status { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+/* Grid — небольшой отступ снизу вместо footer */
+.home2-grid { padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px)); }
+
+/* Тонкий разделитель под hero-slider */
+.hero-slider::after {
+  display: none !important;
 }
-@keyframes shimmer-bar { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
-.wa-hero-stats { display: flex; gap: 24px; }
-.wa-hero-stat-num { font-size: 15px; font-weight: 800; color: #fff; line-height: 1; }
-.wa-hero-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
-.wa-hero-dots { position: absolute; bottom: 11px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 2; }
-.wa-hero-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: all 0.3s; }
-.wa-hero-dot.active { width: 18px; border-radius: 3px; background: rgba(255,255,255,0.75); }
 
-/* ─── Grid ─── */
-.wa-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px;
-  position: relative; isolation: isolate;
+
+/* ═══ PATCH v74b — mountain z-index fix + sync cleanup ══ */
+
+/* Горный силуэт поверх glow но под контентом */
+.slide-mountain-far {
+  position: absolute !important;
+  right: 0; bottom: 0;
+  width: 55%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  clip-path: polygon(
+    100% 100%, 0% 100%,
+    0% 78%,
+    10% 65%, 20% 72%, 30% 50%,
+    40% 58%, 50% 34%, 58% 44%,
+    66% 20%, 74% 34%, 82% 10%,
+    90% 26%, 96% 6%, 100% 18%
+  );
+  opacity: 0.1;
 }
-.wa-card {
-  border-radius: 20px; padding: 18px 16px 44px;
-  min-height: 160px; cursor: pointer;
-  display: flex; flex-direction: column; justify-content: space-between;
-  position: relative; overflow: hidden;
-  transition: transform 0.28s cubic-bezier(.34,1.4,.64,1), box-shadow 0.28s;
-  -webkit-tap-highlight-color: transparent;
+.slide-focus   .slide-mountain-far { background: linear-gradient(to top, rgba(96,165,250,0.9), rgba(147,197,253,0.6)); }
+.slide-finance .slide-mountain-far { background: linear-gradient(to top, rgba(74,222,128,0.9), rgba(134,239,172,0.6)); }
+.slide-goals   .slide-mountain-far { background: linear-gradient(to top, rgba(192,132,252,0.9), rgba(221,214,254,0.6)); }
+
+/* Передние горы — ярче, другой силуэт */
+.hero-slide::after {
+  z-index: 0 !important;
+  width: 50% !important;
+  height: 100% !important;
+  bottom: 0 !important; right: 0 !important;
+  top: auto !important; left: auto !important;
+  opacity: 0.16 !important;
+  clip-path: polygon(
+    100% 100%, 0% 100%,
+    0% 82%,
+    8% 72%, 18% 78%, 28% 56%,
+    36% 64%, 46% 38%, 54% 50%,
+    62% 22%, 70% 38%, 80% 8%,
+    88% 24%, 95% 4%, 100% 16%
+  ) !important;
+  filter: none !important;
+  animation: none !important;
+  mix-blend-mode: screen !important;
+  border-radius: 0 !important;
 }
-.wa-card:hover { transform: translateY(-4px) scale(1.02); }
-.wa-card:active { transform: scale(0.97) !important; }
-.wa-card::before, .wa-card::after {
-  content: ''; position: absolute; border-radius: 50%;
-  pointer-events: none; filter: blur(45px); z-index: 0;
+.slide-focus::after   { background: linear-gradient(to top, rgba(59,130,246,0.95), rgba(96,165,250,0.7)) !important; }
+.slide-finance::after { background: linear-gradient(to top, rgba(22,163,74,0.95), rgba(74,222,128,0.7)) !important; }
+.slide-goals::after   { background: linear-gradient(to top, rgba(139,92,246,0.95), rgba(192,132,252,0.7)) !important; }
+
+/* Контент слайдов — всё поверх гор */
+.hero-slide-label, .hero-slide-main, .hero-slide-sub,
+.hero-tag-row, .hero-big-text, .hero-stat-row, .hero-slide-glow,
+.hero-dots { position: relative !important; z-index: 2 !important; }
+
+/* Hero-slider на всю ширину без скруглений */
+.hero-slider {
+  margin: 0 0 12px !important;
+  border-radius: 0 !important;
 }
-.wa-card::before { animation: wa-blob-a 9s ease-in-out infinite; }
-.wa-card::after  { animation: wa-blob-b 12s ease-in-out infinite; }
-@keyframes wa-blob-a { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-15px,10px) scale(1.2);} 66%{transform:translate(10px,-8px) scale(0.85);} }
-@keyframes wa-blob-b { 0%,100%{transform:translate(0,0) scale(1);} 40%{transform:translate(12px,-14px) scale(1.15);} 70%{transform:translate(-8px,10px) scale(0.9);} }
 
-.wa-card-header { display: flex; align-items: center; gap: 8px; position: relative; z-index: 2; margin-bottom: 6px; }
-.wa-card-num { font-size: 11px; font-weight: 800; opacity: 0.6; }
-.wa-card-cat { font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.4; }
-.wa-card-title { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; line-height: 1; position: relative; z-index: 2; text-transform: uppercase; color: #fff; flex: 1; }
-.wa-card-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.4; position: relative; z-index: 2; }
-.wa-card-arrow { position: absolute; bottom: 16px; right: 16px; font-size: 18px; opacity: 0.5; z-index: 2; transition: opacity 0.2s, transform 0.2s; }
-.wa-card:hover .wa-card-arrow { opacity: 0.9; transform: translate(2px,-2px); }
+/* Sync-status — убираем старое место */
+.home2-footer { display: none !important; }
 
-/* card colours */
-.wa-card-training { background: linear-gradient(145deg,#060c1a,#0b1830,#12254a); border: 1px solid rgba(59,130,246,0.2); box-shadow: 0 6px 24px rgba(59,130,246,0.1); color: #93C5FD; }
-.wa-card-training::before { width:100px;height:100px;bottom:-10px;right:-10px;background:rgba(59,130,246,0.5); }
-.wa-card-training::after  { width:75px;height:75px;top:-8px;left:14px;background:rgba(96,165,250,0.22);animation-delay:-4s; }
-.wa-card-training .wa-card-arrow { color: #60A5FA; }
-
-.wa-card-habits { background: linear-gradient(145deg,#020b05,#051308,#09200e); border: 1px solid rgba(34,197,94,0.2); box-shadow: 0 6px 24px rgba(34,197,94,0.08); color: #86EFAC; }
-.wa-card-habits::before { width:100px;height:100px;top:-12px;left:-8px;background:rgba(22,163,74,0.5);animation-delay:-2s; }
-.wa-card-habits::after  { width:75px;height:75px;bottom:-8px;right:18px;background:rgba(74,222,128,0.22);animation-delay:-6s; }
-.wa-card-habits .wa-card-arrow { color: #4ADE80; }
-
-.wa-card-finance { background: linear-gradient(145deg,#08031a,#100530,#180740); border: 1px solid rgba(139,92,246,0.22); box-shadow: 0 6px 24px rgba(139,92,246,0.1); color: #C4B5FD; }
-.wa-card-finance::before { width:120px;height:120px;top:-25px;right:-25px;background:rgba(139,92,246,0.55);animation-delay:-3s; }
-.wa-card-finance::after  { width:85px;height:85px;bottom:-12px;left:8px;background:rgba(167,139,250,0.28);animation-delay:-7s; }
-.wa-card-finance .wa-card-arrow { color: #A78BFA; }
-
-.wa-card-goals { background: linear-gradient(145deg,#0e0600,#1a0b00,#241100); border: 1px solid rgba(245,158,11,0.2); box-shadow: 0 6px 24px rgba(245,158,11,0.08); color: #FCD34D; }
-.wa-card-goals::before { width:115px;height:115px;top:-22px;left:-22px;background:rgba(251,191,36,0.6);animation-delay:-5s; }
-.wa-card-goals::after  { width:85px;height:85px;bottom:-12px;right:8px;background:rgba(253,230,138,0.32);animation-delay:-1s; }
-.wa-card-goals .wa-card-arrow { color: #F59E0B; }
-
-/* Habits dots */
-.wa-habits-dots { position:absolute; bottom:18px; right:12px; display:grid; grid-template-columns:repeat(6,9px); gap:4px; z-index:2; pointer-events:none; }
-.wa-habits-dot { width:9px;height:9px;border-radius:50%; }
-.wa-habits-dot.done  { background:#4ADE80; box-shadow:0 0 6px rgba(74,222,128,0.6); }
-.wa-habits-dot.empty { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); }
-
-/* Finance sparkline */
-.wa-spark { position:absolute; right:10px; bottom:24px; z-index:2; pointer-events:none; opacity:0.7; }
-
-/* Goals orbit */
-.wa-orbit { position:absolute; right:14px; top:50%; transform:translateY(-50%); z-index:2; pointer-events:none; }
-.wa-orbit-ring { width:64px;height:64px;border:1px solid rgba(245,158,11,0.25);border-radius:50%;position:relative;animation:orbit-spin 14s linear infinite; }
-@keyframes orbit-spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-.wa-orbit-dot { position:absolute;width:8px;height:8px;border-radius:50%;background:#F59E0B;box-shadow:0 0 10px rgba(245,158,11,0.8);top:-4px;left:50%;transform:translateX(-50%); }
-.wa-orbit-center { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:rgba(251,191,36,0.35);box-shadow:0 0 16px rgba(251,191,36,0.5);animation:wa-glow-pulse 3s ease-in-out infinite; }
-
-/* Body image inside training card */
-.wa-body-img { position:absolute; right:6px; top:50%; transform:translateY(-50%); width:80px; height:80px; background:url('../img/body.png') center/contain no-repeat; opacity:0.1; z-index:1; pointer-events:none; filter:grayscale(1) brightness(2); }
-
-/* Footer */
-.wa-footer { display:flex;align-items:center;justify-content:space-between;padding:16px 22px 0;margin:14px 16px 0;border-top:1px solid rgba(255,255,255,0.06); }
-.wa-footer-brand { display:flex;align-items:center;gap:8px; }
-.wa-footer-name { font-size:12px;font-weight:800;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase; }
-.wa-footer-pipe { width:1px;height:12px;background:rgba(255,255,255,0.15);margin:0 8px; }
-.wa-footer-tagline { font-size:10px;font-weight:600;letter-spacing:0.08em;color:rgba(255,255,255,0.2);text-transform:uppercase; }
-.wa-footer-right { font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.2);text-transform:uppercase; }
-
-/* Entrance */
-@keyframes wa-slide-up { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
-.wa-hero  { animation: wa-slide-up 0.4s cubic-bezier(.22,1,.36,1) forwards; }
-.wa-card  { opacity:0; animation: wa-slide-up 0.4s cubic-bezier(.22,1,.36,1) forwards; }
-.wa-card:nth-child(1){animation-delay:0.08s;} .wa-card:nth-child(2){animation-delay:0.14s;}
-.wa-card:nth-child(3){animation-delay:0.20s;} .wa-card:nth-child(4){animation-delay:0.26s;}
-
-/* sync status */
-.wa-sync { font-size:11px; color:rgba(255,255,255,0.2); text-align:center; padding:10px 0 0; }
-
-@media(max-width:380px){ .wa-card{min-height:140px;padding:16px 14px 40px;} .wa-card-title{font-size:20px;} .wa-hero-pct{font-size:34px;} }
-@media(min-width:768px){ .wa-card{min-height:195px;} .wa-card-title{font-size:28px;} .wa-hero-pct{font-size:50px;} .wa-grid{gap:16px;} }

@@ -444,6 +444,11 @@ window.Screens.habits = function(mount) {
       </div>
 
       <div class="sec-card" style="padding:0;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <button id="hab-grid-prev" style="background:rgba(255,255,255,0.06);border:none;border-radius:8px;width:32px;height:32px;color:#9D9A92;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="ti ti-chevron-left"></i></button>
+          <span style="font-size:13px;font-weight:700;color:#E8E5DC;">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</span>
+          <button id="hab-grid-next" ${isNow?'disabled style="opacity:0.3;pointer-events:none;"':''} style="background:rgba(255,255,255,0.06);border:none;border-radius:8px;width:32px;height:32px;color:#9D9A92;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="ti ti-chevron-right"></i></button>
+        </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
             <thead style="position:sticky;top:0;z-index:5;">
@@ -586,6 +591,14 @@ window.Screens.habits = function(mount) {
       });
     });
 
+    const habGridPrev = document.getElementById('hab-grid-prev');
+    const habGridNext = document.getElementById('hab-grid-next');
+    if (habGridPrev) habGridPrev.addEventListener('click', () => {
+      viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderGrid();
+    });
+    if (habGridNext && !habGridNext.disabled) habGridNext.addEventListener('click', () => {
+      viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderGrid();
+    });
     document.getElementById('hab-prev').addEventListener('click', () => {
       viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderGrid();
     });
@@ -800,10 +813,25 @@ window.Screens.habits = function(mount) {
     });
   }
 
-  /* Состояние выбранного месяца для колеса — сбрасываем на текущий при каждом открытии экрана */
+  /* Состояние выбранного месяца для колеса — сбрасываем при каждом открытии экрана.
+     Если текущий месяц ещё не заполнен — показываем предыдущий (он скорее всего только закончился). */
   const _wheelNow = new Date();
-  window._wheelSelYear = _wheelNow.getFullYear();
-  window._wheelSelMonth = _wheelNow.getMonth();
+  {
+    const _wy = _wheelNow.getFullYear();
+    const _wm = _wheelNow.getMonth();
+    const _allW = Store.get().habits?.wheel || {};
+    const _curKey = habMonthKey(_wy, _wm);
+    // Если текущий месяц не заполнен, дефолт — предыдущий
+    if (!_allW[_curKey]) {
+      const _pm = _wm === 0 ? 11 : _wm - 1;
+      const _py = _wm === 0 ? _wy - 1 : _wy;
+      window._wheelSelYear  = _py;
+      window._wheelSelMonth = _pm;
+    } else {
+      window._wheelSelYear  = _wy;
+      window._wheelSelMonth = _wm;
+    }
+  }
 
   function renderWheel() {
     const allWheels = Store.get().habits?.wheel || {};

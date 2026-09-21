@@ -202,7 +202,6 @@ window.Screens.home = function(mount) {
       { key: 'goals',    label: 'Цели',       icon: 'ti-target-arrow', cls: 'home2-tile-goals'    },
     ];
 
-    // Шаблоны: id, label, cssClass для grid, SVG-превью
     var TEMPLATES = [
       {
         id: '2x2', label: '2×2', layout: 'layout-2x2', order: [0,1,2,3],
@@ -214,18 +213,20 @@ window.Screens.home = function(mount) {
       },
       {
         id: 'bigfirst', label: 'Акцент 1', layout: 'layout-bigfirst', order: [0,1,2,3],
-        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="50" height="17" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="1" y="22" width="23" height="17" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="28" y="22" width="23" height="17" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/></svg>'
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="50" height="11" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="1" y="16" width="23" height="10" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="28" y="16" width="23" height="10" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/><rect x="1" y="30" width="50" height="9" rx="3" fill="#F59E0B33" stroke="#F59E0B" stroke-width="1.5"/></svg>'
       },
       {
-        id: 'biglast', label: 'Акцент 4', layout: 'layout-biglast', order: [0,1,2,3],
-        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="17" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="28" y="1" width="23" height="17" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="1" y="22" width="50" height="17" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/></svg>'
+        id: 'biglast', label: 'Акцент 2', layout: 'layout-biglast', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="11" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="28" y="1" width="23" height="11" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="1" y="16" width="50" height="10" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="1" y="30" width="50" height="9" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/></svg>'
       },
     ];
 
     var savedLayout = (Store.get().home && Store.get().home.tileLayout) || '2x2';
     var savedOrder  = (Store.get().home && Store.get().home.tileOrder)  || [0,1,2,3];
-    var layout = savedLayout;
-    var order  = savedOrder.slice();
+    var savedHidden = (Store.get().home && Store.get().home.tileHidden) || [];
+    var layout  = savedLayout;
+    var order   = savedOrder.slice();
+    var hidden  = savedHidden.slice();
 
     var ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
@@ -267,6 +268,17 @@ window.Screens.home = function(mount) {
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:6px;">Порядок</div>'
         + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Перетащи за ⠿ чтобы изменить</div>'
         + '<div id="tile-sort-list" style="display:flex;flex-direction:column;gap:8px;">' + tileItems + '</div>'
+        + '<div style="margin-top:16px;">'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:8px;">Показывать</div>'
+        + TILES.map(function(t, i) {
+            var isHidden = hidden.includes(i);
+            return '<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;">'
+              + '<input type="checkbox" class="tile-vis-cb" data-ti="'+i+'" '+(isHidden?'':'checked')+' style="width:16px;height:16px;accent-color:#4ADE80;cursor:pointer;">'
+              + '<i class="ti '+t.icon+'" style="font-size:16px;color:#9D9A92;"></i>'
+              + '<span style="font-size:14px;color:#E8E5DC;">'+t.label+'</span>'
+              + '</label>';
+          }).join('')
+        + '</div>'
         + '<button id="tso-save" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#14532D,#16A34A);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;">Сохранить</button>'
         + '</div></div>';
     }
@@ -296,6 +308,13 @@ window.Screens.home = function(mount) {
         });
       });
       ov.querySelector('#tso-save').addEventListener('click', saveTiles);
+      ov.querySelectorAll('.tile-vis-cb').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          var ti = parseInt(cb.dataset.ti);
+          if (cb.checked) { hidden = hidden.filter(function(h){return h!==ti;}); }
+          else { if (!hidden.includes(ti)) hidden.push(ti); }
+        });
+      });
 
       var list = ov.querySelector('#tile-sort-list');
       var dragging = null, startY = 0, startIdx = 0;
@@ -336,17 +355,25 @@ window.Screens.home = function(mount) {
     function saveTiles() {
       Store.set('home.tileOrder', order);
       Store.set('home.tileLayout', layout);
+      Store.set('home.tileHidden', hidden);
       ov.remove();
-      /* Применяем layout */
       var grid = mount.querySelector('.home2-grid');
       if (grid) {
         grid.classList.remove('layout-2x2','layout-row','layout-bigfirst','layout-biglast');
         var tmpl = TEMPLATES.find(function(t){return t.id===layout;});
         if (tmpl) grid.classList.add(tmpl.layout);
-        /* Применяем порядок */
         var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
-        var sorted = order.map(function(ti) { return tileEls.find(function(el) { return el.classList.contains(TILES[ti].cls); }); }).filter(Boolean);
+        // Apply order
+        var sorted = order.map(function(ti) { return tileEls.find(function(el){return el.classList.contains(TILES[ti].cls);}); }).filter(Boolean);
         sorted.forEach(function(el) { grid.appendChild(el); });
+        // Apply visibility
+        tileEls.forEach(function(el, i) {
+          TILES.forEach(function(t, ti) {
+            if (el.classList.contains(t.cls)) {
+              el.classList.toggle('tile-hidden', hidden.includes(ti));
+            }
+          });
+        });
       }
     }
 
@@ -358,22 +385,22 @@ window.Screens.home = function(mount) {
   (function() {
     var savedOrder  = Store.get().home && Store.get().home.tileOrder;
     var savedLayout = Store.get().home && Store.get().home.tileLayout;
+    var savedHidden = (Store.get().home && Store.get().home.tileHidden) || [];
     var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals'];
     var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
-    /* Применяем сетку */
-    if (savedLayout && LAYOUT_MAP[savedLayout]) {
-      grid.classList.add(LAYOUT_MAP[savedLayout]);
-    }
-    /* Применяем порядок */
+    if (savedLayout && LAYOUT_MAP[savedLayout]) grid.classList.add(LAYOUT_MAP[savedLayout]);
     if (savedOrder && savedOrder.length) {
       var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
-      var sorted = savedOrder.map(function(ti) {
-        return tileEls.find(function(el) { return el.classList.contains(TILE_CLS[ti]); });
-      }).filter(Boolean);
+      var sorted = savedOrder.map(function(ti) { return tileEls.find(function(el){return el.classList.contains(TILE_CLS[ti]);}); }).filter(Boolean);
       sorted.forEach(function(el) { grid.appendChild(el); });
     }
+    // Apply hidden
+    savedHidden.forEach(function(ti) {
+      var el = grid.querySelector('.'+TILE_CLS[ti]);
+      if (el) el.classList.add('tile-hidden');
+    });
   })();
 
   /* ── Настройки слайдера ── */

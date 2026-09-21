@@ -994,17 +994,27 @@ html, body {
 .home2-grid.layout-row .home2-tile {
   min-height: 100px;
 }
+/* Большая / 2 маленьких / Большая */
 .home2-grid.layout-bigfirst {
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
 }
-.home2-grid.layout-bigfirst .home2-tile:first-child {
+.home2-grid.layout-bigfirst .home2-tile:nth-child(1) {
   grid-column: 1 / -1;
 }
+.home2-grid.layout-bigfirst .home2-tile:nth-child(4) {
+  grid-column: 1 / -1;
+}
+/* Две маленьких / Две большие */
 .home2-grid.layout-biglast {
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
 }
-.home2-grid.layout-biglast .home2-tile:last-child {
+.home2-grid.layout-biglast .home2-tile:nth-child(3) {
   grid-column: 1 / -1;
+}
+.home2-grid.layout-biglast .home2-tile:nth-child(4) {
+  grid-column: 1 / -1;
+}
+/* Скрытые плитки */
+.home2-tile.tile-hidden {
+  display: none !important;
 }

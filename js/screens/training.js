@@ -1211,14 +1211,14 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
 function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
   const day = plan.weeks[weekIndex].days[dayIdx];
   trMigrateDayToSessions(day);
-  const initialType = TRAINING_TYPES[0].name;
+  const initialType = TRAINING_CATEGORIES[0].id;
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
   overlay.innerHTML = `
     <div class="tr-modal">
       <p class="tr-modal-title">${day.date} ${day.dow}${day.sessions.length > 0 ? ' · новая тренировка' : ''}</p>
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', SESSION_TYPES.map(function(t){return {name:t.id,color:t.color};}), initialType)}</label>
+        <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', TRAINING_CATEGORIES.map(function(t){return {name:t.id,color:t.color};}), initialType)}</label>
       </div>
       <div id="m-fields-wrap">${trBuildFormFields(initialType, [], plan)}</div>
       <div class="tr-modal-actions">
@@ -1298,7 +1298,6 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
 
     if (trIsGymType(type)) {
       const groups = selectedGroupsNow();
-      if (groups.length === 0) return;
       const name = overlay.querySelector('#m-name').value.trim();
       if (!name) return;
       day.sessions.push({

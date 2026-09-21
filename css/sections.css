@@ -1699,16 +1699,3 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 }
 
 
-/* ═══ Единый размер шапки — как в тренировках ══════ */
-.hab-header,
-.tochka-header,
-.goals-header {
-  padding: 14px 20px !important;
-  min-height: auto !important;
-}
-.hab-screen-title,
-.tochka-screen-title,
-.goals-screen-title {
-  font-size: 20px !important;
-  font-weight: 800 !important;
-}

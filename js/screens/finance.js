@@ -128,6 +128,15 @@ function finOpenModal(existing, year, month, onSave) {
 }
 
 window.Screens.finance = function(mount) {
+  var finEntries   = window.finEntries;
+  var finSave      = window.finSave;
+  var finSum       = window.finSum;
+  var finFmt       = window.finFmt;
+  var finFmtFull   = window.finFmtFull;
+  var finPct       = window.finPct;
+  var finPctBadge  = window.finPctBadge;
+  var finParseDate = window.finParseDate;
+  var finOpenModal = window.finOpenModal;
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
@@ -772,5 +781,5 @@ window.Screens.finance = function(mount) {
     else renderAll();
   }
   render();
-  }; // end renderBalance scope
+}
 }; // window.Screens.finance end

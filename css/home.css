@@ -597,13 +597,14 @@ html, body {
 
 .hero-slide-glow {
   position: absolute;
-  width: 300px; height: 300px;
+  width: 55%; height: 100%;
   border-radius: 50%;
   filter: blur(80px);
-  right: -80px; top: -80px;
-  opacity: 0.5;
+  right: -10%; top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.45;
   pointer-events: none;
-  animation: glow-pulse 4s ease-in-out infinite, glow-drift 8s ease-in-out infinite;
+  animation: glow-pulse 4s ease-in-out infinite;
 }
 /* Второй glow — снизу слева */
 .hero-slide::before {
@@ -1081,3 +1082,15 @@ html, body {
 /* ═══ Убрать тени под плитками ══════════════════════ */
 .home2-tile { box-shadow: none !important; }
 .home2-grid::after { display: none !important; }
+
+/* ═══ PATCH v77 — убрать тени и зафиксировать blob'ы ══ */
+.home2-tile {
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+.home2-tile-training,
+.home2-tile-habits,
+.home2-tile-finance,
+.home2-tile-goals {
+  box-shadow: none !important;
+}

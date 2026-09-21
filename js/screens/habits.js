@@ -818,11 +818,7 @@ window.Screens.habits = function(mount) {
       overlay.querySelector('#wheel-sliders').innerHTML = buildSliders();
       overlay.querySelector('#wheel-comment').value = _ex?.comment || '';
       overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
-      overlay.querySelector('#wf-month-label').textContent = HAB_MONTHS_RU[_wfMonth] + ' ' + _wfYear;
-      const _now = new Date();
-      const _isNow = _wfYear===_now.getFullYear() && _wfMonth===_now.getMonth();
-      const _nextBtn = overlay.querySelector('#wf-next');
-      if (_nextBtn) { _nextBtn.disabled = _isNow; _nextBtn.style.opacity = _isNow ? '0.3' : '1'; }
+      // month label обновляется через select
       overlay.querySelectorAll('.wheel-slider').forEach(sl => {
         sl.addEventListener('input', () => {
           scores[parseInt(sl.dataset.i)] = parseInt(sl.value);
@@ -832,15 +828,22 @@ window.Screens.habits = function(mount) {
       });
     }
 
+    // Строим опции месяцев за последние 24 месяца
+    const _now2 = new Date();
+    let _monthOpts = '';
+    for (let i = 0; i < 24; i++) {
+      let om = _now2.getMonth() - i;
+      let oy = _now2.getFullYear();
+      while (om < 0) { om += 12; oy--; }
+      const sel = (oy === _wfYear && om === _wfMonth) ? 'selected' : '';
+      _monthOpts += `<option value="${oy}-${om}" ${sel}>${HAB_MONTHS_RU[om]} ${oy}</option>`;
+    }
+
     overlay.innerHTML = `
       <div class="tr-modal" style="max-height:90vh;overflow-y:auto;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <p class="tr-modal-title" style="margin:0;">Колесо жизни</p>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button id="wf-prev" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;width:28px;height:28px;color:#E8E5DC;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-left"></i></button>
-            <span id="wf-month-label" style="font-size:13px;font-weight:700;color:#E8E5DC;min-width:110px;text-align:center;">${HAB_MONTHS_RU[_wfMonth]} ${_wfYear}</span>
-            <button id="wf-next" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;width:28px;height:28px;color:#E8E5DC;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-right"></i></button>
-          </div>
+          <select id="wf-month-select" style="background:#22252F;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:6px 12px;color:#E8E5DC;font-size:13px;font-weight:600;font-family:Montserrat,sans-serif;cursor:pointer;">${_monthOpts}</select>
         </div>
         <div id="wheel-preview" style="display:flex;justify-content:center;margin-bottom:12px;">
           ${wheelDrawSVG(scores, 220, false)}
@@ -861,12 +864,9 @@ window.Screens.habits = function(mount) {
     overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
     overlay.querySelector('#wheel-cancel').addEventListener('click',()=>overlay.remove());
 
-    overlay.querySelector('#wf-prev').addEventListener('click', () => {
-      _wfMonth--; if(_wfMonth<0){_wfMonth=11;_wfYear--;} _wfRebuild();
-    });
-    overlay.querySelector('#wf-next').addEventListener('click', () => {
-      const _n=new Date(); if(_wfYear>=_n.getFullYear()&&_wfMonth>=_n.getMonth()) return;
-      _wfMonth++; if(_wfMonth>11){_wfMonth=0;_wfYear++;} _wfRebuild();
+    overlay.querySelector('#wf-month-select').addEventListener('change', e => {
+      const [y, m] = e.target.value.split('-').map(Number);
+      _wfYear = y; _wfMonth = m; _wfRebuild();
     });
 
     function updateTrack(sl) {
@@ -919,10 +919,7 @@ window.Screens.habits = function(mount) {
         <div class="wheel-current-card">
           <div class="wheel-card-head">
             <div style="display:flex;align-items:center;gap:8px;">
-              <div style="display:flex;gap:6px;align-items:center;">
-                <select id="wheel-sel-month" style="background:#1C1E26;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#E8E5DC;font-size:14px;font-weight:700;padding:5px 8px;font-family:Montserrat,sans-serif;cursor:pointer;">${monthOptions}</select>
-                <select id="wheel-sel-year" style="background:#1C1E26;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#E8E5DC;font-size:14px;font-weight:700;padding:5px 8px;font-family:Montserrat,sans-serif;cursor:pointer;">${yearOptions}</select>
-              </div>
+              <span style="font-size:16px;font-weight:800;color:#E8E5DC;">${HAB_MONTHS_RU[selMonth]} ${selYear}</span>
               ${!isRealNow ? `<span style="font-size:10px;color:#555;background:#1C1E26;padding:3px 8px;border-radius:6px;">не текущий</span>` : ''}
             </div>
             <button id="wheel-fill-now" class="wheel-fill-btn">
@@ -956,16 +953,7 @@ window.Screens.habits = function(mount) {
         </div>` : ''}
       </div>`;
 
-    document.getElementById('wheel-sel-month').addEventListener('change', e => {
-      window._wheelSelMonth = parseInt(e.target.value);
-      // Не даём выбрать будущее
-      const now = new Date();
-      if (window._wheelSelYear >= now.getFullYear() && window._wheelSelMonth > now.getMonth()) {
-        window._wheelSelMonth = now.getMonth();
-      }
-      renderWheel();
-    });
-    document.getElementById('wheel-sel-year').addEventListener('change', e => {
+        document.getElementById('wheel-sel-year').addEventListener('change', e => {
       window._wheelSelYear = parseInt(e.target.value);
       const now = new Date();
       if (window._wheelSelYear >= now.getFullYear() && window._wheelSelMonth > now.getMonth()) {

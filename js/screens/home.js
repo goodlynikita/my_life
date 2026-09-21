@@ -38,6 +38,7 @@ window.Screens.home = function(mount) {
   var activePlan = plans.filter(Boolean).find(function(p){return p.status==='active';}) || plans.filter(Boolean).slice(-1)[0];
   var todayGroups = [];
   var todayWorkout = '';
+  var todayExercise = null;
   if (activePlan && activePlan.weeks) {
     activePlan.weeks.forEach(function(week){
       if(!week||!week.days) return;
@@ -56,6 +57,12 @@ window.Screens.home = function(mount) {
           if(!todayGroups.length && exercises.length>0) {
             todayWorkout = 'Тренировка';
           }
+          sessions.filter(function(s){return s&&s.type!=='Отдых'&&s.type!=='10k';}).some(function(s){
+            var exs = Array.isArray(s.exercises) ? s.exercises : [];
+            if(exs.length){ todayExercise = exs[0]; return true; }
+            return false;
+          });
+          if(!todayExercise && exercises.length) todayExercise = exercises[0];
           // Отдых не показываем — оставляем пустым → будет «Не задано»
         }
       });
@@ -63,7 +70,16 @@ window.Screens.home = function(mount) {
     if(todayGroups.length) todayWorkout = todayGroups.join(' + ');
   }
 
+  var todayExerciseName = todayExercise && todayExercise.name ? todayExercise.name : '';
+  var todayExerciseMeta = '';
+  if(todayExercise){
+    if(todayExercise.kind === 'cardio') todayExerciseMeta = [todayExercise.distance ? todayExercise.distance+' км' : '', todayExercise.duration ? todayExercise.duration+' мин' : ''].filter(Boolean).join(' × ');
+    else if(todayExercise.kind === 'time_calorie') todayExerciseMeta = [todayExercise.calories ? todayExercise.calories+' ккал' : '', todayExercise.duration ? todayExercise.duration+' мин' : ''].filter(Boolean).join(' · ');
+    else if(todayExercise.kind === 'steps') todayExerciseMeta = todayExercise.steps ? Number(todayExercise.steps).toLocaleString('ru-RU')+' шагов' : '';
+    else todayExerciseMeta = [todayExercise.sets, todayExercise.reps, todayExercise.weight ? todayExercise.weight+' кг' : ''].filter(Boolean).join(' × ');
+  }
   var tagHtml = todayGroups.map(function(g){ return '<span class="hero-tag">'+g+'</span>'; }).join('');
+  var habitDotsHtml = habList.slice(0,12).map(function(h,i){ return '<div class="h2-dot '+(i<todayDone?'done':'')+'"></div>'; }).join('');
 
   /* ── Оригинальные слайды ── */
   var slide1 = '<div class="hero-slide slide-focus" data-route="/training">'
@@ -153,14 +169,15 @@ window.Screens.home = function(mount) {
     + visSlides.map(function(_,i){ return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>'; }).join('')
     + '</div></div>'
     + '<div class="home2-grid">'
-    + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><i class="ti ti-flame home2-tile-icon"></i><div class="home2-tile-name">Тренировки</div><div class="home2-tile-desc">'+(todayWorkout||'Не задано')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><i class="ti ti-checklist home2-tile-icon"></i><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div><div class="h2-dots">'+habList.slice(0,12).map(function(h,i){return "<div class=\"h2-dot "+(i<todayDone?'done':'')+"\"></div>";}).join('')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
+    + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><div class="home2-tile-index">01</div><div class="home2-tile-name">Тренировки</div><div class="home2-tile-rule"></div><div class="home2-tile-data">'+((todayGroups.length?todayGroups.join(' · '):'')+(todayExerciseName?(todayGroups.length?' · ':'')+todayExerciseName:'')||'Не задано')+'</div></div><div class="home2-tile-arrow">↗</div></button>'
+    + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><div class="home2-tile-index">02</div><div class="home2-tile-name">Привычки</div><div class="home2-tile-rule"></div><div class="home2-tile-data"><strong>'+todayDone+'/'+habList.length+'</strong> сегодня</div><div class="h2-dots">'+habitDotsHtml+'</div></div><div class="home2-tile-arrow">→</div></button>'
+    + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><div class="home2-tile-index">03</div><div class="home2-tile-name">Финансы</div><div class="home2-tile-rule"></div><div class="home2-tile-data">'+(monthIncome>0?fmt(monthIncome):'Добавить доход')+'</div><div class="home2-tile-data-muted">'+MONTHS[now.getMonth()]+'</div></div><svg class="home2-finance-chart" viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true"><path d="M5 100 C35 82 48 90 70 78 S105 85 125 62 S158 70 180 48 S214 55 232 42 S265 48 295 10" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="295" cy="10" r="5" fill="currentColor"/></svg><div class="home2-tile-arrow">→</div></button>'
+    + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><div class="home2-tile-index">04</div><div class="home2-tile-name">Цели</div><div class="home2-tile-rule"></div><div class="home2-tile-data"><strong>'+goalsPct+'%</strong> выполнено</div></div><div class="home2-goals-radar"><span></span><i></i></div><div class="home2-tile-arrow">→</div></button>'
     + '</div>'
-    + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
-    + '<div id="sync-status" style="font-size:11px;color:#9D9A92;"></div>'
-    + ''
+    + '<div class="home2-footer"><div class="winter-footer">'
+    + '<div class="winter-footer-left"><span>WINTER ARC</span><i></i><em>YOUR NEXT OPPONENT IS YOU.</em></div>'
+    + '<div class="winter-footer-mark" aria-hidden="true"><svg viewBox="0 0 44 28"><path d="M2 24 10 9l6 10 6-16 7 17 5-11 8 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+    + '<div class="winter-footer-right">COMPETE WITH YOURSELF.</div>'
     + '</div></div>'
     + '</div>';
 

@@ -1604,3 +1604,658 @@ html, body {
   .winter-footer-right { display:none; }
   .winter-footer-left em { display:none; }
 }
+
+/* ==========================================================
+   WINTER ARC — REFERENCE MATCH (final visual override)
+   Keep app data/logic intact; only composition + artwork.
+   ========================================================== */
+.home2-screen{background:#080a0e !important;color:#f5f5f7 !important;}
+.home2-header{display:none !important;}
+.hero-slider{
+  margin:16px 20px 14px !important;
+  height:180px !important;
+  min-height:180px !important;
+  border-radius:15px !important;
+  background:#1a0714 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.24) !important;
+}
+.hero-slider::before{
+  content:'' !important;display:block !important;position:absolute !important;inset:0 !important;z-index:4 !important;pointer-events:none !important;
+  background:
+    linear-gradient(90deg,rgba(250,73,174,.035),transparent 44%,rgba(132,21,91,.16)),
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 34%) !important;
+}
+.hero-slider::after{
+  content:'' !important;display:block !important;position:absolute !important;z-index:5 !important;pointer-events:none !important;
+  right:0 !important;top:0 !important;width:39% !important;height:100% !important;
+  background:url('../img/mountain.jpg') right center/cover no-repeat !important;
+  opacity:.62 !important;mix-blend-mode:screen !important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.20) 16%,rgba(0,0,0,.82) 48%,#000 100%) !important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.20) 16%,rgba(0,0,0,.82) 48%,#000 100%) !important;
+}
+.hero-slides{height:100% !important;z-index:1 !important;}
+.hero-slide{
+  height:180px !important;min-height:180px !important;padding:24px 32px 43px !important;box-sizing:border-box !important;
+  border-radius:15px !important;justify-content:flex-start !important;
+  background:linear-gradient(108deg,#180812 0%,#250d1e 45%,#430d31 77%,#26091f 100%) !important;
+}
+.hero-slide::before,.hero-slide::after,.hero-slide-glow,.hero-slide .slide-ray-1,.hero-slide .slide-ray-2{display:none !important;}
+.hero-slide-label{font-size:10px !important;line-height:1 !important;font-weight:700 !important;letter-spacing:.12em !important;color:rgba(255,255,255,.68) !important;margin:0 0 8px !important;}
+.hero-slide-main{margin:0 !important;z-index:2 !important;}
+.hero-tag-row{display:none !important;}
+.hero-big-text{font-size:35px !important;line-height:1 !important;font-weight:600 !important;letter-spacing:-.035em !important;color:#fff !important;}
+.hero-sub-text{font-size:10px !important;margin-top:5px !important;color:rgba(255,255,255,.42) !important;}
+.hero-goals-bar{height:4px !important;margin:12px 0 0 !important;width:calc(100vw - 78px) !important;max-width:none !important;background:rgba(255,255,255,.17) !important;border-radius:0 !important;}
+.hero-goals-fill{background:#f35db2 !important;border-radius:0 !important;}
+.hero-slide-sub{position:absolute !important;left:32px !important;right:32px !important;bottom:28px !important;z-index:2 !important;}
+.hero-stat-row{align-items:flex-start !important;}
+.hero-stat-box{flex:1 !important;}
+.hero-stat-box:last-child{text-align:right !important;}
+.hero-stat-sep{display:none !important;}
+.hero-stat-num{font-size:13px !important;line-height:1.05 !important;font-weight:650 !important;color:rgba(255,255,255,.92) !important;}
+.hero-stat-lbl{margin-top:3px !important;font-size:10px !important;color:rgba(255,255,255,.38) !important;}
+.hero-stat-of{font-size:11px !important;}
+.hero-dots{bottom:8px !important;gap:5px !important;z-index:10 !important;}
+.hero-dot{width:5px !important;height:5px !important;background:rgba(255,255,255,.24) !important;}
+.hero-dot.active{width:16px !important;background:#fff !important;}
+
+.home2-grid{
+  display:grid !important;grid-template-columns:1fr 1fr !important;gap:10px !important;padding:0 20px !important;position:relative !important;
+}
+.home2-grid::before{display:none !important;}
+.home2-tile{
+  min-height:194px !important;height:194px !important;padding:0 !important;border-radius:14px !important;
+  border:1px solid rgba(255,255,255,.09) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 9px 22px rgba(0,0,0,.20) !important;
+  align-items:stretch !important;justify-content:stretch !important;overflow:hidden !important;
+}
+.home2-tile:hover{transform:none !important;}
+.home2-tile::before{display:none !important;}
+.home2-tile-content{display:block !important;width:100% !important;height:100% !important;box-sizing:border-box !important;padding:27px 36px 24px !important;text-align:left !important;position:relative !important;z-index:3 !important;}
+.home2-tile-top{height:29px !important;display:flex !important;align-items:center !important;}
+.home2-tile-index{display:block !important;font-size:27px !important;line-height:1 !important;font-weight:400 !important;letter-spacing:-.03em !important;margin:0 !important;}
+.home2-tile-name{display:block !important;margin:15px 0 0 !important;font-size:25px !important;line-height:1.04 !important;font-weight:400 !important;letter-spacing:-.025em !important;text-transform:uppercase !important;color:#f3f4f6 !important;}
+.home2-tile-rule{width:33px !important;height:1px !important;margin:11px 0 8px !important;opacity:.55 !important;background:currentColor !important;}
+.home2-tile-data{display:block !important;max-width:72% !important;font-size:10px !important;line-height:1.25 !important;font-weight:500 !important;letter-spacing:.08em !important;color:rgba(255,255,255,.42) !important;text-transform:uppercase !important;}
+.home2-tile-data strong{font-weight:500 !important;}
+.tile-data-month{opacity:.75 !important;}
+.home2-tile-data-muted{display:none !important;}
+.home2-tile-arrow{right:39px !important;bottom:29px !important;font-size:26px !important;font-weight:300 !important;z-index:4 !important;}
+
+.home2-tile-training{background:linear-gradient(104deg,#08111d 0%,#0b1622 58%,#0a1019 100%) !important;color:#5d9fff !important;}
+.home2-tile-training::after{display:block !important;content:'' !important;position:absolute !important;inset:0 !important;z-index:1 !important;background:url('../img/training-body-ref.jpg') right center/45% 100% no-repeat !important;opacity:.72 !important;mix-blend-mode:screen !important;pointer-events:none !important;}
+.home2-tile-training .home2-tile-index,.home2-tile-training .home2-tile-arrow{color:#5d9fff !important;}
+.home2-tile-training .home2-tile-name{color:#f3f4f6 !important;}
+
+.home2-tile-habits{background:radial-gradient(circle at 83% 47%,rgba(38,209,101,.10),transparent 34%),linear-gradient(105deg,#08150d 0%,#0a180f 55%,#07110b 100%) !important;color:#4ce57a !important;}
+.home2-tile-habits::after{display:block !important;content:'' !important;position:absolute !important;width:185px !important;height:120px !important;right:34px !important;top:35px !important;z-index:1 !important;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 30px,rgba(70,218,116,.06) 31px 32px,transparent 33px 46px) !important;opacity:.35 !important;pointer-events:none !important;}
+.home2-tile-habits .home2-tile-index,.home2-tile-habits .home2-tile-arrow{color:#4ce57a !important;}
+.home2-tile-habits .h2-dots{position:absolute !important;right:38px !important;top:57px !important;z-index:4 !important;width:172px !important;display:grid !important;grid-template-columns:repeat(6,1fr) !important;gap:11px 14px !important;margin:0 !important;}
+.home2-tile-habits .h2-dot{width:11px !important;height:11px !important;box-sizing:border-box !important;border:1px solid rgba(84,232,131,.48) !important;background:transparent !important;box-shadow:none !important;}
+.home2-tile-habits .h2-dot.done{background:#4ee67b !important;border-color:#4ee67b !important;box-shadow:0 0 9px rgba(78,230,123,.30) !important;}
+
+.home2-tile-finance{background:linear-gradient(110deg,#110a20 0%,#150b2b 54%,#0d0918 100%) !important;color:#9856ff !important;}
+.home2-tile-finance .home2-tile-index,.home2-tile-finance .home2-tile-arrow{color:#9856ff !important;}
+.home2-tile-finance .home2-tile-name{color:#f3f4f6 !important;}
+.home2-finance-chart{width:53% !important;height:63% !important;right:3% !important;bottom:4% !important;opacity:.86 !important;color:#9856ff !important;filter:drop-shadow(0 0 6px rgba(152,86,255,.28)) !important;z-index:2 !important;}
+.home2-finance-chart path{stroke-width:1.8 !important;}
+.home2-finance-chart circle{r:4 !important;}
+
+.home2-tile-goals{background:radial-gradient(circle at 79% 51%,rgba(242,169,59,.10),transparent 33%),linear-gradient(110deg,#171000 0%,#1a1304 55%,#0f0c06 100%) !important;color:#f2a93b !important;}
+.home2-tile-goals .home2-tile-index,.home2-tile-goals .home2-tile-arrow{color:#f2a93b !important;}
+.home2-tile-goals .home2-tile-name{color:#f3f4f6 !important;}
+.home2-goals-radar{width:245px !important;height:245px !important;right:-4px !important;top:-25px !important;opacity:.85 !important;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 27px,rgba(242,169,59,.17) 28px 29px,transparent 30px 43px) !important;z-index:1 !important;}
+.home2-goals-radar::after{width:160px !important;right:12px !important;top:126px !important;background:linear-gradient(90deg,rgba(242,169,59,0),rgba(242,169,59,.58)) !important;transform:rotate(-17deg) !important;}
+.home2-goals-radar span{width:8px !important;height:8px !important;right:72px !important;top:111px !important;}
+.home2-goals-radar i{width:5px !important;height:5px !important;right:131px !important;top:125px !important;}
+
+.home2-footer{display:block !important;padding:11px 24px 0 !important;}
+.winter-footer{height:28px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;color:rgba(255,255,255,.50);font-size:10px;letter-spacing:.16em;text-transform:uppercase;}
+.winter-footer-left{display:flex;align-items:center;gap:16px;}.winter-footer-left span{color:rgba(255,255,255,.80);}.winter-footer-left i{width:1px;height:15px;background:rgba(255,255,255,.16);display:block;}.winter-footer-left em{font-style:normal;color:rgba(255,255,255,.28);letter-spacing:.11em;}.winter-footer-right{text-align:right;color:rgba(255,255,255,.30);}.winter-footer-mark{width:30px;height:22px;color:rgba(255,255,255,.45);}.winter-footer-mark svg{width:100%;height:100%;}
+@media(max-width:700px){.hero-slider{margin:10px 12px 10px !important;height:150px !important;min-height:150px !important;}.hero-slide{height:150px !important;min-height:150px !important;padding:18px 18px 38px !important}.hero-big-text{font-size:29px !important}.hero-slide-sub{left:18px !important;right:18px !important;bottom:23px !important}.home2-grid{padding:0 12px !important;gap:7px !important}.home2-tile{min-height:145px !important;height:145px !important}.home2-tile-content{padding:20px 20px 18px !important}.home2-tile-index{font-size:21px !important}.home2-tile-name{font-size:17px !important;margin-top:10px !important}.home2-tile-rule{margin:9px 0 7px !important}.home2-tile-data{font-size:8px !important}.home2-tile-arrow{right:18px !important;bottom:18px !important;font-size:21px !important}.home2-tile-training::after{background-size:48% 100% !important}.home2-tile-habits .h2-dots{right:20px !important;top:42px !important;width:112px !important;gap:8px 9px !important}.home2-tile-habits .h2-dot{width:8px !important;height:8px !important}.home2-finance-chart{width:55% !important;height:60% !important}.home2-goals-radar{width:175px !important;height:175px !important;top:-15px !important;right:-5px !important}.winter-footer{grid-template-columns:1fr auto;height:auto;gap:8px}.winter-footer-right{display:none}.winter-footer-left em{display:none}}
+
+/* ==========================================================
+   WINTER ARC — FINAL RESPONSIVE 2×2 TILE LAYOUT
+   Desktop keeps the reference proportions.
+   Phones keep the same 2×2 composition, simply scaled down.
+   ========================================================== */
+
+/* Make the decorative artwork feel alive without moving the layout. */
+@keyframes wa-photo-breathe {
+  0%,100% { transform: scale(1.00) translate3d(0,0,0); opacity:.68; }
+  50% { transform: scale(1.035) translate3d(-5px,0,0); opacity:.76; }
+}
+@keyframes wa-chart-drift {
+  0%,100% { transform: translate3d(0,0,0); }
+  50% { transform: translate3d(3px,-2px,0); }
+}
+@keyframes wa-dots-pulse {
+  0%,100% { opacity:.72; }
+  50% { opacity:1; }
+}
+@keyframes wa-radar-pulse {
+  0%,100% { transform: scale(1); opacity:.70; }
+  50% { transform: scale(1.025); opacity:.86; }
+}
+@keyframes wa-arrow-nudge {
+  0%,100% { transform: translate3d(0,0,0); }
+  50% { transform: translate3d(3px,0,0); }
+}
+
+.home2-tile-training::after {
+  transform-origin: right center;
+  animation: wa-photo-breathe 7s ease-in-out infinite;
+}
+.home2-finance-chart { animation: wa-chart-drift 5.5s ease-in-out infinite; }
+.home2-tile-habits .h2-dot { animation: wa-dots-pulse 3.8s ease-in-out infinite; }
+.home2-tile-habits .h2-dot:nth-child(2n) { animation-delay:.35s; }
+.home2-tile-habits .h2-dot:nth-child(3n) { animation-delay:.7s; }
+.home2-goals-radar { animation: wa-radar-pulse 6s ease-in-out infinite; transform-origin:center; }
+.home2-tile-arrow { animation: wa-arrow-nudge 3.2s ease-in-out infinite; }
+
+/* The tile itself is always the click target and never jumps on hover. */
+.home2-tile {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.home2-tile:focus-visible {
+  outline: 1px solid rgba(255,255,255,.65);
+  outline-offset: 2px;
+}
+
+/* Small screens: preserve the exact 2×2 reference composition.
+   The cards are approximately half the desktop height, not stacked. */
+@media (max-width: 700px) {
+  .home2-screen { padding-bottom: 12px !important; }
+
+  .hero-slider {
+    margin: 10px 12px 9px !important;
+    height: 132px !important;
+    min-height: 132px !important;
+    border-radius: 13px !important;
+  }
+  .hero-slide {
+    height: 132px !important;
+    min-height: 132px !important;
+    padding: 15px 16px 34px !important;
+    border-radius: 13px !important;
+  }
+  .hero-slider::after {
+    width: 46% !important;
+    opacity: .58 !important;
+  }
+  .hero-slide-label {
+    font-size: 8px !important;
+    margin-bottom: 6px !important;
+  }
+  .hero-big-text { font-size: 25px !important; }
+  .hero-goals-bar {
+    width: calc(100vw - 56px) !important;
+    margin-top: 8px !important;
+    height: 3px !important;
+  }
+  .hero-slide-sub {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 22px !important;
+  }
+  .hero-stat-num { font-size: 11px !important; }
+  .hero-stat-lbl { font-size: 8px !important; }
+  .hero-dots { bottom: 7px !important; }
+
+  .home2-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: 104px !important;
+    gap: 6px !important;
+    padding: 0 12px !important;
+  }
+
+  .home2-tile {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 104px !important;
+    height: 104px !important;
+    border-radius: 11px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 5px 12px rgba(0,0,0,.18) !important;
+  }
+
+  .home2-tile-content {
+    padding: 13px 14px 12px !important;
+  }
+  .home2-tile-top {
+    height: 17px !important;
+  }
+  .home2-tile-index {
+    font-size: 17px !important;
+    line-height: 1 !important;
+  }
+  .home2-tile-name {
+    margin: 7px 0 0 !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    letter-spacing: -.015em !important;
+  }
+  .home2-tile-rule {
+    width: 20px !important;
+    margin: 6px 0 5px !important;
+  }
+  .home2-tile-data {
+    max-width: 68% !important;
+    font-size: 6.5px !important;
+    line-height: 1.2 !important;
+    letter-spacing: .055em !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+  }
+  .home2-tile-arrow {
+    right: 13px !important;
+    bottom: 10px !important;
+    font-size: 16px !important;
+  }
+
+  /* Training photo: same right-side placement as desktop, scaled with the card. */
+  .home2-tile-training::after {
+    background-size: 53% 100% !important;
+    background-position: right center !important;
+    opacity: .66 !important;
+  }
+
+  /* Habits: compact 6-column matrix, still visually anchored right. */
+  .home2-tile-habits .h2-dots {
+    right: 11px !important;
+    top: 29px !important;
+    width: 78px !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 6px 6px !important;
+  }
+  .home2-tile-habits .h2-dot {
+    width: 7px !important;
+    height: 7px !important;
+  }
+  .home2-tile-habits .home2-tile-data { max-width: 55% !important; }
+
+  /* Finance: chart becomes a small background trace instead of taking the card. */
+  .home2-finance-chart {
+    width: 55% !important;
+    height: 68% !important;
+    right: 1% !important;
+    bottom: -1% !important;
+    opacity: .72 !important;
+  }
+  .home2-finance-chart path { stroke-width: 2 !important; }
+  .home2-finance-chart circle { r: 3 !important; }
+
+  /* Goals: radar stays clipped by the small card exactly like the reference. */
+  .home2-goals-radar {
+    width: 124px !important;
+    height: 124px !important;
+    right: -17px !important;
+    top: -10px !important;
+    opacity: .68 !important;
+  }
+  .home2-goals-radar::after {
+    width: 86px !important;
+    right: 3px !important;
+    top: 64px !important;
+  }
+  .home2-goals-radar span {
+    width: 6px !important;
+    height: 6px !important;
+    right: 35px !important;
+    top: 55px !important;
+  }
+  .home2-goals-radar i {
+    width: 4px !important;
+    height: 4px !important;
+    right: 67px !important;
+    top: 62px !important;
+  }
+
+  .home2-footer {
+    padding: 8px 12px 0 !important;
+  }
+  .winter-footer {
+    height: 20px !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+    font-size: 7px !important;
+    letter-spacing: .12em !important;
+  }
+  .winter-footer-left { gap: 8px !important; }
+  .winter-footer-left i { height: 10px !important; }
+  .winter-footer-left em,
+  .winter-footer-right { display: none !important; }
+  .winter-footer-mark { width: 22px !important; height: 15px !important; }
+}
+
+/* Very narrow phones: retain 2×2, only reduce internal scale. */
+@media (max-width: 360px) {
+  .hero-slider { margin-left: 10px !important; margin-right: 10px !important; }
+  .home2-grid { padding-left: 10px !important; padding-right: 10px !important; gap: 5px !important; grid-auto-rows: 98px !important; }
+  .home2-tile { height: 98px !important; min-height: 98px !important; }
+  .home2-tile-content { padding: 12px 12px 10px !important; }
+  .home2-tile-name { font-size: 11px !important; }
+  .home2-tile-data { font-size: 6px !important; }
+  .home2-tile-arrow { right: 11px !important; bottom: 9px !important; font-size: 14px !important; }
+  .home2-tile-habits .h2-dots { right: 8px !important; width: 68px !important; gap: 5px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home2-tile-training::after,
+  .home2-finance-chart,
+  .home2-tile-habits .h2-dot,
+  .home2-goals-radar,
+  .home2-tile-arrow { animation: none !important; }
+}
+
+/* ============================================================
+   WINTER ARC — FINAL REFERENCE LOCK
+   Visual-only layer. App data, routes and interactions unchanged.
+   ============================================================ */
+.home2-screen {
+  background:#080a0e !important;
+  padding:0 0 18px !important;
+  min-height:100vh !important;
+  overflow-x:hidden !important;
+}
+.home2-header { display:none !important; }
+
+/* HERO: same proportions, mountain artwork on the right */
+.hero-slider {
+  margin:16px 20px 14px !important;
+  height:180px !important;
+  min-height:180px !important;
+  border-radius:15px !important;
+  background:#170912 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  box-shadow:none !important;
+}
+.hero-slider::before {
+  content:'' !important;
+  position:absolute !important;
+  inset:0 !important;
+  z-index:4 !important;
+  pointer-events:none !important;
+  background:
+    linear-gradient(90deg,rgba(255,86,177,.025) 0%,rgba(255,86,177,0) 48%,rgba(116,20,82,.12) 100%),
+    linear-gradient(180deg,rgba(255,255,255,.018),transparent 38%) !important;
+}
+.hero-slider::after {
+  content:'' !important;
+  position:absolute !important;
+  right:0 !important;
+  top:0 !important;
+  width:32% !important;
+  height:100% !important;
+  z-index:5 !important;
+  pointer-events:none !important;
+  background:url('../img/mountain.jpg') right center / auto 100% no-repeat !important;
+  opacity:.64 !important;
+  mix-blend-mode:screen !important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.16) 14%,rgba(0,0,0,.82) 48%,#000 100%) !important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.16) 14%,rgba(0,0,0,.82) 48%,#000 100%) !important;
+}
+.hero-slides { height:100% !important; }
+.hero-slide {
+  height:180px !important;
+  min-height:180px !important;
+  padding:24px 32px 43px !important;
+  box-sizing:border-box !important;
+  border-radius:15px !important;
+  justify-content:flex-start !important;
+  background:linear-gradient(108deg,#180812 0%,#250d1d 45%,#410c30 76%,#25091e 100%) !important;
+}
+.hero-slide::before,.hero-slide::after,.hero-slide-glow,.hero-slide .slide-ray-1,.hero-slide .slide-ray-2 { display:none !important; }
+.hero-slide-label {
+  margin:0 0 8px !important;
+  font-size:10px !important;
+  line-height:1 !important;
+  font-weight:700 !important;
+  letter-spacing:.12em !important;
+  color:rgba(255,255,255,.70) !important;
+}
+.hero-big-text {
+  font-size:35px !important;
+  line-height:1 !important;
+  font-weight:600 !important;
+  letter-spacing:-.035em !important;
+  color:#fff !important;
+}
+.hero-sub-text { font-size:10px !important; margin-top:5px !important; color:rgba(255,255,255,.42) !important; }
+.hero-goals-bar {
+  height:4px !important;
+  margin:12px 0 0 !important;
+  width:calc(100vw - 78px) !important;
+  max-width:none !important;
+  background:rgba(255,255,255,.16) !important;
+  border-radius:0 !important;
+}
+.hero-goals-fill { background:#f35db2 !important; border-radius:0 !important; }
+.hero-slide-sub { position:absolute !important; left:32px !important; right:32px !important; bottom:28px !important; }
+.hero-stat-row { align-items:flex-start !important; }
+.hero-stat-box { flex:1 !important; }
+.hero-stat-box:last-child { text-align:right !important; }
+.hero-stat-sep { display:none !important; }
+.hero-stat-num { font-size:13px !important; line-height:1.05 !important; font-weight:650 !important; color:rgba(255,255,255,.92) !important; }
+.hero-stat-lbl { margin-top:3px !important; font-size:10px !important; color:rgba(255,255,255,.38) !important; }
+.hero-stat-of { font-size:11px !important; }
+.hero-dots { bottom:8px !important; gap:5px !important; }
+.hero-dot { width:5px !important; height:5px !important; background:rgba(255,255,255,.25) !important; }
+.hero-dot.active { width:16px !important; background:#fff !important; }
+
+/* TILES: exact 2×2 desktop composition */
+.home2-grid {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  grid-template-rows:194px 194px !important;
+  gap:10px !important;
+  padding:0 20px !important;
+  position:relative !important;
+}
+.home2-grid::before,.home2-grid::after { display:none !important; }
+.home2-tile {
+  min-width:0 !important;
+  min-height:194px !important;
+  height:194px !important;
+  padding:0 !important;
+  border-radius:14px !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 9px 22px rgba(0,0,0,.20) !important;
+  align-items:stretch !important;
+  justify-content:stretch !important;
+  overflow:hidden !important;
+  transform:none !important;
+  text-align:left !important;
+}
+.home2-tile::before { display:none !important; }
+.home2-tile-content {
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  box-sizing:border-box !important;
+  padding:27px 36px 24px !important;
+  position:relative !important;
+  z-index:3 !important;
+  text-align:left !important;
+}
+.home2-tile-top { height:29px !important; display:flex !important; align-items:center !important; }
+.home2-tile-index {
+  display:block !important;
+  font-size:27px !important;
+  line-height:1 !important;
+  font-weight:400 !important;
+  letter-spacing:-.03em !important;
+  margin:0 !important;
+}
+.home2-tile-name {
+  display:block !important;
+  margin:15px 0 0 !important;
+  font-size:25px !important;
+  line-height:1.04 !important;
+  font-weight:400 !important;
+  letter-spacing:-.025em !important;
+  text-transform:uppercase !important;
+  color:#f3f4f6 !important;
+}
+.home2-tile-rule { width:33px !important; height:1px !important; margin:11px 0 8px !important; opacity:.55 !important; background:currentColor !important; }
+.home2-tile-data {
+  display:block !important;
+  max-width:72% !important;
+  font-size:10px !important;
+  line-height:1.25 !important;
+  font-weight:500 !important;
+  letter-spacing:.08em !important;
+  color:rgba(255,255,255,.42) !important;
+  text-transform:uppercase !important;
+}
+.home2-tile-data strong { font-weight:500 !important; }
+.home2-tile-arrow { right:39px !important; bottom:29px !important; font-size:26px !important; font-weight:300 !important; z-index:4 !important; }
+
+/* TRAINING — use the supplied reference crop itself, not an approximation */
+.home2-tile-training {
+  background:linear-gradient(104deg,#08111d 0%,#0b1622 58%,#0a1019 100%) !important;
+  color:#5d9fff !important;
+}
+.home2-tile-training::after {
+  content:'' !important;
+  display:block !important;
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  width:39.5% !important;
+  height:100% !important;
+  z-index:1 !important;
+  background:url('../img/training-body-ref.jpg') right top / 100% 100% no-repeat !important;
+  opacity:1 !important;
+  mix-blend-mode:normal !important;
+  pointer-events:none !important;
+}
+.home2-tile-training .home2-tile-index { color:#5d9fff !important; }
+/* The reference image already contains the blue arrow. */
+.home2-tile-training .home2-tile-arrow { display:none !important; }
+
+/* HABITS */
+.home2-tile-habits {
+  background:radial-gradient(circle at 83% 47%,rgba(38,209,101,.10),transparent 34%),linear-gradient(105deg,#08150d 0%,#0a180f 55%,#07110b 100%) !important;
+  color:#4ce57a !important;
+}
+.home2-tile-habits::after {
+  content:'' !important;
+  display:block !important;
+  position:absolute !important;
+  width:185px !important;
+  height:120px !important;
+  right:34px !important;
+  top:35px !important;
+  z-index:1 !important;
+  background:repeating-radial-gradient(circle at 50% 50%,transparent 0 30px,rgba(70,218,116,.06) 31px 32px,transparent 33px 46px) !important;
+  opacity:.35 !important;
+  pointer-events:none !important;
+}
+.home2-tile-habits .home2-tile-index,.home2-tile-habits .home2-tile-arrow { color:#4ce57a !important; }
+.home2-tile-habits .h2-dots {
+  position:absolute !important;
+  right:38px !important;
+  top:57px !important;
+  z-index:4 !important;
+  width:172px !important;
+  display:grid !important;
+  grid-template-columns:repeat(6,1fr) !important;
+  gap:11px 14px !important;
+  margin:0 !important;
+}
+.home2-tile-habits .h2-dot { width:11px !important; height:11px !important; border:1px solid rgba(84,232,131,.48) !important; background:transparent !important; box-shadow:none !important; }
+.home2-tile-habits .h2-dot.done { background:#4ee67b !important; border-color:#4ee67b !important; box-shadow:0 0 9px rgba(78,230,123,.30) !important; }
+
+/* FINANCE */
+.home2-tile-finance { background:linear-gradient(110deg,#110a20 0%,#150b2b 54%,#0d0918 100%) !important; color:#9856ff !important; }
+.home2-tile-finance .home2-tile-index,.home2-tile-finance .home2-tile-arrow { color:#9856ff !important; }
+.home2-finance-chart { width:53% !important; height:63% !important; right:3% !important; bottom:4% !important; opacity:.86 !important; color:#9856ff !important; filter:drop-shadow(0 0 6px rgba(152,86,255,.28)) !important; z-index:2 !important; }
+.home2-finance-chart path { stroke-width:1.8 !important; }
+.home2-finance-chart circle { r:4 !important; }
+
+/* GOALS */
+.home2-tile-goals { background:radial-gradient(circle at 79% 51%,rgba(242,169,59,.10),transparent 33%),linear-gradient(110deg,#171000 0%,#1a1304 55%,#0f0c06 100%) !important; color:#f2a93b !important; }
+.home2-tile-goals .home2-tile-index,.home2-tile-goals .home2-tile-arrow { color:#f2a93b !important; }
+.home2-goals-radar {
+  width:245px !important;
+  height:245px !important;
+  right:-4px !important;
+  top:-25px !important;
+  opacity:.85 !important;
+  background:repeating-radial-gradient(circle at 50% 50%,transparent 0 27px,rgba(242,169,59,.17) 28px 29px,transparent 30px 43px) !important;
+  z-index:1 !important;
+}
+.home2-goals-radar::after { width:160px !important; right:12px !important; top:126px !important; background:linear-gradient(90deg,rgba(242,169,59,0),rgba(242,169,59,.58)) !important; transform:rotate(-17deg) !important; }
+.home2-goals-radar span { width:8px !important; height:8px !important; right:72px !important; top:111px !important; }
+.home2-goals-radar i { width:5px !important; height:5px !important; right:131px !important; top:125px !important; }
+
+/* FOOTER */
+.home2-footer { display:block !important; padding:11px 24px 0 !important; }
+.winter-footer { height:28px !important; display:grid !important; grid-template-columns:1fr auto 1fr !important; align-items:center !important; gap:20px !important; color:rgba(255,255,255,.50) !important; font-size:10px !important; letter-spacing:.16em !important; text-transform:uppercase !important; }
+.winter-footer-left { display:flex !important; align-items:center !important; gap:16px !important; }
+.winter-footer-left span { color:rgba(255,255,255,.80) !important; }
+.winter-footer-left i { width:1px !important; height:15px !important; background:rgba(255,255,255,.16) !important; display:block !important; }
+.winter-footer-left em { font-style:normal !important; color:rgba(255,255,255,.28) !important; letter-spacing:.11em !important; }
+.winter-footer-right { text-align:right !important; color:rgba(255,255,255,.30) !important; }
+.winter-footer-mark { width:30px !important; height:22px !important; color:rgba(255,255,255,.45) !important; }
+
+/* PHONE: still 2×2, same artwork, half-size composition */
+@media (max-width:700px) {
+  .hero-slider { margin:10px 10px 8px !important; height:120px !important; min-height:120px !important; border-radius:12px !important; }
+  .hero-slide { height:120px !important; min-height:120px !important; padding:16px 18px 30px !important; border-radius:12px !important; }
+  .hero-slider::after { width:35% !important; opacity:.60 !important; }
+  .hero-slide-label { font-size:7px !important; margin-bottom:5px !important; }
+  .hero-big-text { font-size:24px !important; }
+  .hero-sub-text { font-size:7px !important; margin-top:3px !important; }
+  .hero-goals-bar { height:3px !important; margin-top:8px !important; width:calc(100vw - 56px) !important; }
+  .hero-slide-sub { left:18px !important; right:18px !important; bottom:19px !important; }
+  .hero-stat-num { font-size:9px !important; }
+  .hero-stat-lbl { font-size:7px !important; margin-top:2px !important; }
+  .hero-stat-of { font-size:8px !important; }
+  .hero-dots { bottom:6px !important; gap:4px !important; }
+  .hero-dot { width:4px !important; height:4px !important; }
+  .hero-dot.active { width:12px !important; }
+
+  .home2-grid { grid-template-columns:1fr 1fr !important; grid-template-rows:96px 96px !important; gap:6px !important; padding:0 10px !important; }
+  .home2-tile { min-height:96px !important; height:96px !important; border-radius:10px !important; }
+  .home2-tile-content { padding:13px 16px 12px !important; }
+  .home2-tile-top { height:18px !important; }
+  .home2-tile-index { font-size:17px !important; }
+  .home2-tile-name { margin:8px 0 0 !important; font-size:11px !important; letter-spacing:.08em !important; }
+  .home2-tile-rule { width:21px !important; margin:6px 0 5px !important; }
+  .home2-tile-data { max-width:70% !important; font-size:6.5px !important; line-height:1.25 !important; letter-spacing:.055em !important; }
+  .home2-tile-arrow { right:14px !important; bottom:13px !important; font-size:15px !important; }
+  .home2-tile-training::after { width:39.5% !important; height:100% !important; }
+  .home2-tile-habits .h2-dots { right:14px !important; top:28px !important; width:82px !important; gap:5px 6px !important; }
+  .home2-tile-habits .h2-dot { width:6px !important; height:6px !important; }
+  .home2-finance-chart { width:52% !important; height:61% !important; right:2% !important; bottom:4% !important; }
+  .home2-goals-radar { width:122px !important; height:122px !important; right:-3px !important; top:-12px !important; }
+  .home2-goals-radar::after { width:82px !important; right:7px !important; top:63px !important; }
+  .home2-goals-radar span { width:5px !important; height:5px !important; right:36px !important; top:55px !important; }
+  .home2-goals-radar i { width:3px !important; height:3px !important; right:65px !important; top:62px !important; }
+  .home2-footer { padding:7px 12px 0 !important; }
+  .winter-footer { grid-template-columns:1fr auto !important; height:18px !important; gap:8px !important; font-size:7px !important; letter-spacing:.11em !important; }
+  .winter-footer-right { display:none !important; }
+  .winter-footer-left { gap:8px !important; }
+  .winter-footer-left i { height:10px !important; }
+  .winter-footer-left em { display:none !important; }
+  .winter-footer-mark { width:20px !important; height:14px !important; }
+}
+
+@media (max-width:360px) {
+  .home2-grid { grid-template-rows:88px 88px !important; }
+  .home2-tile { min-height:88px !important; height:88px !important; }
+  .home2-tile-content { padding:11px 12px 10px !important; }
+  .home2-tile-index { font-size:15px !important; }
+  .home2-tile-name { font-size:9px !important; }
+  .home2-tile-data { font-size:6px !important; }
+  .home2-tile-arrow { right:10px !important; bottom:10px !important; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .home2-tile,.hero-slides { transition:none !important; }
+}

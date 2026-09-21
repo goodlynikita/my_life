@@ -7,7 +7,7 @@ window.Screens.login = function(mount) {
       <div style="position:absolute;bottom:-100px;left:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,0.15) 0%,transparent 70%);pointer-events:none;"></div>
 
       <img src="icon.png" onerror="this.style.display='none'" style="width:76px;height:76px;border-radius:18px;margin-bottom:16px;box-shadow:0 8px 32px rgba(74,124,255,0.4);">
-      <div style="font-size:24px;font-weight:900;color:#F2F4F8;margin-bottom:4px;">NIK · Система</div>
+      <div style="font-size:24px;font-weight:900;color:#F2F4F8;margin-bottom:4px;">YOU</div>
       <div style="font-size:12px;color:rgba(242,244,248,0.4);margin-bottom:28px;">Персональный трекер жизни</div>
 
       <div style="width:100%;max-width:380px;">

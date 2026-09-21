@@ -138,7 +138,7 @@ window.Screens.home = function(mount) {
   mount.innerHTML = '<div class="home2-screen">'
     + '<div class="home2-header"><div>'
     + '<p class="home2-date">'+DOWS[now.getDay()]+', '+now.getDate()+' '+MONTHS[now.getMonth()]+'</p>'
-    + '<h1 class="home2-title">NIK \u00b7 \u0421\u0438\u0441\u0442\u0435\u043c\u0430</h1>'
+    + '<h1 class="home2-title">YOU</h1>'
     + '</div><div style="display:flex;gap:8px;">'
     + '<button class="home2-logout" id="slides-edit-btn" title="Редактор слайдов" style="font-size:16px;"><i class="ti ti-layout"></i></button>'
     + '<button class="home2-logout" id="tile-settings-btn" title="Настройка плиток" style="font-size:16px;"><i class="ti ti-layout-grid"></i></button>'

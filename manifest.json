@@ -1,6 +1,6 @@
 {
-  "name": "NIK · Система",
-  "short_name": "Система",
+  "name": "YOU",
+  "short_name": "YOU",
   "description": "Личный трекер: привычки, цели, финансы, тренировки",
   "start_url": "/my_life/",
   "display": "standalone",
@@ -12,7 +12,13 @@
       "src": "icon.png",
       "sizes": "any",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon2.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [

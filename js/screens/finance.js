@@ -578,7 +578,6 @@ window.Screens.finance = function(mount) {
       });
   } // end openBudgetEdit
 
-  } // end renderBalance
 
   /* ═══ РАСХОДЫ — хелперы ════════════════════════ */
   function expGetList() { return Store.get().finance?.expensesList || []; }
@@ -768,4 +767,5 @@ window.Screens.finance = function(mount) {
     else renderAll();
   }
   render();
+  }; // end renderBalance scope
 }; // window.Screens.finance end

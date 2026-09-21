@@ -1,4 +1,3 @@
-
 /* ============================================================
    TRAINING SCREEN
    Real editable plans backed by Store. Each plan is exactly
@@ -30,7 +29,6 @@ function trUid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-/* Структура типов: 6 категорий с подтипами */
 const TRAINING_TYPES_DEFAULT = [
   { name: 'Зал',        color: '#4ADE80', group: 'Зал' },
   { name: 'Растяжка',   color: '#C084FC', group: 'Фитнес' },
@@ -72,7 +70,8 @@ const MUSCLE_GROUPS = [
   { name: 'FULL BODY', color: '#2E7FD4' },
 ];
 
-/* Категории верхнего уровня */
+const CARDIO_DIRECTIONS = ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'];
+
 const TRAINING_CATEGORIES = [
   { id: 'Зал',    label: 'Тренировочный зал', color: '#4ADE80', desc: 'Силовые по группам мышц' },
   { id: 'Фитнес', label: 'Фитнес',            color: '#C084FC', desc: 'Растяжка, пилатес, йога' },
@@ -191,221 +190,8 @@ function trOpenExerciseEditor() {
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
 
-  const GYM_GROUP = 'Зал';
+  const GYM_TYPES = ['Зал', 'Зал ТРЕН'];
   const groups = Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT);
-
-  let step = 'cat';       // 'cat' | 'subtype' | 'group' | 'exercises'
-  let selCat = null;
-  let selType = null;
-  let selGroup = null;
-
-  function render() { overlay.innerHTML = buildHtml(); bind(); }
-
-  function buildHtml() {
-    if (step === 'cat')      return buildCatStep();
-    if (step === 'subtype')  return buildSubtypeStep();
-    if (step === 'group')    return buildGroupStep();
-    return buildExStep();
-  }
-
-  /* Шаг 1 — категория */
-  function buildCatStep() {
-    const html = TRAINING_CATEGORIES.map(cat =>
-      `<button class="tr-cat-btn" data-cat="${cat.id}" style="
-        display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;
-        border-radius:12px;border:1.5px solid ${cat.color}22;background:${cat.color}0f;
-        cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;text-align:left;
-      ">
-        <span style="font-size:22px;flex-shrink:0;">${cat.icon}</span>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:#E8E5DC;">${cat.label}</div>
-          <div style="font-size:11px;color:#666;margin-top:2px;">${cat.desc}</div>
-        </div>
-        <span style="margin-left:auto;color:#444;font-size:16px;">›</span>
-      </button>`
-    ).join('');
-    return modal('Редактор упражнений', html,
-      `<button id="ed-close" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">Закрыть</button>`);
-  }
-
-  /* Шаг 2 — подтип (для всех кроме Зал, Шаги, Отдых) */
-  function buildSubtypeStep() {
-    const subtypes = TRAINING_TYPES.filter(t => t.group === selCat);
-    const html = subtypes.map(t =>
-      `<button class="tr-sub-btn" data-type="${t.name}" style="
-        display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;
-        border-radius:10px;border:1.5px solid ${t.color}30;background:${t.color}10;
-        cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;
-      ">
-        <span style="font-size:18px;">${t.icon}</span>
-        <span style="font-size:14px;font-weight:600;color:#E8E5DC;">${t.name}</span>
-        <span style="margin-left:auto;font-size:12px;color:#555;">${(MUSCLE_BLOCK_EXERCISES[t.name]||[]).length} упр.</span>
-      </button>`
-    ).join('');
-    return modal(`${selCat}`, html,
-      `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">← Назад</button>
-       <button id="ed-close" style="flex:1;padding:11px;border-radius:10px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Готово</button>`);
-  }
-
-  /* Шаг 3 — группы мышц (только Зал) */
-  function buildGroupStep() {
-    const COLOR_MAP = {'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'};
-    const html = groups.map(g => {
-      const count = (MUSCLE_BLOCK_EXERCISES[g]||[]).length;
-      const c = COLOR_MAP[g]||'#9D9A92';
-      return `<button class="tr-grp-sel-btn" data-group="${g}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid ${c}22;background:${c}10;cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></span>
-          <span style="font-size:14px;font-weight:700;color:#E8E5DC;">${g}</span>
-        </div>
-        <span style="font-size:12px;color:${c};">${count} упр.</span>
-      </button>`;
-    }).join('');
-    return modal('Зал → Группа мышц', html,
-      `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">← Назад</button>
-       <button id="ed-close" style="flex:1;padding:11px;border-radius:10px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Готово</button>`);
-  }
-
-  /* Шаг 4 — список упражнений */
-  function buildExStep() {
-    const exercises = MUSCLE_BLOCK_EXERCISES[selGroup]||[];
-    const items = exercises.length
-      ? exercises.map((ex,i) => `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);min-width:0;">
-          <span style="flex:1;font-size:13px;color:#E8E5DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ex}</span>
-          <button class="tr-ex-ren" data-idx="${i}" style="background:none;border:none;color:#9D9A92;cursor:pointer;padding:4px;"><i class="ti ti-pencil" style="font-size:14px;"></i></button>
-          <button class="tr-ex-del" data-idx="${i}" style="background:none;border:none;color:#F87171;cursor:pointer;padding:4px;"><i class="ti ti-trash" style="font-size:14px;"></i></button>
-        </div>`).join('')
-      : '<div style="color:#555;font-size:13px;padding:16px 0;text-align:center;">Список пуст — добавь упражнения</div>';
-    return modal(`${selCat} → ${selGroup}`,
-      `<div style="overflow-y:auto;flex:1;min-height:0;">${items}</div>
-       <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-         <input id="tr-ex-new" type="text" placeholder="Новое упражнение…" style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#E8E5DC;font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;min-width:0;">
-         <button id="tr-ex-add" style="padding:9px 14px;border-radius:8px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:20px;font-weight:700;flex-shrink:0;">+</button>
-       </div>`,
-      `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:12px;font-family:inherit;">← Назад</button>
-       <button id="tr-ex-clear" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:#F87171;cursor:pointer;font-size:12px;font-family:inherit;">🗑 Очистить</button>
-       <button id="ed-close" style="flex:2;padding:11px;border-radius:10px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Готово</button>`);
-  }
-
-  function modal(title, body, footer) {
-    return `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
-      <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:15px;font-weight:800;color:#E8E5DC;">${title}</span>
-        <button id="ed-x" style="background:none;border:none;color:#9D9A92;cursor:pointer;font-size:24px;line-height:1;padding:0;">×</button>
-      </div>
-      <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;">${body}</div>
-      <div style="padding:12px 18px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;flex-shrink:0;">${footer}</div>
-    </div>`;
-  }
-
-  function bind() {
-    overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
-    overlay.querySelector('#ed-x')?.addEventListener('click', () => overlay.remove());
-    overlay.querySelector('#ed-close')?.addEventListener('click', () => overlay.remove());
-    overlay.querySelector('#ed-back')?.addEventListener('click', () => {
-      if (step==='exercises') { step = selCat===GYM_GROUP ? 'group' : 'subtype'; }
-      else if (step==='group') { step='cat'; selCat=null; }
-      else if (step==='subtype') { step='cat'; selCat=null; selType=null; selGroup=null; }
-      else { step='cat'; }
-      render();
-    });
-
-    overlay.querySelector('#ed-edit-toggle')?.addEventListener('click', () => {
-      editMode = !editMode; render();
-    });
-
-    // Удалить тип
-    overlay.querySelectorAll('.tr-type-del-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const name = btn.dataset.name;
-        if (name === 'Зал' || name === 'Отдых') { alert('Этот тип нельзя удалить'); return; }
-        TRAINING_TYPES = TRAINING_TYPES.filter(t => t.name !== name);
-        trSaveTypes(TRAINING_TYPES);
-        render();
-      });
-    });
-
-    // Добавить тип
-    const addBtn = overlay.querySelector('#tr-add-type-btn');
-    if (addBtn) {
-      addBtn.addEventListener('click', () => {
-        const nameEl = overlay.querySelector('#tr-new-type-name');
-        const groupEl = overlay.querySelector('#tr-new-type-group');
-        const name = nameEl?.value?.trim();
-        const group = groupEl?.value;
-        if (!name) return;
-        if (TRAINING_TYPES.find(t => t.name === name)) { nameEl.style.borderColor='#F87171'; return; }
-        const COLOR_BY_GROUP = {'Зал':'#4ADE80','Фитнес':'#C084FC','Кардио':'#60A5FA','Спорт':'#F59E0B','Шаги':'#A78BFA','Отдых':'#6B7280'};
-        TRAINING_TYPES.push({ name, color: COLOR_BY_GROUP[group]||'#9D9A92', group });
-        trSaveTypes(TRAINING_TYPES);
-        render();
-      });
-      overlay.querySelector('#tr-new-type-name')?.addEventListener('keydown', e => { if(e.key==='Enter') addBtn.click(); });
-    }
-
-    overlay.querySelectorAll('.tr-cat-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selCat = btn.dataset.cat;
-        if (selCat === GYM_GROUP) { step='group'; }
-        else if (selCat === 'Шаги' || selCat === 'Отдых') {
-          step='exercises'; selType=selCat; selGroup=selCat;
-          if (!MUSCLE_BLOCK_EXERCISES[selGroup]) MUSCLE_BLOCK_EXERCISES[selGroup]=[];
-        } else { step='subtype'; }
-        render();
-      });
-    });
-
-    overlay.querySelectorAll('.tr-sub-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selType=btn.dataset.type; selGroup=selType; step='exercises';
-        if (!MUSCLE_BLOCK_EXERCISES[selGroup]) MUSCLE_BLOCK_EXERCISES[selGroup]=[];
-        render();
-      });
-    });
-
-    overlay.querySelectorAll('.tr-grp-sel-btn').forEach(btn => {
-      btn.addEventListener('click', () => { selGroup=btn.dataset.group; step='exercises'; render(); });
-    });
-
-    const addInput = overlay.querySelector('#tr-ex-new');
-    const doAdd = () => {
-      const val = addInput?.value?.trim(); if(!val) return;
-      if(!MUSCLE_BLOCK_EXERCISES[selGroup]) MUSCLE_BLOCK_EXERCISES[selGroup]=[];
-      MUSCLE_BLOCK_EXERCISES[selGroup].push(val); trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
-    };
-    overlay.querySelector('#tr-ex-add')?.addEventListener('click', doAdd);
-    addInput?.addEventListener('keydown', e => { if(e.key==='Enter') doAdd(); });
-
-    overlay.querySelectorAll('.tr-ex-del').forEach(btn => {
-      btn.addEventListener('click', () => {
-        MUSCLE_BLOCK_EXERCISES[selGroup].splice(parseInt(btn.dataset.idx),1);
-        trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
-      });
-    });
-
-    overlay.querySelectorAll('.tr-ex-ren').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i=parseInt(btn.dataset.idx);
-        const span=btn.closest('div').querySelector('span');
-        const inp=document.createElement('input');
-        inp.value=MUSCLE_BLOCK_EXERCISES[selGroup][i];
-        inp.style.cssText='flex:1;background:rgba(255,255,255,0.08);border:1px solid #2E7FD4;border-radius:6px;color:#E8E5DC;font-size:13px;padding:3px 8px;font-family:inherit;min-width:0;';
-        span.replaceWith(inp); inp.focus(); inp.select();
-        const save=()=>{ const v=inp.value.trim(); if(v) MUSCLE_BLOCK_EXERCISES[selGroup][i]=v; trSaveExercises(MUSCLE_BLOCK_EXERCISES); render(); };
-        inp.addEventListener('blur',save); inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();});
-      });
-    });
-
-    overlay.querySelector('#tr-ex-clear')?.addEventListener('click', () => {
-      const count=(MUSCLE_BLOCK_EXERCISES[selGroup]||[]).length;
-      if(!count||!confirm(`Удалить все ${count} упражнений из «${selGroup}»?`)) return;
-      MUSCLE_BLOCK_EXERCISES[selGroup]=[]; trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
-    });
-  }
-
-  render();
-  document.body.appendChild(overlay);
-}
 
   let step = 'type';
   let selType = null;
@@ -419,8 +205,6 @@ function trOpenExerciseEditor() {
     return buildExStep();
   }
 
-  let editMode = false;
-
   function buildTypeStep() {
     const typeGroups = {};
     TRAINING_TYPES.forEach(t => {
@@ -428,37 +212,15 @@ function trOpenExerciseEditor() {
       typeGroups[t.group].push(t);
     });
     const html = Object.entries(typeGroups).map(([grp, types]) =>
-      `<div style="margin-bottom:14px;">
+      `<div style="margin-bottom:16px;">
         <div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">${grp}</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${types.map(t => editMode
-            ? `<div style="display:flex;align-items:center;gap:4px;padding:7px 10px 7px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);">
-                <span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>
-                <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin:0 6px;">${t.name}</span>
-                <button class="tr-type-del-btn" data-name="${t.name}" style="background:none;border:none;color:#F87171;cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">×</button>
-              </div>`
-            : `<button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>${t.name}</button>`
-          ).join('')}
+          ${types.map(t => `<button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>${t.name}</button>`).join('')}
         </div>
       </div>`
     ).join('');
-
-    const addForm = editMode ? `
-      <div style="margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-        <div style="font-size:11px;color:#555;margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Добавить тип</div>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <input id="tr-new-type-name" type="text" placeholder="Название" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#E8E5DC;font-size:13px;font-family:inherit;outline:none;min-width:0;">
-          <select id="tr-new-type-group" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:#1C1E26;color:#E8E5DC;font-size:13px;font-family:inherit;cursor:pointer;">
-            ${TRAINING_CATEGORIES.map(c => `<option value="${c.id}">${c.id}</option>`).join('')}
-          </select>
-        </div>
-        <button id="tr-add-type-btn" style="width:100%;padding:9px;border-radius:8px;background:#2E7FD4;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">+ Добавить</button>
-      </div>` : '';
-
-    return modal('Редактор · Тип', html + addForm,
-      `<button id="ed-edit-toggle" style="flex:1;padding:11px;border-radius:10px;border:1px solid ${editMode?'#4ADE80':'rgba(255,255,255,0.12)'};background:${editMode?'rgba(74,222,128,0.1)':'none'};color:${editMode?'#4ADE80':'#9D9A92'};cursor:pointer;font-size:13px;font-family:inherit;">${editMode?'✓ Готово':'✏️ Изменить'}</button>
-       <button id="ed-close" style="flex:1;padding:11px;border-radius:10px;border:none;background:#2E7FD4;color:#fff;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Закрыть</button>`
-    );
+    return modal('Редактор · Тип', `<div style="padding:4px 0 8px;font-size:13px;color:#9D9A92;">Выбери тип тренировки</div>${html}`,
+      `<button id="ed-close" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">Закрыть</button>`);
   }
 
   function buildGroupStep() {
@@ -556,6 +318,7 @@ function trOpenExerciseEditor() {
 
   render();
   document.body.appendChild(overlay);
+}
 
 
 function trExercisesForGroups(groupNames) {
@@ -1215,35 +978,22 @@ function trBuildGroupCheckboxes(selected) {
   const has = n => fb || selected.includes(n);
   const c = n => COLOR_MAP[n];
 
-  // Координаты масок групп мышц (подобраны под картинку 110x165 -> viewBox 110 165)
-  // Картинка центрирована, прозрачный фон
   const MASKS = {
     'Плечи':  `<ellipse cx="22" cy="55" rx="12" ry="11" fill="${c('Плечи')}"/><ellipse cx="88" cy="55" rx="12" ry="11" fill="${c('Плечи')}"/>`,
     'Грудь':  `<path d="M35,52 Q55,46 75,52 L78,76 Q55,82 32,76Z" fill="${c('Грудь')}"/>`,
-    'Спина':  `<path d="M35,52 Q55,46 75,52 L78,76 Q55,82 32,76Z" fill="${c('Спина')}" opacity="0.6"/>`,
+    'Спина':  `<path d="M35,52 Q55,46 75,52 L78,76 Q55,82 32,76Z" fill="${c('Спина')}" opacity="0.5"/>`,
     'Руки':   `<path d="M15,54 Q8,70 10,90 L22,88 Q22,72 26,58Z" fill="${c('Руки')}"/><path d="M95,54 Q102,70 100,90 L88,88 Q88,72 84,58Z" fill="${c('Руки')}"/><path d="M10,90 Q7,108 9,116 L21,114 Q22,102 22,88Z" fill="${c('Руки')}" opacity="0.8"/><path d="M100,90 Q103,108 101,116 L89,114 Q88,102 88,88Z" fill="${c('Руки')}" opacity="0.8"/>`,
     'Кор':    `<path d="M38,76 Q55,82 72,76 L72,108 Q55,114 38,108Z" fill="${c('Кор')}"/>`,
     'Ноги':   `<path d="M32,114 Q26,138 28,158 L48,158 Q48,138 46,114Z" fill="${c('Ноги')}"/><path d="M78,114 Q84,138 82,158 L62,158 Q62,138 64,114Z" fill="${c('Ноги')}"/><path d="M28,160 Q26,178 28,188 L46,188 Q47,178 48,160Z" fill="${c('Ноги')}" opacity="0.8"/><path d="M82,160 Q84,178 82,188 L64,188 Q63,178 62,160Z" fill="${c('Ноги')}" opacity="0.8"/>`,
   };
-
-  const activeMasks = Object.entries(MASKS)
-    .filter(([name]) => has(name))
-    .map(([, svg]) => svg)
-    .join('');
-
-  // IMG_B64 moved to top
+  const activeMasks = Object.entries(MASKS).filter(([name]) => has(name)).map(([,svg]) => svg).join('');
 
   const silhouette = `<svg viewBox="0 0 110 220" width="72" height="144" style="flex-shrink:0;display:block;">
-    <defs>
-      <mask id="body-mask">
-        <image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/>
-      </mask>
-    </defs>
-    <!-- Базовый силуэт -->
+    <defs><mask id="body-mask"><image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/></mask></defs>
     <image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/>
-    <!-- Цветные маски активных групп поверх, обрезанные контуром тела -->
     ${activeMasks ? `<g mask="url(#body-mask)" opacity="0.65">${activeMasks}</g>` : ''}
   </svg>`;
+
   return `<div style="display:flex;align-items:flex-start;gap:10px;">
     <div class="m-groups-wrap" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;">${pills}</div>
     <div id="m-silhouette" style="flex-shrink:0;">${silhouette}</div>
@@ -1335,17 +1085,17 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
     overlay.querySelectorAll('.m-group-cb').forEach(cb => {
       cb.addEventListener('change', () => {
         const groups = selectedGroupsNow();
-        // Обновляем список упражнений
         const wrap = overlay.querySelector('#m-name-wrap');
         if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
-        // Пересобираем весь блок групп + силуэт
-        const container = overlay.querySelector('.m-groups-wrap')?.closest('div[style*="display:flex"]');
-        if (container) {
-          const newHtml = trBuildGroupCheckboxes(groups);
-          container.outerHTML = newHtml;
-          // После замены outerHTML нужно заново привязать обработчики
-          bindGroupCheckboxes();
-        }
+        // Обновляем pill стили и силуэт
+        const newHtml = trBuildGroupCheckboxes(groups);
+        const tmpDiv = document.createElement('div');
+        tmpDiv.innerHTML = newHtml;
+        const mWrap = overlay.querySelector('.m-groups-wrap');
+        const sil = overlay.querySelector('#m-silhouette');
+        if (mWrap) mWrap.innerHTML = tmpDiv.querySelector('.m-groups-wrap')?.innerHTML || '';
+        if (sil) sil.innerHTML = tmpDiv.querySelector('#m-silhouette')?.innerHTML || '';
+        bindGroupCheckboxes();
       });
     });
   }
@@ -1453,6 +1203,17 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     bindGroupCheckboxes();
     bindNameSelect();
   }
+
+  function bindGroupCheckboxes() {
+    overlay.querySelectorAll('.m-group-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const groups = selectedGroupsNow();
+        const wrap = overlay.querySelector('#m-name-wrap');
+        if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
+      });
+    });
+  }
+  bindGroupCheckboxes();
 
   function bindNameSelect() {
     const sel = overlay.querySelector('#m-name-wrap select#m-name');
@@ -2990,125 +2751,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
 }
 
 function trRenderSummary(plan) {
-  const weeks = plan.weeks || [];
-  const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
-
-  /* ── Статистика по каждой неделе ── */
-  const weekStats = weeks.map((week, wi) => {
-    let totalTonnage = 0, gymDays = 0, cardioDays = 0, restDays = 0, otherDays = 0;
-    const exerciseTonnage = {};
-
-    week.days.forEach(day => {
-      trMigrateDayToSessions(day);
-      day.sessions.forEach(session => {
-        if (session.type === 'Отдых') { restDays++; return; }
-        if (trIsGymType(session.type)) gymDays++;
-        else if (['Бег','Велосипед','Дорожка','Эллипс','Плавание','Кардио'].includes(session.type)) cardioDays++;
-        else otherDays++;
-
-        session.exercises.forEach(ex => {
-          if (ex.kind !== 'strength' || !ex.sets || !ex.reps || !ex.weight) return;
-          const t = ex.sets * ex.reps * ex.weight;
-          totalTonnage += t;
-          if (!exerciseTonnage[ex.name]) exerciseTonnage[ex.name] = 0;
-          exerciseTonnage[ex.name] += t;
-        });
-      });
-    });
-
-    return { wi, week, totalTonnage, gymDays, cardioDays, restDays, otherDays, exerciseTonnage };
-  });
-
-  /* ── Итоговые цифры по плану ── */
-  const totalTonnage = weekStats.reduce((s,w) => s+w.totalTonnage, 0);
-  const totalGym = weekStats.reduce((s,w) => s+w.gymDays, 0);
-  const totalCardio = weekStats.reduce((s,w) => s+w.cardioDays, 0);
-  const totalRest = weekStats.reduce((s,w) => s+w.restDays, 0);
-  const totalWorkouts = totalGym + totalCardio + weekStats.reduce((s,w) => s+w.otherDays, 0);
-
-  /* ── Топ упражнений по тоннажу за весь план ── */
-  const allExTonnage = {};
-  weekStats.forEach(w => {
-    Object.entries(w.exerciseTonnage).forEach(([name, t]) => {
-      allExTonnage[name] = (allExTonnage[name]||0) + t;
-    });
-  });
-  const topEx = Object.entries(allExTonnage).sort((a,b) => b[1]-a[1]).slice(0,5);
-
-  /* ── Динамика тоннажа по неделям (только недели с данными) ── */
-  const activeWeeks = weekStats.filter(w => w.totalTonnage > 0);
-  const maxTonnage = Math.max(...activeWeeks.map(w => w.totalTonnage), 1);
-
-  const statsCardsHtml = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-      <div style="background:#1C1E26;border-radius:12px;padding:14px;">
-        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Тоннаж плана</div>
-        <div style="font-size:22px;font-weight:800;color:#4ADE80;">${fmt(totalTonnage)}<span style="font-size:13px;color:#9D9A92;font-weight:400;"> кг</span></div>
-      </div>
-      <div style="background:#1C1E26;border-radius:12px;padding:14px;">
-        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Тренировок</div>
-        <div style="font-size:22px;font-weight:800;color:#60A5FA;">${totalWorkouts}<span style="font-size:13px;color:#9D9A92;font-weight:400;"> из ${weeks.length*7 - totalRest}</span></div>
-      </div>
-      <div style="background:#1C1E26;border-radius:12px;padding:14px;">
-        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Зал / Кардио</div>
-        <div style="font-size:22px;font-weight:800;color:#E8E5DC;">${totalGym}<span style="font-size:14px;color:#555;"> / </span>${totalCardio}</div>
-      </div>
-      <div style="background:#1C1E26;border-radius:12px;padding:14px;">
-        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Дней отдыха</div>
-        <div style="font-size:22px;font-weight:800;color:#6B7280;">${totalRest}</div>
-      </div>
-    </div>`;
-
-  /* ── График тоннажа по неделям ── */
-  const chartHtml = activeWeeks.length >= 2 ? `
-    <div style="background:#1C1E26;border-radius:12px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Тоннаж по неделям</div>
-      <div style="display:flex;align-items:flex-end;gap:6px;height:60px;">
-        ${activeWeeks.map(w => {
-          const pct = w.totalTonnage / maxTonnage * 100;
-          const isLast = w === activeWeeks[activeWeeks.length-1];
-          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <div style="font-size:9px;color:#555;">${pct>15?fmt(w.totalTonnage):''}</div>
-            <div style="width:100%;border-radius:4px 4px 0 0;background:${isLast?'#4ADE80':'#2A2D35'};height:${Math.max(4,pct*0.55)}px;transition:height 0.3s;"></div>
-            <div style="font-size:9px;color:#555;">Нед.${w.wi+1}</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>` : '';
-
-  /* ── Топ упражнений ── */
-  const topHtml = topEx.length ? `
-    <div style="background:#1C1E26;border-radius:12px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Топ по тоннажу</div>
-      ${topEx.map(([name, t], i) => `
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;${i<topEx.length-1?'border-bottom:1px solid rgba(255,255,255,0.05)':''}">
-          <span style="font-size:11px;color:#444;font-weight:700;width:16px;">#${i+1}</span>
-          <span style="flex:1;font-size:13px;color:#E8E5DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
-          <span style="font-size:13px;font-weight:700;color:#4ADE80;">${fmt(t)} кг</span>
-        </div>`).join('')}
-    </div>` : '';
-
-  /* ── Недели детально ── */
-  const weeksHtml = activeWeeks.length ? `
-    <div style="background:#1C1E26;border-radius:12px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">По неделям</div>
-      ${activeWeeks.map(w => `
-        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <span style="font-size:12px;color:#9D9A92;min-width:52px;">Нед. ${w.wi+1}</span>
-          <div style="flex:1;height:4px;background:#2A2D35;border-radius:2px;overflow:hidden;">
-            <div style="height:100%;width:${w.totalTonnage/maxTonnage*100}%;background:#4ADE80;border-radius:2px;"></div>
-          </div>
-          <span style="font-size:12px;font-weight:700;color:#E8E5DC;min-width:70px;text-align:right;">${fmt(w.totalTonnage)} кг</span>
-          <span style="font-size:11px;color:#555;min-width:50px;text-align:right;">${w.gymDays}зал ${w.cardioDays>0?w.cardioDays+'кард':''}</span>
-        </div>`).join('')}
-    </div>` : '';
-
-  const emptyState = totalWorkouts === 0
-    ? `<div class="tr-empty-state" style="margin-bottom:16px;"><i class="ti ti-chart-bar"></i>Статистика появится после первых тренировок.</div>`
-    : '';
-
-  return emptyState + statsCardsHtml + chartHtml + topHtml + weeksHtml + trRenderMeasurementsBlock();
-}
+  const GYM_ORDER = WORKING_WEIGHT_CATEGORIES;
 
   /* Собираем упражнения зала по каноническим группам */
   const gymByGroup = {};
@@ -3146,6 +2789,40 @@ function trRenderSummary(plan) {
       </div>`;
   }).filter(Boolean).join('');
 
+  /* Остальное: кардио/теннис по объёму */
+  const otherByType = {};
+  plan.weeks.forEach(week => {
+    week.days.forEach(day => {
+      trMigrateDayToSessions(day);
+      day.sessions.forEach(session => {
+        if (trIsGymType(session.type) || session.type === 'Отдых') return;
+        if (!otherByType[session.type]) otherByType[session.type] = new Set();
+        session.exercises.forEach(ex => { if (ex.name) otherByType[session.type].add(ex.name); });
+      });
+    });
+  });
+
+  const TYPE_ORDER = ['Теннис', 'Кардио', 'Бокс', '10k', 'Лыжи'];
+  const orderedTypes = [
+    ...TYPE_ORDER.filter(t => otherByType[t]),
+    ...Object.keys(otherByType).filter(t => !TYPE_ORDER.includes(t))
+  ];
+  const otherHtml = orderedTypes.filter(t => otherByType[t] && otherByType[t].size > 0).map(t => {
+    const rows = Array.from(otherByType[t]).map(name => trRenderWasNowRow(name, plan)).join('');
+    return `
+      <div class="tr-group-card">
+        <div class="tr-group-title">${t} <span class="tr-group-range">· было → стало</span></div>
+        <div class="tr-day">${rows}</div>
+      </div>`;
+  }).join('');
+
+  const allHtml = gymHtml + otherHtml;
+  const exercisesHtml = allHtml
+    ? allHtml
+    : `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Прогрессия появится здесь после нескольких недель тренировок.</div>`;
+
+  return exercisesHtml + trRenderMeasurementsBlock();
+}
 
 function trRenderMeasurementsBlock() {
   const list = Store.get().training.measurements || [];

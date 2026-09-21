@@ -30,7 +30,7 @@ function trUid() {
 }
 
 const TRAINING_TYPES_DEFAULT = [
-  { name: 'Зал',        color: '#4ADE80', group: 'Зал' },
+  { name: 'Тренажерный зал', color: '#4ADE80', group: 'Зал' },
   { name: 'Растяжка',   color: '#C084FC', group: 'Фитнес' },
   { name: 'Стрейчинг',  color: '#C084FC', group: 'Фитнес' },
   { name: 'Пилатес',    color: '#C084FC', group: 'Фитнес' },
@@ -82,7 +82,7 @@ const TRAINING_CATEGORIES = [
 ];
 
 function trIsGymType(typeName) {
-  return (TRAINING_TYPES.find(t => t.name === typeName) || {}).group === 'Зал';
+  return (TRAINING_TYPES.find(t => t.name === typeName) || {}).group === 'Зал' || typeName === 'Тренажерный зал';
 }
 function trIsRestType(typeName) {
   return typeName === 'Отдых';
@@ -190,7 +190,7 @@ function trOpenExerciseEditor() {
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
 
-  const GYM_TYPES = ['Зал', 'Зал ТРЕН'];
+  const GYM_TYPES = ['Тренажерный зал', 'Зал ТРЕН'];
   const groups = Object.keys(MUSCLE_BLOCK_EXERCISES_DEFAULT);
 
   let step = 'type';
@@ -377,7 +377,7 @@ function trBuildSelect(id, list, current) {
   let options;
   if (hasGroups) {
     const groups = [...new Set(list.map(i => i.group).filter(Boolean))];
-    const groupLabels = { 'Зал': 'Зал', 'Кардио': 'Кардио', 'Шаги': 'Шаги', 'Спорт': 'Спорт', 'Зима': 'Зима', 'Прочее': 'Прочее' };
+    const groupLabels = { 'Зал': 'Тренажерный зал', 'Кардио': 'Кардио', 'Шаги': 'Шаги', 'Спорт': 'Спорт', 'Зима': 'Зима', 'Прочее': 'Прочее' };
     options = groups.map(g => {
       const items = list.filter(i => i.group === g);
       return `<optgroup label="${groupLabels[g]||g}">${items.map(i => `<option value="${i.name}" ${i.name===current?'selected':''}>${i.name}</option>`).join('')}</optgroup>`;
@@ -1015,21 +1015,19 @@ function trBuildGroupCheckboxes(selected) {
   const c = n => COLOR_MAP[n];
 
   const MASKS = {
-    // Плечи: эллипсы точно на дельтах (y=20–36, x: лево 14–28, право 81–96)
-    'Плечи': `<ellipse cx="21" cy="28" rx="7" ry="8" fill="${c('Плечи')}" opacity="0.75"/>
-              <ellipse cx="88" cy="28" rx="7" ry="8" fill="${c('Плечи')}" opacity="0.75"/>`,
-    // Грудь: торс y=36–62, x=44–65
-    'Грудь': `<rect x="38" y="36" width="33" height="26" rx="4" fill="${c('Грудь')}" opacity="0.7"/>`,
-    // Спина совпадает с грудью (вид спереди/сзади — одна зона)
-    'Спина': `<rect x="38" y="36" width="33" height="26" rx="4" fill="${c('Спина')}" opacity="0.65"/>`,
-    // Руки: лево x=23–35, право x=74–86, y=51–95
-    'Руки':  `<rect x="22" y="50" width="14" height="46" rx="5" fill="${c('Руки')}" opacity="0.75"/>
-              <rect x="73" y="50" width="14" height="46" rx="5" fill="${c('Руки')}" opacity="0.75"/>`,
-    // Кор: y=62–98, x=43–66
-    'Кор':   `<rect x="40" y="62" width="29" height="36" rx="4" fill="${c('Кор')}" opacity="0.7"/>`,
-    // Ноги: лево x=36–51, право x=58–73, y=98–163
-    'Ноги':  `<rect x="35" y="97" width="17" height="67" rx="5" fill="${c('Ноги')}" opacity="0.75"/>
-              <rect x="57" y="97" width="17" height="67" rx="5" fill="${c('Ноги')}" opacity="0.75"/>`,
+    'Плечи': `<ellipse cx="21" cy="28" rx="8" ry="9" fill="${c('Плечи')}" opacity="0.7"/>
+              <ellipse cx="89" cy="28" rx="8" ry="9" fill="${c('Плечи')}" opacity="0.7"/>`,
+    'Грудь': `<path d="M30,36 Q55,30 80,36 L78,60 Q55,66 32,60 Z" fill="${c('Грудь')}" opacity="0.7"/>`,
+    'Спина': `<path d="M30,36 Q55,30 80,36 L78,60 Q55,66 32,60 Z" fill="${c('Спина')}" opacity="0.65"/>`,
+    'Руки':  `<path d="M13,34 Q6,50 8,70 L20,68 Q20,52 22,36 Z" fill="${c('Руки')}" opacity="0.75"/>
+              <path d="M97,34 Q104,50 102,70 L90,68 Q90,52 88,36 Z" fill="${c('Руки')}" opacity="0.75"/>
+              <path d="M8,70 Q6,88 8,98 L20,96 Q20,84 20,68 Z" fill="${c('Руки')}" opacity="0.6"/>
+              <path d="M102,70 Q104,88 102,98 L90,96 Q90,84 90,68 Z" fill="${c('Руки')}" opacity="0.6"/>`,
+    'Кор':   `<path d="M32,60 Q55,66 78,60 L76,92 Q55,98 34,92 Z" fill="${c('Кор')}" opacity="0.7"/>`,
+    'Ноги':  `<path d="M34,98 Q28,122 30,148 L46,148 Q46,122 46,98 Z" fill="${c('Ноги')}" opacity="0.75"/>
+              <path d="M76,98 Q82,122 80,148 L64,148 Q64,122 64,98 Z" fill="${c('Ноги')}" opacity="0.75"/>
+              <path d="M30,148 Q28,158 30,165 L46,165 Q47,158 46,148 Z" fill="${c('Ноги')}" opacity="0.6"/>
+              <path d="M80,148 Q82,158 80,165 L64,165 Q63,158 64,148 Z" fill="${c('Ноги')}" opacity="0.6"/>`,
   };
   const activeMasks = Object.entries(MASKS).filter(([name]) => has(name)).map(([,svg]) => svg).join('');
 

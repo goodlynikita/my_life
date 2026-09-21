@@ -1074,6 +1074,10 @@ html, body {
 
 /* Убираем некрасивую подсветку снизу плиток — это .home2-tile-grid-glow или box-shadow */
 .home2-grid::after { display: none !important; }
-.home2-tile { box-shadow: none !important; }
+
 .home2-grid-glow { display: none !important; }
 
+
+/* ═══ Убрать тени под плитками ══════════════════════ */
+.home2-tile { box-shadow: none !important; }
+.home2-grid::after { display: none !important; }

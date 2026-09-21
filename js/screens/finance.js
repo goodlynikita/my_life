@@ -25,35 +25,35 @@ var FIN_MONTHS = window.FIN_MONTHS;
 var FIN_MONTHS_SHORT = window.FIN_MONTHS_SHORT;
 var FIN_LABEL_COLORS = window.FIN_LABEL_COLORS;
 
-window.finEntries = window.finEntries || function(year, month) {
+function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
   return Store.get().finance?.years?.[year]?.[mm]?.entries || [];
 }
 
-window.finSave = window.finSave || function(year, month, entries) {
+function finSave(year, month, entries) {
   const mm = String(month+1).padStart(2,'0');
   Store.set(`finance.years.${year}.${mm}.entries`, entries);
 }
 
-window.finSum = window.finSum || function(entries) {
+function finSum(entries) {
   return entries.reduce((s,e) => s+(e.amount||0), 0);
 }
 
-window.finFmt = window.finFmt || function(n) {
+function finFmt(n) {
   if (n >= 1000000) return (n/1000000).toFixed(1).replace('.',',') + ' млн₽';
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
 }
 
-window.finFmtFull = window.finFmtFull || function(n) {
+function finFmtFull(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + '₽';
 }
 
-window.finPct = window.finPct || function(cur, prev) {
+function finPct(cur, prev) {
   if (!prev) return null;
   return Math.round((cur-prev)/prev*100);
 }
 
-window.finPctBadge = window.finPctBadge || function(pct, size) {
+function finPctBadge(pct, size) {
   if (pct===null) return '<span style="color:#555;">—</span>';
   const sign = pct>0?'+':'';
   const color = pct>0?'#A8C97F':pct<0?'#FF5C5C':'#9D9A92';
@@ -63,13 +63,13 @@ window.finPctBadge = window.finPctBadge || function(pct, size) {
 }
 
 /* Дата из строки dd.mm.yyyy → Date */
-window.finParseDate = window.finParseDate || function(str) {
+function finParseDate(str) {
   const [d,m,y] = str.split('.');
   return new Date(+y,+m-1,+d);
 }
 
 /* Модалка добавления/редактирования */
-window.finOpenModal = window.finOpenModal || function(existing, year, month, onSave) {
+function finOpenModal(existing, year, month, onSave) {
   const isEdit = !!existing;
   const now = new Date();
   const defaultDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -128,16 +128,6 @@ window.finOpenModal = window.finOpenModal || function(existing, year, month, onS
 }
 
 window.Screens.finance = function(mount) {
-  var finEntries = window.finEntries;
-  var finSave = window.finSave;
-  var finSum = window.finSum;
-  var finFmt = window.finFmt;
-  var finFmtFull = window.finFmtFull;
-  var finPct = window.finPct;
-  var finPctBadge = window.finPctBadge;
-  var finParseDate = window.finParseDate;
-  var finOpenModal = window.finOpenModal;
-
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
@@ -775,17 +765,12 @@ window.Screens.finance = function(mount) {
   }
 
   function render(){
-    try {
-      if(activeTab==='month')renderMonth();
-      else if(activeTab==='expenses')renderExpenses();
-      else if(activeTab==='balance')renderBalance();
-      else if(activeTab==='year')renderYear();
-      else renderAll();
-    } catch(e) {
-      content.innerHTML = '<div style="padding:20px;color:#F87171;font-size:13px;font-family:monospace;">Ошибка: ' + e.message + '<br><br>' + e.stack + '</div>';
-      console.error('Finance render error:', e);
-    }
+    if(activeTab==='month')renderMonth();
+    else if(activeTab==='expenses')renderExpenses();
+    else if(activeTab==='balance')renderBalance();
+    else if(activeTab==='year')renderYear();
+    else renderAll();
   }
   render();
-}
+  }; // end renderBalance scope
 }; // window.Screens.finance end

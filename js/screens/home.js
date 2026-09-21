@@ -137,7 +137,7 @@ window.Screens.home = function(mount) {
 
   mount.innerHTML = '<div class="home2-screen">'
     + '<div class="home2-header">'
-    + '<button class="home2-logout" id="home-menu-btn" style="font-size:18px;"><i class="ti ti-dots"></i></button>'
+    + '<button id="home-menu-btn" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px 14px;color:#fff;cursor:pointer;font-size:18px;letter-spacing:3px;line-height:1;"><i class="ti ti-dots"></i></button>'
     + '</div>'
     + '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides" style="width:'+(n*100)+'%">'

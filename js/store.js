@@ -151,5 +151,20 @@ const Store = (() => {
     return false;
   }
 
-  return { get, set, replaceAll, load, loadSeedFromRepo, defaultData, loadFromLocalBackup };
+  var _listeners = [];
+  function subscribe(fn) {
+    _listeners.push(fn);
+    return function() { _listeners = _listeners.filter(function(f){return f!==fn;}); };
+  }
+  var _origSet = set;
+  var _origReplaceAll = replaceAll;
+  function setAndNotify(path, val) {
+    _origSet(path, val);
+    _listeners.forEach(function(fn){try{fn();}catch(e){}});
+  }
+  function replaceAllAndNotify(incoming) {
+    _origReplaceAll(incoming);
+    _listeners.forEach(function(fn){try{fn();}catch(e){}});
+  }
+  return { get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, loadFromLocalBackup, subscribe };
 })();

@@ -1094,3 +1094,23 @@ html, body {
 .home2-tile-goals {
   box-shadow: none !important;
 }
+
+/* ═══ Фикс z-index — blob'ы под контентом ═══════════ */
+.home2-tile::before,
+.home2-tile::after {
+  z-index: 0 !important;
+}
+.home2-tile-content {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* ═══ Фикс blob'ов — не вылезают за плитки ════════ */
+.home2-grid {
+  overflow: visible !important;
+  border-radius: 0 !important;
+}
+.home2-tile {
+  overflow: hidden !important;
+  isolation: isolate !important;
+}

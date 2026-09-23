@@ -274,7 +274,7 @@ window.Screens.goals = function(mount) {
 
   mount.innerHTML = `
     <div class="goals-screen" style="min-height:100vh;background:#0F1117;">
-      <div class="goals-header" style="position:sticky;top:0;z-index:16;">
+      <div class="goals-header" style="position:sticky;top:0;z-index:100;">
         <div style="display:flex;align-items:center;gap:10px;">
           <button class="goals-back" id="gb"><i class="ti ti-arrow-left"></i></button>
           <p class="goals-screen-title">Цели 2026</p>

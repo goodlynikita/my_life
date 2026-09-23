@@ -707,8 +707,8 @@
 .wheel-hist-month { font-size: 15px; font-weight: 600; color: #111; margin-bottom: 2px; }
 .wheel-hist-comment { font-size: 12px; color: #9CA3AF; font-style: italic; }
 .wheel-hist-avg {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
   color: #4ADE80;
   min-width: 40px;
   text-align: right;
@@ -1227,7 +1227,7 @@ input, textarea, select {
 
 /* ЦЕЛИ */
 .goals-header {
-  background: linear-gradient(135deg, #150c00 0%, #2d1a00 60%, #4a2c00 100%) !important;
+  background: linear-gradient(135deg, #78350F 0%, #92400E 60%, #B45309 100%) !important;
   padding: 14px 20px !important;
   display: flex !important;
   align-items: center !important;
@@ -1236,9 +1236,10 @@ input, textarea, select {
   top: 0 !important;
   z-index: 20 !important;
   border-bottom: none !important;
+  min-height: auto !important;
 }
-.goals-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; }
-.goals-back { color: #fff !important; background: none !important; border: none !important; cursor: pointer !important; font-size: 18px !important; width: 32px !important; height: 32px !important; }
+.goals-screen-title { font-size: 20px !important; font-weight: 800 !important; color: #fff !important; line-height: 1.2 !important; }
+.goals-back { color: #fff !important; background: none !important; border: none !important; cursor: pointer !important; font-size: 18px !important; width: 32px !important; height: 32px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
 
 /* Вкладки сезонов */
 .goals-season-tabs {
@@ -1376,10 +1377,11 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
 
 /* ── Safe area для PWA на iOS ── */
 .hab-header,
+.hab-header,
 .goals-header,
 .tr-header,
 .tochka-header {
-  padding-top: max(14px, env(safe-area-inset-top)) !important;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
 }
 body {
   padding-top: 0;
@@ -1699,3 +1701,22 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 }
 
 
+
+/* ═══ Единый размер вкладок везде ═══════════════════ */
+.tochka-tab,
+.hab-tab,
+.goals-season-tab,
+.tr-tab {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 12px 4px !important;
+}
+
+/* ═══ Шапки sticky везде ════════════════════════════ */
+.goals-header,
+.hab-header,
+.tochka-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+}

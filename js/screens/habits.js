@@ -447,7 +447,7 @@ window.Screens.habits = function(mount) {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);">
           <button id="hab-grid-prev" style="background:rgba(255,255,255,0.07);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;"><i class="ti ti-chevron-left"></i></button>
           <span style="font-size:13px;font-weight:700;color:#E8E5DC;">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</span>
-          <button id="hab-grid-next" ${isNow?'disabled style="opacity:0.3;pointer-events:none;"':'' } style="background:rgba(255,255,255,0.07);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;"><i class="ti ti-chevron-right"></i></button>
+          <button id="hab-grid-next" style="background:rgba(255,255,255,0.07);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;"><i class="ti ti-chevron-right"></i></button>
         </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
@@ -946,7 +946,7 @@ window.Screens.habits = function(mount) {
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
                 <div class="wheel-hist-avg">${avg}</div>
-                <i class="ti ti-chevron-right" style="color:#9CA3AF;"></i>
+                <i class="ti ti-chevron-right" style="color:#4ADE80;font-size:18px;font-weight:700;"></i>
               </div>
             </div>`;
           }).join('')}
@@ -962,12 +962,18 @@ window.Screens.habits = function(mount) {
       renderWheel();
     });
 
-    document.getElementById('wheel-fill-now').addEventListener('click',()=>{
-      wheelOpenForm(currentMk, currentData, result=>{
-        wheelSave(currentMk, result);
-        renderWheel();
-      });
-    });
+    // Кнопка Изменить/Заполнить на колесе
+    var _wfnBtn = document.getElementById('wheel-fill-now');
+    if (_wfnBtn) {
+      _wfnBtn.onclick = function() {
+        var _mk = habMonthKey(window._wheelSelYear, window._wheelSelMonth);
+        var _d = wheelGetData(_mk);
+        wheelOpenForm(_mk, _d, function(result) {
+          wheelSave(_mk, result);
+          renderWheel();
+        });
+      };
+    }
 
     content.querySelectorAll('.wheel-hist-open').forEach(btn=>{
       btn.addEventListener('click',()=>{

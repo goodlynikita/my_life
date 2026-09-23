@@ -369,10 +369,10 @@
   inset: 0 !important;
   background: rgba(0,0,0,0.75);
   display: flex !important;
-  align-items: flex-start !important;
+  align-items: center !important;
   justify-content: center !important;
   z-index: 200;
-  padding: max(20px, calc(env(safe-area-inset-top) + 16px)) 20px 20px !important;
+  padding: 20px !important;
   box-sizing: border-box !important;
   overflow-y: auto !important;
 }
@@ -384,11 +384,10 @@
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   padding: 24px 20px;
-  max-height: none;
-  overflow-y: visible;
+  max-height: 85vh;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-  margin: auto;
 }
 
 /* Title row with close button */

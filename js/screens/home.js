@@ -136,8 +136,8 @@ window.Screens.home = function(mount) {
   var n = visSlides.length;
 
   mount.innerHTML = '<div class="home2-screen">'
-    + '<div class="home2-header">'
-    + '<button id="home-menu-btn" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px 14px;color:#fff;cursor:pointer;font-size:18px;letter-spacing:3px;line-height:1;"><i class="ti ti-dots"></i></button>'
+    + '<div class="home2-header" style="justify-content:flex-end;">'
+    + '<button id="home-menu-btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px 16px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px;letter-spacing:4px;line-height:1;display:flex;align-items:center;">···</button>'
     + '</div>'
     + '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides" style="width:'+(n*100)+'%">'
@@ -386,7 +386,7 @@ window.Screens.home = function(mount) {
   }
 
   /* ── Применяем сохранённый порядок и сетку плиток при загрузке ── */
-  (function() {
+  function applyTileLayout() {
     var savedOrder  = Store.get().home && Store.get().home.tileOrder;
     var savedLayout = Store.get().home && Store.get().home.tileLayout;
     var savedHidden = (Store.get().home && Store.get().home.tileHidden) || [];
@@ -394,18 +394,30 @@ window.Screens.home = function(mount) {
     var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
+    // Сброс layout классов
+    Object.values(LAYOUT_MAP).forEach(function(cls) { grid.classList.remove(cls); });
     if (savedLayout && LAYOUT_MAP[savedLayout]) grid.classList.add(LAYOUT_MAP[savedLayout]);
     if (savedOrder && savedOrder.length) {
       var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
       var sorted = savedOrder.map(function(ti) { return tileEls.find(function(el){return el.classList.contains(TILE_CLS[ti]);}); }).filter(Boolean);
       sorted.forEach(function(el) { grid.appendChild(el); });
     }
-    // Apply hidden
+    TILE_CLS.forEach(function(cls) {
+      var el = grid.querySelector('.'+cls);
+      if (el) el.classList.remove('tile-hidden');
+    });
     savedHidden.forEach(function(ti) {
       var el = grid.querySelector('.'+TILE_CLS[ti]);
       if (el) el.classList.add('tile-hidden');
     });
-  })();
+  }
+  applyTileLayout();
+
+  // Перерисовываем когда Firebase подгрузит данные
+  if (window._homeTileUnsubscribe) window._homeTileUnsubscribe();
+  window._homeTileUnsubscribe = Store.subscribe && Store.subscribe(function() {
+    applyTileLayout();
+  });
 
   /* ── Настройки слайдера ── */
   function openSliderSettings() {

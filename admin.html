@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B0D12">
+<title>YOU · Админка</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#0B0D12; --panel:#12151C; --card:#171B24; --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+  --txt:#EEF0F5; --soft:#9AA0AE; --faint:#636A7A; --acc:#6E8BFF; --ok:#4ADE80; --warn:#FBBF24; --bad:#F87171;
+}
+*{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Montserrat,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit}
+.hidden{display:none!important}
+/* ── Вход ── */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(600px 400px at 80% 0%,rgba(110,139,255,.16),transparent 70%),radial-gradient(500px 400px at 0% 100%,rgba(167,139,250,.10),transparent 70%),var(--bg)}
+.login-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line2);border-radius:22px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.login-logo{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin-bottom:16px;
+  background:linear-gradient(135deg,#4A7CFF,#7C3AED);box-shadow:0 8px 24px rgba(74,124,255,.35)}
+.login h1{font-size:20px;margin:0 0 4px} .login p{margin:0 0 20px;color:var(--soft);font-size:13px}
+.field{width:100%;height:48px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:0 14px;font-size:15px;outline:none;margin-bottom:10px}
+.field:focus{border-color:rgba(110,139,255,.6)}
+.btn{height:46px;border:none;border-radius:12px;padding:0 18px;font-size:14px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.97)} .btn:disabled{opacity:.5;cursor:default}
+.btn-main{background:linear-gradient(135deg,#4A7CFF,#7C3AED);color:#fff;box-shadow:0 6px 18px rgba(74,124,255,.3)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--line2)}
+.btn-sm{height:34px;padding:0 12px;font-size:12px;border-radius:10px}
+.btn-bad{background:rgba(248,113,113,.12);color:var(--bad);border:1px solid rgba(248,113,113,.3)}
+.btn-okc{background:rgba(74,222,128,.12);color:var(--ok);border:1px solid rgba(74,222,128,.3)}
+.err{min-height:18px;color:var(--bad);font-size:12px;margin:2px 0 10px}
+.w100{width:100%}
+/* ── Каркас ── */
+.top{position:sticky;top:0;z-index:10;background:rgba(11,13,18,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
+.brand i{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4A7CFF,#7C3AED);color:#fff;font-size:18px}
+.brand small{display:block;font-size:11px;color:var(--faint);font-weight:600}
+.top .sp{flex:1}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.kpi-l{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.kpi-v{font-size:26px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
+.kpi-s{font-size:11px;color:var(--soft);margin-top:2px}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:8px}
+.bar>span{display:block;height:100%;background:linear-gradient(90deg,#4ADE80,#6E8BFF)}
+.tabs{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:16px;width:max-content;max-width:100%;overflow-x:auto}
+.tab{height:38px;border:none;background:none;color:var(--soft);border-radius:10px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.tab.on{background:rgba(110,139,255,.16);color:#C9D4FF}
+.tab .cnt{background:var(--bad);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
+.chip{height:32px;border-radius:9px;border:1px solid var(--line2);background:none;color:var(--soft);padding:0 12px;font-size:12px;font-weight:700;cursor:pointer}
+.chip.on{background:rgba(110,139,255,.16);border-color:rgba(110,139,255,.5);color:#C9D4FF}
+.search{flex:1;min-width:180px;height:36px;border-radius:10px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:0 12px;font-size:13px;outline:none}
+.empty{padding:40px 20px;text-align:center;color:var(--faint);font-size:13px}
+.empty i{font-size:34px;display:block;margin-bottom:8px;color:#3A4050}
+/* Сообщения */
+.msg{display:flex;gap:14px;padding:16px;border-top:1px solid var(--line)}
+.msg:first-child{border-top:none}
+.msg.is-new{background:linear-gradient(90deg,rgba(110,139,255,.07),transparent 60%)}
+.msg-ico{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:19px}
+.t-idea{background:rgba(251,191,36,.12);color:#FBBF24} .t-bug{background:rgba(248,113,113,.12);color:#F87171}
+.t-question{background:rgba(96,165,250,.12);color:#60A5FA} .t-invite{background:rgba(74,222,128,.12);color:#4ADE80} .t-other{background:rgba(255,255,255,.06);color:var(--soft)}
+.msg-main{flex:1;min-width:0}
+.msg-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--faint)}
+.msg-type{font-weight:800;color:var(--txt);font-size:13px}
+.pill{border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.p-new{background:rgba(110,139,255,.18);color:#AFC0FF} .p-read{background:rgba(255,255,255,.06);color:var(--soft)} .p-done{background:rgba(74,222,128,.14);color:var(--ok)}
+.msg-text{margin:8px 0 10px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.msg-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--soft);margin-bottom:10px}
+.msg-meta a{color:#9DB6FF;text-decoration:none}
+.msg-actions{display:flex;flex-wrap:wrap;gap:6px}
+/* Пользователи */
+.urow{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.urow:first-child{border-top:none}
+.ava{width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff}
+.u-name{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u-mail{font-size:12px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u-col{font-size:12px;color:var(--soft);text-align:right;white-space:nowrap}
+.u-col b{display:block;color:var(--txt);font-size:12px;font-weight:700}
+.tag{border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;margin-left:6px;vertical-align:1px}
+.tag-me{background:rgba(110,139,255,.18);color:#AFC0FF} .tag-bl{background:rgba(248,113,113,.16);color:var(--bad)}
+.urow.blocked .u-name,.urow.blocked .u-mail{opacity:.5}
+/* Настройки */
+.set{padding:6px 18px 18px}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid var(--line)}
+.set-row:first-child{border-top:none}
+.set-t{font-weight:700;font-size:14px} .set-d{font-size:12px;color:var(--soft);margin-top:3px;line-height:1.45;max-width:520px}
+.set-in{width:170px;height:42px;border-radius:11px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:0 12px;font-size:15px;font-weight:700;outline:none;text-align:right}
+.set-in.wide{width:280px;text-align:left;font-weight:500;font-size:13px}
+.tgl{width:52px;height:30px;border-radius:16px;border:none;cursor:pointer;background:#2A2F3B;position:relative;flex-shrink:0;transition:background .2s}
+.tgl::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s cubic-bezier(.34,1.56,.64,1)}
+.tgl.on{background:#4A7CFF} .tgl.on::after{left:26px}
+.set-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.02)}
+.note{display:flex;gap:10px;align-items:flex-start;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:#FDE68A;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:16px}
+.note i{font-size:18px;margin-top:1px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:#1F2430;border:1px solid var(--line2);color:var(--txt);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;transition:all .25s;z-index:50;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:760px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .urow{grid-template-columns:auto 1fr auto;row-gap:6px}
+  .urow .u-col.hide-m{display:none}
+  .set-row{flex-direction:column;align-items:stretch}
+  .set-in,.set-in.wide{width:100%;text-align:left}
+  .top-email{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Вход -->
+<div class="login hidden" id="v-login">
+  <div class="login-card">
+    <div class="login-logo"><i class="ti ti-shield-lock"></i></div>
+    <h1>Админка YOU</h1>
+    <p>Вход только для владельца</p>
+    <input class="field" id="a-email" type="email" placeholder="Email" autocomplete="username">
+    <input class="field" id="a-pwd" type="password" placeholder="Пароль" autocomplete="current-password">
+    <div class="err" id="a-err"></div>
+    <button class="btn btn-main w100" id="a-login"><i class="ti ti-login-2"></i> Войти</button>
+  </div>
+</div>
+
+<!-- Загрузка -->
+<div class="login" id="v-loading"><div style="color:var(--faint);font-size:13px;"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;display:inline-block"></i> Загрузка…</div></div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- Админка -->
+<div class="hidden" id="v-app">
+  <div class="top"><div class="top-in">
+    <div class="brand"><i class="ti ti-shield-check"></i><div>Админка<small>YOU · трекер</small></div></div>
+    <div class="sp"></div>
+    <span class="top-email" id="a-me" style="font-size:12px;color:var(--soft)"></span>
+    <a class="btn btn-ghost btn-sm" href="./" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Приложение</a>
+    <button class="btn btn-ghost btn-sm" id="a-logout"><i class="ti ti-logout"></i></button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="note hidden" id="a-rules"><i class="ti ti-alert-triangle"></i><div id="a-rules-txt"></div></div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l"><i class="ti ti-users"></i> Пользователи</div><div class="kpi-v" id="k-users">…</div><div class="kpi-s" id="k-users-s"></div><div class="bar"><span id="k-bar" style="width:0"></span></div></div>
+      <div class="kpi"><div class="kpi-l"><i class="ti ti-user-plus"></i> Новых за 7 дней</div><div class="kpi-v" id="k-new">…</div><div class="kpi-s">по реестру</div></div>
+      <div class="kpi"><div class="kpi-l"><i class="ti ti-activity"></i> Активны за 7 дней</div><div class="kpi-v" id="k-active">…</div><div class="kpi-s">открывали приложение</div></div>
+      <div class="kpi"><div class="kpi-l"><i class="ti ti-mail"></i> Новых сообщений</div><div class="kpi-v" id="k-msg">…</div><div class="kpi-s" id="k-msg-s"></div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="msgs"><i class="ti ti-inbox"></i> Сообщения <span class="cnt hidden" id="t-cnt"></span></button>
+      <button class="tab" data-tab="users"><i class="ti ti-users"></i> Пользователи</button>
+      <button class="tab" data-tab="settings"><i class="ti ti-settings"></i> Настройки</button>
+    </div>
+
+    <!-- Сообщения -->
+    <div class="panel" id="p-msgs">
+      <div class="toolbar" id="m-filters"></div>
+      <div id="m-list"></div>
+    </div>
+
+    <!-- Пользователи -->
+    <div class="panel hidden" id="p-users">
+      <div class="toolbar">
+        <input class="search" id="u-search" placeholder="Поиск по email или имени">
+        <button class="chip on" data-uf="all">Все</button>
+        <button class="chip" data-uf="active">Активные</button>
+        <button class="chip" data-uf="blocked">Заблокированные</button>
+      </div>
+      <div id="u-list"></div>
+    </div>
+
+    <!-- Настройки -->
+    <div class="panel hidden" id="p-settings">
+      <div class="set">
+        <div class="set-row">
+          <div><div class="set-t">Регистрация открыта</div><div class="set-d">Выключи, и на экране входа вместо формы регистрации будет кнопка «Получить инвайт».</div></div>
+          <button class="tgl on" id="s-open"></button>
+        </div>
+        <div class="set-row">
+          <div><div class="set-t">Лимит бесплатных мест</div><div class="set-d">Когда число пользователей дойдёт до лимита, регистрация закроется сама.</div></div>
+          <input class="set-in" id="s-limit" type="number" inputmode="numeric">
+        </div>
+        <div class="set-row">
+          <div><div class="set-t">Счётчик пользователей</div><div class="set-d" id="s-count-d">Сколько мест уже занято. Показывается на экране входа.</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn btn-ghost btn-sm" id="s-recount" title="Поставить число из реестра"><i class="ti ti-refresh"></i> По реестру</button>
+            <input class="set-in" id="s-count" type="number" inputmode="numeric">
+          </div>
+        </div>
+        <div class="set-row">
+          <div><div class="set-t">Ссылка на поддержку</div><div class="set-d">Куда ведут кнопки «Написать в Telegram» и «Получить инвайт».</div></div>
+          <input class="set-in wide" id="s-support" type="url" placeholder="https://t.me/…">
+        </div>
+      </div>
+      <div class="set-foot">
+        <button class="btn btn-ghost btn-sm" id="s-reset">Отменить</button>
+        <button class="btn btn-main btn-sm" id="s-save"><i class="ti ti-device-floppy"></i> Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/config.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const OWNER = (window.AUTH_CONFIG && window.AUTH_CONFIG.ownerEmail || '').toLowerCase();
+const app = initializeApp(window.FIREBASE_CONFIG);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const show = (id) => ['v-login','v-loading','v-app'].forEach(v => $('#'+v).classList.toggle('hidden', v !== id));
+let toastT; function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2200); }
+const DAY = 864e5;
+function ago(iso){ if(!iso) return '—'; const d=new Date(iso); const diff=Date.now()-d; if(isNaN(diff)) return '—';
+  if(diff<6e4) return 'только что'; if(diff<36e5) return Math.round(diff/6e4)+' мин назад'; if(diff<DAY) return Math.round(diff/36e5)+' ч назад';
+  if(diff<7*DAY) return Math.round(diff/DAY)+' дн назад'; return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}); }
+function dt(iso){ const d=new Date(iso); return isNaN(d)?'':d.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+const isOwner = (u) => !!u && !!u.email && u.email.toLowerCase() === OWNER;
+function denied(e){ return e && (e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message||'')); }
+function rulesWarn(){ $('#a-rules').classList.remove('hidden');
+  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы (Realtime Database → Rules) на версию с блоками <b>userIndex</b>, <b>settings</b> и <b>feedback</b>.'; }
+
+/* ── Вход ── */
+async function doLogin(){
+  const email=$('#a-email').value.trim(), pwd=$('#a-pwd').value, err=$('#a-err');
+  err.textContent=''; if(!email||!pwd){ err.textContent='Введи email и пароль'; return; }
+  if(email.toLowerCase()!==OWNER){ err.textContent='Нет доступа'; return; }
+  const b=$('#a-login'); b.disabled=true;
+  try{ await signInWithEmailAndPassword(auth,email,pwd); }
+  catch(e){ err.textContent = e.code==='auth/too-many-requests' ? 'Слишком много попыток, подожди немного' : 'Неверный email или пароль'; }
+  b.disabled=false;
+}
+$('#a-login').addEventListener('click',doLogin);
+$('#a-pwd').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+$('#a-logout').addEventListener('click',()=>signOut(auth));
+
+let unsub=[];
+onAuthStateChanged(auth, async (u) => {
+  unsub.forEach(f=>f()); unsub=[];
+  if(!u){ show('v-login'); setTimeout(()=>$('#a-email').focus(),50); return; }
+  if(!isOwner(u)){ await signOut(auth); show('v-login'); $('#a-err').textContent='Нет доступа'; return; }
+  $('#a-me').textContent=u.email; show('v-app'); start();
+});
+
+/* ── Данные ── */
+let FEED={}, USERS={}, SETTINGS={}, COUNT=0;
+let mFilter='all', uFilter='all', uQuery='';
+const TYPES={ idea:{l:'Идея',i:'ti-bulb'}, bug:{l:'Ошибка',i:'ti-bug'}, question:{l:'Вопрос',i:'ti-help-circle'}, invite:{l:'Инвайт',i:'ti-ticket'}, other:{l:'Другое',i:'ti-message'} };
+
+function start(){
+  const sub=(path,cb)=>{ const off=onValue(ref(db,path), s=>cb(s.val()), e=>{ console.error(path,e); if(denied(e)) rulesWarn(); }); unsub.push(off); };
+  sub('feedback', v=>{ FEED=v||{}; renderMsgs(); renderKpi(); });
+  sub('userIndex', v=>{ USERS=v||{}; renderUsers(); renderKpi(); });
+  sub('settings', v=>{ SETTINGS=v||{}; fillSettings(); renderKpi(); });
+  sub('stats/usersCount', v=>{ COUNT=Number(v)||0; fillSettings(); renderKpi(); });
+}
+
+function limit(){ return Number(SETTINGS.freeUsersLimit) || (window.APP_CONFIG&&APP_CONFIG.freeUsersLimit) || 1000; }
+
+function renderKpi(){
+  const L=limit(), users=Object.values(USERS), now=Date.now();
+  $('#k-users').textContent=COUNT.toLocaleString('ru-RU');
+  $('#k-users-s').textContent='из '+L.toLocaleString('ru-RU')+' · осталось '+Math.max(0,L-COUNT).toLocaleString('ru-RU')+(SETTINGS.registrationOpen===false?' · регистрация закрыта':'');
+  $('#k-bar').style.width=Math.min(100,Math.round(COUNT/L*100))+'%';
+  $('#k-new').textContent=users.filter(u=>u&&u.createdAt&&now-new Date(u.createdAt)<7*DAY).length;
+  $('#k-active').textContent=users.filter(u=>u&&u.lastSeen&&now-new Date(u.lastSeen)<7*DAY).length;
+  const msgs=Object.values(FEED), fresh=msgs.filter(m=>m&&(m.status||'new')==='new').length;
+  $('#k-msg').textContent=fresh; $('#k-msg-s').textContent='всего '+msgs.length;
+  const c=$('#t-cnt'); c.textContent=fresh; c.classList.toggle('hidden',!fresh);
+}
+
+/* ── Сообщения ── */
+function renderMsgs(){
+  const list=Object.entries(FEED).filter(([,m])=>m).map(([id,m])=>({id,...m})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const cnt=(f)=>list.filter(f).length;
+  const filters=[['all','Все',list.length],['new','Новые',cnt(m=>(m.status||'new')==='new')],['idea','Идеи',cnt(m=>m.type==='idea')],['bug','Ошибки',cnt(m=>m.type==='bug')],['question','Вопросы',cnt(m=>m.type==='question')],['invite','Инвайты',cnt(m=>m.type==='invite')],['done','Отвечено',cnt(m=>m.status==='done')]];
+  $('#m-filters').innerHTML=filters.map(([k,l,n])=>`<button class="chip${mFilter===k?' on':''}" data-mf="${k}">${l} · ${n}</button>`).join('');
+  $('#m-filters').querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{ mFilter=b.dataset.mf; renderMsgs(); });
+  const vis=list.filter(m=> mFilter==='all' ? true : mFilter==='new' ? (m.status||'new')==='new' : mFilter==='done' ? m.status==='done' : m.type===mFilter);
+  if(!vis.length){ $('#m-list').innerHTML='<div class="empty"><i class="ti ti-inbox"></i>Сообщений нет</div>'; return; }
+  $('#m-list').innerHTML=vis.map(m=>{
+    const t=TYPES[m.type]||TYPES.other, st=m.status||'new';
+    const c=String(m.contact||'').trim();
+    let cl=''; if(c){ const h=c.replace(/^@/,''); cl = /@/.test(c)&&!/^@/.test(c) ? `<a href="mailto:${esc(c)}">${esc(c)}</a>` : (/^@|t\.me/.test(c) ? `<a href="${/t\.me/.test(c)?esc(c.startsWith('http')?c:'https://'+c):'https://t.me/'+esc(h)}" target="_blank" rel="noopener">${esc(c)}</a>` : esc(c)); }
+    return `<div class="msg${st==='new'?' is-new':''}">
+      <div class="msg-ico t-${m.type in TYPES?m.type:'other'}"><i class="ti ${t.i}"></i></div>
+      <div class="msg-main">
+        <div class="msg-head"><span class="msg-type">${t.l}</span><span class="pill p-${st}">${st==='new'?'новое':st==='done'?'отвечено':'прочитано'}</span><span>${dt(m.at)}</span></div>
+        <div class="msg-text">${esc(m.text)}</div>
+        <div class="msg-meta">${cl?`<span><i class="ti ti-address-book"></i> ${cl}</span>`:''}${m.email?`<span><i class="ti ti-user"></i> ${esc(m.email)}</span>`:'<span><i class="ti ti-user-question"></i> без входа</span>'}</div>
+        <div class="msg-actions">
+          ${st==='new'?`<button class="btn btn-ghost btn-sm" data-act="read" data-id="${m.id}"><i class="ti ti-eye-check"></i> Прочитано</button>`:`<button class="btn btn-ghost btn-sm" data-act="new" data-id="${m.id}"><i class="ti ti-mail"></i> Непрочитано</button>`}
+          ${st!=='done'?`<button class="btn btn-okc btn-sm" data-act="done" data-id="${m.id}"><i class="ti ti-check"></i> Ответил</button>`:''}
+          <button class="btn btn-bad btn-sm" data-act="del" data-id="${m.id}"><i class="ti ti-trash"></i></button>
+        </div>
+      </div></div>`;
+  }).join('');
+  $('#m-list').querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.id, a=b.dataset.act;
+    try{
+      if(a==='del'){ if(!confirm('Удалить сообщение?')) return; await remove(ref(db,'feedback/'+id)); toast('Удалено'); }
+      else { await update(ref(db,'feedback/'+id),{status:a}); }
+    }catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось'); }
+  });
+}
+
+/* ── Пользователи ── */
+const COLORS=['#4A7CFF','#7C3AED','#16A34A','#F59E0B','#EC4899','#0EA5E9','#EF4444','#14B8A6'];
+function renderUsers(){
+  const now=Date.now(), q=uQuery.toLowerCase();
+  let list=Object.entries(USERS).filter(([,u])=>u).map(([uid,u])=>({uid,...u}))
+    .sort((a,b)=>String(b.lastSeen||'').localeCompare(String(a.lastSeen||'')));
+  if(q) list=list.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.name||'').toLowerCase().includes(q));
+  if(uFilter==='active') list=list.filter(u=>u.lastSeen&&now-new Date(u.lastSeen)<7*DAY);
+  if(uFilter==='blocked') list=list.filter(u=>u.blocked===true);
+  if(!list.length){ $('#u-list').innerHTML=`<div class="empty"><i class="ti ti-users"></i>${Object.keys(USERS).length?'Никого не нашлось':'Пока пусто. Пользователи появятся здесь, когда откроют приложение после обновления'}</div>`; return; }
+  $('#u-list').innerHTML=list.map(u=>{
+    const me=(u.email||'').toLowerCase()===OWNER, letter=(u.name||u.email||'?').trim()[0].toUpperCase();
+    const col=COLORS[[...u.uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
+    return `<div class="urow${u.blocked?' blocked':''}">
+      <div class="ava" style="background:${col}">${esc(letter)}</div>
+      <div style="min-width:0"><div class="u-name">${esc(u.name||u.email||'Без имени')}${me?'<span class="tag tag-me">ты</span>':''}${u.blocked?'<span class="tag tag-bl">заблокирован</span>':''}</div>${u.name?`<div class="u-mail">${esc(u.email||u.uid)}</div>`:''}</div>
+      <div class="u-col hide-m"><b>${u.createdAt?new Date(u.createdAt).toLocaleDateString('ru-RU'):'—'}</b>регистрация</div>
+      <div class="u-col"><b>${ago(u.lastSeen)}</b>был(а)</div>
+      <div>${me?'':(u.blocked
+        ?`<button class="btn btn-okc btn-sm" data-ub="0" data-uid="${u.uid}"><i class="ti ti-lock-open"></i> Разблок.</button>`
+        :`<button class="btn btn-bad btn-sm" data-ub="1" data-uid="${u.uid}" title="Заблокировать"><i class="ti ti-lock"></i></button>`)}</div>
+    </div>`;
+  }).join('');
+  $('#u-list').querySelectorAll('[data-ub]').forEach(b=>b.onclick=async()=>{
+    const block=b.dataset.ub==='1', u=USERS[b.dataset.uid]||{};
+    if(block&&!confirm(`Заблокировать ${u.email||'пользователя'}? Он не сможет войти в приложение.`)) return;
+    try{ await set(ref(db,'userIndex/'+b.dataset.uid+'/blocked'), block ? true : null); toast(block?'Заблокирован':'Разблокирован'); }
+    catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось'); }
+  });
+}
+$('#u-search').addEventListener('input',e=>{ uQuery=e.target.value; renderUsers(); });
+document.querySelectorAll('[data-uf]').forEach(b=>b.onclick=()=>{ uFilter=b.dataset.uf; document.querySelectorAll('[data-uf]').forEach(x=>x.classList.toggle('on',x===b)); renderUsers(); });
+
+/* ── Настройки ── */
+let dirty=false;
+function fillSettings(force){
+  if(dirty&&!force) return;
+  $('#s-open').classList.toggle('on', SETTINGS.registrationOpen!==false);
+  $('#s-limit').value=limit();
+  $('#s-count').value=COUNT;
+  $('#s-support').value=SETTINGS.supportUrl||(window.APP_CONFIG&&APP_CONFIG.supportUrl)||'';
+  $('#s-count-d').textContent='Сколько мест уже занято. В реестре сейчас '+Object.keys(USERS).length+'.';
+}
+['s-limit','s-count','s-support'].forEach(id=>$('#'+id).addEventListener('input',()=>dirty=true));
+$('#s-open').onclick=()=>{ $('#s-open').classList.toggle('on'); dirty=true; };
+$('#s-recount').onclick=()=>{ $('#s-count').value=Object.keys(USERS).length; dirty=true; };
+$('#s-reset').onclick=()=>{ dirty=false; fillSettings(true); };
+$('#s-save').onclick=async()=>{
+  const lim=Math.max(1,parseInt($('#s-limit').value)||1000), cnt=Math.max(0,parseInt($('#s-count').value)||0);
+  try{
+    await update(ref(db,'settings'),{ freeUsersLimit:lim, registrationOpen:$('#s-open').classList.contains('on'), supportUrl:$('#s-support').value.trim()||null });
+    await set(ref(db,'stats/usersCount'),cnt);
+    dirty=false; toast('Сохранено');
+  }catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось сохранить'); }
+};
+
+/* ── Вкладки ── */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  ['msgs','users','settings'].forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==t.dataset.tab));
+});
+</script>
+</body>
+</html>

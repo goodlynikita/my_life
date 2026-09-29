@@ -105,7 +105,27 @@ window.Screens.login = function(mount) {
       }
     }
   }
-  if (window.FirebaseSync && FirebaseSync.getUsersCount) FirebaseSync.getUsersCount().then(showSeats);
+  function applyClosed(title, text) {
+    regClosed = true;
+    var t = document.querySelector('.reg-closed-title'), x = document.querySelector('.reg-closed-txt');
+    if (title && t) t.textContent = title;
+    if (text && x) x.textContent = text;
+    if (document.getElementById('form-reg').style.display === 'block') {
+      document.getElementById('form-reg').style.display = 'none';
+      document.getElementById('form-reg-closed').style.display = 'block';
+    }
+  }
+  if (window.FirebaseSync && FirebaseSync.loadSettings) {
+    FirebaseSync.loadSettings().then(function(cfg){
+      LIMIT = cfg.freeUsersLimit || LIMIT;
+      if (cfg.registrationOpen === false) applyClosed('Регистрация временно закрыта', 'Новых пользователей сейчас добавляем по личным инвайтам. Напиши в поддержку.');
+      return FirebaseSync.getUsersCount();
+    }).then(showSeats);
+  } else if (window.FirebaseSync && FirebaseSync.getUsersCount) FirebaseSync.getUsersCount().then(showSeats);
+  if (window._accountBlocked) {
+    var le = document.getElementById('login-err');
+    if (le) le.textContent = 'Доступ к аккаунту ограничен. Напиши в поддержку.';
+  }
   function openInvite() {
     if (window.Feedback) Feedback.openTelegram();
   }
@@ -126,7 +146,7 @@ window.Screens.login = function(mount) {
       await FirebaseSync.pullIntoStore();
       Router.go('/home');
     } catch(e) {
-      err.textContent = 'Неверный email или пароль';
+      err.textContent = e && e.code === 'app/blocked' ? 'Доступ к аккаунту ограничен. Напиши в поддержку.' : 'Неверный email или пароль';
       btn.textContent = 'Войти'; btn.disabled = false;
     }
   }
@@ -151,6 +171,7 @@ window.Screens.login = function(mount) {
       Router.go('/home');
     } catch(e) {
       if (e.code === 'app/limit-reached') { showSeats(LIMIT); document.getElementById('tab-reg').click(); return; }
+      if (e.code === 'app/registration-closed') { applyClosed('Регистрация временно закрыта', 'Новых пользователей сейчас добавляем по личным инвайтам. Напиши в поддержку.'); document.getElementById('tab-reg').click(); return; }
       var msg = e.code === 'auth/email-already-in-use' ? 'Этот email уже зарегистрирован'
               : e.code === 'auth/invalid-email'        ? 'Некорректный email'
               : 'Ошибка регистрации. Попробуй ещё раз.';

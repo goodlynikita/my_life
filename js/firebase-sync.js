@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, push, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -165,6 +165,45 @@ const FirebaseSync = (() => {
   window.addEventListener('pagehide', _pushBeacon);
 
   /* ── Firebase Auth API ── */
+  /* ── Настройки из админки (settings/*, читаются всеми) ── */
+  let _settings = null;
+  async function loadSettings() {
+    try {
+      const snap = await Promise.race([
+        get(ref(_db, 'settings')),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 6000))
+      ]);
+      _settings = snap.exists() ? snap.val() : {};
+    } catch (e) { _settings = _settings || {}; }
+    window.APP_CONFIG = window.APP_CONFIG || {};
+    if (_settings.freeUsersLimit) window.APP_CONFIG.freeUsersLimit = Number(_settings.freeUsersLimit);
+    if (_settings.supportUrl) window.APP_CONFIG.supportUrl = _settings.supportUrl;
+    window.APP_CONFIG.registrationOpen = _settings.registrationOpen !== false;
+    return window.APP_CONFIG;
+  }
+
+  /* ── Реестр пользователей для админки: userIndex/{uid} ──
+     Пишем только свои поля (правила не дают трогать blocked) */
+  async function touchUserIndex(user) {
+    if (!user) return;
+    const base = 'userIndex/' + user.uid + '/';
+    const upd = {};
+    upd[base + 'email'] = user.email || '';
+    if (user.displayName) upd[base + 'name'] = user.displayName;
+    upd[base + 'lastSeen'] = new Date().toISOString();
+    const created = user.metadata && user.metadata.creationTime ? new Date(user.metadata.creationTime).toISOString() : new Date().toISOString();
+    upd[base + 'createdAt'] = created;
+    try { await update(ref(_db), upd); } catch (e) { /* правила ещё не обновлены — не критично */ }
+  }
+
+  async function isBlocked(user) {
+    if (!user) return false;
+    try {
+      const snap = await get(ref(_db, 'userIndex/' + user.uid + '/blocked'));
+      return snap.exists() && snap.val() === true;
+    } catch (e) { return false; }
+  }
+
   /* ── Счётчик пользователей и лимит бесплатных мест ──
      stats/usersCount — сколько зарегистрировано (правила: читать всем, писать залогиненным) */
   function freeLimit() { return (window.APP_CONFIG && window.APP_CONFIG.freeUsersLimit) || 1000; }
@@ -181,6 +220,8 @@ const FirebaseSync = (() => {
   }
 
   async function register(email, password, displayName) {
+    await loadSettings();
+    if (window.APP_CONFIG.registrationOpen === false) { const e = new Error('closed'); e.code = 'app/registration-closed'; throw e; }
     const limit = freeLimit();
     const before = await getUsersCount();
     if (before !== null && before >= limit) { const e = new Error('limit'); e.code = 'app/limit-reached'; throw e; }
@@ -201,6 +242,7 @@ const FirebaseSync = (() => {
       console.warn('usersCount not updated (проверь правила stats в Firebase)', e);
     }
     if (displayName) await updateProfile(cred.user, { displayName });
+    touchUserIndex(cred.user);
     return cred.user;
   }
 
@@ -222,6 +264,11 @@ const FirebaseSync = (() => {
 
   async function login(email, password) {
     const cred = await signInWithEmailAndPassword(_auth, email, password);
+    if (await isBlocked(cred.user)) {
+      await signOut(_auth);
+      const e = new Error('blocked'); e.code = 'app/blocked'; throw e;
+    }
+    touchUserIndex(cred.user);
     return cred.user;
   }
 
@@ -243,7 +290,7 @@ const FirebaseSync = (() => {
     isConfigured, pullIntoStore, scheduleSave,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,
-    getUsersCount, sendFeedback, freeLimit,
+    getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,
     getConfig: () => window.FIREBASE_CONFIG
   };
 })();

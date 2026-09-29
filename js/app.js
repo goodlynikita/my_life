@@ -44,7 +44,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     await new Promise((resolve) => {
       const unsubscribe = FirebaseSync.onAuth(async (user) => {
         unsubscribe();
+        if (user && FirebaseSync.isBlocked && await FirebaseSync.isBlocked(user)) {
+          /* Доступ закрыт из админки */
+          window._accountBlocked = true;
+          await FirebaseSync.logout();
+          user = null;
+        }
         if (user) {
+          if (FirebaseSync.touchUserIndex) FirebaseSync.touchUserIndex(user);
           /* Пользователь залогинен — грузим его данные */
           try {
             const result = await FirebaseSync.pullIntoStore();

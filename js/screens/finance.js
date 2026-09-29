@@ -233,8 +233,16 @@ window.Screens.finance = function(mount) {
         </div>
         ${(()=>{
           if(!sorted.length) return '<div class="tochka-empty">Нет записей, добавь первую</div>';
+          const GEN=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+          const human=d=>{const p=(d||'').split('.');return p.length===3?(+p[0])+' '+GEN[+p[1]-1]:d;};
           const grps={};sorted.forEach(e=>{if(!grps[e.date])grps[e.date]=[];grps[e.date].push(e);});
-          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+date+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(e.amount)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+e.label+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
+          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+human(date)+'</div>'+items.map(e=>{
+            const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#16A34A";const i=entries.indexOf(e);
+            return '<div class="tochka-row tk-op fin2-edit" data-idx="'+i+'" style="--lc:'+c+'">'
+              +'<div class="tochka-row-icon tk-op-ico"><i class="ti ti-arrow-down-left"></i></div>'
+              +'<div class="tochka-row-left tk-op-main"><div class="tk-op-title">'+(e.label||'Поступление')+'</div><div class="tk-op-sub">'+(e.label?'Поступление':'Доход')+'</div></div>'
+              +'<div class="tochka-row-amount tk-op-amt">+'+finFmtFull(e.amount)+'</div></div>';
+          }).join('')+'</div>').join('');
         })()}
       </div>`;
 
@@ -644,49 +652,38 @@ window.Screens.finance = function(mount) {
 
     var rows = list.map(function(e,i){
       return '<tr data-idx="'+i+'">'
-        /* LEFT: drag + name + amount */
-        + '<td style="width:20px;padding:0 4px;text-align:center;color:#ccc;cursor:grab;border-bottom:1px solid #F3F4F6;" class="exp-drag-l" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical" style="font-size:13px;"></i></td>'
-        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;padding:10px 8px;font-size:13px;color:#111;text-align:left;border-bottom:1px solid #F3F4F6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.name||'')+'</td>'
-        + '<td class="exp-cl" data-idx="'+i+'" data-side="expense" style="cursor:pointer;padding:10px 8px;font-size:13px;font-weight:700;color:#EF4444;text-align:right;border-bottom:1px solid #F3F4F6;white-space:nowrap;">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
-        /* divider */
-        + '<td style="width:1px;background:#E5E7EB;padding:0;border-bottom:1px solid #F3F4F6;"></td>'
-        /* RIGHT: drag + source + amount */
-        + '<td style="width:20px;padding:0 4px;text-align:center;color:#ccc;cursor:grab;border-bottom:1px solid #F3F4F6;" class="exp-drag-r" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical" style="font-size:13px;"></i></td>'
-        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;padding:10px 8px;font-size:13px;color:#16A34A;text-align:left;border-bottom:1px solid #F3F4F6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.source||'')+'</td>'
-        + '<td class="exp-cr" data-idx="'+i+'" data-side="source" style="cursor:pointer;padding:10px 8px;font-size:13px;font-weight:700;color:#16A34A;text-align:right;border-bottom:1px solid #F3F4F6;white-space:nowrap;">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
+        + '<td class="xp-drag exp-drag-l" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical"></i></td>'
+        + '<td class="exp-cl xp-name" data-idx="'+i+'" data-side="expense">'+(e.name||'')+'</td>'
+        + '<td class="exp-cl xp-amt xp-red" data-idx="'+i+'" data-side="expense">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
+        + '<td class="xp-sep"></td>'
+        + '<td class="xp-drag exp-drag-r" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical"></i></td>'
+        + '<td class="exp-cr xp-name xp-green" data-idx="'+i+'" data-side="source">'+(e.source||'')+'</td>'
+        + '<td class="exp-cr xp-amt xp-green" data-idx="'+i+'" data-side="source">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
     }).join('');
+    var pos = balance >= 0;
 
-    content.innerHTML = '<div style="background:#fff;">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #E5E7EB;">'
-      +   '<span style="font-size:15px;font-weight:700;color:#111;">Ближайшие расходы</span>'
-      +   '<div style="display:flex;gap:6px;">'
-      +     '<button id="exp-add-l" style="padding:3px 8px;border-radius:6px;border:1px solid #EF4444;color:#EF4444;background:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Расход</button>'
-      +     '<button id="exp-add-r" style="padding:3px 8px;border-radius:6px;border:1px solid #16A34A;color:#16A34A;background:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;"><i class="ti ti-plus"></i> Потенциал</button>'
+    content.innerHTML = '<div class="xp-card">'
+      + '<div class="xp-head">'
+      +   '<div><div class="xp-title">Ближайшие расходы</div><div class="xp-sub">Что предстоит оплатить и откуда закрыть</div></div>'
+      +   '<div class="xp-btns">'
+      +     '<button id="exp-add-l" class="xp-btn xp-btn-red"><i class="ti ti-plus"></i> Расход</button>'
+      +     '<button id="exp-add-r" class="xp-btn xp-btn-green"><i class="ti ti-plus"></i> Потенциал</button>'
       +   '</div>'
       + '</div>'
-      + '<div style="overflow-x:auto;">'
-      + '<table style="width:100%;border-collapse:collapse;table-layout:fixed;min-width:300px;">'
-      + '<colgroup><col style="width:20px"><col><col style="width:90px"><col style="width:1px"><col style="width:20px"><col><col style="width:90px"></colgroup>'
-      + '<thead><tr style="background:#F9FAFB;border-bottom:1px solid #E5E7EB;">'
-      +   '<th style="padding:7px 4px;"></th>'
-      +   '<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;text-align:left;">Расход</th>'
-      +   '<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;text-align:right;">Сумма</th>'
-      +   '<th style="padding:0;background:#E5E7EB;"></th>'
-      +   '<th style="padding:7px 4px;"></th>'
-      +   '<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;text-align:left;">Потенциал</th>'
-      +   '<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;text-align:right;">Сумма</th>'
-      + '</tr></thead>'
-      + '<tbody id="exp-body">'+rows+'</tbody>'
-      + '<tfoot><tr style="background:#F9FAFB;border-top:2px solid #E5E7EB;">'
-      +   '<td></td>'
-      +   '<td style="padding:10px 8px;font-weight:700;font-size:13px;">Итого</td>'
-      +   '<td style="padding:10px 8px;font-weight:800;font-size:13px;color:#EF4444;text-align:right;">'+finFmtFull(expTotal)+'</td>'
-      +   '<td style="background:#E5E7EB;"></td>'
-      +   '<td></td>'
-      +   '<td style="padding:10px 8px;font-weight:700;font-size:13px;color:'+(balance>=0?'#16A34A':'#EF4444')+'">'+(balance>=0?'Профит':'Дефицит')+'</td>'
-      +   '<td style="padding:10px 8px;font-weight:800;font-size:13px;color:'+(balance>=0?'#16A34A':'#EF4444')+';text-align:right;">'+(balance>=0?'+':'')+finFmtFull(balance)+'</td>'
-      + '</tr></tfoot>'
+      + '<div class="xp-sum">'
+      +   '<div class="xp-sum-cell"><span>Расходы</span><b class="xp-red">'+finFmtFull(expTotal)+'</b></div>'
+      +   '<div class="xp-sum-cell"><span>Потенциал</span><b class="xp-green">'+finFmtFull(srcTotal)+'</b></div>'
+      +   '<div class="xp-sum-cell"><span>'+(pos?'Профит':'Дефицит')+'</span><b class="'+(pos?'xp-green':'xp-red')+'">'+(pos?'+':'')+finFmtFull(balance)+'</b></div>'
+      + '</div>'
+      + '<div class="xp-scroll">'
+      + '<table class="xp-table">'
+      + '<colgroup><col style="width:24px"><col><col style="width:110px"><col style="width:1px"><col style="width:24px"><col><col style="width:110px"></colgroup>'
+      + '<thead><tr><th></th><th>Расход</th><th class="r">Сумма</th><th class="xp-sep"></th><th></th><th>Потенциал</th><th class="r">Сумма</th></tr></thead>'
+      + '<tbody id="exp-body">'+(rows || '<tr class="xp-empty-row"><td colspan="7">Пока пусто. Добавь первый расход</td></tr>')+'</tbody>'
+      + '<tfoot><tr><td></td><td>Итого</td><td class="r xp-red">'+finFmtFull(expTotal)+'</td><td class="xp-sep"></td><td></td>'
+      +   '<td class="'+(pos?'xp-green':'xp-red')+'">'+(pos?'Профит':'Дефицит')+'</td>'
+      +   '<td class="r '+(pos?'xp-green':'xp-red')+'">'+(pos?'+':'')+finFmtFull(balance)+'</td></tr></tfoot>'
       + '</table></div></div>';
 
     document.getElementById('exp-add-l').addEventListener('click',function(){
@@ -736,13 +733,13 @@ window.Screens.finance = function(mount) {
     if (tbody) {
       tbody.querySelectorAll('tr').forEach(function(row){
         row.addEventListener('dragend', function(){
-          tbody.querySelectorAll('tr').forEach(function(r){r.style.opacity='';r.style.background='';});
+          tbody.querySelectorAll('tr').forEach(function(r){r.style.opacity='';r.classList.remove('xp-over-g','xp-over-r');});
           dragIdxL = null; dragIdxR = null;
         });
         row.addEventListener('dragover', function(e){
           e.preventDefault();
-          tbody.querySelectorAll('tr').forEach(function(r){r.style.background='';});
-          row.style.background = dragIdxR !== null ? '#F0FDF4' : '#FFF1F2';
+          tbody.querySelectorAll('tr').forEach(function(r){r.classList.remove('xp-over-g','xp-over-r');});
+          row.classList.add(dragIdxR !== null ? 'xp-over-g' : 'xp-over-r');
         });
         row.addEventListener('drop', function(e){
           e.preventDefault();

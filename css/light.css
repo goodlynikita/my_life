@@ -5,8 +5,8 @@
    экран Финансов), инвертируем обратно — двойная инверсия = оригинал. */
 html[data-theme="light"] {
   background: #11141C;
-  /* лёгкий плюс к контрасту — карточки не сливаются с фоном */
-  filter: invert(1) hue-rotate(180deg) contrast(1.12);
+  /* лёгкий плюс к контрасту, а brightness приглушает белый (v99: не слепит) */
+  filter: invert(1) hue-rotate(180deg) contrast(1.08) brightness(0.93);
 }
 
 /* Возврат к оригиналу */

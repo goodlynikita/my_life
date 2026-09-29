@@ -1,0 +1,159 @@
+/* ============================================================
+   v97 — современный минимализм: Привычки, Тренировки, Цели
+   Нейтральный графит как в Финансах, без рамок, мягкие скругления,
+   крупные текстовые вкладки. Фирменные шапки разделов сохранены.
+   ============================================================ */
+:root {
+  --mn-bg: #191919; --mn-card: #262626; --mn-raised: #313131; --mn-line: rgba(255,255,255,0.06);
+  --mn-txt: #F4F4F4; --mn-soft: #A3A3A3; --mn-faint: #6E6E6E;
+}
+
+/* ── Общие вкладки: крупный текст, без подчёркиваний ── */
+.hab-tabs, .goals-season-tabs, .tr-tabs {
+  display: flex !important; gap: 22px !important; padding: 10px 20px 8px !important;
+  background: var(--mn-bg) !important; border: none !important; overflow-x: auto; scrollbar-width: none; justify-content: flex-start !important;
+}
+.hab-tabs::-webkit-scrollbar, .goals-season-tabs::-webkit-scrollbar, .tr-tabs::-webkit-scrollbar { display: none; }
+.hab-tab, .goals-season-tab, .tr-tab {
+  flex: 0 0 auto !important; width: auto !important; padding: 6px 0 !important; background: transparent !important;
+  border: none !important; border-bottom: none !important; box-shadow: none !important;
+  font-size: 20px !important; font-weight: 700 !important; letter-spacing: -.01em; color: var(--mn-faint) !important; transition: color .2s;
+}
+.hab-tab::after, .goals-season-tab::after, .tr-tab::after { display: none !important; }
+.hab-tab:hover, .goals-season-tab:hover, .tr-tab:hover { color: var(--mn-soft) !important; }
+.hab-tab.active, .tr-tabs .tr-tab.active { color: #fff !important; border-bottom: none !important; }
+.hab-screen .hab-tabs, .hab-dark .hab-tabs { background: var(--mn-bg) !important; border-bottom: none !important; }
+.hab-dark .hab-tab.active { color: #8FD17F !important; }
+.goals-season-tab.active { color: var(--season-color, #F2A93B) !important; }
+.tr-tab.tr-tab-ai { color: #8E9BD8 !important; } .tr-tab.tr-tab-ai.active { color: #B9C4FF !important; }
+@media (max-width: 600px) {
+  .hab-tabs, .goals-season-tabs, .tr-tabs { gap: 16px !important; padding: 8px 16px 6px !important; }
+  .hab-tab, .goals-season-tab, .tr-tab { font-size: 17px !important; }
+}
+
+/* ════════════════ ПРИВЫЧКИ ════════════════ */
+.hab-screen.hab-dark, .hab-screen.hab-dark .hab-body { background: var(--mn-bg) !important; }
+.hab-dark .hab-body { padding: 14px 16px 60px !important; }
+.hab-dark .sec-card { background: var(--mn-card) !important; border: none !important; border-radius: 22px !important; box-shadow: none !important; padding: 20px !important; margin-bottom: 12px !important; }
+.hab-dark .sec-card-title { color: var(--mn-txt) !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: -.01em !important; text-transform: none !important; }
+.hab-dark .sec-card-title::before { display: none !important; }
+.hab-dark .sec-back { width: 34px !important; height: 34px !important; border-radius: 50% !important; background: var(--mn-raised) !important; color: #fff !important; font-size: 17px !important; }
+.hab-dark .sec-metric-grid { gap: 8px !important; margin-top: 14px; }
+.hab-dark .sec-metric { background: var(--mn-raised) !important; border: none !important; border-radius: 18px !important; padding: 16px 12px !important; }
+.hab-dark .sec-metric-label { font-size: 12px !important; color: var(--mn-soft) !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+.hab-dark .sec-metric-value { font-size: clamp(14px, 3.4vw, 20px) !important; font-weight: 700 !important; color: #fff !important; }
+.hab-dark .sec-metric-value.accent { font-size: clamp(22px, 6vw, 30px) !important; color: #8FD17F !important; }
+
+/* Таблица */
+.hab-dark .habit-table th { color: var(--mn-faint) !important; font-weight: 500 !important; background: transparent !important; border: none !important; }
+.hab-dark .habit-table td { border: none !important; background: transparent !important; }
+.hab-dark .habit-table td:first-child, .hab-dark .habit-table th:first-child { background: var(--mn-card) !important; }
+.hab-dark .hab-name-edit { color: var(--mn-txt) !important; font-size: 13px !important; font-weight: 500 !important; }
+.hab-dark .hab-name-edit i { color: var(--mn-soft) !important; }
+
+.hab-dark .hab-cell { border: none !important; border-radius: 9px !important; background: var(--mn-raised) !important; transition: transform .12s, background .15s; }
+.hab-dark .hab-cell:hover { transform: scale(1.08); }
+.hab-dark .hab-cell:not(.hab-active) { background: transparent !important; }
+.hab-dark .hab-cell-dot { background: #3A3A3A !important; }
+.hab-dark .hab-cell.done { background: #7CC46E !important; }
+.hab-dark .hab-cell.done i { color: #13260F !important; font-weight: 700; }
+.hab-dark .hab-cell.missed { background: rgba(235,88,80,0.12) !important; }
+.hab-dark .hab-cell.missed i { color: #EB6F66 !important; }
+.hab-dark .hab-cell.hab-today { box-shadow: 0 0 0 2px var(--mn-card), 0 0 0 3.5px #7CC46E !important; }
+.hab-dark .hab-pct-val { color: #8FD17F !important; }
+.hab-dark .hab-pct-bar { background: #7CC46E !important; }
+.hab-dark .hab-pct-bar:only-child, .hab-dark .hab-pct-track { background: var(--mn-raised) !important; }
+.hab-dark .hab-tot-val { color: var(--mn-soft) !important; }
+.hab-dark [class*="hab-streak"], .hab-dark .hab-badge { border: none !important; }
+
+/* ════════════════ ЦЕЛИ ════════════════ */
+.goals-screen, .goals-screen .goals-body { background: var(--mn-bg) !important; }
+.goals-body { padding: 14px 16px 80px !important; }
+.goals-hero-all, .goals-hero-season { border: none !important; border-radius: 24px !important; padding: 24px !important; margin-bottom: 14px !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--season-color, #F2A93B) 22%, #262626) 0%, #262626 70%) !important; }
+.goals-hero-all::before, .goals-hero-all::after, .goals-hero-season::before, .goals-hero-season::after { display: none !important; }
+.goals-hero-eyebrow { color: var(--mn-soft) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 500 !important; }
+.goals-hero-big { font-size: clamp(34px, 6vw, 46px) !important; font-weight: 700 !important; letter-spacing: -.02em !important; margin: 4px 0 6px; }
+.goals-hero-sub { color: var(--mn-soft) !important; font-size: 13px !important; }
+.goals-all-progress { height: 8px !important; border-radius: 8px !important; background: rgba(255,255,255,0.08) !important; margin: 16px 0 10px !important; }
+.goals-all-bar { border-radius: 8px !important; }
+.goals-all-stats { color: var(--mn-soft) !important; font-weight: 500 !important; }
+
+.goals-cat-v3 { background: var(--mn-card) !important; border: none !important; border-top: none !important; border-radius: 22px !important; box-shadow: none !important; margin-bottom: 12px !important; overflow: hidden; }
+.goals-cat-v3::before { display: none !important; }
+.goals-cat-v3-head { padding: 18px 20px 8px !important; border: none !important; }
+.goals-cat-v3-title { font-size: 18px !important; font-weight: 700 !important; color: #fff !important; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 10px; }
+.goals-cat-v3-title::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--cat-color, #F2A93B); }
+.goals-cat-v3-total { font-size: 16px !important; font-weight: 600 !important; }
+.goals-item-v3 { padding: 12px 20px !important; border: none !important; border-top: 1px solid var(--mn-line) !important; background: transparent !important; }
+.goals-item-v3:hover { background: rgba(255,255,255,0.03) !important; }
+.goals-item-v3-name { color: var(--mn-txt) !important; font-size: 15px !important; }
+.goals-item-v3.done .goals-item-v3-name { color: var(--mn-faint) !important; }
+.goals-item-v3-amt { color: var(--mn-soft) !important; font-weight: 600 !important; }
+.goals-check-v3 { width: 24px !important; height: 24px !important; border-radius: 50% !important; border: 2px solid #4A4A4A !important; background: transparent !important; }
+.goals-check-v3.done { background: #7CC46E !important; border-color: #7CC46E !important; }
+.goals-check-v3.done i { color: #13260F !important; font-weight: 700; }
+.goals-add-v3 { border: none !important; border-top: 1px solid var(--mn-line) !important; padding: 14px 20px !important; text-align: left !important; font-weight: 600 !important; opacity: .85; }
+.goals-add-v3:hover { opacity: 1; background: rgba(255,255,255,0.03) !important; }
+.goals-item-v3 [style*="border-radius:50%"][style*="width:6px"], .goals-item-v3 .goals-dot { display: none !important; }
+
+/* ════════════════ ТРЕНИРОВКИ ════════════════ */
+.theme-dark:has(> .tr-header) { background: var(--mn-bg) !important; }
+.tr-body { padding-top: 10px !important; }
+.theme-dark .tr-week-head { padding: 12px 6px !important; }
+.theme-dark .tr-week-label { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -.01em !important; text-transform: none !important; color: #fff !important; }
+.theme-dark .tr-week-range { font-size: 13px !important; color: var(--mn-faint) !important; }
+.theme-dark .tr-day { background: var(--mn-card) !important; border: none !important; border-radius: 22px !important; box-shadow: none !important; padding: 16px 18px !important; margin-bottom: 10px !important; }
+.theme-dark .tr-day.tr-day-today { box-shadow: inset 0 0 0 1.5px rgba(74,124,255,0.75) !important; background: linear-gradient(180deg, rgba(74,124,255,0.07), transparent 120px), var(--mn-card) !important; }
+.theme-dark .tr-day-head { border: none !important; }
+.theme-dark .tr-day-date { font-size: 15px !important; font-weight: 700 !important; }
+.theme-dark .tr-today-badge { border: none !important; background: #4A7CFF !important; color: #fff !important; }
+.theme-dark .tr-session { border: none !important; border-top: 1px solid var(--mn-line) !important; }
+.theme-dark .tr-day-tag { border: none !important; border-radius: 999px !important; padding: 4px 10px !important; font-size: 12px !important; font-weight: 600 !important; background: var(--mn-raised) !important; color: var(--mn-soft) !important; }
+.theme-dark .tr-day-tag.has-session { background: color-mix(in srgb, currentColor 14%, transparent) !important; }
+.theme-dark .tr-day-add, .theme-dark .tr-day-comment-btn { border: none !important; background: var(--mn-raised) !important; border-radius: 50% !important; width: 32px !important; height: 32px !important; color: var(--mn-soft) !important;
+  display: inline-flex !important; align-items: center; justify-content: center; }
+.theme-dark .tr-day-add:hover, .theme-dark .tr-day-comment-btn:hover { background: #3C3C3C !important; color: #fff !important; }
+.theme-dark .tr-session-move { color: var(--mn-soft) !important; }
+.theme-dark .tr-ex-name { font-size: 15px !important; font-weight: 600 !important; }
+.theme-dark .tr-ex-meta { color: var(--mn-faint) !important; font-weight: 500 !important; }
+.theme-dark .tr-progress-bar-track { background: var(--mn-raised) !important; height: 4px !important; border-radius: 4px !important; }
+.theme-dark .tr-drag-handle { color: #3E3E3E !important; }
+.theme-dark .tr-exercise-wrap { border-radius: 14px; }
+.theme-dark .tr-exercise-wrap:hover { background: rgba(255,255,255,0.025); }
+/* Остальные карточки вкладок тренировок */
+.theme-dark .tr-card, .theme-dark .tr-ww-card, .theme-dark .tr-rm-card, .theme-dark .tr-sum-card, .theme-dark .ai-card, .theme-dark .ai-hero, .theme-dark .ai-day {
+  border: none !important; border-radius: 22px !important; }
+
+/* Привычки: метрики на телефоне не рвут слова */
+.hab-dark .sec-metric-value { white-space: normal !important; word-break: normal !important; overflow-wrap: normal !important; hyphens: auto; line-height: 1.2 !important; }
+@media (max-width: 440px) {
+  .hab-dark .sec-metric { padding: 12px 8px !important; }
+  .hab-dark .sec-metric-value:not(.accent) { font-size: 12px !important; }
+}
+/* Колесо и история привычек */
+.hab-dark .wheel-current-card, .hab-dark .wheel-history { background: var(--mn-card) !important; border: none !important; border-radius: 22px !important; }
+.hab-dark .wheel-hist-row, .hab-dark .wheel-hist-row.wheel-hist-open { background: transparent !important; border-color: var(--mn-line) !important; }
+.hab-dark .wheel-nav-btn, .hab-dark .hab-hist-prev-mk, .hab-dark .hab-hist-next-mk { background: var(--mn-raised) !important; border-radius: 50% !important; border: none !important; }
+.hab-dark .wheel-fill-btn { border: none !important; background: rgba(124,196,110,0.16) !important; color: #8FD17F !important; }
+.hab-dark .wheel-history > :first-child { border-bottom-color: var(--mn-line) !important; }
+
+/* Тренировки: таблицы, 1ПМ, питание */
+.theme-dark .tr-ww-table { background: var(--mn-card) !important; border: none !important; border-radius: 18px !important; overflow: hidden; }
+.theme-dark .tr-ww-table th { background: transparent !important; color: var(--mn-faint) !important; border-color: var(--mn-line) !important; }
+.theme-dark .tr-ww-table td { border-color: var(--mn-line) !important; }
+.theme-dark .tr-ww-group-label { color: #fff !important; font-size: 15px !important; letter-spacing: 0 !important; text-transform: none !important; border: none !important; }
+.theme-dark .tr-ww-group-label::before { display: none !important; }
+.theme-dark .tr-1rm-hero { background: var(--mn-card) !important; border: none !important; border-radius: 22px !important; }
+.theme-dark .tr-1rm-input { background: var(--mn-raised) !important; border: none !important; border-radius: 12px !important; }
+.theme-dark .tr-exercise { border-color: var(--mn-line) !important; }
+.theme-dark .nutr-macro-card, .theme-dark .nutr-meal-block { background: var(--mn-card) !important; border: none !important; border-radius: 18px !important; }
+.theme-dark .nutr-bar-wrap { background: var(--mn-raised) !important; }
+.theme-dark .nutr-edit-goal-btn { border: none !important; background: var(--mn-raised) !important; border-radius: 10px !important; }
+
+/* v99: у вкладок привычек не было прозрачного фона (перебивало старое правило) */
+.hab-screen .hab-tabs .hab-tab, .hab-dark .hab-tabs .hab-tab { background: transparent !important; border: none !important; }
+.hab-dark .hab-tabs .hab-tab:not(.active) { color: var(--mn-faint) !important; }
+/* Светлая тема: выполненные дни привычек остаются светло-зелёными, а не тёмными */
+html[data-theme="light"] .hab-dark .hab-cell.done,
+html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180deg); }

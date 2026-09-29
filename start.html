@@ -252,6 +252,156 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 .mcta.show{transform:none}
 .mcta .btn{width:100%}
 
+/* ── Слияние пяти приложений (скролл) ── */
+.merge{height:260vh;padding:0;position:relative}
+.merge-stage{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;justify-content:center;padding:84px 0 20px;overflow:hidden}
+.merge-head h2{margin-bottom:0}
+.merge-scene{position:relative;width:min(960px,100% - 32px);height:min(46vh,440px);margin:18px auto 0}
+.mc{position:absolute;left:50%;top:50%;width:230px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:rgba(22,26,38,.88);border:1px solid var(--line2);box-shadow:0 20px 50px rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);will-change:transform,opacity;text-align:left}
+.mc > i{width:44px;height:44px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:23px;color:#fff;background:var(--c);box-shadow:0 6px 18px color-mix(in srgb,var(--c) 45%,transparent)}
+.mc b{display:block;font-size:15px} .mc small{display:block;font-size:12px;color:var(--soft);line-height:1.35;margin-top:2px}
+.mc-badge{position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:#FF3B30;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,59,48,.5)}
+.merge-core{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;opacity:0;transform:scale(.3);will-change:transform,opacity}
+.merge-core img{position:relative;width:100%;height:100%;border-radius:32px;box-shadow:0 20px 70px rgba(99,102,241,.6);z-index:2}
+.merge-core .ring{position:absolute;inset:-18px;border-radius:44px;border:2px solid rgba(139,92,246,.55);animation:ringp 2.4s ease-out infinite}
+.merge-core .r2{animation-delay:1.2s}
+@keyframes ringp{from{transform:scale(.85);opacity:.9}to{transform:scale(1.45);opacity:0}}
+.orb{position:absolute;left:50%;top:50%;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:rgba(18,22,34,.9);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);font-weight:800;font-size:14px;white-space:nowrap;opacity:0;will-change:transform,opacity;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.orb i{color:var(--c);font-size:18px}
+.merge-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.merge-lines line{stroke:url(#lg);stroke:rgba(139,92,246,.6);stroke-width:.35;stroke-dasharray:1 1.2;vector-effect:non-scaling-stroke;stroke-width:1.5;opacity:0}
+.merge-caps{position:relative;width:100%;height:74px;margin-top:22px}
+.merge-cap{position:absolute;left:0;right:0;top:0;margin:0 auto;max-width:640px;font-size:17px;color:var(--soft);line-height:1.5;padding:0 20px}
+.merge-cap b{color:#fff;font-size:20px}
+#cap-b{opacity:0}
+.merge-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;letter-spacing:.08em;text-transform:uppercase;transition:opacity .3s}
+.merge-hint i{font-size:18px;animation:bounce 1.6s infinite}
+
+/* ── Установка: переключатель ОС ── */
+.os-switch{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;margin-top:26px;padding:5px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid var(--line2)}
+.os-switch button{position:relative;z-index:1;height:44px;padding:0 22px;border:none;background:none;color:var(--soft);font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:color .3s}
+.os-switch button i{font-size:18px}
+.os-switch button.on{color:#fff}
+.os-pill{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:12px;background:var(--grad);box-shadow:0 6px 20px rgba(99,102,241,.45);transition:transform .45s var(--ease)}
+.os-switch.android .os-pill{transform:translateX(100%)}
+
+.ins{display:grid;grid-template-columns:1fr 360px;gap:60px;align-items:center;max-width:980px;margin:48px auto 0}
+.ins-steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;counter-reset:st}
+.ins-steps li{position:relative;display:flex;gap:16px;align-items:flex-start;padding:18px 20px;border-radius:20px;background:var(--card);border:1px solid var(--line);cursor:pointer;overflow:hidden;transition:border-color .3s,background .3s,transform .3s var(--ease);opacity:.55}
+.ins-steps li:hover{opacity:.85}
+.ins-steps li.on{opacity:1;border-color:rgba(139,92,246,.5);background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(139,92,246,.12));transform:translateX(6px)}
+.ins-steps .n{width:36px;height:36px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;background:rgba(255,255,255,.07);color:var(--soft);transition:all .3s}
+.ins-steps li.on .n{background:var(--grad);color:#fff;box-shadow:0 6px 18px rgba(99,102,241,.45)}
+.ins-steps b{display:block;font-size:16px;margin-bottom:3px}
+.ins-steps p{margin:0;font-size:14px;color:var(--soft);line-height:1.45}
+.ins-steps .kw{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:7px;background:rgba(255,255,255,.08);color:#fff;font-weight:700;font-size:13px;white-space:nowrap}
+.ins-steps .bar{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--grad)}
+.ins-steps li.on .bar{animation:fill var(--dur,3.6s) linear forwards}
+.ins-steps.paused li.on .bar{animation-play-state:paused}
+@keyframes fill{to{width:100%}}
+
+.ins-phone-wrap{position:relative;display:flex;justify-content:center}
+.ins-dots{display:none;justify-content:center;gap:8px;margin-top:14px}
+.ins-dots button{width:8px;height:8px;border-radius:5px;border:none;padding:0;background:rgba(255,255,255,.25);cursor:pointer;transition:all .3s}
+.ins-dots button.on{width:26px;background:var(--grad)}
+.ins-glow{position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.45),transparent 65%);filter:blur(30px);top:50%;left:50%;transform:translate(-50%,-50%)}
+.ins-phone{position:relative;width:300px;aspect-ratio:390/844;border-radius:46px;padding:11px;background:linear-gradient(145deg,#2A2F3D,#0E1119);box-shadow:0 40px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+.ins-phone::before{content:'';position:absolute;top:20px;left:50%;transform:translateX(-50%);width:86px;height:25px;border-radius:14px;background:#05060A;z-index:20}
+.ins-scr{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#0B0E17;font-family:-apple-system,'SF Pro Text',Montserrat,sans-serif;color:#fff}
+.sc{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .45s,visibility .45s}
+.sc.on{opacity:1;visibility:visible}
+.st-bar{position:absolute;top:0;left:0;right:0;height:44px;display:flex;justify-content:space-between;align-items:center;padding:6px 26px 0 30px;font-size:13px;font-weight:700;z-index:6}
+.st-bar i{font-size:14px;margin-left:3px}
+.mini-site{position:absolute;top:44px;left:0;right:0;bottom:0;padding:22px 18px;text-align:left;background:radial-gradient(260px 200px at 20% 10%,rgba(74,124,255,.35),transparent),radial-gradient(240px 200px at 90% 30%,rgba(139,92,246,.35),transparent),#07090F;transition:filter .4s}
+.mini-site > img{width:34px;height:34px;border-radius:10px;margin-bottom:14px}
+.mini-site b{display:block;font-size:19px;line-height:1.15;letter-spacing:-.02em;font-family:Montserrat,sans-serif;font-weight:900}
+.mini-site span{display:block;font-size:19px;font-weight:900;font-family:Montserrat,sans-serif;letter-spacing:-.02em}
+.mini-site em{display:inline-block;margin-top:14px;padding:9px 14px;border-radius:11px;background:var(--grad);font-style:normal;font-size:11px;font-weight:800;font-family:Montserrat,sans-serif}
+.ms-shot{margin:18px auto 0;width:62%;border-radius:18px;overflow:hidden;border:4px solid #1D2130;transform:rotate(-4deg);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.ms-shot img{width:100%}
+.mini-site.dim{filter:brightness(.45) blur(1px)}
+.safari-bar{position:absolute;left:0;right:0;bottom:0;padding:8px 12px 22px;background:rgba(30,30,32,.94);backdrop-filter:blur(10px);z-index:5}
+.safari-bar .url{height:34px;border-radius:11px;background:#3A3A3C;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;color:#EBEBF5}
+.safari-bar .url i{font-size:12px}
+.safari-bar .tools{display:flex;justify-content:space-around;margin-top:9px;font-size:21px;color:#0A84FF}
+.safari-bar .tools i{width:34px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:9px}
+.hot{position:relative;animation:hot 1.2s ease-in-out infinite}
+@keyframes hot{0%,100%{box-shadow:0 0 0 0 rgba(10,132,255,0)}50%{box-shadow:0 0 0 5px rgba(10,132,255,.35)}}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:64%;background:#1C1C1E;border-radius:20px 20px 0 0;padding:14px 14px 20px;z-index:5;transform:translateY(100%);transition:transform .55s var(--ease) .15s}
+.sc.on .sheet{transform:none}
+.sh-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid #2C2C2E;text-align:left}
+.sh-head img{width:40px;height:40px;border-radius:10px}
+.sh-head b{display:block;font-size:14px} .sh-head small{font-size:11px;color:#8E8E93}
+.sh-x{margin-left:auto;width:26px;height:26px;border-radius:50%;background:#3A3A3C;display:flex;align-items:center;justify-content:center;color:#AEAEB2;font-size:15px}
+.sh-apps{display:flex;gap:14px;padding:12px 2px}
+.sh-apps span{width:46px;height:46px;border-radius:13px;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:22px}
+.sh-list{border-radius:12px;background:#2C2C2E}
+.sh-list div{position:relative}.sh-list div:first-child{border-radius:12px 12px 0 0}.sh-list div:last-child{border-radius:0 0 12px 12px}
+.hot-t,.a-menu div{position:relative}
+.sh-list div{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-size:13.5px;border-top:1px solid #3A3A3C;text-align:left}
+.sh-list div:first-child{border-top:none}
+.sh-list i{font-size:18px;color:#EBEBF5}
+.sh-list .hot{background:rgba(10,132,255,.22);animation:hotbg 1.2s ease-in-out infinite}
+@keyframes hotbg{50%{background:rgba(10,132,255,.4)}}
+.add-top{position:absolute;top:44px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-size:13px;background:#1C1C1E;border-bottom:1px solid #2C2C2E}
+.add-top span{color:#0A84FF}
+.add-top b{font-size:13px}
+.hot-t{font-weight:800;padding:4px 8px;margin:-4px -8px;border-radius:8px;animation:hotbg2 1.2s ease-in-out infinite}
+@keyframes hotbg2{50%{background:rgba(10,132,255,.3)}}
+.sc.ios[data-s="2"]{background:#000}
+.add-card{position:absolute;top:104px;left:14px;right:14px;display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:#1C1C1E;text-align:left}
+.add-card img{width:58px;height:58px;border-radius:14px}
+.add-name{font-size:15px;font-weight:600;padding-bottom:6px;border-bottom:1px solid #3A3A3C}
+.add-card small{display:block;font-size:11px;color:#8E8E93;margin-top:6px}
+.caret{display:inline-block;width:2px;height:16px;background:#0A84FF;margin-left:2px;vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.add-note{position:absolute;top:200px;left:22px;right:22px;font-size:11px;color:#8E8E93;margin:0;text-align:left;line-height:1.4}
+.kbd{position:absolute;left:0;right:0;bottom:0;height:34%;background:#2C2C2E;display:grid;grid-template-columns:repeat(9,1fr);gap:5px;padding:10px 6px 30px}
+.kbd span{background:#636366;border-radius:5px}
+.chrome-bar{position:absolute;top:44px;left:0;right:0;display:flex;align-items:center;gap:10px;padding:8px 10px;background:#202124;z-index:5;font-size:19px;color:#E8EAED}
+.chrome-bar .url{flex:1;height:34px;border-radius:17px;background:#303134;display:flex;align-items:center;gap:6px;padding:0 12px;font-size:12px}
+.chrome-bar .url i{font-size:12px}
+.chrome-bar > i{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.chrome-bar i.hot{background:rgba(138,180,248,.18);box-shadow:none;animation:hotc 1.2s ease-in-out infinite}
+@keyframes hotc{50%{background:rgba(138,180,248,.4)}}
+.sc.android .mini-site{top:94px}
+.a-menu{position:absolute;top:52px;right:8px;width:72%;background:#2D2E31;border-radius:12px;padding:6px 0;z-index:7;box-shadow:0 10px 30px rgba(0,0,0,.5);transform-origin:top right;transform:scale(.6);opacity:0;transition:transform .4s var(--ease) .1s,opacity .3s .1s;text-align:left}
+.sc.on .a-menu{transform:none;opacity:1}
+.a-menu div{display:flex;align-items:center;gap:14px;padding:11px 16px;font-size:13px;color:#E8EAED}
+.a-menu i{font-size:18px;color:#9AA0A6}
+.a-menu .hot{background:rgba(138,180,248,.2);box-shadow:none;animation:hotc 1.2s ease-in-out infinite}
+.a-menu .hot i{color:#8AB4F8}
+.a-dialog{position:absolute;left:18px;right:18px;top:38%;background:#2D2E31;border-radius:24px;padding:20px;z-index:7;text-align:left;transform:scale(.85);opacity:0;transition:transform .4s var(--ease) .1s,opacity .3s .1s;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.sc.on .a-dialog{transform:none;opacity:1}
+.a-dialog > b{font-size:17px;font-weight:600}
+.ad-app{display:flex;gap:12px;align-items:center;margin:16px 0 18px}
+.ad-app img{width:44px;height:44px;border-radius:12px}
+.ad-app b{display:block;font-size:14px} .ad-app small{font-size:11px;color:#9AA0A6}
+.ad-btns{display:flex;justify-content:flex-end;gap:18px;font-size:14px;color:#8AB4F8;font-weight:600}
+.ad-btns .hot-t{animation:hotc2 1.2s ease-in-out infinite}
+@keyframes hotc2{50%{background:rgba(138,180,248,.3)}}
+.sc.both{background:radial-gradient(300px 260px at 20% 20%,#6D5BD0,transparent),radial-gradient(300px 300px at 90% 80%,#1E6BD6,transparent),linear-gradient(160deg,#2A1B5C,#0E2A55)}
+.home-grid{position:absolute;top:70px;left:18px;right:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:22px 14px}
+.home-grid span{aspect-ratio:1;border-radius:14px;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.home-grid .you{position:relative;background:none;box-shadow:none;transform:scale(0);flex-direction:column}
+.home-grid .you img{width:100%;height:100%;border-radius:14px;box-shadow:0 0 0 0 rgba(255,255,255,.6)}
+.home-grid .you em{position:absolute;bottom:-17px;font-style:normal;font-size:10.5px;font-weight:600}
+.sc.on .home-grid .you{animation:pop .7s .45s var(--ease) forwards}
+.sc.on .home-grid .you img{animation:glowp 1.6s 1.1s ease-out infinite}
+@keyframes pop{0%{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes glowp{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 14px rgba(255,255,255,0)}}
+.home-dock{position:absolute;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:12px;border-radius:26px;background:rgba(255,255,255,.18);backdrop-filter:blur(12px)}
+.home-dock span{aspect-ratio:1;border-radius:14px;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:22px}
+.home-toast{position:absolute;left:12px;right:12px;bottom:104px;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:18px;background:rgba(20,20,24,.82);backdrop-filter:blur(12px);text-align:left;transform:translateY(20px);opacity:0;transition:all .5s var(--ease) 1.2s}
+.sc.on .home-toast{transform:none;opacity:1}
+.home-toast img{width:34px;height:34px;border-radius:9px}
+.home-toast b{display:block;font-size:12.5px} .home-toast small{font-size:10.5px;color:#C7C7CC}
+.tap{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.85);z-index:15;opacity:0;pointer-events:none}
+.sc.on .tap{animation:tap 3.6s 1s ease-in-out infinite}
+@keyframes tap{0%{opacity:0;transform:scale(1.6)}12%{opacity:1;transform:scale(1)}20%{transform:scale(.75)}28%{transform:scale(1)}45%,100%{opacity:0;transform:scale(1)}}
+.sc.ios{display:block} .sc.android{display:none}
+.ins.android .sc.ios{display:none} .ins.android .sc.android{display:block}
+
 @media (max-width:980px){
   .hero-in,.ai-grid{grid-template-columns:1fr}
   .phones{height:560px;margin-top:10px}
@@ -266,6 +416,13 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .chaos{grid-template-columns:repeat(3,1fr)}
   .nav-links,.nav .btn-sm{display:none}
   .mcta{display:block}
+  .ins{grid-template-columns:1fr;gap:30px;margin-top:34px}
+  .ins-phone-wrap{order:-1}
+  .ins-steps li.on{transform:none}
+  .ins-steps li:not(.on){display:none}
+  .ins-steps li{min-height:96px}
+  .ins-dots{display:flex}
+  .desk-only{display:none}
 }
 @media (max-width:560px){
   .hero{padding-top:110px}
@@ -283,6 +440,23 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .zones{flex-direction:column;align-items:flex-start}
   section{padding:80px 0}
   .cta-box{padding:48px 20px}
+  .btn{padding:0 20px;font-size:14px}
+  .merge-stage{padding:74px 0 84px}
+  .merge-scene{height:min(44vh,370px);margin-top:10px}
+  .mc{width:156px;padding:10px 11px;gap:9px;border-radius:16px}
+  .mc > i{width:34px;height:34px;font-size:18px;border-radius:10px}
+  .mc b{font-size:13px} .mc small{font-size:10.5px}
+  .mc-badge{min-width:20px;height:20px;font-size:10.5px;top:-7px;right:-6px}
+  .merge-core{width:96px;height:96px;margin:-48px 0 0 -48px}
+  .merge-core img{border-radius:24px}
+  .orb{font-size:12px;padding:8px 12px;gap:6px} .orb i{font-size:15px}
+  .merge-caps{height:104px;margin-top:14px}
+  .merge-cap{font-size:14.5px} .merge-cap b{font-size:17px}
+  .merge-hint{bottom:12px}
+  .ins-phone{width:264px;border-radius:40px;padding:10px}
+  .ins-scr{border-radius:31px}
+  .os-switch button{padding:0 16px;height:42px}
+  .ins-steps li{padding:14px 16px;gap:12px}
 }
 .m-shot{display:none;width:100%;max-width:300px;margin:0 auto}
 .m-shot .phone{position:relative;width:100%}
@@ -328,25 +502,40 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 <div class="marquee"><div class="mq-track" id="mq"></div></div>
 </header>
 
-<!-- Проблема -->
-<section><div class="wrap center">
-  <span class="eyebrow">Знакомо?</span>
-  <h2 class="rv">Пять приложений,<br>и ни одно не видит картину целиком</h2>
-  <p class="sec-lead rv">Тренировки в заметках, расходы в таблице, привычки в трекере, цели в голове. Всё разрознено, поэтому бросается через две недели.</p>
-  <div class="chaos rv" id="chaos">
-    <div class="chaos-card"><i class="ti ti-notes"></i><b>Заметки</b><small>веса в зале</small></div>
-    <div class="chaos-card"><i class="ti ti-table"></i><b>Таблица</b><small>доходы</small></div>
-    <div class="chaos-card"><i class="ti ti-checkbox"></i><b>Трекер</b><small>привычки</small></div>
-    <div class="chaos-card"><i class="ti ti-list-check"></i><b>Список</b><small>цели</small></div>
-    <div class="chaos-card"><i class="ti ti-brand-telegram"></i><b>Чат с тренером</b><small>программа</small></div>
+<!-- Проблема: пять приложений сливаются в одно (скролл) -->
+<section class="merge" id="merge">
+  <div class="merge-stage">
+    <div class="wrap center merge-head">
+      <span class="eyebrow">Знакомо?</span>
+      <h2>Пять приложений,<br>и ни одно не видит <span class="grad-t">картину целиком</span></h2>
+    </div>
+    <div class="merge-scene" id="merge-scene">
+      <svg class="merge-lines" id="merge-lines" viewBox="-50 -50 100 100" preserveAspectRatio="none">
+        <line x1="0" y1="0" x2="-30" y2="-28"/><line x1="0" y1="0" x2="30" y2="-28"/><line x1="0" y1="0" x2="-30" y2="28"/><line x1="0" y1="0" x2="30" y2="28"/>
+      </svg>
+      <div class="mc" data-x="-.34" data-y="-.30" data-r="-8" style="--c:#F5C451"><span class="mc-badge">12</span><i class="ti ti-notes"></i><div><b>Заметки</b><small>веса в зале, не найти</small></div></div>
+      <div class="mc" data-x=".33" data-y="-.33" data-r="6" style="--c:#34A853"><span class="mc-badge">!</span><i class="ti ti-table"></i><div><b>Таблица</b><small>доходы, забросил в марте</small></div></div>
+      <div class="mc" data-x="-.38" data-y=".24" data-r="5" style="--c:#4A7CFF"><span class="mc-badge">3</span><i class="ti ti-checkbox"></i><div><b>Трекер</b><small>привычки, стрик сгорел</small></div></div>
+      <div class="mc" data-x=".37" data-y=".27" data-r="-6" style="--c:#A78BFA"><span class="mc-badge">7</span><i class="ti ti-list-check"></i><div><b>Список</b><small>цели, лежат с января</small></div></div>
+      <div class="mc" data-x="0" data-y=".40" data-r="3" style="--c:#2AABEE"><span class="mc-badge">28</span><i class="ti ti-brand-telegram"></i><div><b>Чат с тренером</b><small>программа где-то выше</small></div></div>
+
+      <div class="merge-core" id="merge-core"><span class="ring r1"></span><span class="ring r2"></span><img src="icon.png" alt="YOU"></div>
+      <div class="orb" data-x="-.30" data-y="-.28" style="--c:#60A5FA"><i class="ti ti-barbell"></i>Тренировки</div>
+      <div class="orb" data-x=".30" data-y="-.28" style="--c:#4ADE80"><i class="ti ti-checklist"></i>Привычки</div>
+      <div class="orb" data-x="-.30" data-y=".28" style="--c:#A78BFA"><i class="ti ti-chart-bar"></i>Финансы</div>
+      <div class="orb" data-x=".30" data-y=".28" style="--c:#F2A93B"><i class="ti ti-target-arrow"></i>Цели</div>
+    </div>
+    <div class="wrap center merge-caps">
+      <p class="merge-cap" id="cap-a">Тренировки в заметках, расходы в таблице, привычки в трекере, цели в голове.<br>Всё разрознено, поэтому бросается через две недели.</p>
+      <p class="merge-cap" id="cap-b"><b>Одно приложение, где всё связано.</b><br>Тренировки, привычки, деньги и цели видят друг друга.</p>
+    </div>
+    <div class="merge-hint" id="merge-hint"><i class="ti ti-mouse"></i> листай</div>
   </div>
-  <div class="arrow-down"><i class="ti ti-arrow-down"></i></div>
-  <div class="unify rv rv-s"><img src="icon.png" alt="">Одно приложение, где всё связано</div>
-</div></section>
+</section>
 
 <!-- 4 раздела -->
 <section id="features"><div class="wrap">
-  <div class="center"><span class="eyebrow">Четыре опоры</span><h2 class="rv">Всё, что двигает тебя вперёд</h2><p class="sec-lead rv">Прокручивай: экран справа меняется вместе с текстом</p></div>
+  <div class="center"><span class="eyebrow">Четыре опоры</span><h2 class="rv">Всё, что двигает тебя вперёд</h2><p class="sec-lead rv desk-only">Прокручивай: экран справа меняется вместе с текстом</p></div>
   <div class="sticky-wrap">
     <div class="steps" id="steps">
       <div class="step" data-img="training_plan" data-glow="#4A7CFF" style="--c:#60A5FA;--glow:rgba(74,124,255,.4)">
@@ -480,15 +669,83 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   <div class="compare-lbl"><span>Тёмная</span><span>Светлая</span></div>
 </div></section>
 
-<!-- Как начать -->
-<section id="start"><div class="wrap center">
-  <span class="eyebrow">Три шага</span>
-  <h2 class="rv">Начать можно за минуту</h2>
-  <div class="how">
-    <div class="how-c rv"><i class="ti ti-user-plus"></i><b>Зарегистрируйся</b><p>Email и пароль. Никаких карт и подписок, пока есть бесплатные места.</p></div>
-    <div class="how-c rv"><i class="ti ti-device-mobile-plus"></i><b>Добавь на экран</b><p>iPhone: «Поделиться» → «На экран Домой». Android: меню браузера → «Установить приложение».</p></div>
-    <div class="how-c rv"><i class="ti ti-player-play"></i><b>Начни с одного раздела</b><p>Запиши тренировку или отметь привычку. Остальное подключишь, когда захочешь.</p></div>
+<!-- Установка: наглядно -->
+<section id="start"><div class="wrap">
+  <div class="center">
+    <span class="eyebrow">Установка</span>
+    <h2 class="rv">На экран телефона за минуту</h2>
+    <p class="sec-lead rv">Без App Store и скачиваний. Приложение ставится прямо из браузера и открывается с иконки, как обычное.</p>
+    <div class="os-switch rv" id="os-switch" role="tablist">
+      <button class="on" data-os="ios"><i class="ti ti-brand-apple"></i> iPhone</button>
+      <button data-os="android"><i class="ti ti-brand-android"></i> Android</button>
+      <span class="os-pill"></span>
+    </div>
   </div>
+  <div class="ins rv">
+    <div class="ins-left"><ol class="ins-steps" id="ins-steps"></ol><div class="ins-dots" id="ins-dots"></div></div>
+    <div class="ins-phone-wrap">
+      <div class="ins-glow"></div>
+      <div class="ins-phone"><div class="ins-scr" id="ins-scr">
+
+        <!-- iPhone -->
+        <div class="sc ios" data-s="0">
+          <div class="st-bar"><span>9:41</span><span><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="mini-site"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span><em>Получить приложение</em><div class="ms-shot"><img src="img/landing/home_dark.webp" alt=""></div></div>
+          <div class="safari-bar"><div class="url"><i class="ti ti-lock"></i> goodlynikita.github.io</div><div class="tools"><i class="ti ti-chevron-left"></i><i class="ti ti-chevron-right"></i><i class="ti ti-share-2 hot" id="t-ios-share"><span class="tap"></span></i><i class="ti ti-book"></i><i class="ti ti-copy"></i></div></div>
+        </div>
+        <div class="sc ios" data-s="1">
+          <div class="st-bar"><span>9:41</span><span><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="mini-site dim"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
+          <div class="sheet">
+            <div class="sh-head"><img src="icon.png" alt=""><div><b>YOU</b><small>goodlynikita.github.io</small></div><span class="sh-x">×</span></div>
+            <div class="sh-apps"><span style="--c:#2F7CF6"><i class="ti ti-wifi"></i></span><span style="--c:#34C759"><i class="ti ti-message-circle"></i></span><span style="--c:#2AABEE"><i class="ti ti-brand-telegram"></i></span><span style="--c:#3478F6"><i class="ti ti-mail"></i></span></div>
+            <div class="sh-list"><div>Скопировать<i class="ti ti-copy"></i></div><div>Добавить в избранное<i class="ti ti-star"></i></div><div class="hot">На экран «Домой»<i class="ti ti-square-plus"></i><span class="tap"></span></div><div>Добавить закладку<i class="ti ti-book"></i></div></div>
+          </div>
+        </div>
+        <div class="sc ios" data-s="2">
+          <div class="st-bar"><span>9:41</span><span><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="add-top"><span>Отменить</span><b>На экран «Домой»</b><span class="hot-t">Добавить<span class="tap"></span></span></div>
+          <div class="add-card"><img src="icon.png" alt=""><div><div class="add-name">YOU<span class="caret"></span></div><small>goodlynikita.github.io/my_life</small></div></div>
+          <p class="add-note">На экране «Домой» появится значок для быстрого доступа к этому сайту.</p>
+          <div class="kbd"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+
+        <!-- Android -->
+        <div class="sc android" data-s="0">
+          <div class="st-bar"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> goodlynikita.github.io</div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical hot"><span class="tap"></span></i></div>
+          <div class="mini-site"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span><em>Получить приложение</em><div class="ms-shot"><img src="img/landing/home_dark.webp" alt=""></div></div>
+        </div>
+        <div class="sc android" data-s="1">
+          <div class="st-bar"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> goodlynikita.github.io</div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical"></i></div>
+          <div class="mini-site dim"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
+          <div class="a-menu"><div><i class="ti ti-plus"></i>Новая вкладка</div><div><i class="ti ti-history"></i>История</div><div><i class="ti ti-download"></i>Скачанные файлы</div><div><i class="ti ti-share"></i>Поделиться</div><div class="hot"><i class="ti ti-device-mobile-plus"></i>Установить приложение<span class="tap"></span></div><div><i class="ti ti-settings"></i>Настройки</div></div>
+        </div>
+        <div class="sc android" data-s="2">
+          <div class="st-bar"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> goodlynikita.github.io</div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical"></i></div>
+          <div class="mini-site dim"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
+          <div class="a-dialog"><b>Установить приложение?</b><div class="ad-app"><img src="icon.png" alt=""><div><b>YOU</b><small>goodlynikita.github.io</small></div></div><div class="ad-btns"><span>Отмена</span><span class="hot-t">Установить<span class="tap"></span></span></div></div>
+        </div>
+
+        <!-- Общий финал: иконка на экране -->
+        <div class="sc both" data-s="3">
+          <div class="st-bar light"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+          <div class="home-grid">
+            <span style="--c:#34C759"><i class="ti ti-phone"></i></span><span style="--c:#2F7CF6"><i class="ti ti-message-circle"></i></span><span style="--c:#FF9500"><i class="ti ti-photo"></i></span><span style="--c:#8E8E93"><i class="ti ti-settings"></i></span>
+            <span style="--c:#FF2D55"><i class="ti ti-music"></i></span><span style="--c:#5856D6"><i class="ti ti-calendar"></i></span><span style="--c:#2AABEE"><i class="ti ti-brand-telegram"></i></span><span style="--c:#FFCC00"><i class="ti ti-notes"></i></span>
+            <span style="--c:#30B0C7"><i class="ti ti-cloud"></i></span><span style="--c:#FF3B30"><i class="ti ti-heart"></i></span><span style="--c:#34C759"><i class="ti ti-map-pin"></i></span>
+            <span class="you"><img src="icon.png" alt=""><em>YOU</em></span>
+          </div>
+          <div class="home-dock"><span style="--c:#34C759"><i class="ti ti-phone"></i></span><span style="--c:#2F7CF6"><i class="ti ti-world"></i></span><span style="--c:#34C759"><i class="ti ti-message"></i></span><span style="--c:#FF9500"><i class="ti ti-camera"></i></span></div>
+          <div class="home-toast"><img src="icon.png" alt=""><div><b>YOU установлено</b><small>Открывается с иконки, без адресной строки</small></div></div>
+        </div>
+
+      </div></div>
+    </div>
+  </div>
+  <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Начать бесплатно</a></div>
 </div></section>
 
 <!-- CTA -->
@@ -609,6 +866,89 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     (function anim(t){ var k=(t-t0)/2200; if(k>1||drag){ if(!drag) cmp.style.setProperty('--cut','50%'); return; } cmp.style.setProperty('--cut', (50 + Math.sin(k*Math.PI*2)*32)+'%'); requestAnimationFrame(anim); })(t0);
   }, {threshold:.6});
   cmo.observe(cmp);
+
+
+  /* ── Сцена слияния: пять приложений → одно ── */
+  (function(){
+    var sec=document.getElementById('merge'), scene=document.getElementById('merge-scene');
+    if(!sec||!scene) return;
+    var cards=[].slice.call(scene.querySelectorAll('.mc')), orbs=[].slice.call(scene.querySelectorAll('.orb'));
+    var core=document.getElementById('merge-core'), lines=[].slice.call(document.querySelectorAll('#merge-lines line'));
+    var capA=document.getElementById('cap-a'), capB=document.getElementById('cap-b'), hint=document.getElementById('merge-hint');
+    var cl=function(v){return Math.max(0,Math.min(1,v));}, ease=function(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+    var t0=performance.now(), last=-1;
+    function place(el,x,y,W,H,k,extra){
+      var w=el.offsetWidth, h=el.offsetHeight;
+      var tx=Math.max(-(W/2-w/2), Math.min(W/2-w/2, x*W))*k, ty=Math.max(-(H/2-h/2), Math.min(H/2-h/2, y*H))*k;
+      el.style.transform='translate('+(tx-w/2)+'px,'+(ty-h/2)+'px) '+(extra||'');
+    }
+    function frame(now){
+      var r=sec.getBoundingClientRect(), total=sec.offsetHeight-innerHeight;
+      var p=reduce?1:cl(-r.top/Math.max(1,total));
+      var W=scene.clientWidth, H=scene.clientHeight, t=(now-t0)/1000;
+      var m=ease(cl((p-.1)/.36)), f=ease(cl((p-.36)/.3));
+      cards.forEach(function(c,i){
+        var x=+c.dataset.x, y=+c.dataset.y, rot=+c.dataset.r;
+        var fl=(1-m)*Math.sin(t*1.1+i*1.7)*6;
+        place(c,x,y+fl/Math.max(H,1),W,H,1-m,'rotate('+(rot*(1-m))+'deg) scale('+(1-.72*m)+')');
+        c.style.opacity=String(cl(1-m*1.25));
+      });
+      core.style.opacity=String(f); core.style.transform='scale('+(.3+.7*f)+')';
+      orbs.forEach(function(o,i){ var k=ease(cl((f-.15*i/3)/.85)); place(o,+o.dataset.x,+o.dataset.y,W,H,k,'scale('+(.6+.4*k)+')'); o.style.opacity=String(k); });
+      lines.forEach(function(l){ l.style.opacity=String(f*.9); });
+      capA.style.opacity=String(cl(1-m*2)); capA.style.transform='translateY('+(-12*m)+'px)';
+      capB.style.opacity=String(f); capB.style.transform='translateY('+(12*(1-f))+'px)';
+      hint.style.opacity=String(cl(1-p*6));
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  /* ── Установка: пошаговая демонстрация ── */
+  (function(){
+    var STEPS={
+      ios:[
+        ['Открой сайт в Safari','Внизу нажми <span class="kw"><i class="ti ti-share-2"></i> Поделиться</span>. Нужен именно Safari.'],
+        ['Выбери пункт в меню','Пролистай список и нажми <span class="kw">На экран «Домой»</span>.'],
+        ['Подтверди','Справа вверху нажми <span class="kw">Добавить</span>. Имя можно оставить.'],
+        ['Готово','Иконка YOU на экране. Открывается на весь экран, без адресной строки.']
+      ],
+      android:[
+        ['Открой сайт в Chrome','Справа вверху нажми <span class="kw"><i class="ti ti-dots-vertical"></i> меню</span>.'],
+        ['Выбери установку','Нажми <span class="kw">Установить приложение</span> или «Добавить на гл. экран».'],
+        ['Подтверди','В окне нажми <span class="kw">Установить</span>.'],
+        ['Готово','Иконка YOU на экране и в списке приложений. Открывается как обычное.']
+      ]
+    };
+    var os=/android/i.test(navigator.userAgent)?'android':'ios', cur=0, timer=null, DUR=3600, visible=false;
+    var list=document.getElementById('ins-steps'), ins=document.querySelector('.ins'), sw=document.getElementById('os-switch');
+    function renderSteps(){
+      list.innerHTML=STEPS[os].map(function(s,i){return '<li data-i="'+i+'"><span class="n">'+(i+1)+'</span><div><b>'+s[0]+'</b><p>'+s[1]+'</p></div><span class="bar"></span></li>';}).join('');
+      [].forEach.call(list.children,function(li){ li.addEventListener('click',function(){ go(+li.dataset.i,true); }); });
+      var dots=document.getElementById('ins-dots'); dots.innerHTML=STEPS[os].map(function(_,i){return '<button data-i="'+i+'" aria-label="Шаг '+(i+1)+'"></button>';}).join('');
+      [].forEach.call(dots.children,function(b){ b.addEventListener('click',function(){ go(+b.dataset.i,true); }); });
+    }
+    function go(i,user){
+      cur=i;
+      [].forEach.call(list.children,function(li,k){ li.classList.remove('on'); if(k===i){ void li.offsetWidth; li.classList.add('on'); } });
+      [].forEach.call(document.getElementById('ins-dots').children,function(b,k){ b.classList.toggle('on',k===i); });
+      document.querySelectorAll('#ins-scr .sc').forEach(function(sc){
+        var mine=sc.classList.contains(os)||sc.classList.contains('both');
+        sc.classList.toggle('on', mine && +sc.dataset.s===i);
+      });
+      clearTimeout(timer);
+      if(visible && !reduce) timer=setTimeout(function(){ go((cur+1)%4); }, i===3?DUR+1200:DUR);
+      list.style.setProperty('--dur',((i===3?DUR+1200:DUR)/1000)+'s');
+    }
+    function setOs(o){
+      os=o; ins.classList.toggle('android',o==='android'); sw.classList.toggle('android',o==='android');
+      sw.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on',b.dataset.os===o); });
+      renderSteps(); go(0,true);
+    }
+    sw.querySelectorAll('button').forEach(function(b){ b.addEventListener('click',function(){ setOs(b.dataset.os); }); });
+    new IntersectionObserver(function(es){ visible=es[0].isIntersecting; list.classList.toggle('paused',!visible); if(visible) go(cur); else clearTimeout(timer); },{threshold:.35}).observe(ins);
+    setOs(os);
+  })();
 
   /* Живой счётчик мест: читаем из базы (публично доступны только эти два числа) */
   var DB = 'https://nik-track-default-rtdb.firebaseio.com';

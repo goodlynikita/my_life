@@ -8,6 +8,7 @@ const Router = (() => {
 
   const routes = {
     '/login': () => Screens.login(mount()),
+    '/register': () => Screens.login(mount(), { register: true }),
     '/home': () => Screens.home(mount()),
     '/training': () => Screens.training(mount()),
     '/habits': () => Screens.habits(mount()),
@@ -29,12 +30,12 @@ const Router = (() => {
     let path = currentPath();
     const loggedIn = Auth.isLoggedIn();
 
-    if (!loggedIn && path !== '/login') {
+    if (!loggedIn && path !== '/login' && path !== '/register') {
       path = '/login';
       location.hash = path;
       return;
     }
-    if (loggedIn && path === '/login') {
+    if (loggedIn && (path === '/login' || path === '/register')) {
       path = '/home';
       location.hash = path;
       return;

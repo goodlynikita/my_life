@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>YOU · тренировки, привычки, деньги и цели в одном приложении</title>
+<meta name="description" content="YOU: персональная система для жизни. План тренировок с AI-тренером, трекер привычек, финансы с копилкой и цели по сезонам. Бесплатно для первых 1000 пользователей.">
+<meta property="og:title" content="YOU · вся твоя жизнь в одном приложении">
+<meta property="og:description" content="Тренировки с AI-тренером, привычки, финансы с копилкой и цели. Бесплатно для первых 1000.">
+<meta property="og:image" content="img/landing/home_dark.webp">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#07090F; --bg2:#0B0E17; --card:#10141F; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --txt:#F2F4F8; --soft:#A3AABB; --faint:#6B7285;
+  --blue:#4A7CFF; --violet:#8B5CF6; --green:#34D399; --amber:#F2A93B; --pink:#F472B6;
+  --grad:linear-gradient(135deg,#4A7CFF 0%,#8B5CF6 55%,#EC4899 100%);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Montserrat,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-x:clip;line-height:1.5}
+a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.grad-t{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.muted{color:var(--soft)}
+
+/* ── Фон: живые пятна + сетка + зерно ── */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;will-change:transform}
+.b1{width:620px;height:620px;background:#2B4DFF;top:-220px;left:-160px;animation:drift1 22s ease-in-out infinite}
+.b2{width:520px;height:520px;background:#7C3AED;top:10%;right:-180px;animation:drift2 26s ease-in-out infinite}
+.b3{width:460px;height:460px;background:#0EA5E9;bottom:-200px;left:30%;opacity:.35;animation:drift3 30s ease-in-out infinite}
+@keyframes drift1{50%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes drift2{50%{transform:translate(-140px,120px) scale(.9)}}
+@keyframes drift3{50%{transform:translate(100px,-120px) scale(1.2)}}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse at 50% 20%,#000 20%,transparent 70%)}
+.grain{position:absolute;inset:-50%;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 8s steps(10) infinite}
+@keyframes grain{10%{transform:translate(-5%,-10%)}30%{transform:translate(3%,-15%)}50%{transform:translate(12%,9%)}70%{transform:translate(9%,4%)}90%{transform:translate(-1%,7%)}}
+
+/* ── Прогресс скролла ── */
+.progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--grad);z-index:100;box-shadow:0 0 12px rgba(139,92,246,.7)}
+
+/* ── Навигация ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s,backdrop-filter .3s;border-bottom:1px solid transparent}
+.nav.scrolled{background:rgba(7,9,15,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--line)}
+.nav-in{display:flex;align-items:center;gap:28px;height:68px;padding-top:env(safe-area-inset-top,0px)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;letter-spacing:.02em}
+.logo img{width:34px;height:34px;border-radius:10px;box-shadow:0 4px 16px rgba(74,124,255,.4)}
+.nav-links{display:flex;gap:24px;font-size:14px;font-weight:600;color:var(--soft)}
+.nav-links a:hover{color:var(--txt)}
+.nav .sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 26px;border-radius:16px;font-weight:800;font-size:15px;border:none;cursor:pointer;font-family:inherit;transition:transform .25s var(--ease),box-shadow .25s,background .25s;position:relative;white-space:nowrap}
+.btn-main{background:var(--grad);background-size:160% 160%;color:#fff;box-shadow:0 10px 30px rgba(99,102,241,.45),inset 0 1px 0 rgba(255,255,255,.25);animation:gradmove 6s ease infinite}
+@keyframes gradmove{50%{background-position:100% 50%}}
+.btn-main:hover{box-shadow:0 14px 40px rgba(139,92,246,.6),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--line2)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-sm{height:42px;padding:0 18px;font-size:13px;border-radius:13px}
+.btn i{font-size:19px}
+.burger{display:none;width:42px;height:42px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:#fff;font-size:20px}
+
+/* ── Hero ── */
+.hero{padding:140px 0 60px;position:relative}
+.hero-in{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 8px;border-radius:30px;background:rgba(255,255,255,.06);border:1px solid var(--line2);font-size:13px;font-weight:600;color:#DDE3FF}
+.pill .dot{width:22px;height:22px;border-radius:50%;background:rgba(52,211,153,.18);display:inline-flex;align-items:center;justify-content:center}
+.pill .dot::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.7);animation:ping 1.8s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+h1{font-size:clamp(40px,5.3vw,70px);line-height:1.02;letter-spacing:-.035em;margin:22px 0 20px;font-weight:900}
+h1 .line{display:block;overflow:hidden}
+h1 .line span{display:inline-block;transform:translateY(110%);animation:rise 1s var(--ease) forwards}
+h1 .line:nth-child(2) span{animation-delay:.12s} h1 .line:nth-child(3) span{animation-delay:.24s}
+@keyframes rise{to{transform:none}}
+.lead{font-size:clamp(16px,1.6vw,19px);color:var(--soft);max-width:540px;margin:0 0 30px;opacity:0;animation:fadeup .9s .45s var(--ease) forwards}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;opacity:0;animation:fadeup .9s .6s var(--ease) forwards}
+.hero-note{margin-top:18px;font-size:13px;color:var(--faint);display:flex;gap:16px;flex-wrap:wrap;opacity:0;animation:fadeup .9s .75s var(--ease) forwards}
+.hero-note span{display:inline-flex;align-items:center;gap:6px} .hero-note i{color:var(--green);font-size:16px}
+@keyframes fadeup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+/* Телефоны */
+.phones{position:relative;height:640px;perspective:1400px}
+.phone{position:absolute;width:280px;aspect-ratio:390/844;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2A2F3D,#0E1119);
+  box-shadow:0 40px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08),inset 0 0 0 2px rgba(255,255,255,.04);will-change:transform}
+.phone::before{content:'';position:absolute;top:18px;left:50%;transform:translateX(-50%);width:84px;height:24px;border-radius:14px;background:#05060A;z-index:3}
+.phone .scr{width:100%;height:100%;border-radius:34px;overflow:hidden;background:#11141C;position:relative}
+.phone .scr img{width:100%;height:100%;object-fit:cover;object-position:top}
+.phone .scr::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.14) 0%,transparent 28%);pointer-events:none}
+.p-main{left:50%;top:10px;transform:translateX(-50%);z-index:3}
+.p-left{left:0;top:80px;width:240px;transform:rotate(-8deg);z-index:2;opacity:.92}
+.p-right{right:0;top:80px;width:240px;transform:rotate(8deg);z-index:2;opacity:.92}
+.phones-in{position:absolute;inset:0;transition:transform .2s ease-out;transform-style:preserve-3d}
+.float{animation:float 7s ease-in-out infinite}
+@keyframes float{50%{translate:0 -14px}}
+.p-left.float{animation-delay:-2s} .p-right.float{animation-delay:-4s}
+.chip{position:absolute;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;background:rgba(18,22,34,.82);border:1px solid var(--line2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:13px;font-weight:700;box-shadow:0 16px 40px rgba(0,0,0,.4);white-space:nowrap}
+.chip i{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:18px}
+.chip small{display:block;font-size:11px;color:var(--soft);font-weight:600}
+.c1{top:120px;left:-20px;animation:float 6s ease-in-out infinite} .c1 i{background:rgba(74,124,255,.18);color:#8EA8FF}
+.c2{top:330px;right:-26px;animation:float 7s -3s ease-in-out infinite} .c2 i{background:rgba(242,169,59,.18);color:var(--amber)}
+.c3{bottom:40px;left:10px;animation:float 8s -1s ease-in-out infinite} .c3 i{background:rgba(52,211,153,.18);color:var(--green)}
+
+/* ── Бегущая строка ── */
+.marquee{border-block:1px solid var(--line);background:rgba(255,255,255,.02);overflow:hidden;padding:18px 0;margin-top:40px}
+.mq-track{display:flex;gap:48px;width:max-content;animation:mq 40s linear infinite}
+.mq-track span{display:inline-flex;align-items:center;gap:12px;font-size:18px;font-weight:800;color:#C9D0E2;white-space:nowrap}
+.mq-track i{font-size:22px}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ── Секции ── */
+section{padding:110px 0;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#9DB2FF;margin-bottom:16px}
+.eyebrow::before{content:'';width:22px;height:2px;border-radius:2px;background:var(--grad)}
+h2{font-size:clamp(30px,4.2vw,52px);line-height:1.08;letter-spacing:-.03em;margin:0 0 18px;font-weight:900}
+.sec-lead{font-size:18px;color:var(--soft);max-width:640px;margin:0}
+.center{text-align:center} .center .sec-lead{margin:0 auto}
+
+/* Появление при скролле */
+.rv{opacity:0;transform:translateY(40px);filter:blur(6px);transition:opacity 1s var(--ease),transform 1s var(--ease),filter 1s var(--ease)}
+.rv.in{opacity:1;transform:none;filter:none}
+.rv-l{transform:translateX(-50px)} .rv-r{transform:translateX(50px)} .rv-s{transform:scale(.9)}
+
+/* Проблема → решение */
+.chaos{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:50px}
+.chaos-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center;position:relative;transition:transform .4s var(--ease)}
+.chaos-card i{font-size:28px;color:var(--faint)} .chaos-card b{display:block;margin-top:10px;font-size:14px} .chaos-card small{color:var(--faint);font-size:12px}
+.chaos-card::after{content:'';position:absolute;left:14%;right:14%;top:62%;height:2px;background:#F87171;transform:scaleX(0);transform-origin:left;transition:transform .6s .4s var(--ease);opacity:.8}
+.chaos.in .chaos-card::after{transform:scaleX(1)}
+.arrow-down{display:flex;justify-content:center;margin:26px 0;font-size:34px;color:#8EA8FF;animation:bounce 2s infinite}
+@keyframes bounce{50%{transform:translateY(8px)}}
+.unify{display:flex;align-items:center;justify-content:center;gap:16px;padding:22px;border-radius:24px;background:linear-gradient(135deg,rgba(74,124,255,.14),rgba(139,92,246,.14));border:1px solid rgba(139,92,246,.35);max-width:620px;margin:0 auto;font-size:18px;font-weight:800}
+.unify img{width:48px;height:48px;border-radius:14px}
+
+/* Липкий блок «4 раздела» */
+.sticky-wrap{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:60px}
+.steps{display:flex;flex-direction:column}
+.step{min-height:78vh;display:flex;flex-direction:column;justify-content:center;opacity:.25;transition:opacity .5s}
+.step.act{opacity:1}
+.step-ico{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:20px;box-shadow:0 10px 30px var(--glow)}
+.step h3{font-size:clamp(26px,3vw,38px);margin:0 0 14px;letter-spacing:-.02em;line-height:1.1}
+.step p{color:var(--soft);font-size:17px;margin:0 0 18px}
+.ticks{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.ticks li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:#D7DCEA}
+.ticks li i{color:var(--c);font-size:19px;margin-top:1px}
+.stage{position:sticky;top:68px;height:calc(100vh - 68px);display:flex;align-items:center;justify-content:center}
+.stage .phone{position:relative;width:min(320px,calc((100vh - 120px) * 0.462));transform:none}
+.stage .scr img{position:absolute;inset:0;opacity:0;transform:scale(1.04);transition:opacity .7s var(--ease),transform .9s var(--ease)}
+.stage .scr img.on{opacity:1;transform:none}
+.stage-glow{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(80px);opacity:.45;background:var(--sg,#4A7CFF);transition:background .8s}
+
+/* AI */
+.ai{background:radial-gradient(800px 400px at 80% 20%,rgba(139,92,246,.18),transparent 70%)}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.ai-card{background:linear-gradient(160deg,rgba(27,35,64,.85),rgba(16,20,31,.9));border:1px solid rgba(110,139,255,.28);border-radius:26px;padding:26px;position:relative;overflow:hidden}
+.ai-card::before{content:'';position:absolute;inset:-1px;border-radius:26px;padding:1px;background:conic-gradient(from var(--a,0deg),transparent 0 70%,#8B5CF6 80%,#4A7CFF 90%,transparent 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 6s linear infinite}
+@property --a{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes spin{to{--a:360deg}}
+.chart-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.chart-h b{font-size:15px} .chart-h span{font-size:12px;color:var(--soft)}
+.chart svg{width:100%;height:auto;overflow:visible}
+.chart .ln{fill:none;stroke:url(#lg);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1000;stroke-dashoffset:1000;transition:stroke-dashoffset 2.4s var(--ease)}
+.chart .area{fill:url(#ag);opacity:0;transition:opacity 1.2s 1.2s}
+.chart.in .ln{stroke-dashoffset:0} .chart.in .area{opacity:1}
+.chart .pt{fill:#fff;opacity:0;transition:opacity .4s} .chart.in .pt{opacity:1}
+.chart text{fill:var(--soft);font-size:11px;font-family:Montserrat,sans-serif;font-weight:700}
+.chart .up{fill:var(--green)}
+.ai-feats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.ai-feat{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:14px}
+.ai-feat i{font-size:22px;color:#A5B4FF} .ai-feat b{display:block;font-size:14px;margin:6px 0 2px} .ai-feat span{font-size:12px;color:var(--soft)}
+.zones{display:flex;gap:18px;align-items:center;margin-top:26px}
+.zones img{width:120px;filter:drop-shadow(0 0 30px rgba(139,92,246,.45));animation:float 6s ease-in-out infinite}
+.zone-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;font-size:13px;color:#D7DCEA}
+.zone-list span{display:flex;align-items:center;gap:8px} .zone-list i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.ai-phones{position:relative;height:620px}
+.ai-phones .phone{position:absolute;width:280px}
+.ai-phones .pa{left:0;top:40px;transform:rotate(-5deg)} .ai-phones .pb{right:0;top:0;transform:rotate(4deg);z-index:2}
+
+/* Карточки-фичи */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:56px}
+.bx{grid-column:span 2;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;position:relative;overflow:hidden;min-height:250px;transition:transform .4s var(--ease),border-color .4s}
+.bx:hover{transform:translateY(-4px);border-color:var(--line2)}
+.bx::after{content:'';position:absolute;inset:0;background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(139,92,246,.14),transparent 50%);opacity:0;transition:opacity .3s;pointer-events:none}
+.bx:hover::after{opacity:1}
+.bx.w3{grid-column:span 3} .bx.w4{grid-column:span 4}
+.bx-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c)}
+.bx h4{font-size:20px;margin:0 0 8px;letter-spacing:-.01em} .bx p{margin:0;color:var(--soft);font-size:14px}
+.bx .shot{position:absolute;right:-30px;bottom:-120px;width:200px;border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.6);transform:rotate(-6deg);transition:transform .6s var(--ease)}
+.bx:hover .shot{transform:rotate(-2deg) translateY(-14px)}
+.bx.has-shot{padding-right:220px}
+.check-anim{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:8px}
+.check-anim li{display:flex;gap:10px;align-items:center;font-size:13px;color:#D7DCEA}
+.check-anim .box{width:20px;height:20px;border-radius:6px;border:2px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.check-anim .box i{font-size:13px;color:#fff;opacity:0;transform:scale(.4);transition:all .3s}
+.check-anim li.on .box{background:var(--green);border-color:var(--green)} .check-anim li.on .box i{opacity:1;transform:none}
+.streak{display:flex;gap:6px;margin-top:18px;flex-wrap:wrap}
+.streak span{width:26px;height:26px;border-radius:8px;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.3);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:13px;opacity:0;transform:scale(.5);transition:all .35s var(--ease)}
+.streak.in span{opacity:1;transform:none}
+.streak span.x{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3);color:#F87171}
+.lock-demo{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.lock-demo .tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;font-size:12px;font-weight:700}
+.lock-demo .ok{background:rgba(74,124,255,.16);color:#AFC0FF} .lock-demo .no{background:rgba(255,255,255,.05);color:var(--faint);text-decoration:line-through}
+
+/* Сравнение тем */
+.compare{position:relative;width:320px;max-width:100%;margin:50px auto 0;aspect-ratio:390/844;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2A2F3D,#0E1119);box-shadow:0 40px 80px rgba(0,0,0,.55);user-select:none;touch-action:pan-y}
+.compare .scr{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden}
+.compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.compare .top{clip-path:inset(0 0 0 var(--cut,50%))}
+.compare .handle{position:absolute;top:0;bottom:0;left:var(--cut,50%);width:2px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.4);z-index:4;transform:translateX(-1px)}
+.compare .handle::after{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M9 6l-6 6 6 6M15 6l6 6-6 6'/%3E%3C/svg%3E") center no-repeat;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.compare-lbl{display:flex;justify-content:space-between;width:320px;max-width:100%;margin:14px auto 0;font-size:13px;color:var(--soft);font-weight:700}
+
+/* Как начать */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:50px;counter-reset:s}
+.how-c{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;position:relative}
+.how-c::before{counter-increment:s;content:counter(s);position:absolute;top:18px;right:22px;font-size:64px;font-weight:900;color:rgba(255,255,255,.05);line-height:1}
+.how-c i{font-size:30px;color:#8EA8FF} .how-c b{display:block;font-size:18px;margin:12px 0 6px} .how-c p{margin:0;color:var(--soft);font-size:14px}
+
+/* CTA */
+.cta{padding:120px 0 130px}
+.cta-box{position:relative;border-radius:34px;padding:64px 30px;text-align:center;overflow:hidden;background:linear-gradient(135deg,#15204A 0%,#2A1553 60%,#3B1142 100%);border:1px solid rgba(139,92,246,.35)}
+.cta-box::before{content:'';position:absolute;width:600px;height:600px;top:-300px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(139,92,246,.5),transparent 60%);filter:blur(20px)}
+.cta-box > *{position:relative}
+.seats{max-width:460px;margin:28px auto 30px;text-align:left}
+.seats-top{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:10px}
+.seats-top b{color:var(--green)}
+.seats-bar{height:12px;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden}
+.seats-bar span{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#34D399,#4A7CFF,#8B5CF6);transition:width 2s var(--ease);position:relative}
+.seats-bar span::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:shine 2.2s infinite}
+@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.seats-sub{font-size:12px;color:var(--soft);margin-top:8px}
+
+/* FAQ */
+.faq{max-width:780px;margin:44px auto 0}
+.qa{border:1px solid var(--line);border-radius:18px;margin-bottom:10px;background:var(--card);overflow:hidden}
+.qa summary{list-style:none;cursor:pointer;padding:20px 22px;font-weight:800;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary i{transition:transform .3s;color:#8EA8FF;font-size:20px;flex-shrink:0}
+.qa[open] summary i{transform:rotate(45deg)}
+.qa p{margin:0;padding:0 22px 20px;color:var(--soft);font-size:15px}
+
+footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area-inset-bottom,0px));color:var(--faint);font-size:13px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.foot a{color:var(--soft)} .foot a:hover{color:#fff}
+
+/* Мобильная CTA-плашка */
+.mcta{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;transform:translateY(150%);transition:transform .4s var(--ease)}
+.mcta.show{transform:none}
+.mcta .btn{width:100%}
+
+@media (max-width:980px){
+  .hero-in,.ai-grid{grid-template-columns:1fr}
+  .phones{height:560px;margin-top:10px}
+  .sticky-wrap{grid-template-columns:1fr}
+  .stage{display:none}
+  .step{min-height:auto;opacity:1;padding:34px 0;border-top:1px solid var(--line)}
+  .step .m-shot{display:block!important;margin-top:22px}
+  .bento{grid-template-columns:1fr 1fr}
+  .bx,.bx.w3,.bx.w4{grid-column:span 2}
+  .ai-phones{height:540px}
+  .how{grid-template-columns:1fr}
+  .chaos{grid-template-columns:repeat(3,1fr)}
+  .nav-links,.nav .btn-sm{display:none}
+  .mcta{display:block}
+}
+@media (max-width:560px){
+  .hero{padding-top:110px}
+  .phones{height:470px}
+  .phone{width:230px}
+  .p-left,.p-right{width:180px;top:90px}
+  .p-left{left:-20px} .p-right{right:-20px}
+  .chip{font-size:12px;padding:8px 10px} .chip i{width:26px;height:26px;font-size:15px}
+  .c1{left:-6px;top:60px} .c2{right:-6px;top:280px} .c3{left:0;bottom:10px}
+  .chaos{grid-template-columns:1fr 1fr}
+  .bx.has-shot{padding-right:26px;padding-bottom:300px}
+  .bx .shot{right:50%;margin-right:-100px;bottom:-160px}
+  .ai-phones{height:470px} .ai-phones .phone{width:220px}
+  .ai-feats{grid-template-columns:1fr}
+  .zones{flex-direction:column;align-items:flex-start}
+  section{padding:80px 0}
+  .cta-box{padding:48px 20px}
+}
+.m-shot{display:none;width:100%;max-width:300px;margin:0 auto}
+.m-shot .phone{position:relative;width:100%}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
+</style>
+</head>
+<body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid-bg"></div><div class="grain"></div></div>
+<div class="progress" id="progress"></div>
+
+<!-- Навигация -->
+<nav class="nav" id="nav"><div class="wrap nav-in">
+  <a class="logo" href="#top"><img src="icon.png" alt="">YOU</a>
+  <div class="nav-links">
+    <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
+  </div>
+  <div class="sp"></div>
+  <a class="btn btn-ghost btn-sm" href="./#/login">Войти</a>
+  <a class="btn btn-main btn-sm" href="./#/register">Получить приложение</a>
+</div></nav>
+
+<!-- Hero -->
+<header class="hero" id="top"><div class="wrap hero-in">
+  <div>
+    <span class="pill"><span class="dot"></span><span id="pill-txt">Бесплатно для первых 1 000 пользователей</span></span>
+    <h1><span class="line"><span>Тренировки,</span></span><span class="line"><span>привычки, деньги</span></span><span class="line"><span class="grad-t">в одном месте.</span></span></h1>
+    <p class="lead">YOU: личная система, которая считает прогресс за тебя. План тренировок сам растит нагрузку, привычки держатся на стриках, копилка защищает от импульсивных трат, а цели разложены по сезонам.</p>
+    <div class="hero-cta">
+      <a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a>
+      <a class="btn btn-ghost" href="#features"><i class="ti ti-player-play"></i> Как это работает</a>
+    </div>
+    <div class="hero-note"><span><i class="ti ti-circle-check"></i> Без App Store</span><span><i class="ti ti-circle-check"></i> Работает на всех устройствах</span><span><i class="ti ti-circle-check"></i> Данные только твои</span></div>
+  </div>
+  <div class="phones" id="phones"><div class="phones-in" id="phones-in">
+    <div class="phone p-left float"><div class="scr"><img src="img/landing/habits_grid.webp" alt="Привычки" loading="eager"></div></div>
+    <div class="phone p-main float"><div class="scr"><img src="img/landing/home_dark.webp" alt="Главный экран YOU" loading="eager"></div></div>
+    <div class="phone p-right float"><div class="scr"><img src="img/landing/finance_balance.webp" alt="Копилка" loading="eager"></div></div>
+    <div class="chip c1"><i class="ti ti-trending-up"></i><div>+2,5 кг к жиму<small>AI поднял вес на 12 повторах</small></div></div>
+    <div class="chip c2"><i class="ti ti-flame"></i><div>19 дней подряд<small>стрик дисциплины</small></div></div>
+    <div class="chip c3"><i class="ti ti-pig-money"></i><div>+45 000 ₽ в копилку<small>20% с каждого дохода</small></div></div>
+  </div></div>
+</div>
+<div class="marquee"><div class="mq-track" id="mq"></div></div>
+</header>
+
+<!-- Проблема -->
+<section><div class="wrap center">
+  <span class="eyebrow">Знакомо?</span>
+  <h2 class="rv">Пять приложений,<br>и ни одно не видит картину целиком</h2>
+  <p class="sec-lead rv">Тренировки в заметках, расходы в таблице, привычки в трекере, цели в голове. Всё разрознено, поэтому бросается через две недели.</p>
+  <div class="chaos rv" id="chaos">
+    <div class="chaos-card"><i class="ti ti-notes"></i><b>Заметки</b><small>веса в зале</small></div>
+    <div class="chaos-card"><i class="ti ti-table"></i><b>Таблица</b><small>доходы</small></div>
+    <div class="chaos-card"><i class="ti ti-checkbox"></i><b>Трекер</b><small>привычки</small></div>
+    <div class="chaos-card"><i class="ti ti-list-check"></i><b>Список</b><small>цели</small></div>
+    <div class="chaos-card"><i class="ti ti-brand-telegram"></i><b>Чат с тренером</b><small>программа</small></div>
+  </div>
+  <div class="arrow-down"><i class="ti ti-arrow-down"></i></div>
+  <div class="unify rv rv-s"><img src="icon.png" alt="">Одно приложение, где всё связано</div>
+</div></section>
+
+<!-- 4 раздела -->
+<section id="features"><div class="wrap">
+  <div class="center"><span class="eyebrow">Четыре опоры</span><h2 class="rv">Всё, что двигает тебя вперёд</h2><p class="sec-lead rv">Прокручивай: экран справа меняется вместе с текстом</p></div>
+  <div class="sticky-wrap">
+    <div class="steps" id="steps">
+      <div class="step" data-img="training_plan" data-glow="#4A7CFF" style="--c:#60A5FA;--glow:rgba(74,124,255,.4)">
+        <div class="step-ico" style="background:rgba(74,124,255,.16);color:#8EA8FF"><i class="ti ti-barbell"></i></div>
+        <h3>Тренировки,<br>которые растут вместе с тобой</h3>
+        <p>8-недельный план, где каждый подход записан, а прогресс считается сам: тоннаж, рост веса, рабочие веса по каждому упражнению.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Силуэт показывает, какие мышцы работают</li><li><i class="ti ti-check"></i>Вес с прошлой тренировки подставляется сам</li><li><i class="ti ti-check"></i>Зал, бег, теннис, шаги, растяжка</li><li><i class="ti ti-check"></i>Калькулятор 1ПМ и зоны нагрузки</li></ul>
+        <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/training_plan.webp" alt="" loading="lazy"></div></div></div>
+      </div>
+      <div class="step" data-img="habits_grid" data-glow="#22C55E" style="--c:#4ADE80;--glow:rgba(34,197,94,.35)">
+        <div class="step-ico" style="background:rgba(34,197,94,.16);color:#4ADE80"><i class="ti ti-checklist"></i></div>
+        <h3>Привычки,<br>которые не отпускают</h3>
+        <p>Отмечай одним касанием. Стрики горят ярче с каждым днём, а процент за месяц честно показывает, что подтянуть.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Каждый день, по будням или 3 раза в неделю</li><li><i class="ti ti-check"></i>Серии дней подряд с огоньком</li><li><i class="ti ti-check"></i>Колесо жизни: оценка месяца по 8 сферам</li></ul>
+        <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/habits_grid.webp" alt="" loading="lazy"></div></div></div>
+      </div>
+      <div class="step" data-img="finance_balance" data-glow="#8B5CF6" style="--c:#A78BFA;--glow:rgba(139,92,246,.4)">
+        <div class="step-ico" style="background:rgba(139,92,246,.16);color:#A78BFA"><i class="ti ti-chart-bar"></i></div>
+        <h3>Деньги<br>под контролем</h3>
+        <p>Доходы по месяцам и годам, сравнение с прошлым годом, план распределения и копилка, которая наполняется сама.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Процент в копилку с каждого поступления</li><li><i class="ti ti-check"></i>Сначала база, потом цели и желания</li><li><i class="ti ti-check"></i>Проверка на импульс перед каждым снятием</li></ul>
+        <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/finance_balance.webp" alt="" loading="lazy"></div></div></div>
+      </div>
+      <div class="step" data-img="goals" data-glow="#F2A93B" style="--c:#F2A93B;--glow:rgba(242,169,59,.35)">
+        <div class="step-ico" style="background:rgba(242,169,59,.16);color:#F2A93B"><i class="ti ti-target-arrow"></i></div>
+        <h3>Цели<br>по сезонам</h3>
+        <p>Раскладываешь желания на весну, лето, осень и зиму с суммами. Видно, сколько уже закрыто и сколько осталось.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Категории и суммы по каждой цели</li><li><i class="ti ti-check"></i>Прогресс года одной полосой</li><li><i class="ti ti-check"></i>Желание из копилки превращается в цель</li></ul>
+        <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/goals.webp" alt="" loading="lazy"></div></div></div>
+      </div>
+    </div>
+    <div class="stage"><div class="stage-glow" id="stage-glow"></div>
+      <div class="phone"><div class="scr" id="stage-scr">
+        <img class="on" data-k="training_plan" src="img/landing/training_plan.webp" alt="">
+        <img data-k="habits_grid" src="img/landing/habits_grid.webp" alt="" loading="lazy">
+        <img data-k="finance_balance" src="img/landing/finance_balance.webp" alt="" loading="lazy">
+        <img data-k="goals" src="img/landing/goals.webp" alt="" loading="lazy">
+      </div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- AI-тренер -->
+<section class="ai" id="ai"><div class="wrap ai-grid">
+  <div>
+    <span class="eyebrow">AI-тренер</span>
+    <h2 class="rv">Две недели записей,<br>и план <span class="grad-t">составлен сам</span></h2>
+    <p class="sec-lead rv">Тренер смотрит, что, как часто и с каким весом ты делаешь, и расписывает тренировки до конца плана. Одна кнопка, и они уже в твоём календаре.</p>
+    <div class="ai-card rv" style="margin-top:28px">
+      <div class="chart" id="chart">
+        <div class="chart-h"><b>Жим штанги лёжа</b><span>прогрессия 8–12</span></div>
+        <svg viewBox="0 0 460 170">
+          <defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#4A7CFF"/><stop offset=".6" stop-color="#8B5CF6"/><stop offset="1" stop-color="#EC4899"/></linearGradient>
+          <linearGradient id="ag" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".35"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/></linearGradient></defs>
+          <path class="area" d="M20 130 L100 115 L180 100 L260 88 L340 60 L420 40 L420 160 L20 160 Z"/>
+          <path class="ln" d="M20 130 L100 115 L180 100 L260 88 L340 60 L420 40"/>
+          <circle class="pt" cx="20" cy="130" r="5"/><circle class="pt" cx="100" cy="115" r="5"/><circle class="pt" cx="180" cy="100" r="5"/><circle class="pt" cx="260" cy="88" r="5"/><circle class="pt" cx="340" cy="60" r="6"/><circle class="pt" cx="420" cy="40" r="6"/>
+          <text x="6" y="152">80×9</text><text x="84" y="137">80×10</text><text x="164" y="122">80×11</text><text x="244" y="110">80×12</text><text class="up" x="310" y="48">82,5×8 ↑</text><text class="up" x="392" y="28">85×8 ↑</text>
+        </svg>
+      </div>
+      <div class="ai-feats">
+        <div class="ai-feat"><i class="ti ti-calendar-stats"></i><b>Твой ритм</b><span>Дни недели и связки групп берёт из твоих тренировок</span></div>
+        <div class="ai-feat"><i class="ti ti-stairs-up"></i><b>Прогрессия</b><span>+1 повтор в неделю, на 12 повторах вес вверх</span></div>
+        <div class="ai-feat"><i class="ti ti-battery-charging"></i><b>Разгрузка</b><span>Лёгкая неделя в конце, чтобы тело восстановилось</span></div>
+        <div class="ai-feat"><i class="ti ti-refresh"></i><b>Перегенерация</b><span>Учтёт новые тренировки в любой момент</span></div>
+      </div>
+      <div class="zones">
+        <img src="img/m/full.png" alt="">
+        <div><b style="font-size:15px">Все зоны, ничего не отстаёт</b>
+          <div class="zone-list" style="margin-top:10px">
+            <span style="--c:#6C95C8"><i></i>Спина: ширина и толщина</span><span style="--c:#7FB36E"><i></i>Грудь: верх первым</span>
+            <span style="--c:#CF9A5E"><i></i>Ноги: квадрицепс и задняя</span><span style="--c:#C47FA0"><i></i>Плечи: все 3 пучка</span>
+          </div></div>
+      </div>
+    </div>
+  </div>
+  <div class="ai-phones rv rv-r">
+    <div class="phone pa float"><div class="scr"><img src="img/landing/ai_top.webp" alt="AI-тренер" loading="lazy"></div></div>
+    <div class="phone pb float"><div class="scr"><img src="img/landing/ai_plan.webp" alt="План от AI" loading="lazy"></div></div>
+  </div>
+</div></section>
+
+<!-- Бенто: фишки -->
+<section id="money"><div class="wrap">
+  <div class="center"><span class="eyebrow">Детали, которые решают</span><h2 class="rv">Продумано до мелочей</h2></div>
+  <div class="bento" id="bento">
+    <div class="bx w4 has-shot rv" style="--c:#34D399">
+      <div class="bx-ico"><i class="ti ti-shield-check"></i></div>
+      <h4>Копилка с защитой от импульса</h4>
+      <p>Перед каждым снятием честная проверка. Не прошёл? Трата превращается в цель, а копилка остаётся целой.</p>
+      <ul class="check-anim" id="checks"><li><span class="box"><i class="ti ti-check"></i></span>Это нужно, а не просто «хочу»</li><li><span class="box"><i class="ti ti-check"></i></span>Без этого будут проблемы</li><li><span class="box"><i class="ti ti-check"></i></span>Это не импульс, куплю и через неделю</li></ul>
+      <img class="shot" src="img/landing/finance_impulse.webp" alt="" loading="lazy">
+    </div>
+    <div class="bx rv" style="--c:#F2A93B">
+      <div class="bx-ico"><i class="ti ti-flame"></i></div>
+      <h4>Стрики</h4><p>Серия растёт каждый день и не рвётся в выходные, если привычка по будням.</p>
+      <div class="streak" id="streak"></div>
+    </div>
+    <div class="bx rv" style="--c:#A78BFA">
+      <div class="bx-ico"><i class="ti ti-chart-donut"></i></div>
+      <h4>Колесо жизни</h4><p>Раз в месяц оцениваешь 8 сфер и видишь, где проседаешь, а где растёшь.</p>
+    </div>
+    <div class="bx w4 has-shot rv" style="--c:#60A5FA">
+      <div class="bx-ico"><i class="ti ti-user-shield"></i></div>
+      <h4>Кабинет для тренера</h4>
+      <p>Дай тренеру свой пароль-доступ: он входит с твоим email и видит только тренировки. Финансы, привычки и цели ему закрыты.</p>
+      <div class="lock-demo"><span class="tag ok"><i class="ti ti-barbell"></i> Тренировки</span><span class="tag no"><i class="ti ti-lock"></i> Финансы</span><span class="tag no"><i class="ti ti-lock"></i> Привычки</span><span class="tag no"><i class="ti ti-lock"></i> Цели</span></div>
+      <img class="shot" src="img/landing/training_add.webp" alt="" loading="lazy">
+    </div>
+    <div class="bx w3 rv" style="--c:#4ADE80">
+      <div class="bx-ico"><i class="ti ti-devices"></i></div>
+      <h4>Синхронизация везде</h4><p>Отметил на телефоне, открыл на ноутбуке, всё уже там. Данные в облаке и видны только тебе.</p>
+    </div>
+    <div class="bx w3 rv" style="--c:#F472B6">
+      <div class="bx-ico"><i class="ti ti-layout-dashboard"></i></div>
+      <h4>Главный экран под тебя</h4><p>Слайды с нужными цифрами, порядок плиток, светлая и тёмная тема. Собираешь свой пульт управления.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- Темы -->
+<section><div class="wrap center">
+  <span class="eyebrow">Тёмная и светлая</span>
+  <h2 class="rv">Потяни и сравни</h2>
+  <p class="sec-lead rv">Одно касание переключает тему. Выбор сохраняется на всех устройствах.</p>
+  <div class="compare rv rv-s" id="compare"><div class="scr">
+    <img src="img/landing/home_dark.webp" alt="Тёмная тема" loading="lazy">
+    <img class="top" src="img/landing/home_light.webp" alt="Светлая тема" loading="lazy">
+    <div class="handle"></div>
+  </div></div>
+  <div class="compare-lbl"><span>Тёмная</span><span>Светлая</span></div>
+</div></section>
+
+<!-- Как начать -->
+<section id="start"><div class="wrap center">
+  <span class="eyebrow">Три шага</span>
+  <h2 class="rv">Начать можно за минуту</h2>
+  <div class="how">
+    <div class="how-c rv"><i class="ti ti-user-plus"></i><b>Зарегистрируйся</b><p>Email и пароль. Никаких карт и подписок, пока есть бесплатные места.</p></div>
+    <div class="how-c rv"><i class="ti ti-device-mobile-plus"></i><b>Добавь на экран</b><p>iPhone: «Поделиться» → «На экран Домой». Android: меню браузера → «Установить приложение».</p></div>
+    <div class="how-c rv"><i class="ti ti-player-play"></i><b>Начни с одного раздела</b><p>Запиши тренировку или отметь привычку. Остальное подключишь, когда захочешь.</p></div>
+  </div>
+</div></section>
+
+<!-- CTA -->
+<section class="cta" id="get"><div class="wrap">
+  <div class="cta-box rv rv-s">
+    <span class="eyebrow">Ранний доступ</span>
+    <h2>Бесплатно для первых <span id="lim">1 000</span></h2>
+    <p class="sec-lead" style="margin:0 auto">Пока идёт набор, приложение полностью бесплатное. Когда места закончатся, вход будет по личным инвайтам.</p>
+    <div class="seats" id="seats" style="display:none">
+      <div class="seats-top"><span id="seats-taken"></span><b id="seats-left"></b></div>
+      <div class="seats-bar"><span id="seats-fill"></span></div>
+      <div class="seats-sub">Число обновляется в реальном времени</div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px">
+      <a class="btn btn-main mag" id="cta-main" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a>
+      <a class="btn btn-ghost" href="https://t.me/help_youvsyou" target="_blank" rel="noopener"><i class="ti ti-brand-telegram"></i> Задать вопрос</a>
+    </div>
+  </div>
+</div></section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:0"><div class="wrap">
+  <div class="center"><span class="eyebrow">Вопросы</span><h2 class="rv">Коротко о главном</h2></div>
+  <div class="faq">
+    <details class="qa rv"><summary>Это правда бесплатно?<i class="ti ti-plus"></i></summary><p>Да. Первые 1 000 пользователей получают полный доступ бесплатно. Карта не нужна.</p></details>
+    <details class="qa rv"><summary>Где скачать? В App Store нет.<i class="ti ti-plus"></i></summary><p>Скачивать ничего не нужно. YOU открывается в браузере и ставится на экран телефона как обычное приложение: на iPhone через «Поделиться» → «На экран Домой», на Android через меню браузера.</p></details>
+    <details class="qa rv"><summary>Кто видит мои данные?<i class="ti ti-plus"></i></summary><p>Только ты. Данные каждого пользователя хранятся отдельно, доступ к ним закрыт правилами базы на сервере. Тренер, если ты его подключишь, видит только тренировки.</p></details>
+    <details class="qa rv"><summary>Как работает AI-тренер?<i class="ti ti-plus"></i></summary><p>Это алгоритм, который анализирует твои записанные тренировки: дни, связки мышц, веса и повторы. По правилам прогрессии 8–12 и с учётом всех зон мышц он расписывает план до конца текущего блока. Веса не выдумываются, всё берётся из твоих записей.</p></details>
+    <details class="qa rv"><summary>Можно пользоваться на нескольких устройствах?<i class="ti ti-plus"></i></summary><p>Да. Войди под своим email на телефоне и на компьютере, данные синхронизируются автоматически.</p></details>
+    <details class="qa rv"><summary>Что будет, когда места закончатся?<i class="ti ti-plus"></i></summary><p>Регистрация закроется, а новые пользователи смогут получить личный инвайт через поддержку. Те, кто уже внутри, продолжают пользоваться как раньше.</p></details>
+  </div>
+</div></section>
+
+<footer><div class="wrap foot">
+  <a class="logo" href="#top"><img src="icon.png" alt="" style="width:28px;height:28px">YOU</a>
+  <div style="display:flex;gap:18px;flex-wrap:wrap"><a href="./#/login">Войти</a><a href="https://t.me/help_youvsyou" target="_blank" rel="noopener">Поддержка</a><a href="#faq">Вопросы</a></div>
+  <span>© <span id="yr"></span> YOU</span>
+</div></footer>
+
+<div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a></div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* Бегущая строка */
+  var items = [['ti-barbell','План на 8 недель'],['ti-sparkles','AI-тренер'],['ti-flame','Стрики'],['ti-pig-money','Копилка'],['ti-target-arrow','Цели по сезонам'],['ti-chart-donut','Колесо жизни'],['ti-user-shield','Кабинет тренера'],['ti-moon','Тёмная тема'],['ti-devices','Все устройства'],['ti-stairs-up','Прогрессия нагрузок']];
+  var colors = ['#8EA8FF','#A78BFA','#F2A93B','#34D399','#F2A93B','#A78BFA','#60A5FA','#C9D0E2','#4ADE80','#F472B6'];
+  var html = items.map(function(x,i){ return '<span><i class="ti '+x[0]+'" style="color:'+colors[i]+'"></i>'+x[1]+'</span>'; }).join('');
+  document.getElementById('mq').innerHTML = html + html;
+
+  /* Навигация + прогресс + мобильная кнопка */
+  var nav = document.getElementById('nav'), prog = document.getElementById('progress'), mcta = document.getElementById('mcta'), heroEnd = 700;
+  function onScroll(){
+    var y = window.scrollY, h = document.documentElement.scrollHeight - innerHeight;
+    nav.classList.toggle('scrolled', y > 20);
+    prog.style.width = (h > 0 ? y / h * 100 : 0) + '%';
+    var cta = document.getElementById('get').getBoundingClientRect();
+    mcta.classList.toggle('show', y > heroEnd && !(cta.top < innerHeight && cta.bottom > 0));
+  }
+  addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  /* Появление при скролле */
+  var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.15, rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.rv,#chaos,#chart,#streak').forEach(function(el,i){ if(el.classList.contains('rv')) el.style.transitionDelay = ((i%4)*80)+'ms'; io.observe(el); });
+
+  /* Параллакс телефонов в hero */
+  var ph = document.getElementById('phones-in');
+  if (!reduce && matchMedia('(pointer:fine)').matches) {
+    addEventListener('mousemove', function(e){
+      var x = (e.clientX / innerWidth - .5), y = (e.clientY / innerHeight - .5);
+      ph.style.transform = 'rotateY(' + (x*10) + 'deg) rotateX(' + (-y*8) + 'deg) translate3d(' + (x*-12) + 'px,' + (y*-10) + 'px,0)';
+    });
+  }
+
+  /* Магнитные кнопки */
+  document.querySelectorAll('.mag').forEach(function(b){
+    b.addEventListener('mousemove', function(e){ var r=b.getBoundingClientRect(); b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.18)+'px,'+((e.clientY-r.top-r.height/2)*.25)+'px)'; });
+    b.addEventListener('mouseleave', function(){ b.style.transform=''; });
+  });
+
+  /* Подсветка под курсором в карточках */
+  document.querySelectorAll('.bx').forEach(function(c){ c.addEventListener('mousemove', function(e){ var r=c.getBoundingClientRect(); c.style.setProperty('--mx',(e.clientX-r.left)+'px'); c.style.setProperty('--my',(e.clientY-r.top)+'px'); }); });
+
+  /* Липкий экран: меняем скрин по активному шагу */
+  var steps = document.querySelectorAll('.step'), imgs = document.querySelectorAll('#stage-scr img'), glow = document.getElementById('stage-glow');
+  var so = new IntersectionObserver(function(es){ es.forEach(function(e){ if(!e.isIntersecting) return;
+    steps.forEach(function(s){ s.classList.toggle('act', s===e.target); });
+    imgs.forEach(function(im){ im.classList.toggle('on', im.dataset.k === e.target.dataset.img); });
+    glow.style.setProperty('--sg', e.target.dataset.glow);
+  }); }, {rootMargin:'-45% 0px -45% 0px'});
+  steps.forEach(function(s){ so.observe(s); });
+  if (steps[0]) steps[0].classList.add('act');
+
+  /* Чекбоксы копилки отмечаются по очереди */
+  var checks = document.querySelectorAll('#checks li');
+  var co = new IntersectionObserver(function(es){ if(!es[0].isIntersecting) return; co.disconnect();
+    checks.forEach(function(li,i){ setTimeout(function(){ li.classList.add('on'); }, 500 + i*650); });
+  }, {threshold:.6});
+  if (checks.length) co.observe(document.getElementById('checks'));
+
+  /* Стрик: 14 дней, одна пропущенная суббота не в счёт */
+  var st = document.getElementById('streak'), sh = '';
+  for (var i=0;i<14;i++){ sh += '<span class="'+(i===5?'x':'')+'" style="transition-delay:'+(i*60)+'ms"><i class="ti ti-'+(i===5?'x':'check')+'"></i></span>'; }
+  st.innerHTML = sh;
+
+  /* Сравнение тем: перетаскивание */
+  var cmp = document.getElementById('compare');
+  function setCut(clientX){ var r = cmp.getBoundingClientRect(); var p = Math.max(0, Math.min(100, (clientX - r.left) / r.width * 100)); cmp.style.setProperty('--cut', p + '%'); }
+  var drag = false;
+  cmp.addEventListener('pointerdown', function(e){ drag = true; setCut(e.clientX); cmp.setPointerCapture(e.pointerId); });
+  cmp.addEventListener('pointermove', function(e){ if (drag) setCut(e.clientX); });
+  cmp.addEventListener('pointerup', function(){ drag = false; });
+  /* подсказка: шторка сама съездит туда-обратно */
+  var cmo = new IntersectionObserver(function(es){ if(!es[0].isIntersecting || reduce) return; cmo.disconnect();
+    var t0 = performance.now();
+    (function anim(t){ var k=(t-t0)/2200; if(k>1||drag){ if(!drag) cmp.style.setProperty('--cut','50%'); return; } cmp.style.setProperty('--cut', (50 + Math.sin(k*Math.PI*2)*32)+'%'); requestAnimationFrame(anim); })(t0);
+  }, {threshold:.6});
+  cmo.observe(cmp);
+
+  /* Живой счётчик мест: читаем из базы (публично доступны только эти два числа) */
+  var DB = 'https://nik-track-default-rtdb.firebaseio.com';
+  Promise.all([
+    fetch(DB + '/stats/usersCount.json').then(function(r){ return r.ok ? r.json() : null; }),
+    fetch(DB + '/settings.json').then(function(r){ return r.ok ? r.json() : null; })
+  ]).then(function(res){
+    var count = Number(res[0]); var s = res[1] || {};
+    var limit = Number(s.freeUsersLimit) || 1000;
+    var closed = s.registrationOpen === false;
+    var fmt = function(n){ return n.toLocaleString('ru-RU'); };
+    document.getElementById('lim').textContent = fmt(limit);
+    if (!isFinite(count) || count < 0) return;
+    var left = Math.max(0, limit - count);
+    var plural = function(n,a,b,c){ var x=n%10,y=n%100; return x===1&&y!==11?a:x>=2&&x<=4&&(y<12||y>14)?b:c; };
+    document.getElementById('seats').style.display = '';
+    document.getElementById('seats-taken').textContent = 'Занято ' + fmt(count) + ' из ' + fmt(limit);
+    document.getElementById('seats-left').textContent = left ? 'осталось ' + fmt(left) + ' ' + plural(left,'место','места','мест') : 'мест нет';
+    document.getElementById('pill-txt').textContent = left && !closed ? 'Бесплатно для первых ' + fmt(limit) + ' · осталось ' + fmt(left) + ' ' + plural(left,'место','места','мест') : 'Вход по личным инвайтам';
+    var fill = document.getElementById('seats-fill');
+    var fo = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ fill.style.width = Math.max(3, Math.min(100, count/limit*100)) + '%'; fo.disconnect(); } });
+    fo.observe(fill);
+    if (!left || closed) {
+      document.querySelectorAll('a[href="./#/register"]').forEach(function(a){ a.href = 'https://t.me/help_youvsyou'; a.target = '_blank'; a.innerHTML = '<i class="ti ti-ticket"></i> Получить инвайт'; });
+    }
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 window.Screens = window.Screens || {};
 
-window.Screens.login = function(mount) {
+window.Screens.login = function(mount, opts) {
+  opts = opts || {};
   mount.innerHTML = `
     <div style="min-height:100vh;background:linear-gradient(135deg,#0C1628 0%,#1A4A8A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:'Montserrat',sans-serif;position:relative;overflow:hidden;">
       <div style="position:absolute;top:-100px;right:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(96,165,250,0.2) 0%,transparent 70%);pointer-events:none;"></div>
@@ -55,6 +56,7 @@ window.Screens.login = function(mount) {
       </div>
 
       <div style="margin-top:20px;font-size:11px;color:rgba(242,244,248,0.2);text-align:center;">На каждом устройстве нужно войти один раз</div>
+      <a href="start.html" style="margin-top:10px;font-size:12px;font-weight:700;color:rgba(142,168,255,0.75);text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-sparkles"></i> Что умеет YOU</a>
     </div>`;
 
   /* Tab switching */
@@ -78,6 +80,9 @@ window.Screens.login = function(mount) {
     document.getElementById('tab-login').style.color = 'rgba(255,255,255,0.5)';
     if (!regClosed) setTimeout(() => document.getElementById('reg-name').focus(), 100);
   });
+
+  /* Пришли с лендинга по кнопке «Получить приложение» — сразу регистрация */
+  if (opts.register) setTimeout(() => { const t = document.getElementById('tab-reg'); if (t) t.click(); }, 0);
 
   /* ── Счётчик мест ── */
   var regClosed = false;

@@ -1493,3 +1493,12 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
 .coach-msg { min-height: 18px; font-size: 12px; color: #4ADE80; margin: 4px 0 8px; line-height: 1.45; }
 .coach-msg.err { color: #F87171; }
 .coach-del { color: #F87171 !important; }
+
+/* v100: плашка «Тренер» в шапке — аккуратная кнопка */
+.tr-coach-chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px 0 12px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.14); color: #fff; font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .2s; }
+.tr-coach-chip:hover { background: rgba(255,255,255,0.22); }
+.tr-coach-chip i { font-size: 16px; }
+.tr-coach-chip .tr-coach-chip-arr { font-size: 14px; opacity: .75; }
+.coach-me .coach-exit { background: #EF4444 !important; color: #fff !important; border: none !important; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }

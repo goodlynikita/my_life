@@ -1563,7 +1563,7 @@ window.Screens.training = function (mount) {
           <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
           <button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>
           ${role === 'coach'
-            ? `<span class="tr-role-badge">Тренер</span>`
+            ? `<button class="tr-coach-chip" id="tr-coach-me" title="Кабинет тренера"><i class="ti ti-user-shield"></i><span>Тренер</span><i class="ti ti-chevron-down tr-coach-chip-arr"></i></button>`
             : `<button class="tr-back tr-coach-btn" id="tr-coach" title="Доступ для тренера"><i class="ti ti-user-shield"></i></button><button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
         </div>
       </div>
@@ -1588,6 +1588,8 @@ window.Screens.training = function (mount) {
   if (role === 'coach') { const bk = document.getElementById('tr-back'); if (bk) bk.style.visibility = 'hidden'; }
   const coachBtn = document.getElementById('tr-coach');
   if (coachBtn) coachBtn.addEventListener('click', trOpenCoachModal);
+  const coachMe = document.getElementById('tr-coach-me');
+  if (coachMe) coachMe.addEventListener('click', trOpenCoachMeSheet);
   const planSelect = document.getElementById('tr-plan-select');
 
   function populatePlanSelect() {
@@ -3201,4 +3203,34 @@ async function trOpenCoachModal() {
     };
   }
   render();
+}
+
+
+/* Кабинет тренера: окно по тапу на плашку «Тренер» с кнопкой выхода */
+function trOpenCoachMeSheet() {
+  const u = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null;
+  const ov = document.createElement('div');
+  ov.className = 'tr-modal-overlay';
+  ov.innerHTML = `<div class="tr-modal coach-modal coach-me">
+    <div class="coach-head">
+      <div class="coach-ico"><i class="ti ti-user-shield"></i></div>
+      <div><div class="tr-modal-title" style="margin:0">Кабинет тренера</div>
+      <div class="coach-sub">Доступны только тренировки подопечного</div></div>
+    </div>
+    <div class="coach-status on"><i class="ti ti-circle-check"></i> Ты вошёл как тренер</div>
+    <div class="coach-note" style="margin:0 0 16px">Можешь вести план, отмечать подходы и веса. Финансы, привычки и цели закрыты.</div>
+    <div class="tr-modal-actions">
+      <button class="tr-modal-btn-secondary" id="cm-stay">Остаться</button>
+      <button class="tr-modal-btn-primary coach-exit" id="cm-exit"><i class="ti ti-logout"></i> Выйти</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.querySelector('#cm-stay').addEventListener('click', close);
+  ov.querySelector('#cm-exit').addEventListener('click', () => {
+    if (!confirm('Выйти из кабинета тренера? Чтобы вернуться, нужно будет снова ввести email и пароль тренера.')) return;
+    close();
+    Promise.resolve(Auth.logout()).then(() => Router.go('/login'));
+  });
 }

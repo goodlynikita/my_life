@@ -525,7 +525,7 @@ window.Screens.habits = function(mount) {
                       ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${h.description}</div>`:''}
                       <div style="display:flex;align-items:center;gap:6px;margin-left:19px;margin-top:1px;">
                         <span style="font-size:9px;color:#555;">${habSchedLabel(h)}</span>
-                        ${(()=>{const s=habStreak(h,Store.get());if(!s)return '';const c=s>=14?'#FF4500':s>=7?'#F59E0B':s>=3?'#FB923C':'#9D9A92';return `<span style="display:inline-flex;align-items:center;gap:3px;background:${c}18;border:1px solid ${c}44;border-radius:20px;padding:1px 6px;margin-left:2px;"><svg width="7" height="9" viewBox="0 0 8 10" fill="${c}"><path d="M4 0C4 0 6.5 3 6.5 5.5C6.5 7.5 5.4 9 4 9C2.6 9 1.5 7.5 1.5 5.5C1.5 4 2.5 2.5 3 1.5C3 1.5 2 3 2.5 4.5C3 4 3.5 3 4 0Z"/></svg><span style="font-size:10px;font-weight:700;color:${c};">${s}</span></span>`})()}
+                        ${(()=>{const s=habStreak(h,Store.get());if(!s)return '';const c=s>=14?'#FF4500':s>=7?'#F59E0B':s>=3?'#FB923C':'#9D9A92';return `<span class="hab-streak-chip" style="display:inline-flex;align-items:center;gap:3px;background:${c}18;border:1px solid ${c}44;border-radius:20px;padding:1px 6px;margin-left:2px;"><svg width="7" height="9" viewBox="0 0 8 10" fill="${c}"><path d="M4 0C4 0 6.5 3 6.5 5.5C6.5 7.5 5.4 9 4 9C2.6 9 1.5 7.5 1.5 5.5C1.5 4 2.5 2.5 3 1.5C3 1.5 2 3 2.5 4.5C3 4 3.5 3 4 0Z"/></svg><span style="font-size:10px;font-weight:700;color:${c};">${s}</span></span>`})()}
                       </div>
                     </td>
                     ${cells}
@@ -656,33 +656,19 @@ window.Screens.habits = function(mount) {
               <button class="hab-hist-next-mk" data-mk="${mk}" style="background:rgba(255,255,255,0.06);border:none;border-radius:7px;width:26px;height:26px;color:#9D9A92;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-chevron-right"></i></button>
             </div>
           </div>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr>
-                <th style="text-align:left;font-size:11px;color:#9D9A92;padding:4px 0;">Привычка</th>
-                <th style="font-size:11px;color:#9D9A92;text-align:right;">%</th>
-                <th style="font-size:11px;color:#9D9A92;text-align:right;padding-left:12px;">Итог</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${habits.map((h,i)=>{
-                const p = progresses[i];
-                const barColor = p.pct>=80?'#A8C97F':p.pct>=50?'#E0B873':'#FF5C5C';
-                return `<tr>
-                  <td style="padding:6px 0;font-size:13px;">
-                    <i class="ti ${h.icon}" style="color:#C8A84B;margin-right:6px;"></i>${h.name}
-                  </td>
-                  <td style="text-align:right;min-width:80px;">
-                    <div style="font-size:12px;color:${barColor};font-weight:600;margin-bottom:3px;">${p.pct}%</div>
-                    <div style="height:3px;background:#2A2D35;border-radius:2px;">
-                      <div style="height:100%;width:${p.pct}%;background:${barColor};border-radius:2px;"></div>
-                    </div>
-                  </td>
-                  <td style="text-align:right;padding-left:12px;font-size:13px;color:#9D9A92;">${p.done}</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
+          <div class="hh-list">
+            <div class="hh-row hh-head"><span>Привычка</span><span>Выполнение</span><span class="r">%</span><span class="r">Итог</span></div>
+            ${habits.map((h,i)=>{
+              const p = progresses[i];
+              const barColor = p.pct>=80?'#8FD17F':p.pct>=50?'#E0B873':'#FF6B63';
+              return `<div class="hh-row">
+                <span class="hh-name"><i class="ti ${h.icon}"></i>${h.name}</span>
+                <span class="hh-bar"><span style="width:${Math.min(100,p.pct)}%;background:${barColor};"></span></span>
+                <span class="hh-pct r" style="color:${barColor}">${p.pct}%</span>
+                <span class="hh-done r">${p.done}</span>
+              </div>`;
+            }).join('')}
+          </div>
         </div>`;
     }).join('');
 

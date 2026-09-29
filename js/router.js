@@ -50,6 +50,7 @@ const Router = (() => {
     const handler = routes[path] || routes['/login'];
     try {
       handler();
+      if (window.Tour && !keepScroll) Tour.onScreen(path);
     } catch (e) {
       console.error('Screen render error on', path, e);
       const el = mount();

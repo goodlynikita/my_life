@@ -61,3 +61,51 @@ html, body { transition: background-color .3s ease; }
 /* hover в светлой: сохраняем обратную инверсию + чуть насыщеннее */
 html[data-theme="light"] .tiles-v88 .home2-tile:hover { filter: invert(1) hue-rotate(180deg) contrast(0.893) saturate(1.2); }
 html[data-theme="light"] .tiles-v88 .home2-tile > .home2-tile-content::before { opacity: .55; }
+
+/* ═══ v101: читаемость светлой темы ═══
+   Экран инвертируется, поэтому чтобы серый текст стал ТЕМНЕЕ на светлом фоне,
+   в тёмных стилях делаем его СВЕТЛЕЕ. Цветные акценты не трогаем. */
+html[data-theme="light"] :is(.sec-metric-label, .hab-tot-val, .hh-done, .hh-row.hh-head, .hh-row .r, .habit-table th,
+  .wheel-comment, .wheel-hist-comment, .tr-week-range, .tr-ex-meta, .tr-progress.flat, .tr-ww-num.flat, .tr-ww-table th,
+  .tr-1rm-sub, .tr-1rm-x, .tr-group-range, .tr-empty-state, .ai-hint, .ai-src-t, .nutr-empty-meal, .nutr-macro-sub, .nutr-macro-label,
+  .nutr-edit-goal-btn, .goals-sstat-label, .goals-item-v3-amt, .goals-hero-sub, .goals-hero-eyebrow, .goals-all-stats,
+  .goals-mbar-btn, .hero-slide-label, .hero-stat-lbl, .tr-day-tag:not(.has-session), .hab-name-edit + div, .hab-sched) {
+  color: #B9B9B9 !important;
+}
+html[data-theme="light"] :is([style*="color:#9D9A92"], [style*="color: #9D9A92"], [style*="color:#555"], [style*="color:#666"], [style*="color:#686F85"]) { color: #B9B9B9 !important; }
+html[data-theme="light"] :is([style*="color:#444"], [style*="color:#333"]) { color: #A6A6A6 !important; }
+html[data-theme="light"] .goals-item-v3.done .goals-item-v3-name { color: #9A9A9A !important; }
+html[data-theme="light"] :is(.hab-name-edit, .goals-item-v3-name, .tr-ex-name, .hh-name) { color: #FFFFFF !important; }
+/* неактивные вкладки */
+html[data-theme="light"] :is(.hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tr-tabs .tr-tab):not(.active) { color: rgba(255,255,255,0.66) !important; }
+/* полупрозрачные цветные метки тренировок — делаем плотнее */
+html[data-theme="light"] .tr-day-tag.has-session { filter: brightness(1.7) saturate(1.2); }
+
+/* Плитки главного: подписи темнее */
+html[data-theme="light"] .home2-tile-training .home2-tile-desc { color: #2E4D92 !important; }
+html[data-theme="light"] .home2-tile-habits   .home2-tile-desc { color: #25603A !important; }
+html[data-theme="light"] .home2-tile-finance  .home2-tile-desc { color: #5B3C98 !important; }
+html[data-theme="light"] .home2-tile-goals    .home2-tile-desc { color: #7A4A12 !important; }
+
+/* Светлые финансы: серые подписи темнее */
+.tochka-screen:not(.fin-dark) :is(.tochka-hero-label, .tochka-date-label, .tochka-stat-label, .tochka-stat-sub, .tochka-list-title, .tochka-row-label,
+  .fin2-year-label, .plan-sub, .plan-desc, .plan-cat-pct, .plan-val span, .pg-row-sub, .pg-muted, .xp-sub, .xp-sum-cell span, .xp-table th, .tk-op-sub) { color: #4B5563 !important; }
+.tochka-screen:not(.fin-dark) .tochka-tab:not(.active) { color: #4B5563 !important; }
+html[data-theme="light"] .hh-bar span { filter: invert(1) hue-rotate(180deg); }
+
+/* ═══ v103: мягкие акценты в светлой теме (без резкого контраста) ═══ */
+/* Цифры серий в слайдере: тёмные как остальные, огонёк приглушённо-янтарный */
+html[data-theme="light"] .hero-stat-num[style*="color"] { color: #EDEDED !important; }
+html[data-theme="light"] .hero-stat-num .hero-flame { filter: invert(1) hue-rotate(180deg); color: #C98A4B !important; }
+/* Серии у привычек: приглушённые тёплые тона вместо ярко-оранжевого */
+html[data-theme="light"] .hab-streak-chip { filter: invert(1) hue-rotate(180deg) saturate(.55) brightness(.82); }
+/* Свечения после инверсии дают грязные тёмные ореолы — убираем */
+html[data-theme="light"] .hab-dark .sec-metric-value.accent { text-shadow: none !important; }
+html[data-theme="light"] .hab-dark .hab-cell.done { box-shadow: none !important; }
+html[data-theme="light"] .hab-dark .hab-cell.missed i { color: #E8A29C !important; }
+html[data-theme="light"] .hab-dark .sec-metric-value.accent { color: #B6DDA8 !important; }
+/* Проценты и цвета в истории привычек — спокойнее */
+html[data-theme="light"] .hh-pct { filter: saturate(.7); }
+html[data-theme="light"] .hh-bar span { filter: invert(1) hue-rotate(180deg) saturate(.75); }
+/* Кнопка «+» в целях и цветные вкладки сезонов — мягче */
+html[data-theme="light"] .goals-season-tabs .goals-season-tab.active { filter: saturate(.8); }

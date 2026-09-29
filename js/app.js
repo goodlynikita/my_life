@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     Store.replaceAll({});
   } finally {
     if (window.Theme) Theme.syncFromStore();
+    window._appReady = true;
     Router.render();
     if (window.Notices) setTimeout(() => Notices.check(), 1200);
   }

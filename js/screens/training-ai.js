@@ -264,14 +264,46 @@ window.TrainingAI = (function () {
     return { rows: out, step };
   }
 
+  /* ── С какой недели заполнять: текущая, если на ней ещё нет записанных тренировок ── */
+  function autoFromWeek(plan) {
+    const cw = currentWeekIdx(plan);
+    if (cw < 0) return 0;
+    const wk = toArr(plan.weeks)[cw];
+    const busy = wk && collect([plan]).some(h => h.wi === cw);
+    return busy ? cw + 1 : cw;
+  }
+  /* ── Из каких планов брать данные ── */
+  function planSources(plans) {
+    return plans.filter(Boolean).map(p => ({ p, n: collect([p]).length })).filter(x => x.n > 0);
+  }
+  function chosenPlans(plans) {
+    const src = planSources(plans);
+    const saved = toArr((Store.get().training || {}).aiSources);
+    const on = src.filter(x => !saved.length || saved.includes(x.p.id));
+    return { src, on: on.length ? on : src };
+  }
+  function sourcesHtml(src, on, plan) {
+    if (!src.length || (src.length === 1 && plan && src[0].p.id === plan.id)) return '';
+    const ids = new Set(on.map(x => x.p.id));
+    return `<div class="ai-src"><div class="ai-src-t"><i class="ti ti-database"></i> Беру данные из планов</div><div class="ai-src-chips">${src.map(x => `<button class="ai-src-chip${ids.has(x.p.id) ? ' on' : ''}" data-id="${esc(x.p.id)}"><i class="ti ${ids.has(x.p.id) ? 'ti-circle-check' : 'ti-circle'}"></i>План №${esc(x.p.number || '')}<span>${x.n} трен.${plan && x.p.id === plan.id ? ' · текущий' : ''}</span></button>`).join('')}</div></div>`;
+  }
+  function bindSources(content, plan, h, src, on) {
+    content.querySelectorAll('.ai-src-chip').forEach(b => b.addEventListener('click', () => {
+      const ids = new Set(on.map(x => x.p.id));
+      if (ids.has(b.dataset.id)) { if (ids.size === 1) return; ids.delete(b.dataset.id); } else ids.add(b.dataset.id);
+      Store.set('training.aiSources', [...ids]);
+      render(content, plan, h);
+    }));
+  }
+
   /* ── Генерация ── */
-  function generate(plans, plan) {
+  function generate(plans, plan, opts) {
+    opts = opts || {};
     const history = collect(plans);
     const an = analyze(history);
     if (!an.enough) return { error: 'data', an };
-    const cw = Math.max(0, currentWeekIdx(plan));
     const weeksList = toArr(plan.weeks);
-    const fromWeek = Math.min(weeksList.length, cw + 1);
+    const fromWeek = Math.min(weeksList.length, opts.fromWeek != null ? opts.fromWeek : autoFromWeek(plan));
     const weeksN = weeksList.length - fromWeek;
     if (weeksN <= 0) return { error: 'ended', an };
     const deloadLast = weeksN >= 4;
@@ -325,7 +357,7 @@ window.TrainingAI = (function () {
 
     return {
       planId: plan.id, planNumber: plan.number, generatedAt: new Date().toISOString(),
-      fromWeek, basedOn: { workouts: an.workouts, weeks: an.weeks }, notes, weeks,
+      fromWeek, basedOn: { workouts: an.workouts, weeks: an.weeks, plans: [...new Set(history.map(x => x.planNum))].filter(Boolean) }, notes, weeks,
     };
   }
 
@@ -347,7 +379,8 @@ window.TrainingAI = (function () {
   const TYPE = 'Тренажерный зал';
 
   function render(content, plan, h) {
-    const plans = h.getPlans();
+    const cp = chosenPlans(h.getPlans());
+    const plans = cp.on.map(x => x.p);
     const history = collect(plans);
     const an = analyze(history);
     let ai = load();
@@ -366,7 +399,8 @@ window.TrainingAI = (function () {
           <div class="ai-prog"><span>Записанных тренировок</span><b>${an.workouts} из ${MIN_WORKOUTS}</b></div>
           <div class="ai-bar"><span style="width:${tPct}%"></span></div>
           <div class="ai-hint">Хватит любого из двух условий.</div>
-        </div></div>`;
+        </div>${sourcesHtml(cp.src, cp.on, plan)}</div>`;
+      bindSources(content, plan, h, cp.src, cp.on);
       return;
     }
 
@@ -384,16 +418,18 @@ window.TrainingAI = (function () {
       }).join('')}</div>` : ''}`;
 
     let body;
+    const weeksAll = toArr(plan.weeks).length, autoW = autoFromWeek(plan);
+    const weekSel = `<label class="ai-from">Заполнить с недели <select id="ai-from">${Array.from({ length: weeksAll }, (_, i) => `<option value="${i}"${i === Math.min(autoW, weeksAll - 1) ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>`;
     if (!ai) {
-      body = `<button class="ai-gen" id="ai-gen"><i class="ti ti-sparkles"></i> Создать план до конца плана №${plan.number || ''}</button>
+      body = `${weekSel}<button class="ai-gen" id="ai-gen"><i class="ti ti-sparkles"></i> Создать план до конца плана №${plan.number || ''}</button>
         <div class="ai-hint" style="text-align:center">Учту твои дни, связки групп, рабочие веса и все зоны мышц</div>`;
     } else {
       const doneDays = ai.weeks.reduce((s, w) => s + w.days.filter(d => d.transferred).length, 0);
       const allDays = ai.weeks.reduce((s, w) => s + w.days.length, 0);
       body = `
         <div class="ai-meta">
-          <div>Составлен ${new Date(ai.generatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} · по ${ai.basedOn.workouts} тренировкам · перенесено ${doneDays} из ${allDays}</div>
-          <button class="ai-regen" id="ai-gen"><i class="ti ti-refresh"></i> Перегенерировать</button>
+          <div>Составлен ${new Date(ai.generatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} · по ${ai.basedOn.workouts} тренировкам${toArr(ai.basedOn.plans).length ? ' из плана №' + toArr(ai.basedOn.plans).join(', №') : ''} · перенесено ${doneDays} из ${allDays}</div>
+          <div class="ai-meta-r">${weekSel}<button class="ai-regen" id="ai-gen"><i class="ti ti-refresh"></i> Перегенерировать</button></div>
         </div>
         <details class="ai-notes"><summary><i class="ti ti-bulb"></i> Что учтено</summary><ul>${ai.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>
         ${ai.weeks.map((w, wk) => `
@@ -423,6 +459,7 @@ window.TrainingAI = (function () {
       <div class="ai-card">
         <div class="ai-card-h"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div><div class="ai-hero-t">AI-тренер</div><div class="ai-hero-d">План №${plan.number || ''} · сейчас неделя ${Math.min(toArr(plan.weeks).length, currentWeekIdx(plan) + 1)} из ${toArr(plan.weeks).length}</div></div></div>
         ${statsHtml}
+        ${sourcesHtml(cp.src, cp.on, plan)}
       </div>
       ${body}
     </div>`;
@@ -430,7 +467,8 @@ window.TrainingAI = (function () {
     const gen = content.querySelector('#ai-gen');
     if (gen) gen.addEventListener('click', () => {
       if (ai && !confirm('Перегенерировать план с учётом новых данных? Уже перенесённые тренировки в основном плане останутся.')) return;
-      const res = generate(h.getPlans(), plan);
+      const fw = content.querySelector('#ai-from');
+      const res = generate(plans, plan, { fromWeek: fw ? +fw.value : undefined });
       if (res.error === 'ended') { alert('В этом плане не осталось будущих недель. Создай новый план, и я заполню его.'); return; }
       if (res.error) return;
       /* уже перенесённые дни помечаем и в новом плане, чтобы не задублировать */
@@ -441,6 +479,7 @@ window.TrainingAI = (function () {
       }
       save(res); render(content, plan, h);
     });
+    bindSources(content, plan, h, cp.src, cp.on);
     content.querySelectorAll('.ai-move').forEach(b => b.addEventListener('click', () => openMove(content, plan, h, +b.dataset.week, +b.dataset.day)));
     content.querySelectorAll('.ai-week-btn').forEach(b => b.addEventListener('click', () => {
       const a = load(); const w = a.weeks[+b.dataset.week];

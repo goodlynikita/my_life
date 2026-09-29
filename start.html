@@ -183,14 +183,14 @@ h2{font-size:clamp(30px,4.2vw,52px);line-height:1.08;letter-spacing:-.03em;margi
 /* Карточки-фичи */
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:56px}
 .bx{grid-column:span 2;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;position:relative;overflow:hidden;min-height:250px;transition:transform .4s var(--ease),border-color .4s}
-.bx:hover{transform:translateY(-4px);border-color:var(--line2)}
+@media (hover:hover){.bx:hover{transform:translateY(-4px);border-color:var(--line2)}}
 .bx::after{content:'';position:absolute;inset:0;background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(139,92,246,.14),transparent 50%);opacity:0;transition:opacity .3s;pointer-events:none}
 .bx:hover::after{opacity:1}
 .bx.w3{grid-column:span 3} .bx.w4{grid-column:span 4}
 .bx-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c)}
 .bx h4{font-size:20px;margin:0 0 8px;letter-spacing:-.01em} .bx p{margin:0;color:var(--soft);font-size:14px}
 .bx .shot{position:absolute;right:-30px;bottom:-120px;width:200px;border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.6);transform:rotate(-6deg);transition:transform .6s var(--ease)}
-.bx:hover .shot{transform:rotate(-2deg) translateY(-14px)}
+@media (hover:hover){.bx:hover .shot{transform:rotate(-2deg) translateY(-14px)}}
 .bx.has-shot{padding-right:220px}
 .check-anim{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:8px}
 .check-anim li{display:flex;gap:10px;align-items:center;font-size:13px;color:#D7DCEA}
@@ -250,11 +250,13 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 /* Мобильная CTA-плашка */
 .mcta{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;transform:translateY(150%);transition:transform .4s var(--ease)}
 .mcta.show{transform:none}
+.mcta::before{content:'';position:absolute;left:-12px;right:-12px;bottom:calc(-12px - env(safe-area-inset-bottom,0px));height:120px;background:linear-gradient(180deg,transparent,rgba(7,9,15,.85) 55%,#07090F);z-index:-1;pointer-events:none}
 .mcta .btn{width:100%}
 
 /* ── Слияние пяти приложений (скролл) ── */
 .merge{height:260vh;padding:0;position:relative}
 .merge-stage{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;justify-content:center;padding:84px 0 20px;overflow:hidden}
+.merge-head{width:100%}
 .merge-head h2{margin-bottom:0}
 .merge-scene{position:relative;width:min(960px,100% - 32px);height:min(46vh,440px);margin:18px auto 0}
 .mc{position:absolute;left:50%;top:50%;width:230px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:rgba(22,26,38,.88);border:1px solid var(--line2);box-shadow:0 20px 50px rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);will-change:transform,opacity;text-align:left}
@@ -269,7 +271,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 .orb{position:absolute;left:50%;top:50%;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:rgba(18,22,34,.9);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);font-weight:800;font-size:14px;white-space:nowrap;opacity:0;will-change:transform,opacity;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .orb i{color:var(--c);font-size:18px}
 .merge-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.merge-lines line{stroke:url(#lg);stroke:rgba(139,92,246,.6);stroke-width:.35;stroke-dasharray:1 1.2;vector-effect:non-scaling-stroke;stroke-width:1.5;opacity:0}
+.merge-lines line{stroke:rgba(139,92,246,.65);stroke-width:1.5;stroke-dasharray:4 5;opacity:0;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-18}}
 .merge-caps{position:relative;width:100%;height:74px;margin-top:22px}
 .merge-cap{position:absolute;left:0;right:0;top:0;margin:0 auto;max-width:640px;font-size:17px;color:var(--soft);line-height:1.5;padding:0 20px}
 .merge-cap b{color:#fff;font-size:20px}
@@ -414,13 +417,17 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .ai-phones{height:540px}
   .how{grid-template-columns:1fr}
   .chaos{grid-template-columns:repeat(3,1fr)}
-  .nav-links,.nav .btn-sm{display:none}
+  .nav-links,.nav .btn-sm:not(.nav-login){display:none}
+  .nav .nav-login{height:38px;padding:0 16px;font-size:13px}
   .mcta{display:block}
   .ins{grid-template-columns:1fr;gap:30px;margin-top:34px}
   .ins-phone-wrap{order:-1}
   .ins-steps li.on{transform:none}
   .ins-steps li:not(.on){display:none}
-  .ins-steps li{min-height:96px}
+  .ins-steps li{min-height:0;padding:12px 14px}
+  .ins-steps b{font-size:15px} .ins-steps p{font-size:13px}
+  .ins{gap:18px}
+  .os-switch{margin-top:18px}
   .ins-dots{display:flex}
   .desk-only{display:none}
 }
@@ -437,8 +444,24 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .bx .shot{right:50%;margin-right:-100px;bottom:-160px}
   .ai-phones{height:470px} .ai-phones .phone{width:220px}
   .ai-feats{grid-template-columns:1fr}
-  .zones{flex-direction:column;align-items:flex-start}
-  section{padding:80px 0}
+  .zones{display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:center;padding:14px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+  .zones img{width:92px;margin:0 auto}
+  .zones b{font-size:14px !important}
+  .zone-list{grid-template-columns:1fr;gap:7px;font-size:12.5px}
+  .zone-list span{align-items:flex-start;line-height:1.35} .zone-list i{margin-top:5px;flex-shrink:0}
+  section{padding:64px 0}
+  .m-shot{max-width:250px}
+  .step{padding:28px 0}
+  .step h3{font-size:24px}
+  .step p{font-size:15px}
+  .chart text{font-size:16px}
+  .lead{font-size:15.5px}
+  h1{font-size:clamp(34px,10vw,44px)}
+  .hero-note{font-size:12px;gap:10px}
+  .sec-lead{font-size:15.5px}
+  .faq .qa summary{font-size:15px;padding:18px}
+  .qa p{padding:0 18px 18px}
+  .wrap{padding:0 16px}
   .cta-box{padding:48px 20px}
   .btn{padding:0 20px;font-size:14px}
   .merge-stage{padding:74px 0 84px}
@@ -453,13 +476,15 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .merge-caps{height:104px;margin-top:14px}
   .merge-cap{font-size:14.5px} .merge-cap b{font-size:17px}
   .merge-hint{bottom:12px}
-  .ins-phone{width:264px;border-radius:40px;padding:10px}
+  .ins-phone{zoom:.66}
+  .ins-glow{width:240px;height:240px}
   .ins-scr{border-radius:31px}
   .os-switch button{padding:0 16px;height:42px}
   .ins-steps li{padding:14px 16px;gap:12px}
 }
 .m-shot{display:none;width:100%;max-width:300px;margin:0 auto}
 .m-shot .phone{position:relative;width:100%}
+@media (max-width:560px) and (max-height:720px){.ins-phone{zoom:.58}.merge-scene{height:40vh}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
 </style>
 </head>
@@ -474,7 +499,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
   </div>
   <div class="sp"></div>
-  <a class="btn btn-ghost btn-sm" href="./#/login">Войти</a>
+  <a class="btn btn-ghost btn-sm nav-login" href="./#/login">Войти</a>
   <a class="btn btn-main btn-sm" href="./#/register">Получить приложение</a>
 </div></nav>
 
@@ -510,9 +535,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       <h2>Пять приложений,<br>и ни одно не видит <span class="grad-t">картину целиком</span></h2>
     </div>
     <div class="merge-scene" id="merge-scene">
-      <svg class="merge-lines" id="merge-lines" viewBox="-50 -50 100 100" preserveAspectRatio="none">
-        <line x1="0" y1="0" x2="-30" y2="-28"/><line x1="0" y1="0" x2="30" y2="-28"/><line x1="0" y1="0" x2="-30" y2="28"/><line x1="0" y1="0" x2="30" y2="28"/>
-      </svg>
+      <svg class="merge-lines" id="merge-lines"><line/><line/><line/><line/></svg>
       <div class="mc" data-x="-.34" data-y="-.30" data-r="-8" style="--c:#F5C451"><span class="mc-badge">12</span><i class="ti ti-notes"></i><div><b>Заметки</b><small>веса в зале, не найти</small></div></div>
       <div class="mc" data-x=".33" data-y="-.33" data-r="6" style="--c:#34A853"><span class="mc-badge">!</span><i class="ti ti-table"></i><div><b>Таблица</b><small>доходы, забросил в марте</small></div></div>
       <div class="mc" data-x="-.38" data-y=".24" data-r="5" style="--c:#4A7CFF"><span class="mc-badge">3</span><i class="ti ti-checkbox"></i><div><b>Трекер</b><small>привычки, стрик сгорел</small></div></div>
@@ -520,8 +543,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       <div class="mc" data-x="0" data-y=".40" data-r="3" style="--c:#2AABEE"><span class="mc-badge">28</span><i class="ti ti-brand-telegram"></i><div><b>Чат с тренером</b><small>программа где-то выше</small></div></div>
 
       <div class="merge-core" id="merge-core"><span class="ring r1"></span><span class="ring r2"></span><img src="icon.png" alt="YOU"></div>
-      <div class="orb" data-x="-.30" data-y="-.28" style="--c:#60A5FA"><i class="ti ti-barbell"></i>Тренировки</div>
-      <div class="orb" data-x=".30" data-y="-.28" style="--c:#4ADE80"><i class="ti ti-checklist"></i>Привычки</div>
+      <div class="orb" data-x="-.30" data-y="-.28" style="--c:#4ADE80"><i class="ti ti-checklist"></i>Привычки</div>
+      <div class="orb" data-x=".30" data-y="-.28" style="--c:#60A5FA"><i class="ti ti-barbell"></i>Тренировки</div>
       <div class="orb" data-x="-.30" data-y=".28" style="--c:#A78BFA"><i class="ti ti-chart-bar"></i>Финансы</div>
       <div class="orb" data-x=".30" data-y=".28" style="--c:#F2A93B"><i class="ti ti-target-arrow"></i>Цели</div>
     </div>
@@ -805,7 +828,9 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     nav.classList.toggle('scrolled', y > 20);
     prog.style.width = (h > 0 ? y / h * 100 : 0) + '%';
     var cta = document.getElementById('get').getBoundingClientRect();
-    mcta.classList.toggle('show', y > heroEnd && !(cta.top < innerHeight && cta.bottom > 0));
+    var ins = document.getElementById('start').getBoundingClientRect();
+    var inIns = ins.top < innerHeight * .7 && ins.bottom > innerHeight * .3;
+    mcta.classList.toggle('show', y > heroEnd && !inIns && !(cta.top < innerHeight && cta.bottom > 0));
   }
   addEventListener('scroll', onScroll, {passive:true}); onScroll();
 
@@ -881,6 +906,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       var w=el.offsetWidth, h=el.offsetHeight;
       var tx=Math.max(-(W/2-w/2), Math.min(W/2-w/2, x*W))*k, ty=Math.max(-(H/2-h/2), Math.min(H/2-h/2, y*H))*k;
       el.style.transform='translate('+(tx-w/2)+'px,'+(ty-h/2)+'px) '+(extra||'');
+      return [tx,ty];
     }
     function frame(now){
       var r=sec.getBoundingClientRect(), total=sec.offsetHeight-innerHeight;
@@ -894,8 +920,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
         c.style.opacity=String(cl(1-m*1.25));
       });
       core.style.opacity=String(f); core.style.transform='scale('+(.3+.7*f)+')';
-      orbs.forEach(function(o,i){ var k=ease(cl((f-.15*i/3)/.85)); place(o,+o.dataset.x,+o.dataset.y,W,H,k,'scale('+(.6+.4*k)+')'); o.style.opacity=String(k); });
-      lines.forEach(function(l){ l.style.opacity=String(f*.9); });
+      orbs.forEach(function(o,i){ var k=ease(cl((f-.15*i/3)/.85)); var pt=place(o,+o.dataset.x,+o.dataset.y,W,H,k,'scale('+(.6+.4*k)+')'); o.style.opacity=String(k);
+        var l=lines[i]; if(l){ l.setAttribute('x1',W/2); l.setAttribute('y1',H/2); l.setAttribute('x2',W/2+pt[0]); l.setAttribute('y2',H/2+pt[1]); l.style.opacity=String(k*.9); } });
       capA.style.opacity=String(cl(1-m*2)); capA.style.transform='translateY('+(-12*m)+'px)';
       capB.style.opacity=String(f); capB.style.transform='translateY('+(12*(1-f))+'px)';
       hint.style.opacity=String(cl(1-p*6));

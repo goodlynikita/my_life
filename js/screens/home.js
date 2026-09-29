@@ -106,6 +106,7 @@ window.Screens.home = function(mount) {
       + '<button id="hm-slides" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout" style="font-size:18px;color:#9D9A92;"></i>Редактор слайдов</button>'
       + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
       + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-adjustments-horizontal" style="font-size:18px;color:#9D9A92;"></i>Настройки слайдера</button>'
+      + '<button id="hm-tour" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-help-circle" style="font-size:18px;color:#9D9A92;"></i>Подсказки по приложению</button>'
       + '<button id="hm-logout" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#F87171;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button>'
       + '</div>';
     document.body.appendChild(ov);
@@ -113,6 +114,7 @@ window.Screens.home = function(mount) {
     ov.querySelector('#hm-slides').addEventListener('click', function(){ ov.remove(); window.Slides && window.Slides.openEditor(); });
     ov.querySelector('#hm-tiles').addEventListener('click', function(){ ov.remove(); openTileSettings(); });
     ov.querySelector('#hm-settings').addEventListener('click', function(){ ov.remove(); openSliderSettings(); });
+    ov.querySelector('#hm-tour').addEventListener('click', function(){ ov.remove(); window.Tour && Tour.restart(); });
     ov.querySelector('#hm-logout').addEventListener('click', function(){ ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
   });
 

@@ -233,16 +233,8 @@ window.Screens.finance = function(mount) {
         </div>
         ${(()=>{
           if(!sorted.length) return '<div class="tochka-empty">Нет записей, добавь первую</div>';
-          const GEN=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-          const human=d=>{const p=(d||'').split('.');return p.length===3?(+p[0])+' '+GEN[+p[1]-1]:d;};
           const grps={};sorted.forEach(e=>{if(!grps[e.date])grps[e.date]=[];grps[e.date].push(e);});
-          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+human(date)+'</div>'+items.map(e=>{
-            const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#16A34A";const i=entries.indexOf(e);
-            return '<div class="tochka-row tk-op fin2-edit" data-idx="'+i+'" style="--lc:'+c+'">'
-              +'<div class="tochka-row-icon tk-op-ico"><i class="ti ti-arrow-down-left"></i></div>'
-              +'<div class="tochka-row-left tk-op-main"><div class="tk-op-title">'+(e.label||'Поступление')+'</div><div class="tk-op-sub">'+(e.label?'Поступление':'Доход')+'</div></div>'
-              +'<div class="tochka-row-amount tk-op-amt">+'+finFmtFull(e.amount)+'</div></div>';
-          }).join('')+'</div>').join('');
+          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+date+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(e.amount)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+e.label+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
         })()}
       </div>`;
 

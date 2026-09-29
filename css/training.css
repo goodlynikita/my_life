@@ -1502,3 +1502,19 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
 .tr-coach-chip i { font-size: 16px; }
 .tr-coach-chip .tr-coach-chip-arr { font-size: 14px; opacity: .75; }
 .coach-me .coach-exit { background: #EF4444 !important; color: #fff !important; border: none !important; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* v101: AI — выбор планов-источников и недели старта */
+.ai-src { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(110,139,255,0.14); }
+.ai-src-t { font-size: 11px; font-weight: 800; color: #8E9BD8; text-transform: uppercase; letter-spacing: .06em; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.ai-src-t i { font-size: 14px; }
+.ai-src-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-src-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(110,139,255,0.25); background: transparent;
+  color: #A0A7BC; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; }
+.ai-src-chip span { font-weight: 500; opacity: .7; }
+.ai-src-chip i { font-size: 15px; }
+.ai-src-chip.on { background: rgba(74,124,255,0.18); border-color: #4A7CFF; color: #fff; }
+.ai-src-chip.on i { color: #6E94FF; }
+.ai-from { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: #A0A7BC; margin: 0 0 10px; }
+.ai-from select { height: 30px; border-radius: 9px; border: 1px solid rgba(110,139,255,0.3); background: #1A1E2A; color: #F2F4F8; padding: 0 8px; font-family: inherit; font-weight: 700; }
+.ai-meta-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ai-meta-r .ai-from { margin: 0; }

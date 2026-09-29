@@ -51,7 +51,7 @@
 
 /* ════════════════ ТЁМНАЯ ТЕМА «ТОЧКА» ════════════════ */
 .tochka-screen.fin-dark {
-  --tk-bg: #191919; --tk-card: #2C2C2C; --tk-raised: #363636; --tk-input: #454545; --tk-line: rgba(255,255,255,0.07);
+  --tk-bg: #15131B; --tk-card: #211E2A; --tk-raised: #2C2837; --tk-input: #3B3647; --tk-line: rgba(255,255,255,0.07);
   --tk-txt: #FFFFFF; --tk-soft: #ADADAD; --tk-faint: #737373;
   --tk-acc: #977FE9; --tk-acc-deep: #6F5FD3; --tk-green: #5FC98B; --tk-red: #EB5850; --tk-orange: #E07A4F;
   background: var(--tk-bg) !important; color: var(--tk-txt);
@@ -62,20 +62,15 @@
 .fin-dark .tochka-header { border-bottom: none !important; }
 .fin-dark .tochka-tabs { padding-top: 12px !important; }
 
-/* Вкладки: крупный текст, активная белая, остальные серые */
-.fin-dark .tochka-tabs { background: var(--tk-bg) !important; border: none !important; padding: 6px 20px 4px !important; gap: 22px !important; overflow-x: auto; scrollbar-width: none; }
-.fin-dark .tochka-tabs::-webkit-scrollbar { display: none; }
-.fin-dark .tochka-tab { flex: 0 0 auto !important; padding: 8px 0 10px !important; border: none !important; font-size: 22px !important; font-weight: 700 !important;
-  color: var(--tk-faint) !important; letter-spacing: -.01em; transition: color .2s; }
-.fin-dark .tochka-tab:hover { color: var(--tk-soft) !important; }
-.fin-dark .tochka-tab.active { color: #fff !important; border: none !important; }
-@media (min-width: 941px) {
-  .fin-dark .tochka-tabs { padding-left: calc((100% - 900px) / 2) !important; padding-right: calc((100% - 900px) / 2) !important; }
-}
-@media (max-width: 600px) {
-  .fin-dark .tochka-tabs { gap: 16px !important; padding: 4px 16px 2px !important; }
-  .fin-dark .tochka-tab { font-size: 18px !important; }
-}
+/* Вкладки: на всю ширину, активная подсвечена (как в светлой теме) */
+.fin-dark .tochka-tabs { background: #1A1722 !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; padding: 0 !important; gap: 0 !important; }
+.fin-dark .tochka-tab { position: relative; flex: 1 1 0 !important; padding: 14px 4px !important; border: none !important; font-size: 14px !important; font-weight: 600 !important;
+  color: rgba(255,255,255,0.45) !important; background: transparent !important; transition: color .2s, background .25s; }
+.fin-dark .tochka-tab::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: #977FE9; transform: scaleX(0); transition: transform .3s cubic-bezier(.22,1,.36,1); }
+.fin-dark .tochka-tab:hover { color: rgba(255,255,255,0.75) !important; }
+.fin-dark .tochka-tab.active { color: #fff !important; font-weight: 800 !important; background: linear-gradient(180deg, transparent, rgba(151,127,233,0.14)) !important; }
+.fin-dark .tochka-tab.active::after { transform: scaleX(1); }
+@media (max-width: 480px) { .fin-dark .tochka-tab { font-size: 12.5px !important; padding: 13px 2px !important; } }
 
 /* Ширина контента как в интернет-банке */
 .fin-dark .tochka-body > * { max-width: 900px; margin-left: auto !important; margin-right: auto !important; }
@@ -102,23 +97,22 @@
 .fin-dark .tochka-hero-pct.neg { background: rgba(235,88,80,0.14) !important; color: var(--tk-red) !important; }
 .fin-dark .tochka-hero-pct.neu { background: var(--tk-raised) !important; color: var(--tk-soft) !important; }
 
-/* Список операций как «История» в Точке */
-.fin-dark .tochka-list { padding: 8px 0 10px; }
-.fin-dark .tochka-list-head { padding: 14px 24px 4px !important; border: none !important; background: transparent !important; }
-.fin-dark .tochka-list-title { color: #fff !important; font-size: 22px !important; font-weight: 700 !important; text-transform: none !important; letter-spacing: -.01em !important; }
-.fin-dark .tochka-add-btn { background: var(--tk-acc) !important; color: #fff !important; border: none !important; border-radius: 12px !important; height: 40px; padding: 0 16px !important; font-size: 14px !important; font-weight: 600 !important; }
+/* Список приходов: строки с разделителями, сумма цветом метки */
+.fin-dark .tochka-list { padding: 0 0 4px; }
+.fin-dark .tochka-list-head { padding: 18px 22px 14px !important; border: none !important; background: transparent !important; }
+.fin-dark .tochka-list-title { color: var(--tk-soft) !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: .08em !important; text-transform: uppercase !important; }
+.fin-dark .tochka-add-btn { background: var(--tk-acc) !important; color: #fff !important; border: none !important; border-radius: 12px !important; height: 38px; padding: 0 16px !important; font-size: 14px !important; font-weight: 600 !important; }
 .fin-dark .tochka-add-btn:hover { background: #A690F0 !important; }
 .fin-dark .tochka-date-group { border: none !important; background: transparent !important; }
-.fin-dark .tochka-date-label { background: transparent !important; border: none !important; color: #fff !important; font-size: 17px !important; font-weight: 700 !important;
-  letter-spacing: 0 !important; text-transform: none !important; padding: 18px 24px 6px !important; }
-.fin-dark .tochka-row { background: transparent !important; border: none !important; padding: 12px 24px !important; border-radius: 0 !important; transition: background .15s; }
-.fin-dark .tochka-row:hover { background: rgba(255,255,255,0.04) !important; }
-.fin-dark .tk-op-ico { background: var(--lc) !important; color: #fff !important; }
-.fin-dark .tk-op[style*="#16A34A"] .tk-op-ico { background: var(--tk-acc-deep) !important; }
-.fin-dark .tk-op-title { color: #fff; font-weight: 500; }
-.fin-dark .tk-op-sub { color: var(--tk-faint); }
-.fin-dark .tk-op-amt { color: var(--tk-green) !important; font-weight: 600 !important; }
-.fin-dark .tochka-empty { color: var(--tk-faint) !important; padding: 26px 24px !important; }
+.fin-dark .tochka-date-label { background: rgba(0,0,0,0.18) !important; color: var(--tk-faint) !important; font-size: 12px !important; font-weight: 700 !important;
+  letter-spacing: .03em !important; padding: 7px 22px !important; border-top: 1px solid var(--tk-line) !important; border-bottom: 1px solid var(--tk-line) !important; }
+.fin-dark .tochka-row { background: transparent !important; border: none !important; border-bottom: 1px solid var(--tk-line) !important; padding: 16px 22px !important; border-radius: 0 !important; transition: background .15s; }
+.fin-dark .tochka-date-group:last-child .tochka-row:last-child { border-bottom: none !important; }
+.fin-dark .tochka-row:hover { background: rgba(255,255,255,0.035) !important; }
+.fin-dark .tochka-row-amount { font-size: 17px !important; font-weight: 700 !important; filter: brightness(1.35) saturate(1.1); }
+.fin-dark .tochka-row-label { color: var(--tk-soft) !important; font-size: 12px !important; margin-top: 2px; }
+.fin-dark .tochka-row-icon { width: 38px !important; height: 38px !important; border-radius: 12px !important; font-size: 17px !important; filter: brightness(1.3); }
+.fin-dark .tochka-empty { color: var(--tk-faint) !important; padding: 26px 22px !important; }
 
 /* Статистика года */
 .fin-dark .tochka-stats-row { padding: 6px !important; gap: 6px !important; }
@@ -224,17 +218,17 @@
 .fin-dark .xp-over-r { background: rgba(235,88,80,0.10); } .fin-dark .xp-over-g { background: rgba(95,201,139,0.10); }
 
 /* ── Окна поверх тёмных финансов ── */
-html.fin-dark-on .modal-finance .tr-modal { background: #2C2C2C !important; border: none !important; border-radius: 24px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important; }
+html.fin-dark-on .modal-finance .tr-modal { background: #211E2A !important; border: none !important; border-radius: 24px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important; }
 html.fin-dark-on .modal-finance .tr-modal-title { color: #fff !important; font-weight: 700 !important; }
 html.fin-dark-on .modal-finance .tr-modal-row label, html.fin-dark-on .modal-finance .tr-modal p { color: #ADADAD !important; }
 html.fin-dark-on .modal-finance .tr-modal-row input, html.fin-dark-on .modal-finance select {
-  background-color: #454545 !important; border: 1px solid transparent !important; color: #fff !important; border-radius: 12px !important; }
+  background-color: #3B3647 !important; border: 1px solid transparent !important; color: #fff !important; border-radius: 12px !important; }
 html.fin-dark-on .modal-finance .tr-modal-row input:focus { border-color: #977FE9 !important; box-shadow: none !important; }
 html.fin-dark-on .modal-finance .tr-modal-btn-primary { background: #977FE9 !important; color: #fff !important; }
 html.fin-dark-on .modal-finance .tr-modal-btn-secondary { background: #454545 !important; border: none !important; color: #fff !important; }
 html.fin-dark-on .modal-finance #bi-add-cat { border-color: #5A5A5A !important; color: #ADADAD !important; }
 
-html.fin-dark-on .pg-sheet { background: #2C2C2C; color: #fff; box-shadow: 0 -10px 50px rgba(0,0,0,0.6); }
+html.fin-dark-on .pg-sheet { background: #211E2A; color: #fff; box-shadow: 0 -10px 50px rgba(0,0,0,0.6); }
 html.fin-dark-on .pg-x { background: #454545; color: #fff; }
 html.fin-dark-on .pg-avail, html.fin-dark-on .pg-field, html.fin-dark-on .pg-field-lbl, html.fin-dark-on .pg-hint { color: #ADADAD; }
 html.fin-dark-on .pg-avail b { color: #5FC98B; }

@@ -1771,3 +1771,9 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
   font-size: 12px; line-height: 1.45; color: #FCD34D; background: rgba(245,158,11,0.10);
   border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 8px 10px; margin: 6px 0 0;
 }
+
+/* Шапка Целей — прежний тёмно-янтарный градиент (как был до v78) */
+.goals-header {
+  background: linear-gradient(135deg, #140A02 0%, #1F1202 35%, #2E1A02 60%, #4A2C00 100%) !important;
+}
+.tochka-header { border-bottom: none !important; }

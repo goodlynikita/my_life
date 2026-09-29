@@ -1224,3 +1224,84 @@ html, body {
 .home2-grid.layout-row .home2-tile.tile-wide,
 .home2-grid.layout-bigfirst .home2-tile.tile-wide,
 .home2-grid.layout-biglast .home2-tile.tile-wide { grid-column: 1 / -1 !important; }
+
+/* ═══════════════════════════════════════════════════════
+   v84 — ПЛИТКИ: плотные карточки, иконка в бейдже,
+   мягкое «дыхание» цвета + блик. Без плавающих шариков.
+   ═══════════════════════════════════════════════════════ */
+.home2-grid.tiles-v84 { overflow: visible !important; isolation: auto; gap: 12px; }
+.home2-grid.tiles-v84::before, .home2-grid.tiles-v84::after { display: none !important; content: none !important; }
+
+.tiles-v84 .home2-tile-training { --acc: #60A5FA; --t1: #16233D; --t2: #0E1627; }
+.tiles-v84 .home2-tile-habits   { --acc: #4ADE80; --t1: #132A1D; --t2: #0C1912; }
+.tiles-v84 .home2-tile-finance  { --acc: #A78BFA; --t1: #221743; --t2: #140E29; }
+.tiles-v84 .home2-tile-goals    { --acc: #F2A93B; --t1: #2B200C; --t2: #191207; }
+
+.tiles-v84 .home2-tile {
+  position: relative; overflow: hidden !important; isolation: isolate !important;
+  min-height: 132px;
+  border-radius: 20px !important;
+  background: linear-gradient(150deg, var(--t1) 0%, var(--t2) 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--acc) 24%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.28) !important;
+  backdrop-filter: none !important;
+  transform: none;
+  transition: transform .25s cubic-bezier(.22,1,.36,1), border-color .25s, box-shadow .25s !important;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Появление по очереди — только при первом открытии */
+.tiles-v84.tiles-enter .home2-tile { animation: tile-in .55s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes tile-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* «Дыхание» цвета из угла — внутри плитки, за края не выходит */
+.tiles-v84 .home2-tile::before {
+  content: '' !important; position: absolute !important;
+  top: -45% !important; right: -35% !important; left: auto !important; bottom: auto !important;
+  width: 110% !important; height: 110% !important; border-radius: 50% !important;
+  background: radial-gradient(circle, color-mix(in srgb, var(--acc) 38%, transparent) 0%, transparent 65%) !important;
+  filter: blur(8px) !important; opacity: .55 !important; z-index: 0 !important;
+  animation: tile-breathe 12s ease-in-out infinite !important;
+  animation-delay: calc(var(--i, 0) * -1.7s) !important;
+  pointer-events: none;
+}
+@keyframes tile-breathe {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: .45; }
+  50%      { transform: translate(-4%, 4%) scale(1.06); opacity: .65; }
+}
+/* Редкий диагональный блик */
+.tiles-v84 .home2-tile::after {
+  content: '' !important; position: absolute !important;
+  top: 0 !important; bottom: 0 !important; left: -60% !important; right: auto !important;
+  width: 45% !important; height: 100% !important; border-radius: 0 !important;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%) !important;
+  filter: none !important; opacity: 1 !important; z-index: 0 !important;
+  transform: skewX(-18deg);
+  animation: tile-sheen 16s ease-in-out infinite !important;
+  animation-delay: calc(var(--i, 0) * 0.25s + 3s) !important;
+  pointer-events: none;
+}
+@keyframes tile-sheen { 0%, 88% { left: -60%; } 100% { left: 130%; } }
+
+.tiles-v84 .home2-tile:hover {
+  transform: translateY(-3px) !important;
+  border-color: color-mix(in srgb, var(--acc) 45%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 30px rgba(0,0,0,0.35), 0 0 0 1px color-mix(in srgb, var(--acc) 12%, transparent) !important;
+}
+.tiles-v84 .home2-tile:active { transform: scale(.97) !important; transition-duration: .1s !important; }
+
+.tiles-v84 .home2-tile-content { position: relative !important; z-index: 2 !important; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 14px; }
+.tiles-v84 .tile-badge {
+  width: 46px; height: 46px; border-radius: 15px; margin-bottom: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--acc) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--acc) 18%, transparent);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.tiles-v84 .home2-tile:hover .tile-badge { transform: scale(1.08) rotate(-4deg); }
+.tiles-v84 .home2-tile .home2-tile-icon,
+.tiles-v84 .home2-tile i { font-size: 23px !important; margin: 0 !important; color: var(--acc) !important; transform: none !important; }
+.tiles-v84 .home2-tile-name { font-size: 16px !important; font-weight: 800 !important; letter-spacing: -.01em; color: #F2F4F8 !important; margin: 0 !important; }
+.tiles-v84 .home2-tile-desc { font-size: 12px !important; color: color-mix(in srgb, var(--acc) 55%, #9AA0AE) !important; }
+@media (min-width: 768px) { .tiles-v84 .home2-tile { min-height: 160px; } }
+@media (prefers-reduced-motion: reduce) { .tiles-v84 .home2-tile, .tiles-v84 .home2-tile::before, .tiles-v84 .home2-tile::after { animation: none !important; } }

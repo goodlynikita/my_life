@@ -92,11 +92,11 @@ window.Screens.home = function(mount) {
     + visSlides.map(function(_,i){ return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>'; }).join('')
     + '</div>' : '')
     + '</div>')
-    + '<div class="home2-grid">'
-    + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><i class="ti ti-flame home2-tile-icon"></i><div class="home2-tile-name">Тренировки</div><div class="home2-tile-desc">'+(todayWorkout||'Не задано')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><i class="ti ti-checklist home2-tile-icon"></i><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div></div></button>'
-    + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
+    + '<div class="home2-grid tiles-v84">'
+    + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-flame home2-tile-icon"></i></span><div class="home2-tile-name">Тренировки</div><div class="home2-tile-desc">'+(todayWorkout||'Не задано')+'</div></div></button>'
+    + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-checklist home2-tile-icon"></i></span><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div></div></button>'
+    + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-chart-bar home2-tile-icon"></i></span><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
+    + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-target-arrow home2-tile-icon"></i></span><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + '</div>'
     + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
 
@@ -342,7 +342,9 @@ window.Screens.home = function(mount) {
     grid.classList.add(LAYOUT_MAP[savedLayout] || 'layout-2x2');
     var order = (savedOrder && savedOrder.length === 4) ? savedOrder : [0,1,2,3];
     var tiles = order.map(function(ti){ return grid.querySelector('.'+TILE_CLS[ti]); }).filter(Boolean);
-    tiles.forEach(function(el){ grid.appendChild(el); });
+    var current = Array.from(grid.querySelectorAll('.home2-tile'));
+    var sameOrder = current.length === tiles.length && current.every(function(el, i){ return el === tiles[i]; });
+    if (!sameOrder) tiles.forEach(function(el){ grid.appendChild(el); });
     var wide = WIDE_BY_LAYOUT[savedLayout] || [];
     var vis = 0;
     tiles.forEach(function(el){
@@ -481,7 +483,16 @@ window.Screens.home = function(mount) {
     var cur=0, autoTimer=null;
     var interval = (sliderCfg.interval)||4500;
     function goTo(idx){ cur=((idx%n)+n)%n; slidesEl.style.transform='translateX(-'+(cur*(100/n))+'%)'; dotsEls.forEach(function(d,i){d.classList.toggle('active',i===cur);}); }
-    function startAuto(){ if(autoTimer)clearInterval(autoTimer); if(n>1&&sliderCfg.autoplay!==false) autoTimer=setInterval(function(){goTo(cur+1);},interval); }
+    /* Таймер один на всё приложение: при каждой перерисовке главной старый
+       раньше не останавливался, и таймеры копились */
+    function startAuto(){
+      if (window._homeSliderTimer) clearInterval(window._homeSliderTimer);
+      window._homeSliderTimer = null;
+      if (n>1 && sliderCfg.autoplay!==false) window._homeSliderTimer = setInterval(function(){
+        if (!document.body.contains(slidesEl)) { clearInterval(window._homeSliderTimer); window._homeSliderTimer = null; return; }
+        goTo(cur+1);
+      }, Math.max(2000, interval));
+    }
     dotsEls.forEach(function(d){ d.addEventListener('click',function(e){e.stopPropagation();goTo(parseInt(d.dataset.idx));startAuto();}); });
     var sx=0;
     slidesEl.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{passive:true});
@@ -489,45 +500,8 @@ window.Screens.home = function(mount) {
     startAuto();
   }
 
-  /* ── Тихий блик дрейфует по плиткам ── */
-  (function() {
-    var grid = mount.querySelector('.home2-grid');
-    if (!grid) return;
-    var tiles = Array.from(grid.querySelectorAll('.home2-tile'));
-
-    // Мягкий блик
-    var glow = document.createElement('div');
-    glow.style.cssText = 'position:absolute;width:220px;height:220px;border-radius:50%;pointer-events:none;z-index:0;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);filter:blur(28px);left:50%;top:50%;transition:left 2.5s cubic-bezier(.25,.46,.45,.94),top 2.5s cubic-bezier(.25,.46,.45,.94);';
-    grid.appendChild(glow);
-
-    // Shimmer на каждой плитке с разными фазами
-    var phases = [0, 1.1, 2.2, 3.3];
-    tiles.forEach(function(tile, i) {
-      tile.style.position = 'relative';
-      var spot = document.createElement('div');
-      spot.style.cssText = 'position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,0.04) 0%,transparent 65%);animation:tile-shimmer 5s ease-in-out infinite;animation-delay:' + phases[i] + 's;';
-      tile.appendChild(spot);
-    });
-
-    // Автодрейф
-    var t = 0;
-    setInterval(function() {
-      t += 0.006;
-      var px = 50 + Math.sin(t * 0.9) * 20 + Math.sin(t * 0.4) * 8;
-      var py = 50 + Math.cos(t * 0.7) * 18 + Math.cos(t * 0.5) * 6;
-      glow.style.left = px + '%';
-      glow.style.top  = py + '%';
-    }, 60);
-
-    grid.addEventListener('touchmove', function(e) {
-      var r = grid.getBoundingClientRect();
-      glow.style.left = ((e.touches[0].clientX - r.left) / r.width * 100) + '%';
-      glow.style.top  = ((e.touches[0].clientY - r.top)  / r.height * 100) + '%';
-    }, {passive: true});
-    grid.addEventListener('mousemove', function(e) {
-      var r = grid.getBoundingClientRect();
-      glow.style.left = ((e.clientX - r.left) / r.width * 100) + '%';
-      glow.style.top  = ((e.clientY - r.top)  / r.height * 100) + '%';
-    });
-  })();
+  /* Плитки: появление по очереди (анимация в CSS, тут только задержки) */
+  mount.querySelectorAll('.home2-tile').forEach(function(t, i){ t.style.setProperty('--i', i); });
+  var gridEl = mount.querySelector('.home2-grid');
+  if (gridEl && !window._homeTilesShown) { gridEl.classList.add('tiles-enter'); window._homeTilesShown = true; }
 };

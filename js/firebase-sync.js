@@ -14,10 +14,27 @@ const _fbApp = initializeApp(window.FIREBASE_CONFIG);
 const _db    = getDatabase(_fbApp);
 const _auth  = getAuth(_fbApp);
 
+/* ── Тренер ──
+   Тренер входит с email владельца и своим паролем. Под капотом это отдельный
+   технический аккаунт @coach.you-app. Доступ к данным: только training,
+   это проверяют правила Firebase (coaches/{ключ}.uid + enabled). */
+const COACH_DOMAIN = 'coach.you-app';
+function isCoachUser(u) { return !!(u && u.email && u.email.toLowerCase().endsWith('@' + COACH_DOMAIN)); }
+let _coachRoot = null;           /* 'nik-data' или 'users/<uid>' владельца данных */
+function rootKeyFor(u) {         /* ключ данных владельца: 'nik-data' или uid */
+  const ownerEmail = window.AUTH_CONFIG?.ownerEmail;
+  return (ownerEmail && u && u.email === ownerEmail) ? 'nik-data' : (u ? u.uid : null);
+}
+async function sha256(t) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(t).trim().toLowerCase()));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 /* ── Путь к данным пользователя ── */
 function userRoot() {
   const user = _auth.currentUser;
   if (!user) return null;
+  if (isCoachUser(user)) return _coachRoot;
   /* Владелец определяется по email — использует старый путь nik-data */
   const ownerEmail = window.AUTH_CONFIG?.ownerEmail;
   if (ownerEmail && user.email === ownerEmail) return 'nik-data';
@@ -74,6 +91,7 @@ const FirebaseSync = (() => {
     try {
       const sections = new Set();
       for (const [path] of entries) sections.add(path.split('.')[0]);
+      if (isCoachUser(_auth.currentUser)) [...sections].forEach(t => { if (t !== 'training') sections.delete(t); });
       for (const top of sections) {
         const data = Store.get()[top];
         if (data !== undefined) await set(ref(_db, root + '/' + top), sanitizeKeys(data));
@@ -105,15 +123,42 @@ const FirebaseSync = (() => {
     if (_queue.size > 0 || _flushing) return;
     if (Date.now() - _lastWriteAt < 10000) return;
     try {
-      const snap = await get(ref(_db, root));
+      const coach = isCoachUser(_auth.currentUser);
+      const snap = await get(ref(_db, coach ? root + '/training' : root));
       if (!snap.exists()) return;
       if (_queue.size > 0 || _flushing) return; /* пока ждали ответ — появились правки */
-      Store.replaceAll(snap.val());
+      Store.replaceAll(coach ? { training: snap.val() } : snap.val());
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
     } catch(e) {}
   }
 
+  async function resolveCoachRoot() {
+    const u = _auth.currentUser;
+    if (!isCoachUser(u)) return null;
+    const snap = await get(ref(_db, 'coachLinks/' + u.uid));
+    const key = snap.exists() ? snap.val() : null;
+    _coachRoot = key ? (key === 'nik-data' ? 'nik-data' : 'users/' + key) : null;
+    return _coachRoot;
+  }
+
   async function pullIntoStore() {
+    if (isCoachUser(_auth.currentUser)) {
+      try {
+        const root = await resolveCoachRoot();
+        if (!root) { setStatus('Доступ тренера не найден', true); return 'error'; }
+        const snap = await get(ref(_db, root + '/training'));
+        Store.replaceAll({ training: snap.exists() ? snap.val() : { plans: [], measurements: [] } });
+        _loaded = true;
+        setStatus('Данные загружены');
+        if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);
+        return true;
+      } catch (e) {
+        console.error('coach pull failed', e);
+        setStatus('Доступ тренера закрыт', true);
+        _loaded = false;
+        return 'error';
+      }
+    }
     const root = userRoot();
     if (!root) { _loaded = true; return false; }
     try {
@@ -185,7 +230,7 @@ const FirebaseSync = (() => {
   /* ── Реестр пользователей для админки: userIndex/{uid} ──
      Пишем только свои поля (правила не дают трогать blocked) */
   async function touchUserIndex(user) {
-    if (!user) return;
+    if (!user || isCoachUser(user)) return;
     const base = 'userIndex/' + user.uid + '/';
     const upd = {};
     upd[base + 'email'] = user.email || '';
@@ -217,7 +262,7 @@ const FirebaseSync = (() => {
   }
 
   async function isBlocked(user) {
-    if (!user) return false;
+    if (!user || isCoachUser(user)) return false;
     try {
       const snap = await get(ref(_db, 'userIndex/' + user.uid + '/blocked'));
       return snap.exists() && snap.val() === true;
@@ -266,6 +311,37 @@ const FirebaseSync = (() => {
     return cred.user;
   }
 
+  /* ── Управление тренером (из шапки тренировок) ── */
+  async function getCoach() {
+    const u = _auth.currentUser; if (!u || isCoachUser(u)) return null;
+    const snap = await get(ref(_db, 'coaches/' + rootKeyFor(u)));
+    return snap.exists() ? snap.val() : null;
+  }
+  async function setCoachPassword(password) {
+    const u = _auth.currentUser; if (!u || isCoachUser(u)) throw new Error('no user');
+    const key = rootKeyFor(u);
+    /* Отдельный экземпляр Firebase, чтобы создание аккаунта тренера не разлогинило тебя */
+    const second = initializeApp(window.FIREBASE_CONFIG, 'coach-setup-' + Date.now());
+    const auth2 = getAuth(second);
+    const alias = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7) + '@' + COACH_DOMAIN;
+    const cred = await createUserWithEmailAndPassword(auth2, alias, password);
+    const coachUid = cred.user.uid;
+    try { await signOut(auth2); } catch (e) {}
+    await set(ref(_db, 'coachLinks/' + coachUid), key);
+    await set(ref(_db, 'coaches/' + key), { uid: coachUid, enabled: true, updatedAt: new Date().toISOString() });
+    await set(ref(_db, 'coachAlias/' + await sha256(u.email)), alias);
+    return true;
+  }
+  async function setCoachEnabled(on) {
+    const u = _auth.currentUser; if (!u || isCoachUser(u)) return;
+    await set(ref(_db, 'coaches/' + rootKeyFor(u) + '/enabled'), !!on);
+  }
+  async function removeCoach() {
+    const u = _auth.currentUser; if (!u || isCoachUser(u)) return;
+    await set(ref(_db, 'coaches/' + rootKeyFor(u)), null);
+    await set(ref(_db, 'coachAlias/' + await sha256(u.email)), null);
+  }
+
   /* ── Обратная связь → feedback/{id} ── */
   async function sendFeedback(data) {
     const u = _auth.currentUser;
@@ -284,7 +360,18 @@ const FirebaseSync = (() => {
   }
 
   async function login(email, password) {
-    const cred = await signInWithEmailAndPassword(_auth, email, password);
+    let cred;
+    try {
+      cred = await signInWithEmailAndPassword(_auth, email, password);
+    } catch (e) {
+      /* Не подошёл пароль владельца — может, это пароль тренера */
+      let alias = null;
+      try { const a = await get(ref(_db, 'coachAlias/' + await sha256(email))); alias = a.exists() ? a.val() : null; } catch (x) {}
+      if (!alias) throw e;
+      cred = await signInWithEmailAndPassword(_auth, alias, password); /* ошибка → «неверный пароль» */
+      _coachRoot = null;
+      return cred.user;
+    }
     if (await isBlocked(cred.user)) {
       await signOut(_auth);
       const e = new Error('blocked'); e.code = 'app/blocked'; throw e;
@@ -295,6 +382,7 @@ const FirebaseSync = (() => {
 
   async function logout() {
     _loaded = false;
+    _coachRoot = null;
     Store.replaceAll(Store.defaultData ? Store.defaultData() : {});
     await signOut(_auth);
   }
@@ -313,6 +401,7 @@ const FirebaseSync = (() => {
     register, login, logout, onAuth, currentUser,
     getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,
     getNotice, markNoticeSeen, getAnnouncement,
+    isCoach: () => isCoachUser(_auth.currentUser), getCoach, setCoachPassword, setCoachEnabled, removeCoach,
     getConfig: () => window.FIREBASE_CONFIG
   };
 })();

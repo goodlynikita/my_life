@@ -67,8 +67,10 @@ const Store = (() => {
     if (window.FirebaseSync && FirebaseSync.isConfigured()) {
       FirebaseSync.scheduleSave(path, value);
     }
-    /* Локальный бекап — данные не потеряются если закроешь до синка */
-    try { localStorage.setItem('nik_local_backup', JSON.stringify(obj)); } catch(e) {}
+    /* Локальный бекап — данные не потеряются если закроешь до синка (у тренера не пишем) */
+    if (!(window.FirebaseSync && FirebaseSync.isCoach && FirebaseSync.isCoach())) {
+      try { localStorage.setItem('nik_local_backup', JSON.stringify(obj)); } catch(e) {}
+    }
   }
 
   /* Firebase возвращает массивы как объекты вида {0:.., 1:.., 2:..}, если в
@@ -134,8 +136,10 @@ const Store = (() => {
 
   function replaceAll(newData) {
     data = ensureShape(newData);
-    /* Сохраняем в localStorage как резервную копию */
-    try { localStorage.setItem('nik_local_backup', JSON.stringify(data)); } catch(e) {}
+    /* Сохраняем в localStorage как резервную копию (у тренера не пишем) */
+    if (!(window.FirebaseSync && FirebaseSync.isCoach && FirebaseSync.isCoach())) {
+      try { localStorage.setItem('nik_local_backup', JSON.stringify(data)); } catch(e) {}
+    }
   }
 
   function loadFromLocalBackup() {

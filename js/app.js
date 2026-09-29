@@ -55,14 +55,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           /* Пользователь залогинен — грузим его данные */
           try {
             const result = await FirebaseSync.pullIntoStore();
+            const isCoach = FirebaseSync.isCoach && FirebaseSync.isCoach();
             if (result !== true) {
-              /* Firebase недоступен — пробуем локальный бекап */
-              const hasLocal = Store.loadFromLocalBackup && Store.loadFromLocalBackup();
+              /* Firebase недоступен — пробуем локальный бекап (тренеру — никогда: там могут быть чужие данные) */
+              const hasLocal = !isCoach && Store.loadFromLocalBackup && Store.loadFromLocalBackup();
               if (!hasLocal) Store.replaceAll({});
             }
           } catch(e) {
-            /* Офлайн — берём локальный бекап */
-            const hasLocal = Store.loadFromLocalBackup && Store.loadFromLocalBackup();
+            /* Офлайн — берём локальный бекап (не для тренера) */
+            const hasLocal = !(FirebaseSync.isCoach && FirebaseSync.isCoach()) && Store.loadFromLocalBackup && Store.loadFromLocalBackup();
             if (!hasLocal) Store.replaceAll({});
           }
         } else {

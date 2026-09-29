@@ -36,7 +36,10 @@ window.Feedback = (function () {
         <div class="fb-or"><span>или оставь сообщение здесь</span></div>
         <div class="fb-types">${TYPES.map(t => `<button class="fb-type${t.id === type ? ' on' : ''}" data-type="${t.id}"><i class="ti ${t.icon}"></i>${t.label}</button>`).join('')}</div>
         <textarea id="fb-text" class="fb-input fb-textarea" placeholder="Что улучшить, что сломалось, чего не хватает…">${esc(opts.text || '')}</textarea>
-        <input id="fb-contact" class="fb-input" type="text" placeholder="Как с тобой связаться (Telegram / email)" value="${esc(opts.contact || (user && user.email) || '')}">
+        <div class="fb-contacts">
+          <label class="fb-tg-field"><i class="ti ti-brand-telegram"></i><span>@</span><input id="fb-telegram" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ник в Telegram" value="${esc(localStorage.getItem('fb_tg') || '')}"></label>
+          <input id="fb-contact" class="fb-input" type="email" inputmode="email" placeholder="Email" value="${esc(opts.contact || (user && user.email) || '')}">
+        </div>
         <div class="fb-err" id="fb-err"></div>
         <button class="fb-send" id="fb-send"><i class="ti ti-send"></i> Отправить</button>
       </div>`;
@@ -48,11 +51,15 @@ window.Feedback = (function () {
     ov.querySelectorAll('.fb-type').forEach(b => b.addEventListener('click', () => {
       type = b.dataset.type; ov.querySelectorAll('.fb-type').forEach(x => x.classList.toggle('on', x === b));
     }));
+    const tgIn = ov.querySelector('#fb-telegram');
+    tgIn.addEventListener('input', () => { const v = tgIn.value.replace(/^https?:\/\/t\.me\//i, '').replace(/^@+/, '').replace(/\s/g, ''); if (v !== tgIn.value) tgIn.value = v; });
     setTimeout(() => { const t = ov.querySelector('#fb-text'); if (t && !opts.noFocus) t.focus(); }, 80);
 
     ov.querySelector('#fb-send').addEventListener('click', async () => {
       const text = ov.querySelector('#fb-text').value.trim();
       const contact = ov.querySelector('#fb-contact').value.trim();
+      const telegram = ov.querySelector('#fb-telegram').value.trim().replace(/^@+/, '').replace(/^https?:\/\/t\.me\//i, '');
+      try { localStorage.setItem('fb_tg', telegram); } catch (x) {}
       const err = ov.querySelector('#fb-err');
       if (text.length < 3) { err.textContent = 'Напиши пару слов 🙂'; return; }
       const btn = ov.querySelector('#fb-send');
@@ -60,7 +67,7 @@ window.Feedback = (function () {
       const label = (TYPES.find(t => t.id === type) || {}).label || '';
       try {
         if (!window.FirebaseSync || !FirebaseSync.sendFeedback) throw new Error('no sync');
-        await FirebaseSync.sendFeedback({ type, text, contact });
+        await FirebaseSync.sendFeedback({ type, text, contact, telegram });
         ov.querySelector('.fb-sheet').innerHTML = `
           <div class="fb-done"><i class="ti ti-circle-check"></i>
             <div class="fb-title">Спасибо, получили!</div>
@@ -69,7 +76,7 @@ window.Feedback = (function () {
             <button class="fb-link" id="fb-tg2">Открыть Telegram</button></div>`;
       } catch (e) {
         /* Не получилось сохранить — копируем текст и открываем бота */
-        const msg = `[${label}] ${text}${contact ? '\nКонтакт: ' + contact : ''}`;
+        const msg = `[${label}] ${text}${telegram ? '\nTelegram: @' + telegram : ''}${contact ? '\nEmail: ' + contact : ''}`;
         try { await navigator.clipboard.writeText(msg); } catch (x) {}
         ov.querySelector('.fb-sheet').innerHTML = `
           <div class="fb-done"><i class="ti ti-clipboard-check"></i>

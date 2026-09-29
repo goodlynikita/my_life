@@ -26,7 +26,7 @@ window.Notices = (function () {
   async function check() {
     if (shownThisSession || !window.FirebaseSync || !FirebaseSync.currentUser) return;
     const user = FirebaseSync.currentUser();
-    if (!user) return;
+    if (!user || (FirebaseSync.isCoach && FirebaseSync.isCoach())) return;
     const personal = FirebaseSync.getNotice ? await FirebaseSync.getNotice(user) : null;
     if (personal) {
       shownThisSession = true;

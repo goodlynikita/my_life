@@ -8,6 +8,7 @@ const Auth = (() => {
   function role() {
     const user = window.FirebaseSync?.currentUser();
     if (!user) return null;
+    if (window.FirebaseSync?.isCoach && FirebaseSync.isCoach()) return 'coach';
     /* Владелец определяется по email из конфига */
     if (window.AUTH_CONFIG?.ownerEmail && user.email === window.AUTH_CONFIG.ownerEmail) {
       return 'owner';

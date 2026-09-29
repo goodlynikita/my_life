@@ -1563,8 +1563,8 @@ window.Screens.training = function (mount) {
           <button class="tr-back tr-undo-btn" id="tr-undo" title="Отменить последнее действие"><i class="ti ti-arrow-back-up"></i></button>
           <button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>
           ${role === 'coach'
-            ? `<span class="tr-role-badge">Тренер</span><button class="tr-back tr-logout-btn" id="tr-logout"><i class="ti ti-logout"></i> Выйти</button>`
-            : `<button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
+            ? `<span class="tr-role-badge">Тренер</span>`
+            : `<button class="tr-back tr-coach-btn" id="tr-coach" title="Доступ для тренера"><i class="ti ti-user-shield"></i></button><button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
         </div>
       </div>
       <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
@@ -1577,12 +1577,17 @@ window.Screens.training = function (mount) {
         <button class="tr-tab" data-tab="one-rm">1RM</button>
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
+        <button class="tr-tab tr-tab-ai" data-tab="ai"><i class="ti ti-sparkles"></i> AI</button>
       </div>
       <div class="tr-body" id="tr-content"></div>
     </div>
   `;
 
   const content = document.getElementById('tr-content');
+  /* Тренеру некуда уходить с тренировок — кнопку «назад» прячем */
+  if (role === 'coach') { const bk = document.getElementById('tr-back'); if (bk) bk.style.visibility = 'hidden'; }
+  const coachBtn = document.getElementById('tr-coach');
+  if (coachBtn) coachBtn.addEventListener('click', trOpenCoachModal);
   const planSelect = document.getElementById('tr-plan-select');
 
   function populatePlanSelect() {
@@ -2118,6 +2123,12 @@ window.Screens.training = function (mount) {
         btn.addEventListener('click', () => {
           trOpenMeasureModal(() => renderTab('summary'), parseInt(btn.dataset.idx, 10));
         });
+      });
+    } else if (tab === 'ai') {
+      if (window.TrainingAI) TrainingAI.render(content, plan, {
+        getPlans: trGetPlans,
+        savePlans: trSavePlans,
+        afterTransfer: () => { refreshUndoState(); },
       });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);
@@ -3125,4 +3136,69 @@ function trDeleteMeasurement(idx, onSave) {
   list.splice(idx, 1);
   list.forEach((m, i) => { if (m) Store.set('training.measurements.' + i, m); });
   onSave();
+}
+
+
+/* ── Доступ для тренера: пароль, вкл/выкл, удалить ── */
+async function trOpenCoachModal() {
+  const email = (window.FirebaseSync && FirebaseSync.currentUser() || {}).email || '';
+  const ov = document.createElement('div');
+  ov.className = 'tr-modal-overlay';
+  ov.innerHTML = '<div class="tr-modal coach-modal"><div class="coach-loading">Загрузка…</div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  let coach = null;
+  try { coach = await FirebaseSync.getCoach(); } catch (e) { console.error(e); }
+  const box = ov.querySelector('.coach-modal');
+
+  function render(msg, isErr) {
+    const has = !!(coach && coach.uid);
+    const on = has && coach.enabled !== false;
+    box.innerHTML = `
+      <div class="coach-head">
+        <div class="coach-ico"><i class="ti ti-user-shield"></i></div>
+        <div><p class="tr-modal-title" style="margin:0">Доступ для тренера</p>
+        <div class="coach-sub">Тренер видит и редактирует только тренировки</div></div>
+      </div>
+      <div class="coach-status ${has ? (on ? 'on' : 'off') : 'none'}">
+        <i class="ti ${has ? (on ? 'ti-circle-check' : 'ti-player-pause') : 'ti-circle-dashed'}"></i>
+        ${has ? (on ? 'Доступ открыт' : 'Доступ приостановлен') : 'Тренер ещё не подключён'}
+        ${has && on ? `<button class="coach-toggle" id="co-pause">Приостановить</button>` : has ? `<button class="coach-toggle" id="co-resume">Открыть</button>` : ''}
+      </div>
+      <div class="coach-how">
+        <div class="coach-how-t">Как тренер входит</div>
+        <div class="coach-cred"><span>Email</span><b>${email.replace(/[<>&]/g, '')}</b></div>
+        <div class="coach-cred"><span>Пароль</span><b>${has ? 'тот, что ты задал ниже' : 'задай ниже'}</b></div>
+        <div class="coach-note">Это твой email, но пароль у тренера свой. Твой пароль он не узнает, а финансы, привычки и цели ему закрыты.</div>
+      </div>
+      <div class="tr-modal-row"><label style="flex:1 1 100%">${has ? 'Новый пароль для тренера' : 'Пароль для тренера'}
+        <input type="text" id="co-pwd" placeholder="минимум 6 символов" autocomplete="off" autocapitalize="off" spellcheck="false"></label></div>
+      <div class="coach-msg ${isErr ? 'err' : ''}">${msg || ''}</div>
+      <div class="tr-modal-actions">
+        ${has ? '<button class="tr-modal-btn-secondary coach-del" id="co-del">Удалить тренера</button>' : '<button class="tr-modal-btn-secondary" id="co-close">Закрыть</button>'}
+        <button class="tr-modal-btn-primary" id="co-save">${has ? 'Сменить пароль' : 'Открыть доступ'}</button>
+      </div>`;
+    const q = (id) => box.querySelector(id);
+    if (q('#co-close')) q('#co-close').onclick = () => ov.remove();
+    q('#co-save').onclick = async () => {
+      const pwd = q('#co-pwd').value.trim();
+      if (pwd.length < 6) { render('Пароль минимум 6 символов', true); return; }
+      q('#co-save').disabled = true; q('#co-save').textContent = '…';
+      try {
+        await FirebaseSync.setCoachPassword(pwd);
+        coach = await FirebaseSync.getCoach();
+        render(has ? 'Пароль изменён. Старый пароль тренера больше не работает.' : 'Готово! Передай тренеру свой email и этот пароль.');
+      } catch (e) {
+        console.error(e);
+        render(e && e.code === 'auth/weak-password' ? 'Слишком простой пароль' : 'Не получилось. Проверь интернет и правила Firebase.', true);
+      }
+    };
+    if (q('#co-pause')) q('#co-pause').onclick = async () => { await FirebaseSync.setCoachEnabled(false); coach.enabled = false; render('Доступ приостановлен. Тренер не сможет открыть тренировки.'); };
+    if (q('#co-resume')) q('#co-resume').onclick = async () => { await FirebaseSync.setCoachEnabled(true); coach.enabled = true; render('Доступ снова открыт.'); };
+    if (q('#co-del')) q('#co-del').onclick = async () => {
+      if (!confirm('Удалить доступ тренера? Он больше не сможет войти.')) return;
+      await FirebaseSync.removeCoach(); coach = null; render('Тренер удалён.');
+    };
+  }
+  render();
 }

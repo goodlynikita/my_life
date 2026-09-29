@@ -41,6 +41,11 @@ const Router = (() => {
     }
 
     document.documentElement.classList.remove('fin-dark-on'); /* тёмные финансы — только на своём экране */
+    /* Тренеру доступны только тренировки */
+    if (loggedIn && Auth.role() === 'coach' && path !== '/training') {
+      location.hash = '/training';
+      return;
+    }
     const handler = routes[path] || routes['/login'];
     try {
       handler();

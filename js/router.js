@@ -23,7 +23,9 @@ const Router = (() => {
     location.hash = path;
   }
 
-  function render() {
+  function render(opts) {
+    const keepScroll = !!(opts && opts.keepScroll);
+    const prevY = window.scrollY;
     let path = currentPath();
     const loggedIn = Auth.isLoggedIn();
 
@@ -53,7 +55,7 @@ const Router = (() => {
           + '</div>';
       }
     }
-    window.scrollTo(0, 0);
+    window.scrollTo(0, keepScroll ? prevY : 0);
   }
 
   window.addEventListener('hashchange', render);

@@ -1,0 +1,18 @@
+/* ═══ Светлая тема ═══
+   Инверсия яркости с сохранением оттенков (hue-rotate 180°):
+   тёмные фоны становятся светлыми, цвета акцентов сохраняются.
+   Картинки/эмодзи инвертируем обратно, чтобы остались как есть. */
+html[data-theme="light"] {
+  background: #11141C;
+  filter: invert(1) hue-rotate(180deg);
+}
+html[data-theme="light"] img,
+html[data-theme="light"] video,
+html[data-theme="light"] .tt-ico,
+html[data-theme="light"] .no-invert {
+  filter: invert(1) hue-rotate(180deg);
+}
+/* Тени после инверсии становятся светлыми «ореолами» — приглушаем */
+html[data-theme="light"] .home-menu-btn,
+html[data-theme="light"] .theme-toggle { box-shadow: none; }
+html, body { transition: background-color .3s ease; }

@@ -296,7 +296,7 @@ var Features = (() => {
         const numEls = ov.querySelectorAll('[style*="font-size:20px"]');
         if (numEls[0]) numEls[0].textContent = newFeatOn;
 
-        setTimeout(() => Router.go(Router.currentPath()), 600);
+        setTimeout(() => Router.render(), 600);
       });
     });
 
@@ -304,7 +304,7 @@ var Features = (() => {
     ov.querySelector('#feat-disable-all').addEventListener('click', () => {
       if (!confirm('Отключить все фичи? Баги останутся исправленными.')) return;
       REGISTRY.filter(f => f.type === 'feature').forEach(f => Store.set('features.flags.' + f.id, false));
-      setTimeout(() => Router.go(Router.currentPath()), 400);
+      setTimeout(() => Router.render(), 400);
       ov.remove();
     });
   }

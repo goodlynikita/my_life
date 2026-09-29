@@ -70,6 +70,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('App boot error', e);
     Store.replaceAll({});
   } finally {
+    if (window.Theme) Theme.syncFromStore();
     Router.render();
   }
+});
+
+/* Пришли свежие данные с другого устройства — перерисовываем экран,
+   если пользователь сейчас ничего не редактирует (тренировки обновляются сами) */
+window.addEventListener('firebase-remote-update', function () {
+  if (window.Theme) Theme.syncFromStore();
+  var a = document.activeElement;
+  var editing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT');
+  var modalOpen = !!document.querySelector('.tr-modal-overlay');
+  if (editing || modalOpen) return;
+  if (Router.currentPath() === '/training') return;
+  Router.render({ keepScroll: true });
 });

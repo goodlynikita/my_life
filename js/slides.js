@@ -135,7 +135,7 @@ var Slides = (() => {
         const left   = goals.filter(g=>g.season===season&&!g.done&&!g.maybe).reduce((s,g)=>s+(g.amount||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const names  = {spring:'Весна',summer:'Лето',autumn:'Осень',winter:'Зима'};
-        return `<div class="hero-stat-num" style="font-size:13px;">${fmt(left)}</div><div class="hero-stat-lbl">цели ${names[season]}</div>`;
+        return `<div class="hero-stat-num">${fmt(left)}</div><div class="hero-stat-lbl">цели ${names[season]}</div>`;
       },
     },
     {
@@ -164,9 +164,8 @@ var Slides = (() => {
         const g = goals.find(x=>x.id===cfg?.goalId) || goals[0];
         if (!g) return `<div class="hero-big-text">—</div>`;
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        const nameColor = g.done ? 'rgba(255,255,255,0.45)' : '#F2F4F8';
-        const nameStyle = g.done ? 'text-decoration:line-through;' : '';
-        return `<div class="hero-stat-num" style="font-size:14px;line-height:1.3;color:${nameColor};${nameStyle}">${g.name}</div><div class="hero-stat-lbl">${g.amount?fmt(g.amount):''}</div>`;
+        const num = g.done ? '✓ ' + (g.amount ? fmt(g.amount) : 'готово') : (g.amount ? fmt(g.amount) : '—');
+        return `<div class="hero-stat-num"${g.done?' style="opacity:.55"':''}>${num}</div><div class="hero-stat-lbl">${g.name}</div>`;
       },
     },
     /* ── Тренировки: доп блоки ── */
@@ -372,9 +371,12 @@ var Slides = (() => {
   ];
 
   function getSlides() {
-    const saved = Store.get().home?.slides;
-    if (saved && Array.isArray(saved) && saved.length) return saved;
-    return DEFAULT_SLIDES;
+    let saved = Store.get().home?.slides;
+    if (saved && !Array.isArray(saved) && typeof saved === 'object') saved = Object.keys(saved).sort((a,b)=>a-b).map(k => saved[k]);
+    if (saved && Array.isArray(saved) && saved.filter(Boolean).length) return saved.filter(Boolean).map(x => ({...x}));
+    /* Ещё не настраивали — берём дефолт и учитываем старые флаги s0..s2 */
+    const cfg = Store.get().home?.sliderCfg || {};
+    return DEFAULT_SLIDES.map((x, i) => ({ ...x, enabled: cfg['s' + i] !== false }));
   }
 
   function saveSlides(slides) { Store.set('home.slides', slides); }
@@ -382,6 +384,7 @@ var Slides = (() => {
   /* ── Рендер одного слайда — структура как в оригинале ── */
   function renderSlide(cfg, store) {
     const _glowColorMap = {
+      'slide-focus':'#60A5FA','slide-finance':'#4ADE80','slide-goals':'#C084FC',
       'slide-amber':'#F59E0B','slide-crimson':'#F87171','slide-pink':'#F472B6',
       'slide-teal':'#2DD4BF','slide-indigo':'#818CF8','slide-orange':'#FB923C',
       'slide-lime':'#A3E635','slide-slate':'#94A3B8','slide-red':'#EF4444',
@@ -399,11 +402,13 @@ var Slides = (() => {
 
     /* Первый блок — главный (big text в центре), остальные — статы внизу */
     const mainHtml  = rendered[0] ? `<div class="hero-slide-main">${rendered[0].html}</div>` : '';
-    const statsHtml = rendered.slice(1).map(b =>
+    const stats = rendered.slice(1);
+    const statsHtml = stats.map(b =>
       `<div class="sb-block">${b.html}</div>`
     ).join('<div class="hero-stat-sep"></div>');
+    /* 4+ показателей — сетка 2×2, иначе одна строка. Размер шрифта у всех одинаковый */
     const subHtml = statsHtml
-      ? `<div class="hero-slide-sub"><div class="hero-stat-row">${statsHtml}</div></div>`
+      ? `<div class="hero-slide-sub"><div class="hero-stat-row stats-${Math.min(stats.length, 4)}${stats.length >= 4 ? ' stats-grid' : ''}">${statsHtml}</div></div>`
       : '';
 
     const route = cfg.route ? ` data-route="${cfg.route}"` : '';
@@ -463,19 +468,28 @@ var Slides = (() => {
 
     const SECTION_ORDER = ['Тренировки','Привычки','Финансы','Цели','Общее','Кастом'];
 
-    function slideCard(s, idx) {
+    function slideBg(s) {
+      const c = SLIDE_COLORS.find(x => (s.cssClass && x.cssClass === s.cssClass) || (!s.cssClass && s.color && x.val === s.color));
+      return c ? c.bg : (s.color || '#1A1C22');
+    }
+
+    function slideCard(s, idx, total) {
       const blocks = (s.blocks||[]).map(bid => {
         const def = BLOCK_LIBRARY.find(b=>b.id===bid);
-        return def ? `<span style="display:inline-block;background:#2A2D35;border-radius:6px;padding:3px 8px;font-size:10px;color:#9D9A92;margin:2px;">${def.name}</span>` : '';
+        return def ? `<span class="se-chip">${def.name}</span>` : '';
       }).join('');
-      return `<div class="se-slide-card" data-idx="${idx}" style="background:${s.color||'#1A1C22'};border:1px solid ${s.enabled?'#3A4060':'#2A2D35'};border-radius:14px;padding:14px;margin-bottom:10px;opacity:${s.enabled?1:0.45};transition:all .2s;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <span style="flex:1;font-size:12px;font-weight:700;color:#E8E5DC;font-family:Montserrat,sans-serif;letter-spacing:.06em;">${s.label||'Без названия'}</span>
-          <button class="se-toggle-slide" data-idx="${idx}" style="padding:4px 10px;border-radius:8px;border:1px solid ${s.enabled?'#4A7CFF':'#2A2D35'};background:${s.enabled?'rgba(74,124,255,.15)':'none'};color:${s.enabled?'#4A7CFF':'#555'};font-size:10px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">${s.enabled?'Вкл':'Выкл'}</button>
-          <button class="se-edit-slide" data-idx="${idx}" style="padding:4px 10px;border-radius:8px;border:1px solid #2A2D35;background:none;color:#9D9A92;font-size:10px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;">Изменить</button>
-          ${idx>0?`<button class="se-del-slide" data-idx="${idx}" style="padding:4px 8px;border-radius:8px;border:1px solid #3A1A1A;background:none;color:#FF5C5C;font-size:10px;cursor:pointer;">✕</button>`:''}
+      return `<div class="se-slide-card${s.enabled===false?' is-off':''}" data-idx="${idx}" style="background:${slideBg(s)};">
+        <div class="se-card-top">
+          <div class="se-move">
+            <button class="se-up" data-idx="${idx}" ${idx===0?'disabled':''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
+            <button class="se-down" data-idx="${idx}" ${idx===total-1?'disabled':''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
+          </div>
+          <span class="se-card-title">${s.label||'Без названия'}</span>
+          <button class="se-toggle-slide${s.enabled!==false?' on':''}" data-idx="${idx}">${s.enabled!==false?'Вкл':'Выкл'}</button>
+          <button class="se-edit-slide" data-idx="${idx}" aria-label="Изменить"><i class="ti ti-edit"></i></button>
+          ${total>1?`<button class="se-del-slide" data-idx="${idx}" aria-label="Удалить"><i class="ti ti-trash"></i></button>`:''}
         </div>
-        <div>${blocks||'<span style="font-size:11px;color:#555;">Нет блоков — нажми Изменить</span>'}</div>
+        <div class="se-chips">${blocks||'<span class="se-empty">Нет блоков — нажми «Изменить»</span>'}</div>
       </div>`;
     }
 
@@ -544,26 +558,35 @@ var Slides = (() => {
       </div>`;
     }
 
-    /* ── DOM ── */
+    /* ── DOM ── центрированное окно, как остальные модалки */
     const ov = document.createElement('div');
-    ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:flex-start;justify-content:flex-start;padding:0;overflow-y:auto;background:#0D0F14;';
+    ov.className = 'tr-modal-overlay se-overlay';
 
     function renderOv() {
       const curSlides = getSlides();
-      ov.innerHTML = `<div id="se-panel" style="background:#0D0F14;width:100%;min-height:100%;display:flex;flex-direction:column;box-sizing:border-box;">
-        <div style="background:#13151A;padding:16px 20px 14px;border-bottom:1px solid #1E2028;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
-          <span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайды</span>
-          <div style="display:flex;gap:8px;">
-            <button id="se-add" style="padding:6px 14px;border-radius:10px;border:1px solid #4A7CFF;background:rgba(74,124,255,.15);color:#4A7CFF;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Новый</button>
-            <button id="se-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>
+      ov.innerHTML = `<div id="se-panel" class="se-panel">
+        <div class="se-head">
+          <span class="se-head-title">Слайды</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button id="se-add" class="se-add-btn">+ Новый</button>
+            <button id="se-close" class="se-close-btn">×</button>
           </div>
         </div>
-        <div id="se-body" style="padding:16px 20px 80px;box-sizing:border-box;width:100%;">
-          <div style="font-size:11px;color:#555;margin-bottom:12px;font-family:Montserrat,sans-serif;">Нажми Изменить чтобы редактировать блоки слайда.</div>
-          ${curSlides.map((s,i) => slideCard(s,i)).join('')}
+        <div id="se-body" class="se-body">
+          <div class="se-hint">Стрелки — порядок на главном. «Вкл/Выкл» — показывать слайд.</div>
+          ${curSlides.map((s,i) => slideCard(s,i,curSlides.length)).join('')}
         </div>
       </div>`;
+
+      /* Порядок */
+      const move = (i, d) => {
+        const sl = getSlides(); const j = i + d;
+        if (j < 0 || j >= sl.length) return;
+        const [x] = sl.splice(i, 1); sl.splice(j, 0, x);
+        saveSlides(sl); renderOv(); Router.render();
+      };
+      ov.querySelectorAll('.se-up').forEach(b => b.addEventListener('click', () => move(parseInt(b.dataset.idx), -1)));
+      ov.querySelectorAll('.se-down').forEach(b => b.addEventListener('click', () => move(parseInt(b.dataset.idx), 1)));
 
       ov.querySelector('#se-close').addEventListener('click', () => ov.remove());
       ov.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
@@ -573,8 +596,8 @@ var Slides = (() => {
         btn.addEventListener('click', () => {
           const i = parseInt(btn.dataset.idx);
           const sl = getSlides();
-          sl[i] = {...sl[i], enabled: !sl[i].enabled};
-          saveSlides(sl); renderOv(); Router.go('/home');
+          sl[i] = {...sl[i], enabled: sl[i].enabled === false};
+          saveSlides(sl); renderOv(); Router.render();
         });
       });
 
@@ -583,7 +606,7 @@ var Slides = (() => {
         btn.addEventListener('click', () => {
           if (!confirm('Удалить слайд?')) return;
           const sl = getSlides(); sl.splice(parseInt(btn.dataset.idx),1);
-          saveSlides(sl); renderOv(); Router.go('/home');
+          saveSlides(sl); renderOv(); Router.render();
         });
       });
 
@@ -593,12 +616,12 @@ var Slides = (() => {
           const idx = parseInt(btn.dataset.idx);
           const sl  = getSlides();
           const panel = ov.querySelector('#se-panel');
-          const head  = panel.querySelector('[style*="sticky"]');
-          head.querySelector('span').textContent = 'Редактировать слайд';
+          const head  = panel.querySelector('.se-head');
+          head.querySelector('.se-head-title').textContent = 'Редактировать слайд';
           head.querySelector('#se-add').style.display='none';
           const body = panel.querySelector('#se-body');
-          body.style.cssText = 'padding:16px 20px 80px;box-sizing:border-box;width:100%;';
           body.innerHTML = slideEditForm(sl[idx], idx);
+          body.scrollTop = 0;
 
           /* Color picker */
           let selCssClass = sl[idx].cssClass||'', selGlowClass = sl[idx].glowClass||'';
@@ -644,7 +667,7 @@ var Slides = (() => {
               blocks:     newBlocks,
               blockCfgs,
             };
-            saveSlides(sl); renderOv(); Router.go('/home');
+            saveSlides(sl); renderOv(); Router.render();
           });
         });
       });
@@ -652,7 +675,7 @@ var Slides = (() => {
       /* Add new slide */
       ov.querySelector('#se-add')?.addEventListener('click', () => {
         const sl = getSlides();
-        sl.push({ id: 's_'+Date.now(), label:'НОВЫЙ СЛАЙД', color:'#13151A', enabled:true, blocks:[] });
+        sl.push({ id: 's_'+Date.now(), label:'НОВЫЙ СЛАЙД', cssClass:'slide-slate', color:'#0d1117', glowColor:'#64748B', enabled:true, blocks:[] });
         saveSlides(sl); renderOv();
       });
     }

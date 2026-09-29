@@ -53,32 +53,54 @@ const TRAINING_TYPES_DEFAULT = [
   { name: 'Шаги',       color: '#A78BFA', group: 'Шаги' },
   { name: 'Отдых',      color: '#6B7280', group: 'Отдых' },
 ];
-function trLoadTypes() {
-  try { const s = localStorage.getItem('nik_training_types'); if (s) return JSON.parse(s); } catch(e) {}
-  return TRAINING_TYPES_DEFAULT.map(t => ({...t}));
+/* Спокойная палитра (без кислотных цветов) — цвет типа берётся по его группе */
+const TR_GROUP_COLORS = {
+  'Зал':    '#6FAF8C',
+  'Фитнес': '#A48FCB',
+  'Кардио': '#6F9BCB',
+  'Спорт':  '#C9A266',
+  'Шаги':   '#8E89C6',
+  'Отдых':  '#7C818D',
+};
+function trTypeColor(t) { return TR_GROUP_COLORS[t.group] || t.color || '#8A8F9C'; }
+function trNormalizeTypes(arr) {
+  return (Array.isArray(arr) ? arr : Object.values(arr || {}))
+    .filter(t => t && t.name)
+    .map(t => ({ name: t.name, group: t.group || 'Спорт', color: trTypeColor(t) }));
 }
-function trSaveTypes(arr) { localStorage.setItem('nik_training_types', JSON.stringify(arr)); }
+function trLoadTypes() {
+  try { const s = localStorage.getItem('nik_training_types'); if (s) return trNormalizeTypes(JSON.parse(s)); } catch(e) {}
+  return trNormalizeTypes(TRAINING_TYPES_DEFAULT);
+}
+/* Типы сохраняются и в Firebase — иначе удалённые типы «возвращались»
+   (раньше удаление вообще никуда не записывалось) */
+function trSaveTypes(arr) {
+  try { localStorage.setItem('nik_training_types', JSON.stringify(arr)); } catch(e) {}
+  try { Store.set('training.catalog.types', arr.map(t => ({ name: t.name, group: t.group, color: t.color }))); } catch(e) {}
+}
 let TRAINING_TYPES = trLoadTypes();
 
-const MUSCLE_GROUPS = [
-  { name: 'Грудь',     color: '#A8C97F' },
-  { name: 'Спина',     color: '#7FB3D9' },
-  { name: 'Руки',      color: '#9C9A95' },
-  { name: 'Ноги',      color: '#E0B873' },
-  { name: 'Плечи',     color: '#B6A4D9' },
-  { name: 'Кор',       color: '#F87171' },
-  { name: 'FULL BODY', color: '#2E7FD4' },
-];
+/* Цвета групп мышц — приглушённые, в тон картинкам силуэта */
+const MUSCLE_COLOR = {
+  'Грудь':     '#7FB36E',
+  'Спина':     '#6C95C8',
+  'Руки':      '#9B82C6',
+  'Ноги':      '#CF9A5E',
+  'Плечи':     '#C47FA0',
+  'Кор':       '#C57070',
+  'FULL BODY': '#6FAF8C',
+};
+const MUSCLE_GROUPS = Object.keys(MUSCLE_COLOR).map(name => ({ name, color: MUSCLE_COLOR[name] }));
 
 const CARDIO_DIRECTIONS = ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'];
 
 const TRAINING_CATEGORIES = [
-  { id: 'Тренажерный зал', label: 'Тренажерный зал', color: '#4ADE80', desc: 'Силовые по группам мышц' },
-  { id: 'Фитнес', label: 'Фитнес',            color: '#C084FC', desc: 'Растяжка, пилатес, йога' },
-  { id: 'Кардио', label: 'Кардио',            color: '#60A5FA', desc: 'Бег, велосипед, плавание' },
-  { id: 'Спорт',  label: 'Спорт',             color: '#F59E0B', desc: 'Игровые и зимние виды' },
-  { id: 'Шаги',   label: 'Шаги',              color: '#A78BFA', desc: 'Трекинг шагов' },
-  { id: 'Отдых',  label: 'Отдых',             color: '#6B7280', desc: 'День восстановления' },
+  { id: 'Тренажерный зал', label: 'Тренажерный зал', color: TR_GROUP_COLORS['Зал'],    desc: 'Силовые по группам мышц' },
+  { id: 'Фитнес', label: 'Фитнес',            color: TR_GROUP_COLORS['Фитнес'], desc: 'Растяжка, пилатес, йога' },
+  { id: 'Кардио', label: 'Кардио',            color: TR_GROUP_COLORS['Кардио'], desc: 'Бег, велосипед, плавание' },
+  { id: 'Спорт',  label: 'Спорт',             color: TR_GROUP_COLORS['Спорт'],  desc: 'Игровые и зимние виды' },
+  { id: 'Шаги',   label: 'Шаги',              color: TR_GROUP_COLORS['Шаги'],   desc: 'Трекинг шагов' },
+  { id: 'Отдых',  label: 'Отдых',             color: TR_GROUP_COLORS['Отдых'],  desc: 'День восстановления' },
 ];
 
 function trIsGymType(typeName) {
@@ -185,9 +207,31 @@ function trLoadExercises() {
 
 function trSaveExercises(data) {
   try { localStorage.setItem('nik_exercises_v2', JSON.stringify(data)); } catch(e) {}
+  try { Store.set('training.catalog.exercises', JSON.parse(JSON.stringify(data))); } catch(e) {}
 }
 
 const MUSCLE_BLOCK_EXERCISES = trLoadExercises();
+
+/* Каталог (типы + упражнения) живёт в Firebase: подтягиваем его при каждом
+   открытии экрана, чтобы правки с другого устройства не терялись */
+function trSyncCatalogFromStore() {
+  const cat = (Store.get().training || {}).catalog || {};
+  if (cat.types) {
+    const types = trNormalizeTypes(cat.types);
+    if (types.length) {
+      TRAINING_TYPES.splice(0, TRAINING_TYPES.length, ...types);
+      try { localStorage.setItem('nik_training_types', JSON.stringify(types)); } catch(e) {}
+    }
+  }
+  if (cat.exercises && typeof cat.exercises === 'object') {
+    Object.keys(MUSCLE_BLOCK_EXERCISES).forEach(k => { delete MUSCLE_BLOCK_EXERCISES[k]; });
+    Object.keys(cat.exercises).forEach(k => {
+      const v = cat.exercises[k];
+      MUSCLE_BLOCK_EXERCISES[k] = Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {}).filter(Boolean);
+    });
+    try { localStorage.setItem('nik_exercises_v2', JSON.stringify(MUSCLE_BLOCK_EXERCISES)); } catch(e) {}
+  }
+}
 
 function trOpenExerciseEditor() {
   const overlay = document.createElement('div');
@@ -221,7 +265,7 @@ function trOpenExerciseEditor() {
           ${types.map(t => `
             <div style="position:relative;display:inline-flex;">
               <button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px 8px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0;"></span>${t.name}
+                <span style="width:8px;height:8px;border-radius:50%;background:${trTypeColor(t)};flex-shrink:0;"></span>${t.name}
               </button>
               <button class="tr-type-del-btn" data-type="${t.name}" title="Удалить" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:#F87171;border:none;color:#fff;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">×</button>
             </div>`).join('')}
@@ -234,7 +278,7 @@ function trOpenExerciseEditor() {
   }
 
   function buildGroupStep() {
-    const COLOR_MAP = {'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'};
+    const COLOR_MAP = MUSCLE_COLOR;
     const html = groups.map(g => {
       const count = (MUSCLE_BLOCK_EXERCISES[g]||[]).length;
       const c = COLOR_MAP[g]||'#9D9A92';
@@ -301,6 +345,8 @@ function trOpenExerciseEditor() {
         if (idx !== -1) TRAINING_TYPES.splice(idx, 1);
         // Удаляем упражнения этого типа
         delete MUSCLE_BLOCK_EXERCISES[typeName];
+        trSaveTypes(TRAINING_TYPES);
+        trSaveExercises(MUSCLE_BLOCK_EXERCISES);
         render();
       });
     });
@@ -314,8 +360,8 @@ function trOpenExerciseEditor() {
         if (!name || !name.trim()) return;
         const trimmed = name.trim();
         if (TRAINING_TYPES.find(t => t.name === trimmed)) { alert('Такой тип уже есть'); return; }
-        const colors = {'Зал':'#4ADE80','Фитнес':'#C084FC','Кардио':'#60A5FA','Спорт':'#F59E0B','Шаги':'#A78BFA','Отдых':'#6B7280'};
-        TRAINING_TYPES.push({ name: trimmed, color: colors[grp] || '#9D9A92', group: grp });
+        TRAINING_TYPES.push({ name: trimmed, color: TR_GROUP_COLORS[grp] || '#8A8F9C', group: grp });
+        trSaveTypes(TRAINING_TYPES);
         render();
       });
     });
@@ -612,27 +658,81 @@ function trGetProgression(exName) {
   return EXERCISE_PROGRESSION[exName] || null;
 }
 
-function trGetLastSession(plan, exName) {
-  /* Ищем последнюю запись этого упражнения по всем неделям */
-  let last = null;
-  plan.weeks.forEach(week => {
-    week.days.forEach(day => {
+/* Крайнее выполнение упражнения: сначала ищем в текущем плане,
+   если там его ещё не было — в прошлых планах (от свежих к старым) */
+function trFindLastStrength(plan, exName) {
+  const today = new Date(); today.setHours(23, 59, 59, 0);
+  const dayDate = (p, dateStr) => {
+    const [dd, mm] = String(dateStr || '').split('.').map(Number);
+    if (!dd || !mm) return null;
+    const start = p.startDate ? new Date(p.startDate) : new Date();
+    let d = new Date(start.getFullYear(), mm - 1, dd);
+    if (d < new Date(start.getFullYear(), start.getMonth(), start.getDate() - 7)) d = new Date(start.getFullYear() + 1, mm - 1, dd);
+    return d;
+  };
+  const scan = (p) => {
+    let found = null;
+    (p && p.weeks || []).forEach(week => (week && week.days || []).forEach(day => {
+      if (!day) return;
+      const dt = dayDate(p, day.date);
+      if (dt && dt > today) return; /* будущие (запланированные) дни не считаем */
       trMigrateDayToSessions(day);
-      day.sessions.forEach(session => {
-        session.exercises.forEach(ex => {
-          if (ex.name === exName && ex.kind === 'strength') last = ex;
-        });
-      });
-    });
+      (day.sessions || []).forEach(session => (session && session.exercises || []).forEach(ex => {
+        if (ex && ex.kind === 'strength' && ex.name === exName && (ex.weight > 0 || ex.reps > 0)) found = { ex, date: day.date, plan: p };
+      }));
+    }));
+    return found;
+  };
+  const inCurrent = scan(plan);
+  if (inCurrent) return inCurrent;
+  const others = trGetPlans().filter(p => p && (!plan || p.id !== plan.id))
+    .sort((a, b) => (b.number || 0) - (a.number || 0));
+  for (const p of others) { const r = scan(p); if (r) return r; }
+  return null;
+}
+
+function trGetLastSession(plan, exName) {
+  const r = trFindLastStrength(plan, exName);
+  return r ? r.ex : null;
+}
+
+/* Подставить в форму вес/подходы/повторы с прошлого раза (если поля пустые
+   или были подставлены автоматически ранее) */
+function trPrefillFromLast(root, plan, exName) {
+  const last = exName ? trFindLastStrength(plan, exName) : null;
+  const fields = { '#m-sets': 'sets', '#m-reps': 'reps', '#m-weight': 'weight' };
+  Object.keys(fields).forEach(sel => {
+    const inp = root.querySelector(sel);
+    if (!inp) return;
+    const auto = inp.dataset.auto === '1';
+    if (inp.value !== '' && !auto) return; /* пользователь ввёл сам — не трогаем */
+    const v = last ? last.ex[fields[sel]] : '';
+    inp.value = v ? v : '';
+    inp.dataset.auto = v ? '1' : '';
+  });
+  root.querySelectorAll('#m-sets,#m-reps,#m-weight').forEach(inp => {
+    if (!inp._autoBound) { inp._autoBound = true; inp.addEventListener('input', () => { inp.dataset.auto = ''; }); }
   });
   return last;
 }
 
 function trProgressionHint(plan, exName) {
   const prog = trGetProgression(exName);
-  if (!prog) return null;
+  const lastInfo = trFindLastStrength(plan, exName);
+  const last = lastInfo ? lastInfo.ex : null;
+  const whereLine = lastInfo
+    ? (lastInfo.plan && plan && lastInfo.plan.id !== plan.id ? ` · план №${lastInfo.plan.number}, ${lastInfo.date}` : ` · ${lastInfo.date}`)
+    : '';
 
-  const last = trGetLastSession(plan, exName);
+  if (!prog) {
+    if (!last) return null;
+    return {
+      type: 'last',
+      html: `<div class="tr-prog-hint tr-prog-hold">
+        <div class="tr-prog-last">Крайний раз: ${last.sets} × ${last.reps} × ${last.weight} кг${whereLine}</div>
+      </div>`
+    };
+  }
 
   if (!last) {
     return {
@@ -645,7 +745,7 @@ function trProgressionHint(plan, exName) {
   }
 
   const { sets, reps, weight } = last;
-  const lastLine = `${sets} × ${reps} × ${weight} кг`;
+  const lastLine = `${sets} × ${reps} × ${weight} кг${whereLine}`;
 
   if (prog.step === 0) {
     /* Пресс — только повторы */
@@ -653,7 +753,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'reps',
       html: `<div class="tr-prog-hint tr-prog-ok">
-        <div class="tr-prog-last">Последний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-target"></i> Цель сегодня: ${target}</div>
       </div>`
     };
@@ -665,7 +765,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'increase',
       html: `<div class="tr-prog-hint tr-prog-up">
-        <div class="tr-prog-last">Последний раз: ${lastLine} ✅</div>
+        <div class="tr-prog-last">Крайний раз: ${lastLine} ✅</div>
         <div class="tr-prog-target"><i class="ti ti-trending-up"></i> Поднимай до <strong>${newWeight} кг</strong>, цель ${sets} × ${prog.min}</div>
       </div>`
     };
@@ -674,7 +774,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'hold',
       html: `<div class="tr-prog-hint tr-prog-hold">
-        <div class="tr-prog-last">Последний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${weight} кг</strong>, цель — дойти до ${sets} × ${prog.max}</div>
       </div>`
     };
@@ -683,7 +783,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'work',
       html: `<div class="tr-prog-hint tr-prog-low">
-        <div class="tr-prog-last">Последний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-refresh"></i> Оставь <strong>${weight} кг</strong>, работай над повторами (цель ${prog.min}–${prog.max})</div>
       </div>`
     };
@@ -995,85 +1095,56 @@ function trBuildExerciseSelect(selectedGroups) {
   return `<select id="m-name" class="tr-color-select">${options}${customOption}</select>`;
 }
 
-function trBuildGroupCheckboxes(selected) {
-  const COLOR_MAP = {
-    'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC',
-    'Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'
-  };
+/* ── Группы мышц: кнопки + силуэт ──────────────────────────────
+   Картинки лежат в img/m/. Для 9 готовых комбинаций — готовые PNG,
+   для любых других сочетаний силуэт собирается из слоёв ov_*.png */
+const MUSCLE_IMG_KEY = { 'Грудь':'chest', 'Спина':'back', 'Ноги':'legs', 'Руки':'arms', 'Плечи':'shoulders', 'Кор':'core' };
+const MUSCLE_KEY_ORDER = ['chest','back','legs','arms','shoulders','core'];
+const MUSCLE_COMBOS = {
+  'chest_shoulders':1, 'chest_arms':1, 'chest_core':1,   /* Грудь+Плечи, Грудь+Руки, Грудь+Кор */
+  'back_arms':1, 'back_shoulders':1, 'back_core':1,      /* Спина+Руки, Спина+Плечи, Спина+Кор */
+  'legs_core':1, 'legs_shoulders':1, 'legs_arms':1,      /* Ноги+Кор, Ноги+Плечи, Ноги+Руки */
+};
+function trMuscleImageHtml(groups) {
+  const img = f => `<img src="img/m/${f}.png" alt="" draggable="false">`;
+  const g = (groups || []).filter(Boolean);
+  const keys = g.filter(x => MUSCLE_IMG_KEY[x]).map(x => MUSCLE_IMG_KEY[x])
+    .sort((a, b) => MUSCLE_KEY_ORDER.indexOf(a) - MUSCLE_KEY_ORDER.indexOf(b));
+  let inner;
+  if (g.includes('FULL BODY') || keys.length >= 6) inner = img('full');
+  else if (keys.length === 0) inner = img('body');
+  else if (keys.length === 1) inner = img(keys[0]);
+  else if (keys.length === 2 && MUSCLE_COMBOS[keys.join('_')]) inner = img(keys.join('_'));
+  else inner = img('body') + keys.map(k => img('ov_' + k)).join('');
+  return `<div class="m-sil-stack">${inner}</div>`;
+}
 
-  function pill(name) {
-    const active = selected.includes(name);
-    const col = COLOR_MAP[name] || '#9D9A92';
-    const isFull = name === 'FULL BODY';
-    return `<label class="m-group-label" data-group="${name}" style="display:flex;align-items:center;justify-content:center;padding:${isFull ? '0 10px' : '8px 10px'};${isFull ? 'height:100%;' : ''}border-radius:10px;border:1.5px solid ${active ? col : 'rgba(255,255,255,0.15)'};background:${active ? col + '22' : 'rgba(255,255,255,0.04)'};cursor:pointer;font-size:12px;font-weight:700;color:${active ? col : 'rgba(255,255,255,0.5)'};transition:all 0.15s;white-space:nowrap;width:100%;box-sizing:border-box;text-align:center;letter-spacing:0.02em;">
+function trMuscleBtn(name, active) {
+  const label = name === 'FULL BODY' ? 'FULL<br>BODY' : name;
+  return `<label class="m-group-label${name === 'FULL BODY' ? ' m-group-full' : ''}${active ? ' is-on' : ''}" data-group="${name}" style="--mc:${MUSCLE_COLOR[name] || '#8A8F9C'};">
       <input type="checkbox" class="m-group-cb m-group-check" value="${name}" ${active ? 'checked' : ''} style="display:none;">
-      ${name}
+      <span>${label}</span>
     </label>`;
-  }
+}
 
-  // Layout: 3 колонки + FULL BODY
-  const row1 = ['Грудь','Спина','Ноги'];
-  const row2 = ['Руки','Плечи','Кор'];
+function trBuildGroupCheckboxes(selected) {
+  selected = selected || [];
+  const has = n => selected.includes(n);
+  return `<div class="m-groups-picker">
+      ${['Грудь','Спина','Ноги','Руки','Плечи','Кор'].map(n => trMuscleBtn(n, has(n))).join('')}
+      ${trMuscleBtn('FULL BODY', has('FULL BODY'))}
+      <div id="m-silhouette" class="m-silhouette">${trMuscleImageHtml(selected)}</div>
+    </div>`;
+}
 
-  const fb = selected.includes('FULL BODY');
-  const has = n => fb || selected.includes(n);
-  const cm = n => COLOR_MAP[n];
-
-  // Точные маски по пикселям body.png 110x165
-  const masks = [
-    has('Плечи') ? `<rect x="29" y="28" width="13" height="20" rx="4" fill="${cm('Плечи')}" opacity="0.7"/><rect x="68" y="28" width="12" height="20" rx="4" fill="${cm('Плечи')}" opacity="0.7"/>` : '',
-    has('Грудь') ? `<rect x="43" y="36" width="23" height="28" rx="4" fill="${cm('Грудь')}" opacity="0.75"/>` : '',
-    has('Спина') ? `<rect x="43" y="36" width="23" height="28" rx="4" fill="${cm('Спина')}" opacity="0.65"/>` : '',
-    has('Руки')  ? `<rect x="24" y="54" width="11" height="30" rx="4" fill="${cm('Руки')}" opacity="0.75"/><rect x="75" y="54" width="11" height="30" rx="4" fill="${cm('Руки')}" opacity="0.75"/>` : '',
-    has('Кор')   ? `<rect x="43" y="64" width="23" height="34" rx="4" fill="${cm('Кор')}" opacity="0.75"/>` : '',
-    has('Ноги')  ? `<rect x="37" y="100" width="13" height="62" rx="4" fill="${cm('Ноги')}" opacity="0.75"/><rect x="59" y="100" width="13" height="62" rx="4" fill="${cm('Ноги')}" opacity="0.75"/>` : '',
-    fb ? `<rect x="29" y="20" width="52" height="143" rx="6" fill="rgba(52,211,153,0.2)"/>` : '',
-  ].join('');
-
-  // Если выбрана одна группа с картинкой — показываем её
-  const IMG_SINGLE = {
-    'Грудь':  '/my_life/img/muscle_chest.png',
-    'Спина':  '/my_life/img/muscle_back.png',
-    'Руки':   '/my_life/img/muscle_arms.png',
-    'Ноги':   '/my_life/img/muscle_legs.png',
-    'Плечи':  '/my_life/img/muscle_shoulders.png',
-    'Кор':    '/my_life/img/muscle_core.png',
-    'FULL BODY': '/my_life/img/muscle_fullbody.png',
-  };
-  const IMG_COMBO = {
-    'Грудь+Плечи':   '/my_life/img/muscle_chest_shoulders.png',
-    'Грудь+Руки':    '/my_life/img/muscle_chest_arms.png',
-    'Грудь+Кор':     '/my_life/img/muscle_chest_core.png',
-    'Руки+Спина':    '/my_life/img/muscle_back_arms.png',
-    'Плечи+Спина':   '/my_life/img/muscle_back_shoulders.png',
-    'Кор+Спина':     '/my_life/img/muscle_back_core.png',
-    'Кор+Ноги':      '/my_life/img/muscle_legs_core.png',
-    'Ноги+Плечи':    '/my_life/img/muscle_legs_shoulders.png',
-    'Ноги+Руки':     '/my_life/img/muscle_arms_legs.png',
-  };
-  const activeGroups = selected.filter(g => g !== 'FULL BODY');
-  const isFull = selected.includes('FULL BODY');
-  const comboKey = activeGroups.slice().sort().join('+');
-  const isAllGroups = activeGroups.length >= 6;
-  const singleImg = (isFull || isAllGroups) ? IMG_SINGLE['FULL BODY']
-    : activeGroups.length === 1 ? IMG_SINGLE[activeGroups[0]]
-    : IMG_COMBO[comboKey] || null;
-
-  const silhouette = singleImg
-    ? `<img src="${singleImg}" style="width:80px;height:120px;object-fit:contain;display:block;" />`
-    : `<svg viewBox="0 0 110 165" width="80" height="120" style="display:block;">
-        <image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/>
-        ${masks ? `<g>${masks}</g>` : ''}
-      </svg>`;
-
-  return `<div style="display:flex;align-items:flex-start;gap:10px;">
-    <div class="m-groups-wrap" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;grid-template-rows:auto auto;gap:5px;flex:1;align-items:stretch;">
-      ${row1.map(pill).join('')}
-      <div style="grid-row:1/3;display:flex;">${pill('FULL BODY')}</div>
-      ${row2.map(pill).join('')}
-    </div>
-    <div id="m-silhouette" style="flex-shrink:0;">${silhouette}</div>
-  </div>`;
+/* Обновить подсветку кнопок и силуэт по отмеченным чекбоксам */
+function trRefreshMuscleVisual(root, groups) {
+  root.querySelectorAll('.m-group-label').forEach(lbl => {
+    const cb = lbl.querySelector('.m-group-cb');
+    if (cb) lbl.classList.toggle('is-on', cb.checked);
+  });
+  const sil = root.querySelector('#m-silhouette');
+  if (sil) sil.innerHTML = trMuscleImageHtml(groups);
 }
 
 function trBuildFormFields(typeName, selectedGroups, plan) {
@@ -1083,9 +1154,9 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
   if (trIsGymType(typeName)) {
     return `
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Группы мышц
-          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">${trBuildGroupCheckboxes(selectedGroups)}</div>
-        </label>
+        <div style="flex:1 1 100%" class="m-groups-field"><span class="m-groups-title">Группы мышц</span>
+          ${trBuildGroupCheckboxes(selectedGroups)}
+        </div>
       </div>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Упражнение<span id="m-name-wrap">${trBuildExerciseSelect(selectedGroups)}</span></label>
@@ -1179,6 +1250,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
       if (hintEl) hintEl.innerHTML = '';
       return;
     }
+    trPrefillFromLast(overlay, plan, nameEl.value);
     const hint = trProgressionHint(plan, nameEl.value);
     hintEl.innerHTML = hint ? hint.html : '';
   }
@@ -1186,58 +1258,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
   function refreshMuscleUI() {
     const groups = selectedGroupsNow();
 
-    // Обновляем стиль каждой кнопки без перестройки DOM
-    const COLOR_MAP = {
-      'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC',
-      'Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'
-    };
-    overlay.querySelectorAll('.m-group-label').forEach(lbl => {
-      const cb = lbl.querySelector('.m-group-cb');
-      if (!cb) return;
-      const name = cb.value;
-      const active = cb.checked;
-      const c = COLOR_MAP[name] || '#9D9A92';
-      lbl.style.border = '1.5px solid ' + (active ? c : 'rgba(255,255,255,0.2)');
-      lbl.style.background = active ? c + '28' : 'rgba(255,255,255,0.05)';
-      lbl.style.color = active ? c : 'rgba(255,255,255,0.6)';
-      // no dot
-    });
-
-    // Обновляем силуэт
-    const sil = overlay.querySelector('#m-silhouette');
-    if (sil) {
-
-      const fb = groups.includes('FULL BODY');
-      const has = n => fb || groups.includes(n);
-      const cm = n => ({'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171'})[n] || '#9D9A92';
-      const masks = [
-        // Плечи: y=20-36, x=30-45 лево, x=64-79 право
-        has('Плечи') ? `<ellipse cx="37" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/><ellipse cx="72" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/>` : '',
-        // Грудь: торс y=36-65, x=43-66
-        has('Грудь') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Грудь')}" opacity="0.7"/>` : '',
-        // Спина = те же координаты (вид спереди)
-        has('Спина') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Спина')}" opacity="0.65"/>` : '',
-        // Руки: лево x=23-35 y=52-85, право x=74-87 y=52-85
-        has('Руки')  ? `<rect x="23" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/><rect x="74" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/>` : '',
-        // Кор: y=65-101, x=43-66
-        has('Кор')   ? `<rect x="43" y="65" width="24" height="36" rx="4" fill="${cm('Кор')}" opacity="0.7"/>` : '',
-        // Ноги лево: x=37-51 y=100-163, право: x=59-73 y=100-163
-        has('Ноги')  ? `<rect x="37" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/><rect x="59" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/>` : '',
-        fb ? `<rect x="23" y="20" width="64" height="143" rx="6" fill="rgba(52,211,153,0.2)"/>` : '',
-      ].join('');
-      const _IMG_S = {'Грудь':'/my_life/img/muscle_chest.png','Спина':'/my_life/img/muscle_back.png','Руки':'/my_life/img/muscle_arms.png','Ноги':'/my_life/img/muscle_legs.png','Плечи':'/my_life/img/muscle_shoulders.png','Кор':'/my_life/img/muscle_core.png','FULL BODY':'/my_life/img/muscle_fullbody.png'};
-      const _IMG_C = {'Грудь+Плечи':'/my_life/img/muscle_chest_shoulders.png','Грудь+Руки':'/my_life/img/muscle_chest_arms.png','Грудь+Кор':'/my_life/img/muscle_chest_core.png','Руки+Спина':'/my_life/img/muscle_back_arms.png','Плечи+Спина':'/my_life/img/muscle_back_shoulders.png','Кор+Спина':'/my_life/img/muscle_back_core.png','Кор+Ноги':'/my_life/img/muscle_legs_core.png','Ноги+Плечи':'/my_life/img/muscle_legs_shoulders.png','Ноги+Руки':'/my_life/img/muscle_arms_legs.png'};
-      const _activeG = groups.filter(g => g !== 'FULL BODY');
-      const _isFull = groups.includes('FULL BODY');
-      const _comboKey = _activeG.slice().sort().join('+');
-      const _isAll = _activeG.length >= 6;
-      const _singleImg = (_isFull || _isAll) ? _IMG_S['FULL BODY'] : _activeG.length === 1 ? _IMG_S[_activeG[0]] : _IMG_C[_comboKey] || null;
-      if (_singleImg) {
-        sil.innerHTML = '<img src="' + _singleImg + '" style="width:80px;height:120px;object-fit:contain;display:block;" />';
-      } else {
-        sil.innerHTML = '<svg viewBox="0 0 110 165" width="80" height="120" style="flex-shrink:0;display:block;"><image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/><g opacity="0.8">' + masks + '</g></svg>';
-      }
-    }
+    trRefreshMuscleVisual(overlay, Array.from(overlay.querySelectorAll('.m-group-cb:checked')).map(cb => cb.value));
 
     // Обновляем список упражнений
     const wrap = overlay.querySelector('#m-name-wrap');
@@ -1348,6 +1369,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       if (hintEl) hintEl.innerHTML = '';
       return;
     }
+    trPrefillFromLast(overlay, plan, nameEl.value);
     const hint = trProgressionHint(plan, nameEl.value);
     hintEl.innerHTML = hint ? hint.html : '';
   }
@@ -1362,45 +1384,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
 
   function refreshAddMuscleUI() {
     const groups = selectedGroupsNow();
-    const COLOR_MAP = {'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171','FULL BODY':'#34D399'};
-    overlay.querySelectorAll('.m-group-label').forEach(lbl => {
-      const cb = lbl.querySelector('.m-group-cb');
-      if (!cb) return;
-      const active = cb.checked;
-      const col = COLOR_MAP[cb.value] || '#9D9A92';
-      lbl.style.border = '1.5px solid ' + (active ? col : 'rgba(255,255,255,0.2)');
-      lbl.style.background = active ? col + '28' : 'rgba(255,255,255,0.05)';
-      lbl.style.color = active ? col : 'rgba(255,255,255,0.6)';
-      // no dot
-    });
-    const sil = overlay.querySelector('#m-silhouette');
-    if (sil) {
-
-      const fb = groups.includes('FULL BODY');
-      const has = n => fb || groups.includes(n);
-      const cm = n => ({'Грудь':'#4ADE80','Спина':'#60A5FA','Руки':'#C084FC','Ноги':'#F59E0B','Плечи':'#F472B6','Кор':'#F87171'})[n] || '#9D9A92';
-      const masks = [
-        has('Плечи') ? `<ellipse cx="37" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/><ellipse cx="72" cy="28" rx="7" ry="8" fill="${cm('Плечи')}" opacity="0.75"/>` : '',
-        has('Грудь') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Грудь')}" opacity="0.7"/>` : '',
-        has('Спина') ? `<rect x="43" y="36" width="24" height="29" rx="4" fill="${cm('Спина')}" opacity="0.65"/>` : '',
-        has('Руки')  ? `<rect x="23" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/><rect x="74" y="52" width="12" height="33" rx="4" fill="${cm('Руки')}" opacity="0.75"/>` : '',
-        has('Кор')   ? `<rect x="43" y="65" width="24" height="36" rx="4" fill="${cm('Кор')}" opacity="0.7"/>` : '',
-        has('Ноги')  ? `<rect x="37" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/><rect x="59" y="100" width="14" height="63" rx="5" fill="${cm('Ноги')}" opacity="0.75"/>` : '',
-        fb ? `<rect x="23" y="20" width="64" height="143" rx="6" fill="rgba(52,211,153,0.2)"/>` : '',
-      ].join('');
-      const _IMG_S = {'Грудь':'/my_life/img/muscle_chest.png','Спина':'/my_life/img/muscle_back.png','Руки':'/my_life/img/muscle_arms.png','Ноги':'/my_life/img/muscle_legs.png','Плечи':'/my_life/img/muscle_shoulders.png','Кор':'/my_life/img/muscle_core.png','FULL BODY':'/my_life/img/muscle_fullbody.png'};
-      const _IMG_C = {'Грудь+Плечи':'/my_life/img/muscle_chest_shoulders.png','Грудь+Руки':'/my_life/img/muscle_chest_arms.png','Грудь+Кор':'/my_life/img/muscle_chest_core.png','Руки+Спина':'/my_life/img/muscle_back_arms.png','Плечи+Спина':'/my_life/img/muscle_back_shoulders.png','Кор+Спина':'/my_life/img/muscle_back_core.png','Кор+Ноги':'/my_life/img/muscle_legs_core.png','Ноги+Плечи':'/my_life/img/muscle_legs_shoulders.png','Ноги+Руки':'/my_life/img/muscle_arms_legs.png'};
-      const _activeG = groups.filter(g => g !== 'FULL BODY');
-      const _isFull = groups.includes('FULL BODY');
-      const _comboKey = _activeG.slice().sort().join('+');
-      const _isAll = _activeG.length >= 6;
-      const _singleImg = (_isFull || _isAll) ? _IMG_S['FULL BODY'] : _activeG.length === 1 ? _IMG_S[_activeG[0]] : _IMG_C[_comboKey] || null;
-      if (_singleImg) {
-        sil.innerHTML = '<img src="' + _singleImg + '" style="width:80px;height:120px;object-fit:contain;display:block;" />';
-      } else {
-        sil.innerHTML = '<svg viewBox="0 0 110 165" width="80" height="120" style="flex-shrink:0;display:block;"><image href="/my_life/img/body.png" x="0" y="0" width="110" height="165"/><g opacity="0.8">' + masks + '</g></svg>';
-      }
-    }
+    trRefreshMuscleVisual(overlay, groups);
     const wrap = overlay.querySelector('#m-name-wrap');
     if (wrap) { wrap.innerHTML = trBuildExerciseSelect(groups); bindNameSelect(); }
   }
@@ -1559,6 +1543,7 @@ function trRender1RMCalc() {
 }
 
 window.Screens.training = function (mount) {
+  try { trSyncCatalogFromStore(); } catch (e) { console.warn('catalog sync', e); }
   const role = Auth.role();
   const activeId = trEnsureSeedPlan();
   let currentPlanId = activeId;

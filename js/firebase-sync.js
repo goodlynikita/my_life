@@ -31,6 +31,7 @@ const FirebaseSync = (() => {
   let _flushTimer = null;
   const _queue = new Map();
   let hideTimer = null;
+  let _flushing = false;
 
   function isConfigured() {
     return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL);
@@ -66,6 +67,7 @@ const FirebaseSync = (() => {
     if (!root || _queue.size === 0) return;
     const entries = [..._queue.entries()];
     _queue.clear();
+    _flushing = true;
     _lastWriteAt = Date.now();
     setStatus('Сохранение…');
     try {
@@ -75,8 +77,11 @@ const FirebaseSync = (() => {
         const data = Store.get()[top];
         if (data !== undefined) await set(ref(_db, root + '/' + top), sanitizeKeys(data));
       }
+      _flushing = false;
+      _lastWriteAt = Date.now();
       setStatus('Сохранено');
     } catch(e) {
+      _flushing = false;
       console.error('flush failed', e);
       setStatus('Ошибка сохранения', true);
       for (const [p,v] of entries) _queue.set(p,v);
@@ -94,10 +99,14 @@ const FirebaseSync = (() => {
   async function _silentPull() {
     const root = userRoot();
     if (!_loaded || !root) return;
+    /* Не тянем, пока есть неотправленные правки — иначе старая версия
+       с сервера затрёт свежие изменения (удалённое «воскресает») */
+    if (_queue.size > 0 || _flushing) return;
     if (Date.now() - _lastWriteAt < 10000) return;
     try {
       const snap = await get(ref(_db, root));
       if (!snap.exists()) return;
+      if (_queue.size > 0 || _flushing) return; /* пока ждали ответ — появились правки */
       Store.replaceAll(snap.val());
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
     } catch(e) {}
@@ -131,18 +140,22 @@ const FirebaseSync = (() => {
     }
   }
 
+  /* При сворачивании отправляем ТОЛЬКО несохранённые правки.
+     Раньше тут целиком перезаписывался весь корень данных локальной копией —
+     если на другом устройстве данные были новее, они затирались, и удалённые
+     тренировки/цели «возвращались». */
   function _pushBeacon() {
     const root = userRoot();
     if (!_loaded || !root) return;
+    if (_flushTimer) { clearTimeout(_flushTimer); _flushTimer = null; }
     if (_queue.size > 0) _flushQueue();
-    try { set(ref(_db, root), sanitizeKeys(Store.get())).catch(() => {}); } catch(e) {}
   }
 
   let _hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      /* Тянем данные только если были скрыты больше 2 минут */
-      if (Date.now() - _hiddenAt > 120000) _silentPull();
+      /* Вернулись в приложение — подтягиваем свежие данные с других устройств */
+      if (Date.now() - _hiddenAt > 15000) _silentPull();
     } else {
       _hiddenAt = Date.now();
       _pushBeacon();

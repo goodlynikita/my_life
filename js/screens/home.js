@@ -63,89 +63,35 @@ window.Screens.home = function(mount) {
     if(todayGroups.length) todayWorkout = todayGroups.join(' + ');
   }
 
-  var tagHtml = todayGroups.map(function(g){ return '<span class="hero-tag">'+g+'</span>'; }).join('');
-
-  /* ── Оригинальные слайды ── */
-  var slide1 = '<div class="hero-slide slide-focus" data-route="/training">'
-    + '<div class="hero-slide-label">ФОКУС ДНЯ</div>'
-    + '<div class="hero-slide-main">'
-    + (todayGroups.length ? '<div class="hero-tag-row">'+tagHtml+'</div>' : '')
-    + '<div class="hero-big-text'+(todayWorkout?'':' hero-dim')+'">'+(todayWorkout||'Не задано')+'</div>'
-    + '</div>'
-    + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box"><div class="hero-stat-num">'+todayDone+'<span class="hero-stat-of">/'+habList.length+'</span></div><div class="hero-stat-lbl">привычек сегодня</div></div>'
-    + '<div class="hero-stat-sep"></div>'
-    + '<div class="hero-stat-box"><div class="hero-stat-num">'+now.getDate()+'</div><div class="hero-stat-lbl">'+MONTHS[now.getMonth()].toLowerCase()+'</div></div>'
-    + '</div></div>'
-    + '<div class="hero-slide-glow slide-glow-blue"></div>'
-    + '</div>';
-
-  var curMonth = now.getMonth();
-  var curSeason = curMonth<=7 ? 'summer' : curMonth<=10 ? 'autumn' : 'december';
-  var seasonGoals = goals.filter(function(g){return g.season===curSeason;});
-  var seasonTotal = seasonGoals.reduce(function(s,g){return s+(g.amount||0);},0);
-  var seasonDone  = seasonGoals.filter(function(g){return g.done;}).reduce(function(s,g){return s+(g.amount||0);},0);
-  var seasonLeft  = seasonTotal - seasonDone;
-  var seasonNames = {summer:'Лето',autumn:'Осень',december:'Декабрь'};
-
-  var slide2 = '<div class="hero-slide slide-finance" data-route="/finance">'
-    + '<div class="hero-slide-label">ФИНАНСОВЫЙ ПУЛЬС</div>'
-    + '<div class="hero-slide-main">'
-    + '<div class="hero-big-text">'+(monthIncome>0?fmt(monthIncome):'Нет данных')+'</div>'
-    + '<div class="hero-sub-text">'+MONTHS[now.getMonth()]+' '+yr+'</div>'
-    + '</div>'
-    + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box" id="home-cushion-box" style="cursor:pointer;"><div class="hero-stat-num" style="color:'+(cushion>=0?'#4ADE80':'#F87171')+'">'+fmt(Math.abs(cushion))+'</div><div class="hero-stat-lbl">'+(cushion>=0?'подушка':'не хватает')+'<span style="font-size:8px;color:rgba(255,255,255,0.3);"> (план '+fmt(plannedExpenses)+')</span></div></div>'
-    + '<div class="hero-stat-sep"></div>'
-    + '<div class="hero-stat-box"><div class="hero-stat-num" style="font-size:13px;color:#FCD34D;">'+fmt(seasonLeft)+'</div><div class="hero-stat-lbl">цели '+seasonNames[curSeason]+'</div></div>'
-    + '</div></div>'
-    + '<div class="hero-slide-glow slide-glow-green"></div>'
-    + '</div>';
-
-  var slide3 = '<div class="hero-slide slide-goals" data-route="/goals">'
-    + '<div class="hero-slide-label">ПРОГРЕСС ЦЕЛЕЙ</div>'
-    + '<div class="hero-slide-main">'
-    + '<div class="hero-big-text">'+goalsPct+'%</div>'
-    + '<div class="hero-goals-bar"><div class="hero-goals-fill" style="width:'+goalsPct+'%"></div></div>'
-    + '</div>'
-    + '<div class="hero-slide-sub"><div class="hero-stat-row">'
-    + '<div class="hero-stat-box"><div class="hero-stat-num">'+doneCnt+'<span class="hero-stat-of">/'+totalCnt+'</span></div><div class="hero-stat-lbl">закрыто</div></div>'
-    + '<div class="hero-stat-sep"></div>'
-    + '<div class="hero-stat-box"><div class="hero-stat-num" style="font-size:14px;">'+fmt(yearAmt-doneYearAmt)+'</div><div class="hero-stat-lbl">осталось</div></div>'
-    + '</div></div>'
-    + '<div class="hero-slide-glow slide-glow-purple"></div>'
-    + '</div>';
-
-  /* sliderCfg нужен всегда — объявляем до условия */
+  /* sliderCfg: interval, autoplay, hidden */
   var sliderCfg = (store.home && store.home.sliderCfg) || {};
+  var sliderHidden = sliderCfg.hidden === true;
 
-  /* Слайды через Slides.js если есть кастомные, иначе дефолт */
-  var _customSlides = window.Slides ? window.Slides.getSlides() : null;
-  var visSlides;
-  if (_customSlides && _customSlides.length && window.Slides.DEFAULT_SLIDES &&
-      JSON.stringify(_customSlides) !== JSON.stringify(window.Slides.DEFAULT_SLIDES)) {
-    visSlides = _customSlides.filter(function(s){ return s.enabled !== false; })
-      .map(function(s){ return window.Slides.renderSlide(s, store); });
-    if (!visSlides.length) visSlides = [slide1, slide2, slide3];
-  } else {
-    var allSlides  = [slide1, slide2, slide3];
-    var shown      = [sliderCfg.s0!==false, sliderCfg.s1!==false, sliderCfg.s2!==false];
-    visSlides = allSlides.filter(function(_,i){ return shown[i]; });
-    if (!visSlides.length) visSlides = allSlides;
-  }
-  var n = visSlides.length;
+  /* Слайды всегда из Slides (порядок/вкл-выкл настраиваются) */
+  var visSlides = window.Slides
+    ? window.Slides.getSlides().filter(function(s){ return s && s.enabled !== false; })
+        .map(function(s){ return window.Slides.renderSlide(s, store); })
+    : [];
+  if (!visSlides.length) sliderHidden = true;
+  var n = visSlides.length || 1;
+
+  var isLight = window.Theme && window.Theme.get() === 'light';
 
   mount.innerHTML = '<div class="home2-screen">'
-    + '<div class="home2-header" style="justify-content:flex-end;">'
-    + '<button id="home-menu-btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px 16px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px;letter-spacing:4px;line-height:1;display:flex;align-items:center;">···</button>'
+    + '<div class="home2-header">'
+    + '<button id="home-theme-btn" class="theme-toggle" data-mode="'+(isLight?'light':'dark')+'" aria-label="Тема: светлая / тёмная" title="Светлая / тёмная тема">'
+    +   '<span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span>'
+    + '</button>'
+    + '<button id="home-menu-btn" class="home-menu-btn" aria-label="Меню"><span></span><span></span><span></span></button>'
     + '</div>'
-    + '<div class="hero-slider" id="hero-slider">'
+    + (sliderHidden ? '' : '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides" style="width:'+(n*100)+'%">'
-    + visSlides.map(function(s){ return typeof s === 'string' ? s.replace('flex:0 0 33.333%','') : ''; }).join('')
+    + visSlides.join('')
     + '</div>'
-    + '<div class="hero-dots">'
+    + (n > 1 ? '<div class="hero-dots">'
     + visSlides.map(function(_,i){ return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>'; }).join('')
-    + '</div></div>'
+    + '</div>' : '')
+    + '</div>')
     + '<div class="home2-grid">'
     + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><i class="ti ti-flame home2-tile-icon"></i><div class="home2-tile-name">Тренировки</div><div class="home2-tile-desc">'+(todayWorkout||'Не задано')+'</div></div></button>'
     + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><i class="ti ti-checklist home2-tile-icon"></i><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div></div></button>'
@@ -153,7 +99,7 @@ window.Screens.home = function(mount) {
     + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + '</div>'
     + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
-    + '<div id="sync-status" style="font-size:11px;color:#9D9A92;"></div>'
+
     + ''
     + '</div></div>'
     + '</div>';
@@ -165,6 +111,14 @@ window.Screens.home = function(mount) {
     el.addEventListener('click', function(){ Router.go(el.dataset.route); });
   });
 
+  // Переключатель темы
+  var themeBtn = document.getElementById('home-theme-btn');
+  if (themeBtn) themeBtn.addEventListener('click', function() {
+    var next = (window.Theme && window.Theme.get() === 'light') ? 'dark' : 'light';
+    themeBtn.dataset.mode = next;
+    setTimeout(function(){ window.Theme && window.Theme.set(next); }, 180);
+  });
+
   // Единое меню
   var menuBtn = document.getElementById('home-menu-btn');
   if (menuBtn) menuBtn.addEventListener('click', function() {
@@ -174,7 +128,7 @@ window.Screens.home = function(mount) {
       + '<div style="padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase;">Меню</div>'
       + '<button id="hm-slides" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout" style="font-size:18px;color:#9D9A92;"></i>Редактор слайдов</button>'
       + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
-      + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-settings" style="font-size:18px;color:#9D9A92;"></i>Настройки</button>'
+      + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-adjustments-horizontal" style="font-size:18px;color:#9D9A92;"></i>Настройки слайдера</button>'
       + '<button id="hm-logout" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#F87171;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button>'
       + '</div>';
     document.body.appendChild(ov);
@@ -242,8 +196,9 @@ window.Screens.home = function(mount) {
         return '<div class="tile-sort-item" data-ti="'+ti+'" style="'
           + 'display:flex;align-items:center;gap:12px;padding:12px 16px;'
           + 'background:#1C1E24;border-radius:10px;border:1px solid #2A2D35;'
-          + 'cursor:grab;user-select:none;touch-action:none;">'
-          + '<span style="color:#555;font-size:18px;cursor:grab;">⠿</span>'
+          + 'user-select:none;">'
+          + '<div class="se-move"><button class="tso-up" data-pos="'+pos+'" '+(pos===0?'disabled':'')+' aria-label="Выше"><i class="ti ti-chevron-up"></i></button><button class="tso-down" data-pos="'+pos+'" '+(pos===order.length-1?'disabled':'')+' aria-label="Ниже"><i class="ti ti-chevron-down"></i></button></div>'
+          + '<span class="tso-handle" style="color:#555;font-size:18px;cursor:grab;touch-action:none;">⠿</span>'
           + '<span style="font-size:20px;"><i class="ti '+t.icon+'"></i></span>'
           + '<span style="flex:1;font-size:14px;font-weight:600;color:#E8E5DC;">'+t.label+'</span>'
           + '<span style="color:#555;font-size:12px;">#'+(pos+1)+'</span>'
@@ -270,7 +225,7 @@ window.Screens.home = function(mount) {
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Сетка</div>'
         + '<div style="display:flex;gap:8px;margin-bottom:20px;">' + tmplBtns + '</div>'
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:6px;">Порядок</div>'
-        + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Перетащи за ⠿ чтобы изменить</div>'
+        + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Стрелками или перетащи за ⠿</div>'
         + '<div id="tile-sort-list" style="display:flex;flex-direction:column;gap:8px;">' + tileItems + '</div>'
         + '<div style="margin-top:16px;">'
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:8px;">Показывать</div>'
@@ -292,22 +247,15 @@ window.Screens.home = function(mount) {
     ov.addEventListener('click', function(e) { if (e.target===ov) ov.remove(); });
     ov.querySelector('#tso-close').addEventListener('click', function() { ov.remove(); });
 
-    /* Шаблоны */
-    var TMPL_ORDERS = [[0,1,2,3],[0,1,2,3],[0,1,2,3],[0,1,2,3]];
-    ov.querySelectorAll('.tso-tmpl').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        layout = TEMPLATES[parseInt(btn.dataset.tmpl)].id;
-        order = TMPL_ORDERS[parseInt(btn.dataset.tmpl)].slice();
-        ov.innerHTML = buildHtml(); rebind();
-      });
-    });
 
     /* Drag-to-reorder */
     function rebind() {
       ov.querySelector('#tso-close').addEventListener('click', function() { ov.remove(); });
+      /* Раньше после первой перерисовки клик по шаблону менял только порядок,
+         а сетку — нет. Теперь меняет сетку и сохраняет текущий порядок */
       ov.querySelectorAll('.tso-tmpl').forEach(function(btn) {
         btn.addEventListener('click', function() {
-          order = TMPL_ORDERS[parseInt(btn.dataset.tmpl)].slice();
+          layout = TEMPLATES[parseInt(btn.dataset.tmpl)].id;
           ov.innerHTML = buildHtml(); rebind();
         });
       });
@@ -320,11 +268,20 @@ window.Screens.home = function(mount) {
         });
       });
 
+      ov.querySelectorAll('.tso-up,.tso-down').forEach(function(b){
+        b.addEventListener('click', function(){
+          var i = parseInt(b.dataset.pos), j = i + (b.classList.contains('tso-up') ? -1 : 1);
+          if (j < 0 || j >= order.length) return;
+          var x = order.splice(i, 1)[0]; order.splice(j, 0, x);
+          ov.innerHTML = buildHtml(); rebind();
+        });
+      });
       var list = ov.querySelector('#tile-sort-list');
       var dragging = null, startY = 0, startIdx = 0;
 
       list.querySelectorAll('.tile-sort-item').forEach(function(item, idx) {
         item.addEventListener('pointerdown', function(e) {
+          if (!e.target.closest('.tso-handle')) return;
           dragging = item; startY = e.clientY; startIdx = idx;
           item.style.opacity = '0.7'; item.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
           item.setPointerCapture(e.pointerId);
@@ -361,55 +318,45 @@ window.Screens.home = function(mount) {
       Store.set('home.tileLayout', layout);
       Store.set('home.tileHidden', hidden);
       ov.remove();
-      var grid = mount.querySelector('.home2-grid');
-      if (grid) {
-        grid.classList.remove('layout-2x2','layout-row','layout-bigfirst','layout-biglast');
-        var tmpl = TEMPLATES.find(function(t){return t.id===layout;});
-        if (tmpl) grid.classList.add(tmpl.layout);
-        var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
-        // Apply order
-        var sorted = order.map(function(ti) { return tileEls.find(function(el){return el.classList.contains(TILES[ti].cls);}); }).filter(Boolean);
-        sorted.forEach(function(el) { grid.appendChild(el); });
-        // Apply visibility
-        tileEls.forEach(function(el, i) {
-          TILES.forEach(function(t, ti) {
-            if (el.classList.contains(t.cls)) {
-              el.classList.toggle('tile-hidden', hidden.includes(ti));
-            }
-          });
-        });
-      }
+      applyTileLayout();
     }
 
-    ov.querySelector('#tso-save').addEventListener('click', saveTiles);
     rebind();
   }
 
   /* ── Применяем сохранённый порядок и сетку плиток при загрузке ── */
+  /* Широкие плитки считаем в JS по ВИДИМЫМ плиткам.
+     Раньше это делал CSS через :nth-child — но в грид добавляется слой-блик,
+     и после любого сохранения порядок «съезжал» на одну позицию. */
+  var WIDE_BY_LAYOUT = { '2x2': [], 'row': [0,1,2,3], 'bigfirst': [0,3], 'biglast': [2,3] };
   function applyTileLayout() {
-    var savedOrder  = Store.get().home && Store.get().home.tileOrder;
-    var savedLayout = Store.get().home && Store.get().home.tileLayout;
-    var savedHidden = (Store.get().home && Store.get().home.tileHidden) || [];
+    var h = Store.get().home || {};
+    var savedOrder  = Array.isArray(h.tileOrder) ? h.tileOrder : (h.tileOrder ? Object.values(h.tileOrder) : null);
+    var savedLayout = h.tileLayout || '2x2';
+    var savedHidden = Array.isArray(h.tileHidden) ? h.tileHidden : (h.tileHidden ? Object.values(h.tileHidden) : []);
     var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals'];
     var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
-    // Сброс layout классов
     Object.values(LAYOUT_MAP).forEach(function(cls) { grid.classList.remove(cls); });
-    if (savedLayout && LAYOUT_MAP[savedLayout]) grid.classList.add(LAYOUT_MAP[savedLayout]);
-    if (savedOrder && savedOrder.length) {
-      var tileEls = Array.from(grid.querySelectorAll('.home2-tile'));
-      var sorted = savedOrder.map(function(ti) { return tileEls.find(function(el){return el.classList.contains(TILE_CLS[ti]);}); }).filter(Boolean);
-      sorted.forEach(function(el) { grid.appendChild(el); });
+    grid.classList.add(LAYOUT_MAP[savedLayout] || 'layout-2x2');
+    var order = (savedOrder && savedOrder.length === 4) ? savedOrder : [0,1,2,3];
+    var tiles = order.map(function(ti){ return grid.querySelector('.'+TILE_CLS[ti]); }).filter(Boolean);
+    tiles.forEach(function(el){ grid.appendChild(el); });
+    var wide = WIDE_BY_LAYOUT[savedLayout] || [];
+    var vis = 0;
+    tiles.forEach(function(el){
+      var ti = TILE_CLS.findIndex(function(c){ return el.classList.contains(c); });
+      var isHidden = savedHidden.indexOf(ti) !== -1;
+      el.classList.toggle('tile-hidden', isHidden);
+      el.classList.remove('tile-wide');
+      if (!isHidden) { if (wide.indexOf(vis) !== -1) el.classList.add('tile-wide'); vis++; }
+    });
+    /* Нечётное число видимых в 2×2 — последняя на всю ширину, чтобы не было дырки */
+    if (savedLayout === '2x2' && vis % 2 === 1) {
+      var visTiles = tiles.filter(function(el){ return !el.classList.contains('tile-hidden'); });
+      visTiles[visTiles.length-1].classList.add('tile-wide');
     }
-    TILE_CLS.forEach(function(cls) {
-      var el = grid.querySelector('.'+cls);
-      if (el) el.classList.remove('tile-hidden');
-    });
-    savedHidden.forEach(function(ti) {
-      var el = grid.querySelector('.'+TILE_CLS[ti]);
-      if (el) el.classList.add('tile-hidden');
-    });
   }
   applyTileLayout();
 
@@ -419,80 +366,111 @@ window.Screens.home = function(mount) {
     applyTileLayout();
   });
 
-  /* ── Настройки слайдера ── */
+  /* ── Настройки слайдера: показать/скрыть, интервал, автолистание, порядок и видимость слайдов ── */
   function openSliderSettings() {
     var cfg2 = (Store.get().home && Store.get().home.sliderCfg) || {};
     var intVal = Math.round((cfg2.interval||4500)/1000);
     var autoOn = cfg2.autoplay !== false;
+    var shownOn = cfg2.hidden !== true;
+    var slides = window.Slides ? window.Slides.getSlides() : [];
+    var SW = { 'slide-focus':'linear-gradient(135deg,#0a1e4a,#1a4a8a)', 'slide-finance':'linear-gradient(135deg,#072814,#165c2c)', 'slide-goals':'linear-gradient(135deg,#1e0d44,#420f7a)' };
+
     var ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
-    ov.style.cssText = 'align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
-    ov.innerHTML = '<div style="background:#1A1C22;border-radius:16px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;padding:0 0 36px;">'
-      + '<div style="padding:18px 20px 14px;border-bottom:1px solid #2A2D35;display:flex;align-items:center;justify-content:space-between;">'
-      +   '<span style="font-size:17px;font-weight:800;color:#E8E5DC;font-family:Montserrat,sans-serif;">Слайдер</span>'
+
+    function toggleHtml(id, on, extra) {
+      return '<button '+(id?'id="'+id+'" ':'')+(extra||'')+' data-on="'+(on?'1':'0')+'" class="sl-tgl" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:'+(on?'#4A7CFF':'#2A2D35')+';position:relative;transition:background .25s;">'
+        + '<div style="position:absolute;top:4px;left:'+(on?'23px':'4px')+';width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div></button>';
+    }
+    function flip(btn) {
+      var on = btn.dataset.on !== '1';
+      btn.dataset.on = on ? '1' : '0';
+      btn.style.background = on ? '#4A7CFF' : '#2A2D35';
+      btn.querySelector('div').style.left = on ? '23px' : '4px';
+      return on;
+    }
+    function swatch(sl) {
+      if (sl.cssClass && SW[sl.cssClass]) return SW[sl.cssClass];
+      return sl.glowColor ? 'linear-gradient(135deg,'+(sl.color||'#111')+','+sl.glowColor+'66)' : (sl.color||'#1A1C22');
+    }
+    function slidesListHtml() {
+      return slides.map(function(sl, i){
+        var on = sl.enabled !== false;
+        return '<div class="sl-row'+(on?'':' is-off')+'">'
+          + '<div class="se-move"><button class="sl-up" data-i="'+i+'" '+(i===0?'disabled':'')+' aria-label="Выше"><i class="ti ti-chevron-up"></i></button>'
+          + '<button class="sl-down" data-i="'+i+'" '+(i===slides.length-1?'disabled':'')+' aria-label="Ниже"><i class="ti ti-chevron-down"></i></button></div>'
+          + '<span class="sl-swatch" style="background:'+swatch(sl)+'"></span>'
+          + '<span class="sl-name">'+(sl.label||'Без названия')+'</span>'
+          + toggleHtml('', on, 'data-slide="'+i+'"')
+          + '</div>';
+      }).join('');
+    }
+
+    ov.innerHTML = '<div style="background:#1A1C22;border-radius:16px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">'
+      + '<div style="flex-shrink:0;padding:18px 20px 14px;border-bottom:1px solid #2A2D35;display:flex;align-items:center;justify-content:space-between;">'
+      +   '<span style="font-size:17px;font-weight:800;color:#E8E5DC;">Слайдер</span>'
       +   '<button id="sl-close-x" style="background:#2A2D35;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button>'
       + '</div>'
-      + '<div style="padding:20px 20px 0;">'
+      + '<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 20px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:16px;">'
+      +   '<div><div style="font-size:14px;font-weight:700;color:#E8E5DC;">Показывать слайдер</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл — на главном только плитки</div></div>'
+      +   toggleHtml('sl-show-toggle', shownOn)
+      + '</div>'
+      + '<div id="sl-more" style="'+(shownOn?'':'opacity:.4;pointer-events:none;')+'">'
       + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Интервал переключения</div>'
-      + '<div style="display:flex;align-items:center;gap:16px;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:8px;">'
+      + '<div style="display:flex;align-items:center;gap:16px;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:8px;">'
       +   '<button id="sl-int-minus" style="width:36px;height:36px;border-radius:50%;border:1px solid #2A2D35;background:#2A2D35;color:#E8E5DC;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>'
-      +   '<span id="sl-int-val" style="flex:1;text-align:center;font-size:28px;font-weight:900;color:#E8E5DC;font-family:Montserrat,sans-serif;">'+intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span></span>'
-      +   '<button id="sl-int-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(74,124,255,.4);">+</button>'
+      +   '<span id="sl-int-val" style="flex:1;text-align:center;font-size:26px;font-weight:900;color:#E8E5DC;">'+intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span></span>'
+      +   '<button id="sl-int-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:20px;">'
-      +   '<div><div style="font-size:14px;font-weight:600;color:#E8E5DC;font-family:Montserrat,sans-serif;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл — листать вручную</div></div>'
-      +   '<button id="sl-auto-toggle" data-on="'+(autoOn?'1':'0')+'" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:'+(autoOn?'#4A7CFF':'#2A2D35')+';position:relative;transition:background .25s;">'
-      +     '<div style="position:absolute;top:4px;left:'+(autoOn?'23px':'4px')+';width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>'
-      +   '</button>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:18px;">'
+      +   '<div><div style="font-size:14px;font-weight:600;color:#E8E5DC;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл — листать вручную</div></div>'
+      +   toggleHtml('sl-auto-toggle', autoOn)
       + '</div>'
-      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Показывать слайды</div>'
-      + ['Фокус дня','Финансовый пульс','Прогресс целей'].map(function(name,i){
-          var on = cfg2['s'+i]!==false;
-          return '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:12px;padding:12px 16px;margin-bottom:8px;">'
-            + '<span style="font-size:14px;font-weight:600;color:'+(on?'#E8E5DC':'#555')+';font-family:Montserrat,sans-serif;" class="sl-slide-label-'+i+'">'+name+'</span>'
-            + '<button class="sl-slide-toggle" data-slide="'+i+'" data-on="'+(on?'1':'0')+'" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:'+(on?'#4A7CFF':'#2A2D35')+';position:relative;transition:background .25s;">'
-            +   '<div style="position:absolute;top:4px;left:'+(on?'23px':'4px')+';width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>'
-            + '</button>'
-            + '</div>';
-        }).join('')
-      + '<button id="sl-save" style="width:100%;padding:16px;background:#4A7CFF;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 4px 16px rgba(74,124,255,.4);">Сохранить</button>'
+      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Слайды и порядок</div>'
+      + '<div id="sl-list">'+slidesListHtml()+'</div>'
+      + '</div>'
+      + '<button id="sl-save" style="width:100%;margin-top:10px;padding:15px;background:#4A7CFF;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(74,124,255,.35);">Сохранить</button>'
       + '</div></div>';
     document.body.appendChild(ov);
-    ov.addEventListener('click', function(e){if(e.target===ov)ov.remove();});
-    ov.querySelector('#sl-close-x').addEventListener('click', function(){ov.remove();});
-    ov.querySelector('#sl-int-minus').addEventListener('click', function(){
-      intVal=Math.max(1,intVal-1);
-      var el=ov.querySelector('#sl-int-val');
-      el.innerHTML=intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>';
-    });
-    ov.querySelector('#sl-int-plus').addEventListener('click', function(){
-      intVal=Math.min(60,intVal+1);
-      var el=ov.querySelector('#sl-int-val');
-      el.innerHTML=intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>';
-    });
-    ov.querySelector('#sl-auto-toggle').addEventListener('click', function(){
-      var on=this.dataset.on==='1'; on=!on;
-      this.dataset.on=on?'1':'0'; this.style.background=on?'#4A7CFF':'#2A2D35';
-      this.querySelector('div').style.left=on?'23px':'4px';
-    });
-    ov.querySelectorAll('.sl-slide-toggle').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var on=btn.dataset.on==='1'; on=!on;
-        btn.dataset.on=on?'1':'0'; btn.style.background=on?'#4A7CFF':'#2A2D35';
-        btn.querySelector('div').style.left=on?'23px':'4px';
-        var label=ov.querySelector('.sl-slide-label-'+btn.dataset.slide);
-        if(label) label.style.color=on?'#E8E5DC':'#555';
+
+    function bindList() {
+      ov.querySelectorAll('#sl-list [data-slide]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var i = parseInt(btn.dataset.slide);
+          slides[i] = Object.assign({}, slides[i], { enabled: flip(btn) });
+          btn.closest('.sl-row').classList.toggle('is-off', slides[i].enabled === false);
+        });
       });
+      function move(i, d) {
+        var j = i + d; if (j < 0 || j >= slides.length) return;
+        var x = slides.splice(i, 1)[0]; slides.splice(j, 0, x);
+        ov.querySelector('#sl-list').innerHTML = slidesListHtml(); bindList();
+      }
+      ov.querySelectorAll('.sl-up').forEach(function(b){ b.addEventListener('click', function(){ move(parseInt(b.dataset.i), -1); }); });
+      ov.querySelectorAll('.sl-down').forEach(function(b){ b.addEventListener('click', function(){ move(parseInt(b.dataset.i), 1); }); });
+    }
+    bindList();
+
+    ov.addEventListener('click', function(e){ if (e.target===ov) ov.remove(); });
+    ov.querySelector('#sl-close-x').addEventListener('click', function(){ ov.remove(); });
+    ov.querySelector('#sl-show-toggle').addEventListener('click', function(){
+      var on = flip(this);
+      var more = ov.querySelector('#sl-more');
+      more.style.opacity = on ? '' : '.4'; more.style.pointerEvents = on ? '' : 'none';
     });
+    ov.querySelector('#sl-auto-toggle').addEventListener('click', function(){ flip(this); });
+    function showInt() { ov.querySelector('#sl-int-val').innerHTML = intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>'; }
+    ov.querySelector('#sl-int-minus').addEventListener('click', function(){ intVal=Math.max(1,intVal-1); showInt(); });
+    ov.querySelector('#sl-int-plus').addEventListener('click', function(){ intVal=Math.min(60,intVal+1); showInt(); });
     ov.querySelector('#sl-save').addEventListener('click', function(){
-      Store.set('home.sliderCfg',{
+      Store.set('home.sliderCfg', {
         interval: intVal*1000,
         autoplay: ov.querySelector('#sl-auto-toggle').dataset.on==='1',
-        s0: ov.querySelector('[data-slide="0"]').dataset.on==='1',
-        s1: ov.querySelector('[data-slide="1"]').dataset.on==='1',
-        s2: ov.querySelector('[data-slide="2"]').dataset.on==='1',
+        hidden: ov.querySelector('#sl-show-toggle').dataset.on!=='1',
       });
-      ov.remove(); Router.go('/home');
+      if (window.Slides) window.Slides.saveSlides(slides);
+      ov.remove(); Router.render();
     });
   }
 

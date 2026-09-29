@@ -64,6 +64,7 @@ function finPctBadge(pct, size) {
 
 /* Дата из строки dd.mm.yyyy → Date */
 function finParseDate(str) {
+  if (!str || typeof str !== 'string') return new Date(0);
   const [d,m,y] = str.split('.');
   return new Date(+y,+m-1,+d);
 }
@@ -582,6 +583,7 @@ window.Screens.finance = function(mount) {
         renderBalance();
       });
   } // end openBudgetEdit
+  } // end renderBalance — раньше эта скобка отсутствовала, и render() оказывался внутри renderBalance → пустой экран
 
 
   /* ═══ РАСХОДЫ — хелперы ════════════════════════ */
@@ -772,5 +774,4 @@ window.Screens.finance = function(mount) {
     else renderAll();
   }
   render();
-}
 }; // window.Screens.finance end

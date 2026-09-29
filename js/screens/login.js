@@ -33,8 +33,22 @@ window.Screens.login = function(mount, opts) {
         <div id="form-login" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;">
           <input id="login-email" type="email" inputmode="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="login-pwd" type="password" placeholder="Пароль" autocomplete="current-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:10px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
+          <div style="text-align:right;margin:-2px 2px 8px;"><button id="login-forgot" type="button" style="background:none;border:none;padding:4px 0;color:rgba(142,168,255,0.9);font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;">Забыли пароль?</button></div>
           <div id="login-err" style="font-size:12px;color:#F87171;margin-bottom:10px;min-height:16px;text-align:center;"></div>
           <button id="login-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#4A7CFF,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Montserrat',sans-serif;box-shadow:0 4px 20px rgba(74,124,255,0.4);">Войти</button>
+        </div>
+
+        <!-- Восстановление пароля -->
+        <div id="form-forgot" style="display:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:38px;height:38px;border-radius:12px;background:rgba(74,124,255,0.18);color:#8EA8FF;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;"><i class="ti ti-key"></i></div>
+            <div style="font-size:16px;font-weight:800;color:#F2F4F8;">Восстановить пароль</div>
+          </div>
+          <div id="fg-txt" style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.5;">Укажи email от аккаунта. Пришлём письмо со ссылкой, по ней задашь новый пароль.</div>
+          <input id="fg-email" type="email" inputmode="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:10px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
+          <div id="fg-err" style="font-size:12px;color:#F87171;margin-bottom:10px;min-height:16px;text-align:center;"></div>
+          <button id="fg-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#4A7CFF,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Montserrat',sans-serif;box-shadow:0 4px 20px rgba(74,124,255,0.4);">Отправить ссылку</button>
+          <button id="fg-back" type="button" style="width:100%;margin-top:8px;padding:10px;background:none;border:none;color:rgba(255,255,255,0.55);font-size:13px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;"><i class="ti ti-arrow-left"></i> Назад ко входу</button>
         </div>
 
         <!-- Форма регистрации -->
@@ -80,6 +94,44 @@ window.Screens.login = function(mount, opts) {
     document.getElementById('tab-login').style.color = 'rgba(255,255,255,0.5)';
     if (!regClosed) setTimeout(() => document.getElementById('reg-name').focus(), 100);
   });
+
+  /* ── Забыли пароль ── */
+  (function(){
+    const fLogin = document.getElementById('form-login'), fForgot = document.getElementById('form-forgot');
+    const tabs = document.getElementById('tab-login').parentElement;
+    const showForgot = (on) => {
+      fLogin.style.display = on ? 'none' : 'block'; fForgot.style.display = on ? 'block' : 'none'; tabs.style.display = on ? 'none' : '';
+      if (on) {
+        document.getElementById('fg-email').value = document.getElementById('login-email').value.trim();
+        document.getElementById('fg-err').textContent = '';
+        setTimeout(() => document.getElementById('fg-email').focus(), 80);
+      }
+    };
+    document.getElementById('login-forgot').addEventListener('click', () => showForgot(true));
+    document.getElementById('fg-back').addEventListener('click', () => showForgot(false));
+    document.getElementById('fg-btn').addEventListener('click', async () => {
+      const email = document.getElementById('fg-email').value.trim();
+      const err = document.getElementById('fg-err'), btn = document.getElementById('fg-btn');
+      err.style.color = '#F87171';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Проверь email'; return; }
+      btn.disabled = true; btn.textContent = 'Отправляю…';
+      try {
+        await FirebaseSync.resetPassword(email);
+        document.getElementById('fg-txt').innerHTML = 'Если аккаунт с адресом <b style="color:#F2F4F8">' + email.replace(/[<>&]/g, '') + '</b> существует, письмо уже в пути. Открой ссылку из письма и задай новый пароль. Не видно письма? Загляни в «Спам».';
+        err.style.color = '#4ADE80'; err.textContent = 'Письмо отправлено';
+        btn.textContent = 'Отправить ещё раз';
+      } catch (e) {
+        const c = (e && e.code) || '';
+        err.textContent = c === 'auth/invalid-email' ? 'Некорректный email'
+          : c === 'auth/too-many-requests' ? 'Слишком много попыток. Попробуй через несколько минут'
+          : c === 'auth/network-request-failed' ? 'Нет интернета. Проверь подключение'
+          : 'Не получилось отправить. Попробуй ещё раз или напиши в поддержку';
+        btn.textContent = 'Отправить ссылку';
+      }
+      btn.disabled = false;
+    });
+    document.getElementById('fg-email').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('fg-btn').click(); });
+  })();
 
   /* Пришли с лендинга по кнопке «Получить приложение» — сразу регистрация */
   if (opts.register) setTimeout(() => { const t = document.getElementById('tab-reg'); if (t) t.click(); }, 0);

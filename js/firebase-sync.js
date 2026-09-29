@@ -7,7 +7,8 @@ import {
   onAuthStateChanged,
   signOut,
   updateProfile,
-  deleteUser
+  deleteUser,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const _fbApp = initializeApp(window.FIREBASE_CONFIG);
@@ -395,8 +396,15 @@ const FirebaseSync = (() => {
     return _auth.currentUser;
   }
 
+  /* Сброс пароля: Firebase присылает письмо со ссылкой */
+  async function resetPassword(email) {
+    if (!_auth) throw new Error('not-configured');
+    try { _auth.languageCode = 'ru'; } catch (e) {}
+    await sendPasswordResetEmail(_auth, String(email || '').trim());
+  }
+
   return {
-    isConfigured, pullIntoStore, scheduleSave,
+    isConfigured, pullIntoStore, scheduleSave, resetPassword,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,
     getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,

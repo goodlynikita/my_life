@@ -87,7 +87,6 @@ h1 .line:nth-child(2) span{animation-delay:.12s} h1 .line:nth-child(3) span{anim
 .phones{position:relative;height:640px;perspective:1400px}
 .phone{position:absolute;width:280px;aspect-ratio:390/844;border-radius:44px;padding:10px;background:linear-gradient(145deg,#2A2F3D,#0E1119);
   box-shadow:0 40px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08),inset 0 0 0 2px rgba(255,255,255,.04);will-change:transform}
-.phone::before{content:'';position:absolute;top:18px;left:50%;transform:translateX(-50%);width:84px;height:24px;border-radius:14px;background:#05060A;z-index:3}
 .phone .scr{width:100%;height:100%;border-radius:34px;overflow:hidden;background:#11141C;position:relative}
 .phone .scr img{width:100%;height:100%;object-fit:cover;object-position:top}
 .phone .scr::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.14) 0%,transparent 28%);pointer-events:none}
@@ -248,9 +247,10 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 .foot a{color:var(--soft)} .foot a:hover{color:#fff}
 
 /* Мобильная CTA-плашка */
-.mcta{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;transform:translateY(150%);transition:transform .4s var(--ease)}
+.mcta{display:none;position:fixed;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));z-index:60;transform:translateY(-160%);transition:transform .4s var(--ease)}
 .mcta.show{transform:none}
-.mcta::before{content:'';position:absolute;left:-12px;right:-12px;bottom:calc(-12px - env(safe-area-inset-bottom,0px));height:120px;background:linear-gradient(180deg,transparent,rgba(7,9,15,.85) 55%,#07090F);z-index:-1;pointer-events:none}
+.mcta::before{content:'';position:absolute;left:-12px;right:-12px;top:calc(-10px - env(safe-area-inset-top,0px));height:calc(96px + env(safe-area-inset-top,0px));background:linear-gradient(0deg,transparent,rgba(7,9,15,.85) 45%,#07090F);z-index:-1;pointer-events:none}
+.hero-login{display:none;margin-top:16px;font-size:14px;color:var(--soft)} .hero-login a{color:#A5B4FF;font-weight:700}
 .mcta .btn{width:100%}
 
 /* ── Слияние пяти приложений (скролл) ── */
@@ -420,6 +420,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .nav-links,.nav .btn-sm:not(.nav-login){display:none}
   .nav .nav-login{height:38px;padding:0 16px;font-size:13px}
   .mcta{display:block}
+  .nav{display:none}
+  .hero-login{display:block}
   .ins{grid-template-columns:1fr;gap:30px;margin-top:34px}
   .ins-phone-wrap{order:-1}
   .ins-steps li.on{transform:none}
@@ -432,7 +434,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .desk-only{display:none}
 }
 @media (max-width:560px){
-  .hero{padding-top:110px}
+  .hero{padding-top:calc(34px + env(safe-area-inset-top,0px))}
   .phones{height:470px}
   .phone{width:230px}
   .p-left,.p-right{width:180px;top:90px}
@@ -450,7 +452,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .zone-list{grid-template-columns:1fr;gap:7px;font-size:12.5px}
   .zone-list span{align-items:flex-start;line-height:1.35} .zone-list i{margin-top:5px;flex-shrink:0}
   section{padding:64px 0}
-  .m-shot{max-width:250px}
+  .m-shot{max-width:200px}
   .step{padding:28px 0}
   .step h3{font-size:24px}
   .step p{font-size:15px}
@@ -464,7 +466,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .wrap{padding:0 16px}
   .cta-box{padding:48px 20px}
   .btn{padding:0 20px;font-size:14px}
-  .merge-stage{padding:74px 0 84px}
+  .merge-stage{padding:78px 0 20px}
   .merge-scene{height:min(44vh,370px);margin-top:10px}
   .mc{width:156px;padding:10px 11px;gap:9px;border-radius:16px}
   .mc > i{width:34px;height:34px;font-size:18px;border-radius:10px}
@@ -513,6 +515,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       <a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a>
       <a class="btn btn-ghost" href="#features"><i class="ti ti-player-play"></i> Как это работает</a>
     </div>
+    <div class="hero-login">Уже есть аккаунт? <a href="./#/login">Войти</a></div>
     <div class="hero-note"><span><i class="ti ti-circle-check"></i> Без App Store</span><span><i class="ti ti-circle-check"></i> Работает на всех устройствах</span><span><i class="ti ti-circle-check"></i> Данные только твои</span></div>
   </div>
   <div class="phones" id="phones"><div class="phones-in" id="phones-in">

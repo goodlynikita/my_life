@@ -115,13 +115,23 @@
 html[data-theme="light"] .hab-dark .hab-cell.done,
 html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180deg); }
 
-/* ════════════════ ЦЕЛИ: тёплый янтарный фон вместо серого ════════════════ */
-.goals-screen, .goals-screen .goals-body { background: #120E09 !important; }
-.goals-season-tabs { background: #16110B !important; }
-.goals-cat-v3 { background: #1E1711 !important; border-left: 1px solid rgba(242,169,59,0.10) !important; border-right: 1px solid rgba(242,169,59,0.10) !important; border-bottom: 1px solid rgba(242,169,59,0.10) !important; }
-.goals-item-v3 { border-color: rgba(242,169,59,0.08) !important; }
-.goals-cat-v3-head, .goals-add-v3 { border-color: rgba(242,169,59,0.10) !important; }
-.goals-check-v3:not(.done) { background: rgba(242,169,59,0.05) !important; }
+/* ════════════════ ЦЕЛИ: фон в цвет выбранного сезона, спокойно и ненавязчиво ════════════════ */
+.goals-screen { --sc: #E8C15A; }
+.goals-screen, .goals-screen .goals-body { background: color-mix(in srgb, var(--sc) 4%, #121212) !important; transition: background .4s; }
+.goals-season-tabs { background: color-mix(in srgb, var(--sc) 6%, #151515) !important; }
+.goals-hero-all, .goals-hero-season {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--sc) 13%, #1b1b1b) 0%, color-mix(in srgb, var(--sc) 5%, #171717) 70%) !important;
+  border: 1px solid color-mix(in srgb, var(--sc) 20%, transparent) !important; box-shadow: none !important; }
+.goals-hero-all::before, .goals-hero-all::after { display: none !important; }
+.goals-all-bar { background: var(--sc) !important; }
+.goals-cat-v3 { background: color-mix(in srgb, var(--sc) 5%, #1b1b1b) !important;
+  border-left: 1px solid color-mix(in srgb, var(--sc) 10%, transparent) !important; border-right: 1px solid color-mix(in srgb, var(--sc) 10%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--sc) 10%, transparent) !important; border-top-color: color-mix(in srgb, var(--sc) 75%, transparent) !important; }
+.goals-item-v3 { border-color: color-mix(in srgb, var(--sc) 7%, transparent) !important; }
+.goals-cat-v3-head, .goals-add-v3 { border-color: color-mix(in srgb, var(--sc) 9%, transparent) !important; }
+.goals-cat-v3-total, .goals-add-v3 { color: var(--sc) !important; }
+.goals-check-v3:not(.done) { background: color-mix(in srgb, var(--sc) 5%, transparent) !important; border-color: color-mix(in srgb, var(--sc) 35%, transparent) !important; }
+#goals-new { background: var(--sc) !important; box-shadow: 0 8px 22px color-mix(in srgb, var(--sc) 35%, transparent) !important; }
 
 /* ════════════════ ТРЕНИРОВКИ: синий графит (родной), чуть насыщеннее ════════════════ */
 .tr-tabs { background: #0F1524 !important; }
@@ -154,3 +164,32 @@ html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180
 .theme-dark .tr-exercise-wrap { border-radius: 14px; }
 .theme-dark .tr-exercise-wrap:hover { background: rgba(110,139,255,0.04); }
 .theme-dark .tr-ww-table { border-radius: 18px !important; overflow: hidden; }
+
+/* Вкладка «Питание» пока скрыта */
+.tr-tabs .tr-tab[data-tab="nutrition"] { display: none !important; }
+
+
+/* ═══ v109: аккуратные блоки внутри карточек (пастельно, в цвет раздела) ═══ */
+.goals-screen .goals-season-stats { gap: 8px !important; margin: 14px 0 14px !important; }
+.goals-screen .goals-season-stat {
+  background: color-mix(in srgb, var(--sc) 9%, rgba(255,255,255,0.03)) !important;
+  border: 1px solid color-mix(in srgb, var(--sc) 16%, transparent) !important;
+  border-radius: 14px !important; padding: 11px 12px !important; min-width: 0 !important;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.goals-screen .goals-sstat-label { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .02em !important; text-transform: none !important;
+  color: color-mix(in srgb, var(--sc) 45%, #BDBDBD) !important; margin: 0 !important; }
+.goals-screen 
+.goals-screen .goals-sstat-val { font-size: 16px !important; font-weight: 800 !important; line-height: 1.15; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 440px) {
+  .goals-screen .goals-season-stat { padding: 9px 10px !important; }
+  .goals-screen .goals-sstat-val { font-size: 14px !important; }
+}
+/* Привычки: блоки итога месяца — пастельно-зелёные */
+.hab-dark .sec-metric { background: rgba(143,209,127,0.08) !important; border: 1px solid rgba(143,209,127,0.14) !important; }
+.hab-dark .sec-metric-label { color: #9FC596 !important; }
+/* Финансы: блоки года — в фиолетовый оттенок */
+.fin-dark .tochka-stat { background: rgba(151,127,233,0.10) !important; border: 1px solid rgba(151,127,233,0.16) !important; }
+.fin-dark .xp-sum-cell { background: rgba(151,127,233,0.08) !important; border: 1px solid rgba(151,127,233,0.14); }
+/* AI-тренер: плашки статистики — в синий оттенок */
+.ai-stats > div { background: rgba(110,148,255,0.09) !important; border-color: rgba(110,148,255,0.18) !important; }

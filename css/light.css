@@ -18,14 +18,14 @@ html[data-theme="light"] .no-invert,
 html[data-theme="light"] .goals-header,
 html[data-theme="light"] .hab-header,
 html[data-theme="light"] .tr-header,
-/* Финансы изначально светлые — показываем как есть, с фиолетовой шапкой */
-html[data-theme="light"] .tochka-screen,
-html[data-theme="light"] .pg-sheet {
+/* Финансы: инвертируются как все разделы, фирменную шапку и копилку возвращаем */
+html[data-theme="light"] .tochka-header,
+html[data-theme="light"] .fin-dark .pg-card {
   filter: invert(1) hue-rotate(180deg) contrast(0.893);
 }
 /* Внутри уже «возвращённых» блоков картинки второй раз не трогаем */
-html[data-theme="light"] .tochka-screen img,
-html[data-theme="light"] .pg-sheet img,
+html[data-theme="light"] .tochka-header img,
+html[data-theme="light"] .fin-dark .pg-card img,
 html[data-theme="light"] .goals-header img,
 html[data-theme="light"] .hab-header img,
 html[data-theme="light"] .tr-header img { filter: none; }
@@ -109,3 +109,4 @@ html[data-theme="light"] .hh-pct { filter: saturate(.7); }
 html[data-theme="light"] .hh-bar span { filter: invert(1) hue-rotate(180deg) saturate(.75); }
 /* Кнопка «+» в целях и цветные вкладки сезонов — мягче */
 html[data-theme="light"] .goals-season-tabs .goals-season-tab.active { filter: saturate(.8); }
+

@@ -96,8 +96,23 @@ window.Tour = (function () {
   };
 
   /* ── Состояние ── */
-  function st() { return ((Store.get() || {}).home || {}).tour || null; }
-  function save(s) { try { Store.set('home.tour', s); } catch (e) {} }
+  /* Состояние хранится и в Store (синхронизация), и локально (надёжно, даже если
+     облако перезапишет раздел). Берём более свежую ревизию, просмотренные объединяем. */
+  function lsKey() { const u = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null; return 'you_tour_' + (u && u.uid || 'anon'); }
+  function readLocal() { try { return JSON.parse(localStorage.getItem(lsKey()) || 'null'); } catch (e) { return null; } }
+  function st() {
+    const a = ((Store.get() || {}).home || {}).tour || null, b = readLocal();
+    if (!a && !b) return null;
+    if (!a || !b) return JSON.parse(JSON.stringify(a || b));
+    const ra = a.rev || 0, rb = b.rev || 0, top = ra >= rb ? a : b, other = ra >= rb ? b : a;
+    const seen = Object.assign({}, (ra === rb ? other.seen : null) || {}, top.seen || {});
+    return { enabled: top.enabled, rev: top.rev || 0, seen };
+  }
+  function save(s) {
+    try { localStorage.setItem(lsKey(), JSON.stringify(s)); } catch (e) {}
+    try { Store.set('home.tour', s); } catch (e) {}
+  }
+  function disableAll() { const s = st() || { seen: {} }; s.enabled = false; s.rev = (s.rev || 0) + 1; save(s); queue = []; }
   function isCoach() { return window.Auth && Auth.role && Auth.role() === 'coach'; }
   function hasData(s) {
     const tr = (s.training || {}).plans, hb = (s.habits || {}).months, fy = (s.finance || {}).years, g = s.goals;
@@ -134,6 +149,7 @@ window.Tour = (function () {
       <div class="tour-tip" role="dialog"><div class="tour-arrow"></div>
         <div class="tour-step"></div><div class="tour-t"></div><div class="tour-d"></div>
         <div class="tour-foot"><button class="tour-skip">Пропустить</button><div class="tour-dots"></div><button class="tour-next">Далее</button></div>
+        <button class="tour-off">Больше не показывать подсказки</button>
       </div>`;
     document.body.appendChild(root);
     const hole = root.querySelector('.tour-hole'), tip = root.querySelector('.tour-tip'), arrow = root.querySelector('.tour-arrow');
@@ -181,6 +197,7 @@ window.Tour = (function () {
     function onKey(e) { if (e.key === 'Escape') finish(); if (e.key === 'Enter' || e.key === 'ArrowRight') next(); }
     root.querySelector('.tour-next').addEventListener('click', next);
     root.querySelector('.tour-skip').addEventListener('click', finish);
+    root.querySelector('.tour-off').addEventListener('click', () => { disableAll(); finish(); });
     root.querySelector('.tour-block').addEventListener('click', next);
     addEventListener('resize', place); addEventListener('scroll', place, true); addEventListener('keydown', onKey);
     show();
@@ -198,7 +215,7 @@ window.Tour = (function () {
     const close = () => { ov.classList.add('out'); setTimeout(() => ov.remove(), 250); };
     ov.querySelector('.tour-wgo').addEventListener('click', () => { close(); setTimeout(then, 260); });
     ov.querySelector('.tour-wno').addEventListener('click', () => {
-      close(); const s = st() || { seen: {} }; s.enabled = false; save(s); queue = []; cancel && cancel();
+      close(); disableAll(); cancel && cancel();
     });
   }
 
@@ -232,7 +249,8 @@ window.Tour = (function () {
     if (TABS[k]) enqueue('tab:' + k, TABS[k], '/' + section);
   }
   function restart() {
-    save({ enabled: true, seen: {} });
+    const s0 = st() || {};
+    save({ enabled: true, seen: {}, rev: (s0.rev || 0) + 1 });
     queue = [];
     Router.go('/home'); Router.render && Router.render();
     setTimeout(() => onScreen('/home'), 300);

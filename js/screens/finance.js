@@ -165,15 +165,17 @@ window.Screens.finance = function(mount) {
   function applyFinTheme() {
     const appDark = !window.Theme || Theme.get() !== 'light';
     const wantLight = finIsOwner() && (Store.get().finance || {}).lightScreen === true;
-    const dark = appDark && !wantLight;
+    /* Дизайн один и тот же. Светлые финансы = тот же тёмный дизайн, инвертированный по яркости */
+    const inv = appDark && wantLight;
     const scr = mount.querySelector('.tochka-screen');
-    if (scr) scr.classList.toggle('fin-dark', dark);
-    document.documentElement.classList.toggle('fin-dark-on', dark);
+    if (scr) { scr.classList.add('fin-dark'); scr.classList.toggle('fin-inv', inv); }
+    document.documentElement.classList.add('fin-dark-on');
+    document.documentElement.classList.toggle('fin-inv-on', inv);
     const btn = document.getElementById('fin-theme');
     if (btn) {
       btn.style.display = finIsOwner() && appDark ? '' : 'none';
-      btn.innerHTML = dark ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
-      btn.title = dark ? 'Сделать финансы светлыми' : 'Сделать финансы тёмными';
+      btn.innerHTML = inv ? '<i class="ti ti-moon"></i>' : '<i class="ti ti-sun"></i>';
+      btn.title = inv ? 'Сделать финансы тёмными' : 'Сделать финансы светлыми';
     }
   }
   applyFinTheme();

@@ -8,7 +8,7 @@ const GOALS_SEASONS = [
   { key: 'all',    label: 'Всё',   color: '#F2A93B', bg: '#1A1200' },
   { key: 'spring', label: 'Весна', color: '#A8C97F', bg: '#0A1A0A', end: new Date(new Date().getFullYear(),5,0) },
   { key: 'summer', label: 'Лето',  color: '#4ADE80', bg: '#051A0A', end: new Date(new Date().getFullYear(),8,0) },
-  { key: 'autumn', label: 'Осень', color: '#FB923C', bg: '#1A0E00', end: new Date(new Date().getFullYear(),11,0) },
+  { key: 'autumn', label: 'Осень', color: '#E6C84F', bg: '#1A0E00', end: new Date(new Date().getFullYear(),11,0) },
   { key: 'winter', label: 'Зима',  color: '#60A5FA', bg: '#0C1525', end: new Date(new Date().getFullYear()+1,2,0) },
 ];
 
@@ -355,6 +355,7 @@ window.Screens.goals = function(mount) {
     const season = GOALS_SEASONS.find(s=>s.key===activeSeason);
     const color = season.color;
     const bg = season.bg;
+    const _scr = document.querySelector('.goals-screen'); if (_scr) _scr.style.setProperty('--sc', color);
 
     const items = activeSeason==='all' ? all : all.filter(g=>g.season===activeSeason);
     /* Если выбран конкретный месяц — осталось 1 месяц, иначе считаем по сезону */
@@ -424,9 +425,9 @@ window.Screens.goals = function(mount) {
       {
         const stats1 = monthsLeft
           ? '<div class="goals-season-stats">'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">ОСТАЛОСЬ</div><div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">МЕСЯЦЕВ</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">В МЕСЯЦ</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">Осталось</div><div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+            + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
             + '</div><div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
           : '';
         heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'

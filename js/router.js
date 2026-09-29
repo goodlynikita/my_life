@@ -40,6 +40,7 @@ const Router = (() => {
       return;
     }
 
+    document.documentElement.classList.remove('fin-dark-on'); /* тёмные финансы — только на своём экране */
     const handler = routes[path] || routes['/login'];
     try {
       handler();

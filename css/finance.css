@@ -1025,3 +1025,28 @@
 .plan-demo-btns button { padding: 6px 12px; border-radius: 8px; border: 1px solid #C4B5FD; background: #fff; color: #5B21B6; font-size: 12px; font-weight: 700; cursor: pointer; font-family: Montserrat, sans-serif; }
 .plan-demo-btns button.danger { border-color: #FCA5A5; color: #B91C1C; }
 @media (max-width: 380px) { .plan-cats { margin-left: 0; } }
+
+/* ═══ ТЁМНЫЕ ФИНАНСЫ ═══
+   Экран изначально светлый. В тёмном режиме инвертируем яркость содержимого
+   (вкладки + тело) с сохранением оттенков. Фон и карточки заранее подкрашены
+   рассчитанными цветами: после инверсии фон = #11141C, карточки = #1A1D26,
+   как в остальных разделах. Шапку фильтр не трогает, цвет фирменный. */
+.tochka-screen.fin-dark { background: #11141C !important; }
+.fin-dark .tochka-tabs, .fin-dark .tochka-body { filter: invert(1) hue-rotate(180deg); }
+.fin-dark .tochka-body { background: #E8EBF3 !important; min-height: calc(100vh - 110px); }
+.fin-dark .tochka-tabs { background: #E4E7EE !important; border-color: #D4D8E4 !important; }
+.fin-dark .tochka-hero, .fin-dark .tochka-list, .fin-dark .tochka-stats-row, .fin-dark .tochka-stat,
+.fin-dark .fin2-year-card, .fin-dark .plan-card, .fin-dark .pg-list-card, .fin-dark .bal2-hero, .fin-dark .bal2-system,
+.fin-dark .tochka-body [style*="background:#fff"], .fin-dark .tochka-body [style*="background: #fff"],
+.fin-dark .tochka-body [style*="background:#FFF"], .fin-dark .tochka-body [style*="background:white"] {
+  background: #DFE2EB !important;
+}
+.fin-dark .tochka-hero, .fin-dark .tochka-list, .fin-dark .plan-card, .fin-dark .pg-list-card,
+.fin-dark .fin2-year-card, .fin-dark .tochka-stats-row { border-color: #D4D8E4 !important; }
+.fin-dark .pg-seg, .fin-dark .plan-cats { background: #E4E7EE !important; }
+.fin-dark .pg-seg-btn.on { background: #D4D8E4 !important; box-shadow: none; }
+/* Возвращаем как было: зелёная копилка и картинки */
+.fin-dark .pg-card, .fin-dark .tochka-body img { filter: invert(1) hue-rotate(180deg); }
+/* Всплывающие окна копилки (они вне экрана) — тоже тёмные */
+html.fin-dark-on .pg-sheet { background: #DFE2EB; filter: invert(1) hue-rotate(180deg); }
+html.fin-dark-on .pg-sheet .pg-field input, html.fin-dark-on .pg-sheet .pg-field select { background: #E4E7EE; }

@@ -141,7 +141,10 @@ window.Screens.finance = function(mount) {
           <button class="tochka-back-btn" id="fb"><i class="ti ti-arrow-left"></i></button>
           <p class="tochka-screen-title">Финансы</p>
         </div>
-        <button class="tochka-back-btn" id="fl"><i class="ti ti-logout"></i></button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="tochka-back-btn hidden-fin-owner" id="fin-theme" title="Светлые / тёмные финансы" style="display:none;"><i class="ti ti-sun"></i></button>
+          <button class="tochka-back-btn" id="fl"><i class="ti ti-logout"></i></button>
+        </div>
       </div>
       <div class="tochka-tabs" style="position:sticky;top:0;z-index:10;">
         <button class="tochka-tab active" data-tab="month">Месяц</button>
@@ -152,6 +155,32 @@ window.Screens.finance = function(mount) {
       </div>
       <div class="tochka-body" id="fin-content"></div>
     </div>`;
+
+  /* ── Тёмные финансы: у всех в тёмной теме; владелец может оставить светлые ── */
+  function finIsOwner() {
+    const u = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null;
+    const owner = (window.AUTH_CONFIG && AUTH_CONFIG.ownerEmail || '').toLowerCase();
+    return !!(u && u.email && owner && u.email.toLowerCase() === owner);
+  }
+  function applyFinTheme() {
+    const appDark = !window.Theme || Theme.get() !== 'light';
+    const wantLight = finIsOwner() && (Store.get().finance || {}).lightScreen === true;
+    const dark = appDark && !wantLight;
+    const scr = mount.querySelector('.tochka-screen');
+    if (scr) scr.classList.toggle('fin-dark', dark);
+    document.documentElement.classList.toggle('fin-dark-on', dark);
+    const btn = document.getElementById('fin-theme');
+    if (btn) {
+      btn.style.display = finIsOwner() && appDark ? '' : 'none';
+      btn.innerHTML = dark ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
+      btn.title = dark ? 'Сделать финансы светлыми' : 'Сделать финансы тёмными';
+    }
+  }
+  applyFinTheme();
+  document.getElementById('fin-theme').addEventListener('click', () => {
+    Store.set('finance.lightScreen', !((Store.get().finance || {}).lightScreen === true));
+    applyFinTheme();
+  });
 
   document.getElementById('fb').addEventListener('click',()=>Router.go('/home'));
   document.getElementById('fl').addEventListener('click',()=>{Auth.logout();Router.go('/login');});

@@ -191,9 +191,29 @@ const FirebaseSync = (() => {
     upd[base + 'email'] = user.email || '';
     if (user.displayName) upd[base + 'name'] = user.displayName;
     upd[base + 'lastSeen'] = new Date().toISOString();
+    upd[base + 'ua'] = (navigator.userAgent || '').slice(0, 180);
     const created = user.metadata && user.metadata.creationTime ? new Date(user.metadata.creationTime).toISOString() : new Date().toISOString();
     upd[base + 'createdAt'] = created;
     try { await update(ref(_db), upd); } catch (e) { /* правила ещё не обновлены — не критично */ }
+  }
+
+  /* Личное сообщение от админа: userIndex/{uid}/notice = {text, at}; прочитано → noticeSeen = at */
+  async function getNotice(user) {
+    if (!user) return null;
+    try {
+      const snap = await get(ref(_db, 'userIndex/' + user.uid));
+      const v = snap.exists() ? snap.val() : {};
+      if (v.notice && v.notice.text && v.notice.at !== v.noticeSeen) return v.notice;
+    } catch (e) {}
+    return null;
+  }
+  async function markNoticeSeen(user, at) {
+    if (!user) return;
+    try { await set(ref(_db, 'userIndex/' + user.uid + '/noticeSeen'), at); } catch (e) {}
+  }
+  function getAnnouncement() {
+    const a = _settings && _settings.announcement;
+    return a && a.active && a.text ? a : null;
   }
 
   async function isBlocked(user) {
@@ -252,6 +272,7 @@ const FirebaseSync = (() => {
     const payload = {
       type: data.type || 'other', text: String(data.text || '').slice(0, 4000),
       contact: String(data.contact || '').slice(0, 200),
+      telegram: String(data.telegram || '').slice(0, 64),
       uid: u ? u.uid : null, email: u ? u.email : null,
       at: new Date().toISOString(), ua: navigator.userAgent.slice(0, 200)
     };
@@ -291,6 +312,7 @@ const FirebaseSync = (() => {
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,
     getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,
+    getNotice, markNoticeSeen, getAnnouncement,
     getConfig: () => window.FIREBASE_CONFIG
   };
 })();

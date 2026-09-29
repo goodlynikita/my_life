@@ -105,6 +105,38 @@ button,input,select,textarea{font-family:inherit}
 .note i{font-size:18px;margin-top:1px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:#1F2430;border:1px solid var(--line2);color:var(--txt);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;transition:all .25s;z-index:50;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Карточка пользователя */
+.urow{cursor:pointer;transition:background .15s} .urow:hover{background:rgba(255,255,255,.025)}
+.tag-t{background:rgba(251,191,36,.14);color:#FBBF24}
+.dr-ov{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;justify-content:flex-end;animation:fade .2s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.dr{width:100%;max-width:480px;height:100%;overflow-y:auto;background:var(--panel);border-left:1px solid var(--line2);animation:slidein .28s cubic-bezier(.22,1,.36,1);padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.dr-head{position:sticky;top:0;z-index:2;background:var(--panel);display:flex;align-items:center;gap:14px;padding:18px 20px;padding-top:calc(18px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--line)}
+.dr-head .ava{width:48px;height:48px;border-radius:14px;font-size:20px}
+.dr-name{font-size:17px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-mail{font-size:12px;color:var(--soft);overflow:hidden;text-overflow:ellipsis}
+.dr-x{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--soft);font-size:20px;cursor:pointer;flex-shrink:0}
+.dr-sec{padding:16px 20px;border-bottom:1px solid var(--line)}
+.dr-t{font-size:11px;font-weight:800;color:var(--faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info div{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.info small{display:block;font-size:10px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.info b{display:block;font-size:13px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info .full{grid-column:1/-1}
+.copy{cursor:pointer} .copy:hover b{color:#AFC0FF}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.act{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--txt);cursor:pointer;text-align:left;font-size:13px;font-weight:700;text-decoration:none}
+.act i{font-size:19px;color:#9DB6FF} .act small{display:block;font-size:11px;color:var(--faint);font-weight:500;margin-top:1px}
+.act:hover{border-color:rgba(110,139,255,.45)}
+.act.danger i{color:var(--bad)} .act.ok i{color:var(--ok)}
+.act:disabled{opacity:.4;cursor:default}
+.ta{width:100%;min-height:84px;resize:vertical;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:10px 12px;font-size:13px;line-height:1.5;outline:none}
+.ta:focus{border-color:rgba(110,139,255,.6)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.sent{font-size:12px;color:var(--soft);margin-top:8px;display:flex;align-items:center;gap:6px}
+.umsg{padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;font-size:13px;line-height:1.5}
+.umsg small{display:block;color:var(--faint);font-size:11px;margin-bottom:3px}
 @media (max-width:760px){
   .kpis{grid-template-columns:1fr 1fr}
   .urow{grid-template-columns:auto 1fr auto;row-gap:6px}
@@ -196,6 +228,11 @@ button,input,select,textarea{font-family:inherit}
           </div>
         </div>
         <div class="set-row">
+          <div style="flex:1"><div class="set-t">Объявление для всех</div><div class="set-d">Покажется окном каждому пользователю один раз при входе. Например, о новой функции или техработах.</div>
+            <textarea class="ta" id="s-ann" style="margin-top:10px" placeholder="Текст объявления"></textarea></div>
+          <button class="tgl" id="s-ann-on" title="Показывать"></button>
+        </div>
+        <div class="set-row">
           <div><div class="set-t">Ссылка на поддержку</div><div class="set-d">Куда ведут кнопки «Написать в Telegram» и «Получить инвайт».</div></div>
           <input class="set-in wide" id="s-support" type="url" placeholder="https://t.me/…">
         </div>
@@ -214,7 +251,7 @@ button,input,select,textarea{font-family:inherit}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const OWNER = (window.AUTH_CONFIG && window.AUTH_CONFIG.ownerEmail || '').toLowerCase();
 /* Отдельный экземпляр Firebase: своя сессия входа, не пересекается с приложением
@@ -267,7 +304,7 @@ const TYPES={ idea:{l:'Идея',i:'ti-bulb'}, bug:{l:'Ошибка',i:'ti-bug'}
 function start(){
   const sub=(path,cb)=>{ const off=onValue(ref(db,path), s=>cb(s.val()), e=>{ console.error(path,e); if(denied(e)) rulesWarn(); }); unsub.push(off); };
   sub('feedback', v=>{ FEED=v||{}; renderMsgs(); renderKpi(); });
-  sub('userIndex', v=>{ USERS=v||{}; renderUsers(); renderKpi(); });
+  sub('userIndex', v=>{ USERS=v||{}; renderUsers(); renderKpi(); if(openUid) openUser(openUid,true); });
   sub('settings', v=>{ SETTINGS=v||{}; fillSettings(); renderKpi(); });
   sub('stats/usersCount', v=>{ COUNT=Number(v)||0; fillSettings(); renderKpi(); });
 }
@@ -304,7 +341,7 @@ function renderMsgs(){
       <div class="msg-main">
         <div class="msg-head"><span class="msg-type">${t.l}</span><span class="pill p-${st}">${st==='new'?'новое':st==='done'?'отвечено':'прочитано'}</span><span>${dt(m.at)}</span></div>
         <div class="msg-text">${esc(m.text)}</div>
-        <div class="msg-meta">${cl?`<span><i class="ti ti-address-book"></i> ${cl}</span>`:''}${m.email?`<span><i class="ti ti-user"></i> ${esc(m.email)}</span>`:'<span><i class="ti ti-user-question"></i> без входа</span>'}</div>
+        <div class="msg-meta">${m.telegram?`<span><i class="ti ti-brand-telegram"></i> <a href="https://t.me/${esc(String(m.telegram).replace(/^@/,''))}" target="_blank" rel="noopener">@${esc(String(m.telegram).replace(/^@/,''))}</a></span>`:''}${cl?`<span><i class="ti ti-address-book"></i> ${cl}</span>`:''}${m.email?`<span><i class="ti ti-user"></i> ${esc(m.email)}</span>`:'<span><i class="ti ti-user-question"></i> без входа</span>'}</div>
         <div class="msg-actions">
           ${st==='new'?`<button class="btn btn-ghost btn-sm" data-act="read" data-id="${m.id}"><i class="ti ti-eye-check"></i> Прочитано</button>`:`<button class="btn btn-ghost btn-sm" data-act="new" data-id="${m.id}"><i class="ti ti-mail"></i> Непрочитано</button>`}
           ${st!=='done'?`<button class="btn btn-okc btn-sm" data-act="done" data-id="${m.id}"><i class="ti ti-check"></i> Ответил</button>`:''}
@@ -334,9 +371,9 @@ function renderUsers(){
   $('#u-list').innerHTML=list.map(u=>{
     const me=(u.email||'').toLowerCase()===OWNER, letter=(u.name||u.email||'?').trim()[0].toUpperCase();
     const col=COLORS[[...u.uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
-    return `<div class="urow${u.blocked?' blocked':''}">
+    return `<div class="urow${u.blocked?' blocked':''}" data-open="${u.uid}">
       <div class="ava" style="background:${col}">${esc(letter)}</div>
-      <div style="min-width:0"><div class="u-name">${esc(u.name||u.email||'Без имени')}${me?'<span class="tag tag-me">ты</span>':''}${u.blocked?'<span class="tag tag-bl">заблокирован</span>':''}</div>${u.name?`<div class="u-mail">${esc(u.email||u.uid)}</div>`:''}</div>
+      <div style="min-width:0"><div class="u-name">${esc(u.name||u.email||'Без имени')}${me?'<span class="tag tag-me">ты</span>':''}${u.tag?`<span class="tag tag-t">${esc(u.tag)}</span>`:''}${u.blocked?'<span class="tag tag-bl">заблокирован</span>':''}</div>${u.name?`<div class="u-mail">${esc(u.email||u.uid)}</div>`:''}</div>
       <div class="u-col hide-m"><b>${u.createdAt?new Date(u.createdAt).toLocaleDateString('ru-RU'):'—'}</b>регистрация</div>
       <div class="u-col"><b>${ago(u.lastSeen)}</b>был(а)</div>
       <div>${me?'':(u.blocked
@@ -344,6 +381,7 @@ function renderUsers(){
         :`<button class="btn btn-bad btn-sm" data-ub="1" data-uid="${u.uid}" title="Заблокировать"><i class="ti ti-lock"></i></button>`)}</div>
     </div>`;
   }).join('');
+  $('#u-list').querySelectorAll('[data-open]').forEach(r=>r.onclick=(e)=>{ if(e.target.closest('[data-ub]')) return; openUser(r.dataset.open); });
   $('#u-list').querySelectorAll('[data-ub]').forEach(b=>b.onclick=async()=>{
     const block=b.dataset.ub==='1', u=USERS[b.dataset.uid]||{};
     if(block&&!confirm(`Заблокировать ${u.email||'пользователя'}? Он не сможет войти в приложение.`)) return;
@@ -362,20 +400,132 @@ function fillSettings(force){
   $('#s-limit').value=limit();
   $('#s-count').value=COUNT;
   $('#s-support').value=SETTINGS.supportUrl||(window.APP_CONFIG&&APP_CONFIG.supportUrl)||'';
+  const ann=SETTINGS.announcement||{};
+  $('#s-ann').value=ann.text||''; $('#s-ann-on').classList.toggle('on',!!ann.active);
   $('#s-count-d').textContent='Сколько мест уже занято. В реестре сейчас '+Object.keys(USERS).length+'.';
 }
-['s-limit','s-count','s-support'].forEach(id=>$('#'+id).addEventListener('input',()=>dirty=true));
+['s-limit','s-count','s-support','s-ann'].forEach(id=>$('#'+id).addEventListener('input',()=>dirty=true));
+$('#s-ann-on').onclick=()=>{ $('#s-ann-on').classList.toggle('on'); dirty=true; };
 $('#s-open').onclick=()=>{ $('#s-open').classList.toggle('on'); dirty=true; };
 $('#s-recount').onclick=()=>{ $('#s-count').value=Object.keys(USERS).length; dirty=true; };
 $('#s-reset').onclick=()=>{ dirty=false; fillSettings(true); };
 $('#s-save').onclick=async()=>{
   const lim=Math.max(1,parseInt($('#s-limit').value)||1000), cnt=Math.max(0,parseInt($('#s-count').value)||0);
   try{
-    await update(ref(db,'settings'),{ freeUsersLimit:lim, registrationOpen:$('#s-open').classList.contains('on'), supportUrl:$('#s-support').value.trim()||null });
+    const annText=$('#s-ann').value.trim(), annOn=$('#s-ann-on').classList.contains('on')&&!!annText;
+    const prev=SETTINGS.announcement||{};
+    const annAt=(annText!==(prev.text||'')||(annOn&&!prev.active))?new Date().toISOString():(prev.at||new Date().toISOString());
+    await update(ref(db,'settings'),{ freeUsersLimit:lim, registrationOpen:$('#s-open').classList.contains('on'), supportUrl:$('#s-support').value.trim()||null,
+      announcement: annText?{text:annText,active:annOn,at:annAt}:null });
     await set(ref(db,'stats/usersCount'),cnt);
     dirty=false; toast('Сохранено');
   }catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось сохранить'); }
 };
+
+/* ── Карточка пользователя ── */
+let openUid=null;
+const TAGS=['VIP','Тестер','Друг','Инвайт','Клиент'];
+function device(ua){ ua=ua||''; if(!ua) return '—';
+  const os=/iPhone|iPad/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Mac OS/.test(ua)?'macOS':/Windows/.test(ua)?'Windows':'Другое';
+  const br=/CriOS|Chrome\//.test(ua)&&!/Edg/.test(ua)?'Chrome':/Safari/.test(ua)&&!/Chrome|CriOS/.test(ua)?'Safari':/Firefox|FxiOS/.test(ua)?'Firefox':/Edg/.test(ua)?'Edge':'';
+  return os+(br?' · '+br:''); }
+async function copyTxt(t){ try{ await navigator.clipboard.writeText(t); toast('Скопировано'); }catch(e){ toast(t); } }
+function openUser(uid, silent){
+  const u=USERS[uid]; if(!u){ closeUser(); return; }
+  const me=(u.email||'').toLowerCase()===OWNER;
+  const letter=(u.name||u.email||'?').trim()[0].toUpperCase();
+  const col=COLORS[[...uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
+  const msgs=Object.entries(FEED).filter(([,m])=>m&&(m.uid===uid||(u.email&&m.email===u.email))).map(([id,m])=>({id,...m})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const tg=(msgs.find(m=>m.telegram)||{}).telegram;
+  let ov=document.getElementById('dr-ov');
+  const keepNote = ov && document.activeElement && ['u-note','u-notice'].includes(document.activeElement.id);
+  if(keepNote && silent) return; /* не сбиваем ввод */
+  if(!ov){ ov=document.createElement('div'); ov.id='dr-ov'; ov.className='dr-ov'; document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov) closeUser(); }); }
+  openUid=uid;
+  ov.innerHTML=`<div class="dr">
+    <div class="dr-head">
+      <div class="ava" style="background:${col}">${esc(letter)}</div>
+      <div style="flex:1;min-width:0"><div class="dr-name">${esc(u.name||u.email||'Без имени')}${me?' <span class="tag tag-me">ты</span>':''}</div><div class="dr-mail">${esc(u.email||'')}</div></div>
+      <button class="dr-x" id="dr-x">×</button>
+    </div>
+
+    <div class="dr-sec">
+      <div class="info">
+        <div><small>Регистрация</small><b>${u.createdAt?new Date(u.createdAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}):'—'}</b></div>
+        <div><small>Последний вход</small><b>${ago(u.lastSeen)}</b></div>
+        <div><small>Устройство</small><b>${esc(device(u.ua))}</b></div>
+        <div><small>Статус</small><b style="color:${u.blocked?'var(--bad)':'var(--ok)'}">${u.blocked?'Заблокирован':'Активен'}</b></div>
+        <div class="full copy" id="u-uid"><small>ID пользователя · нажми, чтобы скопировать</small><b>${esc(uid)}</b></div>
+      </div>
+    </div>
+
+    <div class="dr-sec">
+      <div class="dr-t">Действия</div>
+      <div class="acts">
+        <button class="act" id="a-reset" ${u.email?'':'disabled'}><i class="ti ti-key"></i><span>Сбросить пароль<small>письмо на почту</small></span></button>
+        <a class="act" href="mailto:${esc(u.email||'')}" ${u.email?'':'style="pointer-events:none;opacity:.4"'}><i class="ti ti-mail-forward"></i><span>Написать на почту<small>${esc(u.email||'нет email')}</small></span></a>
+        ${tg?`<a class="act" href="https://t.me/${esc(String(tg).replace(/^@/,''))}" target="_blank" rel="noopener"><i class="ti ti-brand-telegram"></i><span>Telegram<small>@${esc(String(tg).replace(/^@/,''))}</small></span></a>`:`<button class="act" disabled><i class="ti ti-brand-telegram"></i><span>Telegram<small>не указан</small></span></button>`}
+        <button class="act" id="a-copy"><i class="ti ti-copy"></i><span>Скопировать email<small>в буфер обмена</small></span></button>
+        ${me?'':(u.blocked
+          ?`<button class="act ok" id="a-block"><i class="ti ti-lock-open"></i><span>Разблокировать<small>вернуть доступ</small></span></button>`
+          :`<button class="act danger" id="a-block"><i class="ti ti-lock"></i><span>Заблокировать<small>не сможет войти</small></span></button>`)}
+        ${me?'':`<button class="act danger" id="a-remove"><i class="ti ti-user-minus"></i><span>Убрать из списка<small>аккаунт останется</small></span></button>`}
+      </div>
+    </div>
+
+    <div class="dr-sec">
+      <div class="dr-t">Личное сообщение в приложении</div>
+      <textarea class="ta" id="u-notice" placeholder="Человек увидит это окном при следующем входе. Например: «Привет! Добавили то, что ты просил»"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-main btn-sm" id="a-notice"><i class="ti ti-send"></i> Отправить</button>
+      ${u.notice?`<button class="btn btn-ghost btn-sm" id="a-notice-del">Отозвать</button>`:''}</div>
+      ${u.notice?`<div class="sent"><i class="ti ${u.noticeSeen===u.notice.at?'ti-checks" style="color:var(--ok)':'ti-check'}"></i> ${u.noticeSeen===u.notice.at?'Прочитано':'Отправлено, ещё не видел'} · «${esc(String(u.notice.text).slice(0,60))}${String(u.notice.text).length>60?'…':''}»</div>`:''}
+    </div>
+
+    <div class="dr-sec">
+      <div class="dr-t">Метка</div>
+      <div class="tags">${['',...TAGS].map(t=>`<button class="chip${(u.tag||'')===t?' on':''}" data-tag="${t}">${t||'Без метки'}</button>`).join('')}</div>
+    </div>
+
+    <div class="dr-sec">
+      <div class="dr-t">Заметка <span style="text-transform:none;letter-spacing:0;font-weight:600" id="note-st"></span></div>
+      <textarea class="ta" id="u-note" placeholder="Видишь только ты: откуда пришёл, о чём договорились…">${esc(u.note||'')}</textarea>
+    </div>
+
+    <div class="dr-sec" style="border-bottom:none">
+      <div class="dr-t">Сообщения от пользователя · ${msgs.length}</div>
+      ${msgs.length?msgs.slice(0,20).map(m=>`<div class="umsg"><small>${(TYPES[m.type]||TYPES.other).l} · ${dt(m.at)}</small>${esc(m.text)}</div>`).join(''):'<div style="font-size:13px;color:var(--faint)">Пока не писал</div>'}
+    </div>
+  </div>`;
+
+  const path='userIndex/'+uid;
+  const fail=(e)=>{ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось'); };
+  ov.querySelector('#dr-x').onclick=closeUser;
+  ov.querySelector('#u-uid').onclick=()=>copyTxt(uid);
+  ov.querySelector('#a-copy').onclick=()=>copyTxt(u.email||'');
+  const rs=ov.querySelector('#a-reset'); if(rs) rs.onclick=async()=>{
+    if(!confirm(`Отправить письмо для сброса пароля на ${u.email}? Человек сам задаст новый пароль по ссылке.`)) return;
+    try{ await sendPasswordResetEmail(auth,u.email); toast('Письмо отправлено'); }catch(e){ console.error(e); toast(e.code==='auth/user-not-found'?'Аккаунт не найден':'Не получилось отправить'); }
+  };
+  const bl=ov.querySelector('#a-block'); if(bl) bl.onclick=async()=>{
+    const block=!u.blocked; if(block&&!confirm(`Заблокировать ${u.email||'пользователя'}?`)) return;
+    try{ await set(ref(db,path+'/blocked'),block?true:null); toast(block?'Заблокирован':'Разблокирован'); }catch(e){ fail(e); }
+  };
+  const rm=ov.querySelector('#a-remove'); if(rm) rm.onclick=async()=>{
+    if(!confirm('Убрать из списка? Аккаунт и данные останутся, при следующем входе человек снова появится здесь. Чтобы удалить аккаунт совсем: Firebase → Authentication → Users.')) return;
+    try{ await remove(ref(db,path)); closeUser(); toast('Убран из списка'); }catch(e){ fail(e); }
+  };
+  ov.querySelector('#a-notice').onclick=async()=>{
+    const t=ov.querySelector('#u-notice').value.trim(); if(!t){ toast('Напиши текст'); return; }
+    try{ await set(ref(db,path+'/notice'),{text:t,at:new Date().toISOString()}); ov.querySelector('#u-notice').value=''; toast('Отправлено'); }catch(e){ fail(e); }
+  };
+  const nd=ov.querySelector('#a-notice-del'); if(nd) nd.onclick=async()=>{ try{ await set(ref(db,path+'/notice'),null); toast('Отозвано'); }catch(e){ fail(e); } };
+  ov.querySelectorAll('[data-tag]').forEach(b=>b.onclick=async()=>{ try{ await set(ref(db,path+'/tag'),b.dataset.tag||null); }catch(e){ fail(e); } });
+  const note=ov.querySelector('#u-note'); let nt;
+  note.oninput=()=>{ $('#note-st').textContent='…'; clearTimeout(nt); nt=setTimeout(async()=>{ try{ await set(ref(db,path+'/note'),note.value.trim()||null); $('#note-st').textContent='сохранено'; }catch(e){ fail(e); } },700); };
+}
+function closeUser(){ openUid=null; const ov=document.getElementById('dr-ov'); if(ov) ov.remove(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUser(); });
 
 /* ── Вкладки ── */
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{

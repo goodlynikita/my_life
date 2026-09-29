@@ -145,6 +145,7 @@ window.Screens.login = function(mount) {
       /* onAuthStateChanged в app.js подхватит и переключит роутер */
       await FirebaseSync.pullIntoStore();
       Router.go('/home');
+      if (window.Notices) setTimeout(() => Notices.check(), 1200);
     } catch(e) {
       err.textContent = e && e.code === 'app/blocked' ? 'Доступ к аккаунту ограничен. Напиши в поддержку.' : 'Неверный email или пароль';
       btn.textContent = 'Войти'; btn.disabled = false;

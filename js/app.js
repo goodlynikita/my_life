@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } finally {
     if (window.Theme) Theme.syncFromStore();
     Router.render();
+    if (window.Notices) setTimeout(() => Notices.check(), 1200);
   }
 });
 

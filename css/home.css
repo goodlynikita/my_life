@@ -1434,3 +1434,16 @@ html, body {
 /* Свой значок-огонь вместо эмодзи (на светлом не теряется) */
 .hero-flame { font-size: .92em; margin-right: 3px; vertical-align: -1px; }
 .home2-grid.tiles-v88 { overflow: visible !important; } .home2-grid.tiles-v88::before, .home2-grid.tiles-v88::after { display: none !important; content: none !important; }
+/* Обратная связь: Telegram + email */
+.fb-contacts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fb-contacts .fb-input { margin-bottom: 8px; }
+.fb-tg-field { display: flex; align-items: center; gap: 4px; height: 46px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05); padding: 0 12px; margin-bottom: 8px; cursor: text; }
+.fb-tg-field:focus-within { border-color: rgba(34,158,217,0.7); }
+.fb-tg-field i { color: #2AABEE; font-size: 18px; margin-right: 2px; }
+.fb-tg-field span { color: #8E93A0; font-size: 15px; }
+.fb-tg-field input { flex: 1; min-width: 0; height: 100%; border: none; background: none; outline: none; color: #F2F4F8; font-size: 15px; font-family: Montserrat, sans-serif; }
+@media (max-width: 400px) { .fb-contacts { grid-template-columns: 1fr; } }
+/* Сообщение/объявление от команды */
+.nt-ico { color: #FBBF24 !important; background: rgba(251,191,36,0.14) !important; border-color: rgba(251,191,36,0.3) !important; }
+.nt-text { font-size: 15px; line-height: 1.6; color: #E8EAF0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 14px; word-break: break-word; }

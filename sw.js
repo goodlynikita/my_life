@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v4';
+const CACHE = 'nik-system-v5';
 
 const STATIC = [
   '/my_life/',
@@ -28,6 +28,7 @@ const STATIC = [
   '/my_life/js/screens/training.js',
   '/my_life/js/screens/habits.js',
   '/my_life/js/screens/finance.js',
+  '/my_life/js/screens/finance-piggy.js',
   '/my_life/js/screens/goals.js',
 ];
 

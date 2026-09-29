@@ -1,17 +1,58 @@
 /* ═══ Светлая тема ═══
-   Инверсия яркости с сохранением оттенков (hue-rotate 180°):
+   Основа — инверсия яркости с сохранением оттенков (hue-rotate 180°):
    тёмные фоны становятся светлыми, цвета акцентов сохраняются.
-   Картинки/эмодзи инвертируем обратно, чтобы остались как есть. */
+   Всё, что должно остаться «как есть» (картинки, эмодзи, фирменные шапки,
+   экран Финансов), инвертируем обратно — двойная инверсия = оригинал. */
 html[data-theme="light"] {
   background: #11141C;
-  filter: invert(1) hue-rotate(180deg);
+  /* лёгкий плюс к контрасту — карточки не сливаются с фоном */
+  filter: invert(1) hue-rotate(180deg) contrast(1.12);
 }
+
+/* Возврат к оригиналу */
 html[data-theme="light"] img,
 html[data-theme="light"] video,
 html[data-theme="light"] .tt-ico,
-html[data-theme="light"] .no-invert {
-  filter: invert(1) hue-rotate(180deg);
+html[data-theme="light"] .no-invert,
+/* фирменные цвета шапок разделов */
+html[data-theme="light"] .goals-header,
+html[data-theme="light"] .hab-header,
+html[data-theme="light"] .tr-header,
+/* Финансы изначально светлые — показываем как есть, с фиолетовой шапкой */
+html[data-theme="light"] .tochka-screen,
+html[data-theme="light"] .pg-sheet {
+  filter: invert(1) hue-rotate(180deg) contrast(0.893);
 }
+/* Внутри уже «возвращённых» блоков картинки второй раз не трогаем */
+html[data-theme="light"] .tochka-screen img,
+html[data-theme="light"] .pg-sheet img,
+html[data-theme="light"] .goals-header img,
+html[data-theme="light"] .hab-header img,
+html[data-theme="light"] .tr-header img { filter: none; }
+
+/* ── Плитки главного: плотные цветные карточки вместо полупрозрачных ──
+   Плитка возвращается к оригиналу, и ниже задан её реальный вид */
+html[data-theme="light"] .home2-tile {
+  filter: invert(1) hue-rotate(180deg) contrast(0.893);
+  box-shadow: 0 6px 20px rgba(30, 40, 70, 0.10), 0 1px 3px rgba(30, 40, 70, 0.08) !important;
+}
+html[data-theme="light"] .home2-tile::before { opacity: .35 !important; }
+html[data-theme="light"] .home2-tile::after { background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%) !important; }
+html[data-theme="light"] .tiles-v84 .tile-badge { background: rgba(255,255,255,0.65); box-shadow: none; }
+html[data-theme="light"] .tiles-v84 .home2-tile:hover { box-shadow: 0 10px 26px rgba(30,40,70,0.14) !important; }
+html[data-theme="light"] .home2-tile-training { background: linear-gradient(135deg, #E4EDFF 0%, #C9DAFF 100%) !important; border: 1px solid #B4C9F7 !important; }
+html[data-theme="light"] .home2-tile-habits   { background: linear-gradient(135deg, #E2F5E8 0%, #C4EBD0 100%) !important; border: 1px solid #A9DDB8 !important; }
+html[data-theme="light"] .home2-tile-finance  { background: linear-gradient(135deg, #EFE4FF 0%, #DCC8FF 100%) !important; border: 1px solid #C9B0F5 !important; }
+html[data-theme="light"] .home2-tile-goals    { background: linear-gradient(135deg, #FFF3DE 0%, #FCDFAE 100%) !important; border: 1px solid #F2CB85 !important; }
+html[data-theme="light"] .home2-tile-training .home2-tile-name, html[data-theme="light"] .home2-tile-training i { color: #1E4FC2 !important; }
+html[data-theme="light"] .home2-tile-habits   .home2-tile-name, html[data-theme="light"] .home2-tile-habits i   { color: #15803D !important; }
+html[data-theme="light"] .home2-tile-finance  .home2-tile-name, html[data-theme="light"] .home2-tile-finance i  { color: #6D28D9 !important; }
+html[data-theme="light"] .home2-tile-goals    .home2-tile-name, html[data-theme="light"] .home2-tile-goals i    { color: #B45309 !important; }
+html[data-theme="light"] .home2-tile-training .home2-tile-desc { color: #4A6BB0 !important; }
+html[data-theme="light"] .home2-tile-habits   .home2-tile-desc { color: #3F7F55 !important; }
+html[data-theme="light"] .home2-tile-finance  .home2-tile-desc { color: #7B5BB5 !important; }
+html[data-theme="light"] .home2-tile-goals    .home2-tile-desc { color: #9A6420 !important; }
+
 /* Тени после инверсии становятся светлыми «ореолами» — приглушаем */
 html[data-theme="light"] .home-menu-btn,
 html[data-theme="light"] .theme-toggle { box-shadow: none; }

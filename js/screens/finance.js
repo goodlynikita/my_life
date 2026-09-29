@@ -327,7 +327,7 @@ window.Screens.finance = function(mount) {
       <div class="tochka-hero" style="text-align:center;">
         <div class="tochka-hero-label">За всё время</div>
         <div class="tochka-hero-amount">${finFmtFull(grandTotal)}</div>
-        <div class="tochka-hero-pct neu">${activeYears} лет · ср. ${finFmt(avgYear)}/год</div>
+        <div class="tochka-hero-pct neu">${activeYears} ${(n=>{const a=n%10,b=n%100;return a===1&&b!==11?'год':a>=2&&a<=4&&(b<12||b>14)?'года':'лет';})(activeYears)} · ср. ${finFmt(avgYear)}/год</div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -424,6 +424,9 @@ window.Screens.finance = function(mount) {
         </div>
       </div>
 
+      <!-- Копилка -->
+      <div class="pg-wrap">${window.FinPiggy ? FinPiggy.html(SAVE_PCT) : ''}</div>
+
       <!-- Система управления -->
       <div class="bal2-system">
         <div class="bal2-system-title">📋 Система управления деньгами</div>
@@ -507,6 +510,7 @@ window.Screens.finance = function(mount) {
       </button>
     `;
 
+    if (window.FinPiggy) FinPiggy.bind(content, SAVE_PCT, renderBalance);
     document.getElementById('bal2-edit').addEventListener('click', ()=>{
       openBudgetEdit();
     });

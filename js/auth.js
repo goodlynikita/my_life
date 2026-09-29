@@ -20,13 +20,8 @@ const Auth = (() => {
   }
 
   async function attemptLogin(email, password) {
-    try {
-      await window.FirebaseSync.login(email, password);
-      return role();
-    } catch(e) {
-      console.error('login failed', e);
-      return null;
-    }
+    await window.FirebaseSync.login(email, password); /* ошибку пробрасываем — экран входа её покажет */
+    return role();
   }
 
   async function register(email, password, displayName) {

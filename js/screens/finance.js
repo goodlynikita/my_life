@@ -203,7 +203,7 @@ window.Screens.finance = function(mount) {
           <button id="fin-add" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>
         </div>
         ${(()=>{
-          if(!sorted.length) return '<div class="tochka-empty">Нет записей — добавьте первую</div>';
+          if(!sorted.length) return '<div class="tochka-empty">Нет записей, добавь первую</div>';
           const grps={};sorted.forEach(e=>{if(!grps[e.date])grps[e.date]=[];grps[e.date].push(e);});
           return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+date+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(e.amount)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+e.label+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
         })()}
@@ -400,114 +400,90 @@ window.Screens.finance = function(mount) {
     const goalSavings = Math.round(GOAL_INCOME * SAVE_PCT / 100);
     const goalForLife = GOAL_INCOME - goalSavings;
 
-    content.innerHTML = `
-      <!-- Hero: доход и копилка -->
-      <div class="bal2-hero">
-        <div class="bal2-hero-row">
-          <div>
-            <div class="bal2-label">ДОХОД МЕСЯЦА</div>
-            <div class="bal2-income">${finFmtFull(monthIncome || 0)}</div>
-            <div class="bal2-goal-line">Цель: ${finFmtFull(GOAL_INCOME)}/мес</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="bal2-label">В КОПИЛКУ (${SAVE_PCT}%)</div>
-            <div class="bal2-savings">${finFmtFull(savingsAmt)}</div>
-            <div class="bal2-goal-line">Цель: ${finFmtFull(goalSavings)}</div>
-          </div>
-        </div>
-        <div class="bal2-progress-track">
-          <div class="bal2-progress-fill" style="width:${Math.min(100,Math.round(monthIncome/GOAL_INCOME*100))}%;"></div>
-        </div>
-        <div class="bal2-progress-labels">
-          <span>На жизнь: ${finFmtFull(afterSavings)}</span>
-          <span>${Math.min(100,Math.round(monthIncome/GOAL_INCOME*100))}% от цели</span>
-        </div>
-      </div>
+    /* Раскладка дохода: копилка / базовые / свободно */
+    const inc = monthIncome || 0;
+    const pctOf = (v) => inc > 0 ? Math.max(0, Math.round(v / inc * 100)) : 0;
+    const freeAmt = Math.max(0, freeAfterBase);
+    const shortAmt = freeAfterBase < 0 ? -freeAfterBase : 0;
+    const segs = inc > 0
+      ? [{ w: savingsAmt, c: '#16A34A' }].concat(cats.map(c => ({ w: c.amt || 0, c: c.color || '#9CA3AF' }))).concat([{ w: freeAmt, c: '#CBD5E1' }])
+      : [];
+    const segTotal = segs.reduce((s, x) => s + x.w, 0) || 1;
+    const monthName = FIN_MONTHS[now.getMonth()];
 
+    content.innerHTML = `
       <!-- Копилка -->
       <div class="pg-wrap">${window.FinPiggy ? FinPiggy.html(SAVE_PCT) : ''}</div>
 
-      <!-- Система управления -->
-      <div class="bal2-system">
-        <div class="bal2-system-title">📋 Система управления деньгами</div>
-
-        <div class="bal2-rule">
-          <div class="bal2-rule-num">1</div>
+      <!-- Как распределить доход -->
+      <div class="plan-card">
+        <div class="plan-head">
           <div>
-            <div class="bal2-rule-title">Сразу в копилку — ${SAVE_PCT}%</div>
-            <div class="bal2-rule-desc">Любой приход → сразу ${finFmtFull(savingsAmt)} в копилку. Без исключений.</div>
+            <div class="plan-title">Как распределить доход</div>
+            <div class="plan-sub">${inc > 0 ? 'План на ' + monthName.toLowerCase() : 'В этом месяце доходов пока нет'}</div>
           </div>
+          <button class="plan-gear" id="bal2-edit" aria-label="Настроить расходы"><i class="ti ti-adjustments-horizontal"></i></button>
         </div>
 
-        <div class="bal2-rule">
-          <div class="bal2-rule-num">2</div>
-          <div>
-            <div class="bal2-rule-title">Приоритет базовых расходов</div>
-            <div class="bal2-rule-desc">Оставшиеся ${finFmtFull(afterSavings)} трать в таком порядке:</div>
-          </div>
-        </div>
+        ${inc > 0 ? `<div class="plan-bar">${segs.filter(x => x.w > 0).map(x => `<span style="flex:${x.w / segTotal};background:${x.c};"></span>`).join('')}</div>` : ''}
 
-        <!-- Демо-плашка для новых пользователей -->
         ${!stored.categories ? `
-        <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;">
-          <span style="font-size:18px;flex-shrink:0;">💡</span>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:700;color:#C4B5FD;margin-bottom:3px;">Это пример бюджета</div>
-            <div style="font-size:12px;color:rgba(196,181,253,0.7);line-height:1.4;">Категории и суммы заполнены автоматически как ориентир. Отредактируйте под свои расходы.</div>
-            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-              <button id="fin-edit-demo-cats" style="padding:6px 14px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:8px;color:#C4B5FD;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">✏️ Настроить расходы</button>
-              <button id="fin-clear-demo-cats" style="padding:6px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#FCA5A5;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">🗑 Начать с нуля</button>
+        <div class="plan-demo">
+          <i class="ti ti-bulb"></i>
+          <div>
+            <div class="plan-demo-title">Это пример бюджета</div>
+            <div class="plan-demo-txt">Категории и суммы стоят для ориентира. Поменяй под свои расходы.</div>
+            <div class="plan-demo-btns">
+              <button id="fin-edit-demo-cats">Настроить</button>
+              <button id="fin-clear-demo-cats" class="danger">Начать с нуля</button>
             </div>
           </div>
         </div>` : ''}
 
-        <!-- Таблица расходов -->
-        <div class="bal2-cats-table">
-          <div class="bal2-cats-head">
-            <span>Вид расхода</span>
-            <span>Сумма</span>
-            <span>% от дохода</span>
+        <div class="plan-step">
+          <div class="plan-ico" style="--c:#16A34A;"><i class="ti ti-pig-money"></i></div>
+          <div class="plan-main">
+            <div class="plan-name">Сразу в копилку</div>
+            <div class="plan-desc">${SAVE_PCT}% с каждого поступления, без исключений</div>
           </div>
-          ${cats.map(c=>`
-            <div class="bal2-cat-row">
-              <div class="bal2-cat-dot-name">
-                <div class="bal2-cat-dot" style="background:${c.color};"></div>
-                <span class="bal2-cat-name">${c.name}</span>
-              </div>
-              <span class="bal2-cat-amt">${finFmtFull(c.amt)}</span>
-              <span class="bal2-cat-pct" style="color:${c.color};">${monthIncome>0?Math.round(c.amt/monthIncome*100):0}%</span>
-            </div>`).join('')}
-          <div class="bal2-cat-total">
-            <span>Итого базовые</span>
-            <span>${finFmtFull(totalBase)}</span>
-            <span>${monthIncome>0?Math.round(totalBase/monthIncome*100):0}%</span>
-          </div>
+          <div class="plan-val"><b style="color:#16A34A;">${finFmtFull(savingsAmt)}</b><span>${SAVE_PCT}%</span></div>
         </div>
 
-        <div class="bal2-rule">
-          <div class="bal2-rule-num">3</div>
-          <div>
-            <div class="bal2-rule-title">Свободные деньги → цели</div>
-            <div class="bal2-free ${freeAfterBase>=0?'pos':'neg'}">
-              ${freeAfterBase>=0
-                ? `<span>${finFmtFull(freeAfterBase)}</span><span class="bal2-free-label"> — на цели и желания</span>`
-                : `<span>${finFmtFull(Math.abs(freeAfterBase))}</span><span class="bal2-free-label"> — не хватает на базу</span>`}
-            </div>
+        <div class="plan-step plan-step-open">
+          <div class="plan-ico" style="--c:#6366F1;"><i class="ti ti-home-dollar"></i></div>
+          <div class="plan-main">
+            <div class="plan-name">Базовые расходы</div>
+            <div class="plan-desc">Оплачиваются в первую очередь</div>
           </div>
+          <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctOf(totalBase)}%</span></div>
+        </div>
+        <div class="plan-cats">
+          ${cats.length ? cats.map(c => `
+            <div class="plan-cat">
+              <span class="plan-dot" style="background:${c.color || '#9CA3AF'};"></span>
+              <span class="plan-cat-name">${c.name}</span>
+              <span class="plan-cat-amt">${finFmtFull(c.amt || 0)}</span>
+              <span class="plan-cat-pct">${pctOf(c.amt || 0)}%</span>
+            </div>`).join('') : '<div class="plan-empty">Категорий нет. Добавь их в настройках</div>'}
         </div>
 
-        <div class="bal2-rule">
-          <div class="bal2-rule-num">4</div>
-          <div>
-            <div class="bal2-rule-title">Внеплановые расходы</div>
-            <div class="bal2-rule-desc">Неожиданная трата → берёшь из копилки, не из текущего остатка.</div>
+        <div class="plan-step">
+          <div class="plan-ico" style="--c:${shortAmt ? '#DC2626' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-alert-triangle' : 'ti-target-arrow'}"></i></div>
+          <div class="plan-main">
+            <div class="plan-name">${shortAmt ? 'Не хватает на базу' : 'Свободно на цели'}</div>
+            <div class="plan-desc">${shortAmt ? 'Доход меньше, чем копилка и базовые расходы' : 'Цели, желания, удовольствия'}</div>
+          </div>
+          <div class="plan-val"><b style="color:${shortAmt ? '#DC2626' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctOf(freeAmt) + '%'}</span></div>
+        </div>
+
+        <div class="plan-step plan-step-last">
+          <div class="plan-ico" style="--c:#F59E0B;"><i class="ti ti-umbrella"></i></div>
+          <div class="plan-main">
+            <div class="plan-name">Внеплановая трата</div>
+            <div class="plan-desc">Берёшь из копилки, а не из свободного остатка</div>
           </div>
         </div>
       </div>
-
-      <button id="bal2-edit" class="bal2-edit-btn">
-        <i class="ti ti-settings"></i> Настроить расходы и цель
-      </button>
     `;
 
     if (window.FinPiggy) FinPiggy.bind(content, SAVE_PCT, renderBalance);

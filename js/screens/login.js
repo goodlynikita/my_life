@@ -6,9 +6,20 @@ window.Screens.login = function(mount) {
       <div style="position:absolute;top:-100px;right:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(96,165,250,0.2) 0%,transparent 70%);pointer-events:none;"></div>
       <div style="position:absolute;bottom:-100px;left:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,0.15) 0%,transparent 70%);pointer-events:none;"></div>
 
+      ${window.Feedback ? Feedback.buttonHtml('fb-envelope-login') : ''}
       <img src="icon.png" onerror="this.style.display='none'" style="width:76px;height:76px;border-radius:18px;margin-bottom:16px;box-shadow:0 8px 32px rgba(74,124,255,0.4);">
       <div style="font-size:24px;font-weight:900;color:#F2F4F8;margin-bottom:4px;">YOU</div>
-      <div style="font-size:12px;color:rgba(242,244,248,0.4);margin-bottom:28px;">Персональный трекер жизни</div>
+      <div style="font-size:12px;color:rgba(242,244,248,0.4);margin-bottom:18px;">Персональный трекер жизни</div>
+
+      <!-- Счётчик мест: заполняется из Firebase (stats/usersCount) -->
+      <div id="seats" class="seats" style="display:none;">
+        <div class="seats-top">
+          <span class="seats-badge"><i class="ti ti-gift"></i> Бесплатно для первых <b id="seats-limit">1000</b></span>
+          <span class="seats-left" id="seats-left"></span>
+        </div>
+        <div class="seats-track"><div class="seats-fill" id="seats-fill"></div></div>
+        <div class="seats-sub" id="seats-sub"></div>
+      </div>
 
       <div style="width:100%;max-width:380px;">
         <!-- Вкладки -->
@@ -26,8 +37,14 @@ window.Screens.login = function(mount) {
         </div>
 
         <!-- Форма регистрации -->
+        <div id="form-reg-closed" class="reg-closed" style="display:none;">
+          <div class="reg-closed-ico"><i class="ti ti-lock"></i></div>
+          <div class="reg-closed-title">Бесплатные места закончились</div>
+          <div class="reg-closed-txt">Все <b class="seats-limit-copy">1000</b> мест заняты. Напиши в поддержку, и мы пришлём личный инвайт.</div>
+          <button class="reg-closed-btn" id="reg-invite"><i class="ti ti-brand-telegram"></i> Получить инвайт</button>
+        </div>
         <div id="form-reg" style="display:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.5;">Создай аккаунт — твои данные будут храниться отдельно и недоступны другим.</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.5;">Создай аккаунт. Твои данные хранятся отдельно и недоступны другим.</div>
           <input id="reg-name" type="text" placeholder="Имя (необязательно)" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-email" type="email" inputmode="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
@@ -44,6 +61,7 @@ window.Screens.login = function(mount) {
   document.getElementById('tab-login').addEventListener('click', () => {
     document.getElementById('form-login').style.display = 'block';
     document.getElementById('form-reg').style.display = 'none';
+    document.getElementById('form-reg-closed').style.display = 'none';
     document.getElementById('tab-login').style.background = 'rgba(74,124,255,0.9)';
     document.getElementById('tab-login').style.color = '#fff';
     document.getElementById('tab-reg').style.background = 'none';
@@ -52,13 +70,46 @@ window.Screens.login = function(mount) {
 
   document.getElementById('tab-reg').addEventListener('click', () => {
     document.getElementById('form-login').style.display = 'none';
-    document.getElementById('form-reg').style.display = 'block';
+    document.getElementById('form-reg').style.display = regClosed ? 'none' : 'block';
+    document.getElementById('form-reg-closed').style.display = regClosed ? 'block' : 'none';
     document.getElementById('tab-reg').style.background = 'rgba(5,150,105,0.9)';
     document.getElementById('tab-reg').style.color = '#fff';
     document.getElementById('tab-login').style.background = 'none';
     document.getElementById('tab-login').style.color = 'rgba(255,255,255,0.5)';
-    setTimeout(() => document.getElementById('reg-name').focus(), 100);
+    if (!regClosed) setTimeout(() => document.getElementById('reg-name').focus(), 100);
   });
+
+  /* ── Счётчик мест ── */
+  var regClosed = false;
+  var LIMIT = (window.APP_CONFIG && APP_CONFIG.freeUsersLimit) || 1000;
+  function plural(n, a, b, c) { var x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; }
+  function showSeats(count) {
+    var box = document.getElementById('seats');
+    if (!box || count === null || count === undefined) return;
+    var left = Math.max(0, LIMIT - count);
+    var pct = Math.min(100, Math.round(count / LIMIT * 100));
+    document.getElementById('seats-limit').textContent = LIMIT.toLocaleString('ru-RU');
+    document.querySelectorAll('.seats-limit-copy').forEach(function(e){ e.textContent = LIMIT.toLocaleString('ru-RU'); });
+    document.getElementById('seats-left').textContent = left > 0 ? 'осталось ' + left.toLocaleString('ru-RU') + ' ' + plural(left, 'место', 'места', 'мест') : 'мест нет';
+    document.getElementById('seats-fill').style.width = Math.max(2, pct) + '%';
+    document.getElementById('seats-sub').textContent = left > 0
+      ? (count >= 10 ? 'Уже с нами: ' + count.toLocaleString('ru-RU') + ' ' + plural(count, 'человек', 'человека', 'человек') : 'Регистрация открыта, успей занять место')
+      : 'Регистрация по личным инвайтам через поддержку';
+    box.style.display = '';
+    box.classList.toggle('is-full', left === 0);
+    if (left === 0) {
+      regClosed = true;
+      if (document.getElementById('form-reg').style.display === 'block') {
+        document.getElementById('form-reg').style.display = 'none';
+        document.getElementById('form-reg-closed').style.display = 'block';
+      }
+    }
+  }
+  if (window.FirebaseSync && FirebaseSync.getUsersCount) FirebaseSync.getUsersCount().then(showSeats);
+  function openInvite() {
+    if (window.Feedback) Feedback.openTelegram();
+  }
+  document.getElementById('reg-invite').addEventListener('click', openInvite);
 
   /* Login */
   async function tryLogin() {
@@ -99,6 +150,7 @@ window.Screens.login = function(mount) {
       await FirebaseSync.pullIntoStore();
       Router.go('/home');
     } catch(e) {
+      if (e.code === 'app/limit-reached') { showSeats(LIMIT); document.getElementById('tab-reg').click(); return; }
       var msg = e.code === 'auth/email-already-in-use' ? 'Этот email уже зарегистрирован'
               : e.code === 'auth/invalid-email'        ? 'Некорректный email'
               : 'Ошибка регистрации. Попробуй ещё раз.';

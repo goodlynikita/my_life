@@ -79,7 +79,7 @@ window.FinPiggy = (function () {
       <div class="pg-row">
         <div class="pg-row-main">
           <div class="pg-row-title">${FIN_MONTHS[x.m]} ${x.y}</div>
-          <div class="pg-row-sub">${x.income ? 'доход ' + finFmtFull(x.income) + ' · ' + pct + '%' : 'доходов нет'}</div>
+          <div class="pg-row-sub">${x.income ? pct + '% от поступлений' : 'поступлений не было'}</div>
         </div>
         <div class="pg-row-side">
           <div class="pg-plus">+${finFmtFull(x.auto + x.manual)}</div>
@@ -174,7 +174,7 @@ window.FinPiggy = (function () {
           note = box.querySelector('#pg-note').value.trim();
           const err = box.querySelector('#pg-err');
           if (amount <= 0) { err.textContent = 'Укажи сумму'; return; }
-          if (!note) { err.textContent = 'Напиши, на что именно — так проще честно оценить трату'; return; }
+          if (!note) { err.textContent = 'Напиши, на что именно: так проще честно оценить трату'; return; }
           step = 2; render();
         });
         setTimeout(() => box.querySelector('#pg-amt').focus(), 50);
@@ -193,12 +193,12 @@ window.FinPiggy = (function () {
           </div>
           <div class="pg-field-lbl">Отметь, если это правда так:</div>
           <label class="pg-check"><input type="checkbox" class="pg-q"><span>Это <b>нужно</b>, а не просто «хочу»</span></label>
-          <label class="pg-check"><input type="checkbox" class="pg-q"><span>Если не потратить — будут <b>проблемы</b> (здоровье, работа, поломка, штраф)</span></label>
+          <label class="pg-check"><input type="checkbox" class="pg-q"><span>Если не потратить, будут <b>проблемы</b> (здоровье, работа, поломка, штраф)</span></label>
           <label class="pg-check"><input type="checkbox" class="pg-q"><span>Это <b>не импульс</b>: я бы купил это и через неделю</span></label>
           <div class="pg-impulse" id="pg-impulse">Похоже на желание, а не на срочную трату. Копилка — для непредвиденного. Лучше поставь это в цели и накопи отдельно.</div>
           <div class="pg-sheet-actions pg-col">
             <button class="pg-sbtn pg-sbtn-danger" id="pg-confirm" disabled>Снять ${finFmtFull(amount)}</button>
-            <button class="pg-sbtn pg-sbtn-soft" id="pg-to-goal"><i class="ti ti-target-arrow"></i> Не снимать — добавить в цели</button>
+            <button class="pg-sbtn pg-sbtn-soft" id="pg-to-goal"><i class="ti ti-target-arrow"></i> Не снимать, добавить в цели</button>
             <button class="pg-sbtn pg-sbtn-ghost" id="pg-back">← Назад</button>
           </div>`;
         const qs = [...box.querySelectorAll('.pg-q')];
@@ -236,7 +236,7 @@ window.FinPiggy = (function () {
   function openDeposit(done) {
     const ov = sheet(`
       <div class="pg-sheet-head"><span>Пополнить копилку</span><button class="pg-x" data-close>×</button></div>
-      <div class="pg-hint">Отчисления с доходов добавляются сами. Здесь — если отложил что-то сверху.</div>
+      <div class="pg-hint">Отчисления с доходов добавляются сами. Здесь можно добавить, если отложил что-то сверху.</div>
       <label class="pg-field">Сумма<input id="pg-amt" type="number" inputmode="numeric" placeholder="0"></label>
       <label class="pg-field">Комментарий<input id="pg-note" type="text" placeholder="Необязательно"></label>
       <div class="pg-err" id="pg-err"></div>

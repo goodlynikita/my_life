@@ -293,7 +293,7 @@ function trOpenExerciseEditor() {
     const exercises = MUSCLE_BLOCK_EXERCISES[selGroup]||[];
     const items = exercises.length
       ? exercises.map((ex,i) => `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);min-width:0;"><span style="flex:1;font-size:13px;color:#E8E5DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ex}</span><button class="tr-ex-ren" data-idx="${i}" style="background:none;border:none;color:#9D9A92;cursor:pointer;padding:4px;"><i class="ti ti-pencil" style="font-size:14px;"></i></button><button class="tr-ex-del" data-idx="${i}" style="background:none;border:none;color:#F87171;cursor:pointer;padding:4px;"><i class="ti ti-trash" style="font-size:14px;"></i></button></div>`).join('')
-      : '<div style="color:#555;font-size:13px;padding:16px 0;text-align:center;">Список пуст — добавь упражнения</div>';
+      : '<div style="color:#555;font-size:13px;padding:16px 0;text-align:center;">Список пуст, добавь упражнения</div>';
     const isGym = GYM_TYPES.includes(selType);
     return modal(`${selType} → ${selGroup}`,
       `<div style="overflow-y:auto;flex:1;min-height:0;">${items}</div>
@@ -739,7 +739,7 @@ function trProgressionHint(plan, exName) {
       type: 'first',
       html: `<div class="tr-prog-hint tr-prog-first">
         <i class="ti ti-info-circle"></i>
-        <span>Первый раз — начни с комфортного веса и нащупай свой рабочий</span>
+        <span>Первый раз: начни с комфортного веса и нащупай свой рабочий</span>
       </div>`
     };
   }
@@ -775,7 +775,7 @@ function trProgressionHint(plan, exName) {
       type: 'hold',
       html: `<div class="tr-prog-hint tr-prog-hold">
         <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
-        <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${weight} кг</strong>, цель — дойти до ${sets} × ${prog.max}</div>
+        <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${weight} кг</strong>, цель: дойти до ${sets} × ${prog.max}</div>
       </div>`
     };
   } else {
@@ -1087,9 +1087,9 @@ function trWeightHint(plan, exerciseName) {
 
 function trBuildExerciseSelect(selectedGroups) {
   const list = trExercisesForGroups(selectedGroups);
-  const customOption = `<option value="__custom__">— своё название —</option>`;
+  const customOption = `<option value="__custom__">Своё название…</option>`;
   if (list.length === 0) {
-    return `<select id="m-name"><option value="">— выбери группу мышц —</option>${customOption}</select>`;
+    return `<select id="m-name"><option value="">Выбери группу мышц</option>${customOption}</select>`;
   }
   const options = list.map(name => `<option value="${name}">${name}</option>`).join('');
   return `<select id="m-name" class="tr-color-select">${options}${customOption}</select>`;
@@ -1982,7 +1982,7 @@ window.Screens.training = function (mount) {
           <div style="text-align:center;margin-bottom:28px;">
             <div style="font-size:36px;margin-bottom:12px;">🏋️</div>
             <div style="font-size:18px;font-weight:800;color:#E8E5DC;margin-bottom:8px;">Начни свой первый план</div>
-            <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Нажми «Новый план» — и приложение создаст тебе 8-недельную сетку. Ты сам заполняешь её под себя.</div>
+            <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Нажми «Новый план», и приложение создаст тебе 8-недельную сетку. Ты сам заполняешь её под себя.</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -1995,15 +1995,15 @@ window.Screens.training = function (mount) {
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
               <span style="font-size:20px;">💪</span>
               <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Упражнения — в Рабочем весе</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Рабочий вес» видишь все свои упражнения и прогресс. Там же редактор упражнений — можно убрать лишнее и добавить своё.</div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Упражнения в «Рабочем весе»</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Рабочий вес» видишь все свои упражнения и прогресс. Там же редактор упражнений: можно убрать лишнее и добавить своё.</div>
               </div>
             </div>
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
               <span style="font-size:20px;">🔄</span>
               <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тип и группы — кликай на тег</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">После добавления тренировки нажми на тег типа (например «Зал ✏️») — появится быстрый выбор. Группы мышц выбираются при добавлении упражнения.</div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тип и группы: кликай на тег</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">После добавления тренировки нажми на тег типа (например «Зал ✏️»), появится быстрый выбор. Группы мышц выбираются при добавлении упражнения.</div>
               </div>
             </div>
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -2178,7 +2178,7 @@ window.Screens.training = function (mount) {
         <div style="font-size:22px;text-align:center;margin-bottom:12px;">${isFirst ? '🏋️' : '🔄'}</div>
         <p class="tr-modal-title" style="text-align:center;margin-bottom:8px;">${isFirst ? 'Создать первый план' : 'Начать новый план'}</p>
         <p style="font-size:13px;color:#9D9A92;text-align:center;line-height:1.6;margin-bottom:20px;">${isFirst
-          ? 'Создаётся 8-недельная сетка. Заполняй её под себя — тип тренировки, группы мышц, упражнения.'
+          ? 'Создаётся 8-недельная сетка. Заполняй её под себя: тип тренировки, группы мышц, упражнения.'
           : 'Текущий план перейдёт в архив. Рабочие веса и упражнения сохранятся в новом плане.'
         }</p>
         <div class="tr-modal-actions">
@@ -2618,7 +2618,7 @@ function nutrOpenAddModal(dateKey, meal, onSave) {
     resultsEl.innerHTML = '<div style="padding:8px; font-size:13px; color:#9D9A92;">Ищем…</div>';
     const res = await nutrSearch(q);
     if (res.length === 0) {
-      resultsEl.innerHTML = '<div style="padding:8px; font-size:13px; color:#9D9A92;">Не найдено — добавьте вручную ↓</div>';
+      resultsEl.innerHTML = '<div style="padding:8px; font-size:13px; color:#9D9A92;">Не найдено, добавь вручную ↓</div>';
       return;
     }
     renderResultList(res, resultsEl, false);

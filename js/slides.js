@@ -4,6 +4,31 @@
    Каждый слайд: { id, type, label, blocks[], color, enabled }
    ============================================================ */
 
+/* Что сегодня по тренировкам — ОДНА функция и для слайда «Фокус дня», и для плитки */
+function todayWorkoutInfo(store) {
+  const plans = ((store.training && store.training.plans) || []).filter(Boolean);
+  const plan = plans.find(p => p.status === 'active') || plans.slice(-1)[0];
+  const now = new Date();
+  let parts = [], hasRest = false, hasAny = false;
+  if (plan && plan.weeks) plan.weeks.forEach(w => ((w && w.days) || []).forEach(d => {
+    if (!d || !d.date) return;
+    const [dd, mm] = d.date.split('.').map(Number);
+    if (dd !== now.getDate() || mm !== now.getMonth() + 1) return;
+    (d.sessions || []).filter(Boolean).forEach(s => {
+      hasAny = true;
+      if (s.type === 'Отдых') { hasRest = true; return; }
+      if (s.groups && s.groups.length) parts = parts.concat(s.groups);
+      else if (s.type) parts.push(s.type);
+    });
+    if (!(d.sessions || []).length && (d.exercises || []).length) { hasAny = true; parts.push('Тренировка'); }
+  }));
+  parts = parts.filter((x, i) => parts.indexOf(x) === i);
+  if (parts.length) return { text: parts.join(' + '), empty: false };
+  if (hasRest) return { text: 'Отдых', empty: false };
+  return { text: 'Не задано', empty: true };
+}
+window.todayWorkoutInfo = todayWorkoutInfo;
+
 var Slides = (() => {
 
   /* ── Библиотека блоков ──
@@ -15,20 +40,8 @@ var Slides = (() => {
       name: 'Тренировка сегодня',
       desc: 'Группы мышц / тип тренировки на сегодня',
       render: (store) => {
-        const plans = (store.training?.plans||[]).filter(Boolean);
-        const plan  = plans.find(p=>p.status==='active') || plans.slice(-1)[0];
-        const now   = new Date();
-        let groups  = [];
-        if (plan?.weeks) plan.weeks.forEach(w=>(w?.days||[]).forEach(d=>{
-          if (!d?.date) return;
-          const [dd,mm] = d.date.split('.');
-          if (+dd===now.getDate()&&+mm===(now.getMonth()+1))
-            (d.sessions||[]).filter(s=>s&&s.type!=='Отдых').forEach(s=>{
-              if (s.groups?.length) groups=groups.concat(s.groups); else if(s.type) groups.push(s.type);
-            });
-        }));
-        const text = groups.join(' + ') || 'Отдых';
-        return `<div class="hero-big-text">${text}</div>`;
+        const t = todayWorkoutInfo(store);
+        return `<div class="hero-big-text${t.empty ? ' hero-dim' : ''}">${t.text}</div>`;
       },
     },
     {
@@ -77,7 +90,7 @@ var Slides = (() => {
           if (max > best) { best = max; bestName = h.name; }
         });
         const c = best>=14?'#FF4500':best>=7?'#F59E0B':best>=3?'#FB923C':'#9D9A92';
-        return `<div class="hero-stat-num" style="color:${c}">🔥${best}</div><div class="hero-stat-lbl">${bestName}</div>`;
+        return `<div class="hero-stat-num" style="color:${c}"><i class="ti ti-flame-filled hero-flame"></i>${best}</div><div class="hero-stat-lbl">${bestName}</div>`;
       },
     },
     {
@@ -152,13 +165,13 @@ var Slides = (() => {
     {
       id: 'custom_text', section: 'Кастом',
       name: 'Свой текст',
-      desc: 'Любой заголовок и подпись — ты вводишь сам',
+      desc: 'Любой заголовок и подпись, вводишь сам',
       render: (store, cfg) => `<div class="hero-big-text">${cfg?.text||'Твой текст'}</div>${cfg?.sub?`<div class="hero-sub-text">${cfg.sub}</div>`:''}`,
     },
     {
       id: 'custom_goal', section: 'Кастом',
       name: 'Конкретная цель',
-      desc: 'Показывает одну выбранную цель — статус и сумму',
+      desc: 'Одна выбранная цель: статус и сумма',
       render: (store, cfg) => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const g = goals.find(x=>x.id===cfg?.goalId) || goals[0];
@@ -247,7 +260,7 @@ var Slides = (() => {
           if (hasDone) streak++; else if (i>0) break;
         }
         const c = streak>=14?'#FF4500':streak>=7?'#F59E0B':streak>=3?'#4ADE80':'#9D9A92';
-        return `<div class="hero-stat-num" style="color:${c}">🔥${streak}</div><div class="hero-stat-lbl">дней подряд</div>`;
+        return `<div class="hero-stat-num" style="color:${c}"><i class="ti ti-flame-filled hero-flame"></i>${streak}</div><div class="hero-stat-lbl">дней подряд</div>`;
       },
     },
     /* ── Финансы: доп блоки ── */
@@ -342,8 +355,8 @@ var Slides = (() => {
       desc: 'Рандомная фраза из набора каждый день',
       render: (store, cfg) => {
         const quotes = cfg?.quotes ? cfg.quotes.split('\n').filter(Boolean) : [
-          'Сегодня важнее вчера','Один шаг — уже движение','Дисциплина сильнее мотивации',
-          'Делай сейчас — отдохнёшь позже','Маленький прогресс — всё равно прогресс',
+          'Сегодня важнее вчера','Один шаг уже движение','Дисциплина сильнее мотивации',
+          'Делай сейчас, отдохнёшь позже','Маленький прогресс всё равно прогресс',
         ];
         const idx = new Date().getDate() % quotes.length;
         return `<div class="hero-big-text" style="font-size:15px;line-height:1.4;">${quotes[idx]}</div>`;
@@ -489,7 +502,7 @@ var Slides = (() => {
           <button class="se-edit-slide" data-idx="${idx}" aria-label="Изменить"><i class="ti ti-edit"></i></button>
           ${total>1?`<button class="se-del-slide" data-idx="${idx}" aria-label="Удалить"><i class="ti ti-trash"></i></button>`:''}
         </div>
-        <div class="se-chips">${blocks||'<span class="se-empty">Нет блоков — нажми «Изменить»</span>'}</div>
+        <div class="se-chips">${blocks||'<span class="se-empty">Нет блоков, нажми «Изменить»</span>'}</div>
       </div>`;
     }
 
@@ -573,7 +586,7 @@ var Slides = (() => {
           </div>
         </div>
         <div id="se-body" class="se-body">
-          <div class="se-hint">Стрелки — порядок на главном. «Вкл/Выкл» — показывать слайд.</div>
+          <div class="se-hint">Стрелками меняй порядок на главном, «Вкл/Выкл» показывает или прячет слайд.</div>
           ${curSlides.map((s,i) => slideCard(s,i,curSlides.length)).join('')}
         </div>
       </div>`;

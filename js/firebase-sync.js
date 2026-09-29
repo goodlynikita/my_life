@@ -1,12 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, push, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
-  updateProfile
+  updateProfile,
+  deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const _fbApp = initializeApp(window.FIREBASE_CONFIG);
@@ -164,10 +165,59 @@ const FirebaseSync = (() => {
   window.addEventListener('pagehide', _pushBeacon);
 
   /* ── Firebase Auth API ── */
+  /* ── Счётчик пользователей и лимит бесплатных мест ──
+     stats/usersCount — сколько зарегистрировано (правила: читать всем, писать залогиненным) */
+  function freeLimit() { return (window.APP_CONFIG && window.APP_CONFIG.freeUsersLimit) || 1000; }
+
+  async function getUsersCount() {
+    try {
+      const snap = await Promise.race([
+        get(ref(_db, 'stats/usersCount')),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 6000))
+      ]);
+      const v = snap.exists() ? Number(snap.val()) : 0;
+      return isFinite(v) ? v : 0;
+    } catch (e) { return null; } /* нет доступа / нет сети — счётчик просто не показываем */
+  }
+
   async function register(email, password, displayName) {
+    const limit = freeLimit();
+    const before = await getUsersCount();
+    if (before !== null && before >= limit) { const e = new Error('limit'); e.code = 'app/limit-reached'; throw e; }
     const cred = await createUserWithEmailAndPassword(_auth, email, password);
+    /* Бронируем место атомарно: если пока регистрировались, места кончились — откатываем аккаунт */
+    try {
+      const tx = await runTransaction(ref(_db, 'stats/usersCount'), (c) => {
+        c = Number(c) || 0;
+        if (c >= limit) return; /* abort */
+        return c + 1;
+      });
+      if (!tx.committed) {
+        try { await deleteUser(cred.user); } catch (e) {}
+        const e = new Error('limit'); e.code = 'app/limit-reached'; throw e;
+      }
+    } catch (e) {
+      if (e.code === 'app/limit-reached') throw e;
+      console.warn('usersCount not updated (проверь правила stats в Firebase)', e);
+    }
     if (displayName) await updateProfile(cred.user, { displayName });
     return cred.user;
+  }
+
+  /* ── Обратная связь → feedback/{id} ── */
+  async function sendFeedback(data) {
+    const u = _auth.currentUser;
+    const payload = {
+      type: data.type || 'other', text: String(data.text || '').slice(0, 4000),
+      contact: String(data.contact || '').slice(0, 200),
+      uid: u ? u.uid : null, email: u ? u.email : null,
+      at: new Date().toISOString(), ua: navigator.userAgent.slice(0, 200)
+    };
+    await Promise.race([
+      push(ref(_db, 'feedback'), payload),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))
+    ]);
+    return true;
   }
 
   async function login(email, password) {
@@ -193,6 +243,7 @@ const FirebaseSync = (() => {
     isConfigured, pullIntoStore, scheduleSave,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,
+    getUsersCount, sendFeedback, freeLimit,
     getConfig: () => window.FIREBASE_CONFIG
   };
 })();

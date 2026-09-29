@@ -36,32 +36,8 @@ window.Screens.home = function(mount) {
 
   var plans = (store.training && store.training.plans) || [];
   var activePlan = plans.filter(Boolean).find(function(p){return p.status==='active';}) || plans.filter(Boolean).slice(-1)[0];
-  var todayGroups = [];
-  var todayWorkout = '';
-  if (activePlan && activePlan.weeks) {
-    activePlan.weeks.forEach(function(week){
-      if(!week||!week.days) return;
-      week.days.forEach(function(day){
-        if(!day||!day.date) return;
-        var p = day.date.split('.');
-        if(parseInt(p[0])===now.getDate() && parseInt(p[1])===(now.getMonth()+1)) {
-          var sessions = day.sessions || [];
-          var exercises = day.exercises || [];
-          /* Из sessions берём группы мышц */
-          sessions.filter(function(s){return s&&s.type!=='Отдых'&&s.type!=='10k';}).forEach(function(s){
-            if(s.groups&&s.groups.length) todayGroups = todayGroups.concat(s.groups);
-            else if(s.type) todayGroups.push(s.type);
-          });
-          /* Если exercises есть — тренировка не пустая */
-          if(!todayGroups.length && exercises.length>0) {
-            todayWorkout = 'Тренировка';
-          }
-          // Отдых не показываем — оставляем пустым → будет «Не задано»
-        }
-      });
-    });
-    if(todayGroups.length) todayWorkout = todayGroups.join(' + ');
-  }
+  var _tw = window.todayWorkoutInfo ? todayWorkoutInfo(store) : { text: 'Не задано', empty: true };
+  var todayWorkout = _tw.empty ? '' : _tw.text;
 
   /* sliderCfg: interval, autoplay, hidden */
   var sliderCfg = (store.home && store.home.sliderCfg) || {};
@@ -79,6 +55,7 @@ window.Screens.home = function(mount) {
 
   mount.innerHTML = '<div class="home2-screen">'
     + '<div class="home2-header">'
+    + (window.Feedback ? Feedback.buttonHtml('fb-envelope-home') : '')
     + '<button id="home-theme-btn" class="theme-toggle" data-mode="'+(isLight?'light':'dark')+'" aria-label="Тема: светлая / тёмная" title="Светлая / тёмная тема">'
     +   '<span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span>'
     + '</button>'
@@ -92,11 +69,11 @@ window.Screens.home = function(mount) {
     + visSlides.map(function(_,i){ return '<div class="hero-dot'+(i===0?' active':'')+'" data-idx="'+i+'"></div>'; }).join('')
     + '</div>' : '')
     + '</div>')
-    + '<div class="home2-grid tiles-v84">'
-    + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-flame home2-tile-icon"></i></span><div class="home2-tile-name">Тренировки</div><div class="home2-tile-desc">'+(todayWorkout||'Не задано')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-checklist home2-tile-icon"></i></span><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div></div></button>'
-    + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-chart-bar home2-tile-icon"></i></span><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
-    + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><span class="tile-badge"><i class="ti ti-target-arrow home2-tile-icon"></i></span><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
+    + '<div class="home2-grid tiles-v88">'
+    + '<button class="home2-tile home2-tile-training" data-route="/training"><div class="home2-tile-content"><i class="ti ti-flame home2-tile-icon"></i><div class="home2-tile-name">Тренировки</div><div class="home2-tile-desc">'+(todayWorkout||'Не задано')+'</div></div></button>'
+    + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><i class="ti ti-checklist home2-tile-icon"></i><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div></div></button>'
+    + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
+    + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + '</div>'
     + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
 
@@ -415,7 +392,7 @@ window.Screens.home = function(mount) {
       + '</div>'
       + '<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 20px;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:16px;">'
-      +   '<div><div style="font-size:14px;font-weight:700;color:#E8E5DC;">Показывать слайдер</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл — на главном только плитки</div></div>'
+      +   '<div><div style="font-size:14px;font-weight:700;color:#E8E5DC;">Показывать слайдер</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: на главном только плитки</div></div>'
       +   toggleHtml('sl-show-toggle', shownOn)
       + '</div>'
       + '<div id="sl-more" style="'+(shownOn?'':'opacity:.4;pointer-events:none;')+'">'
@@ -426,7 +403,7 @@ window.Screens.home = function(mount) {
       +   '<button id="sl-int-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>'
       + '</div>'
       + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:18px;">'
-      +   '<div><div style="font-size:14px;font-weight:600;color:#E8E5DC;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл — листать вручную</div></div>'
+      +   '<div><div style="font-size:14px;font-weight:600;color:#E8E5DC;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: листать вручную</div></div>'
       +   toggleHtml('sl-auto-toggle', autoOn)
       + '</div>'
       + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Слайды и порядок</div>'
@@ -503,5 +480,5 @@ window.Screens.home = function(mount) {
   /* Плитки: появление по очереди (анимация в CSS, тут только задержки) */
   mount.querySelectorAll('.home2-tile').forEach(function(t, i){ t.style.setProperty('--i', i); });
   var gridEl = mount.querySelector('.home2-grid');
-  if (gridEl && !window._homeTilesShown) { gridEl.classList.add('tiles-enter'); window._homeTilesShown = true; }
+  if (gridEl && !window._homeTilesShown) { gridEl.classList.add('tiles-enter-88'); window._homeTilesShown = true; }
 };

@@ -213,6 +213,51 @@ html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
 .theme-toggle .tt-knob{position:absolute;top:3px;left:3px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);box-shadow:0 2px 8px rgba(0,0,0,0.35);transition:left .28s cubic-bezier(.34,1.56,.64,1);z-index:0;box-sizing:border-box}
 .theme-toggle[data-mode="dark"] .tt-knob{left:39px}
 html[data-theme="light"] .theme-toggle{box-shadow:none}
+/* v140: согласия */
+.lg-chk{display:flex;align-items:flex-start;gap:10px;margin:2px 0 10px;font-size:12.5px;line-height:1.45;color:var(--soft);cursor:pointer}
+.lg-chk input{width:18px;height:18px;flex-shrink:0;margin:1px 0 0;accent-color:#4A7CFF} .lg-chk a{color:#93C5FD}
+.lg-legal{margin-top:14px;font-size:11.5px;line-height:1.6;color:var(--faint);text-align:center} .lg-legal a{color:var(--soft)}
+/* v140: шапки как в YOU. Главная: конверт слева, справа тема и меню. Разделы: цветная шапка */
+#hdr-home .hdr-in{max-width:none;padding:max(16px,calc(env(safe-area-inset-top) + 8px)) 20px 16px;gap:10px}
+#hdr-home{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;position:relative}
+.hdr-in .fb-envelope{width:44px;height:40px}
+.hadd{height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:20px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#E8E5DC;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hadd i{font-size:18px;color:#F2A93B}
+.hdots{position:relative;width:48px;height:40px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0;flex-shrink:0;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 6px 18px rgba(0,0,0,.35)}
+.hdots span{width:5px;height:5px;border-radius:50%;background:#F2F4F8;box-shadow:0 0 6px rgba(255,255,255,.45)}
+html[data-theme="light"] .hdots,html[data-theme="light"] .hadd{box-shadow:none}
+@media (max-width:440px){#hdr-home .hdr-in{padding-left:16px;padding-right:16px;gap:8px}.hadd{padding:0 10px}}
+.c-sh{position:sticky;top:0;z-index:30;padding-top:max(14px,calc(env(safe-area-inset-top) + 8px))!important}
+.c-sh>div:first-child{display:flex;align-items:center;gap:10px;min-width:0}
+.c-sh .tr-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-sh .tr-back{background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.c-sh-green{background:linear-gradient(135deg,#166534 0%,#15803D 100%)!important}
+.c-sh-violet{background:linear-gradient(135deg,#4C1D95 0%,#5B21B6 60%,#6D28D9 100%)!important}
+.c-sh-amber{background:linear-gradient(135deg,#7C2D12 0%,#B45309 55%,#D97706 100%)!important}
+html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893)}
+/* v139: шапка (конверт, добавить) и расписание */
+@media (max-width:370px){.hadd span{display:none}}
+.sc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px} .sc-top b{font-size:14.5px;text-align:center}
+.sc-nav{width:38px;height:38px;border-radius:12px;font-size:18px}
+.sc-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:14px}
+.sc-d{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;border-radius:14px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--soft);cursor:pointer;font-family:inherit}
+.sc-d span{font-size:11px;font-weight:700} .sc-d b{font-size:17px;color:var(--txt)} .sc-d i{display:flex;gap:3px;height:5px} .sc-d em{width:5px;height:5px;border-radius:50%;background:#F2A93B}
+.sc-d.today{border-color:rgba(242,169,59,.55)} .sc-d.on{background:linear-gradient(135deg,#B7791F,#F2A93B);border-color:transparent;color:#1A1200} .sc-d.on b{color:#1A1200} .sc-d.on em{background:#1A1200}
+.sc-dh{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 10px} .sc-dh b{font-size:16px} .sc-dh span{font-size:12px;color:var(--faint)}
+.sc-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.sc-it{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:16px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--txt);text-align:left;cursor:pointer;font-family:inherit;width:100%}
+.sc-it.done{opacity:.6}
+.sc-tm{width:48px;flex-shrink:0;font-size:15px;font-weight:800;color:#FCD34D} .sc-tm small{font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.sc-av{width:34px;height:34px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff}
+.sc-tx{flex:1;min-width:0} .sc-tx b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .sc-tx small{display:block;font-size:12px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-ok{font-size:20px;color:#4ADE80} .sc-rep{font-size:16px;color:var(--faint)}
+.sc-empty{padding:22px 0;text-align:center;color:var(--faint);font-size:13px}
+.sc-add{width:100%}
+.sc-lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:2px 0 6px}
+.sc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px} .sc-row label{min-width:0}
+.sc-chk{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:14px;cursor:pointer} .sc-chk input{width:18px;height:18px;accent-color:#4A7CFF}
+.sc-msub{margin:-6px 0 12px;font-size:13px;color:var(--faint)}
+html[data-theme="light"] .sc-d.on,html[data-theme="light"] .sc-d.on b{color:#fff}
 /* v137: главная как в YOU */
 .c-home .hero-slider{margin:0 0 16px}
 .c-home .hub-attn{margin-bottom:12px}
@@ -497,10 +542,13 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
       <input class="field" id="r-name" type="text" placeholder="Имя и фамилия, как увидят клиенты" autocomplete="name">
       <input class="field" id="r-email" type="email" inputmode="email" placeholder="Email" autocomplete="email">
       <input class="field" id="r-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password">
+      <label class="lg-chk"><input type="checkbox" id="r-terms"><span>Принимаю <a href="legal/terms.html" target="_blank" rel="noopener">Пользовательское соглашение</a>, включая условия для тренеров, и <a href="legal/privacy.html" target="_blank" rel="noopener">Политику обработки данных</a></span></label>
+      <label class="lg-chk"><input type="checkbox" id="r-pd"><span>Даю <a href="legal/consent.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a></span></label>
       <div class="err" id="r-err"></div>
       <button class="btn btn-main w100" id="r-btn">Создать кабинет тренера</button>
       <p class="faint" style="font-size:12px;line-height:1.5;margin:12px 0 0">Уже пользуетесь YOU? Просто войдите тем же email, и кабинет создастся для вашего аккаунта.</p>
     </div>
+    <div class="lg-legal"><a href="legal/terms.html" target="_blank" rel="noopener">Соглашение</a> · <a href="legal/privacy.html" target="_blank" rel="noopener">Политика данных</a> · <a href="legal/requisites.html" target="_blank" rel="noopener">Реквизиты</a></div>
   </div>
   <a class="ca-app" href="index.html"><i class="ti ti-barbell"></i><span><b>Занимаетесь сами?</b> Откройте приложение YOU</span><i class="ti ti-chevron-right"></i></a>
   </div>
@@ -518,6 +566,7 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
     <input class="field" id="bc-name" type="text" placeholder="Имя и фамилия, как увидят клиенты" autocomplete="name">
     <div class="err" id="bc-err"></div>
     <button class="btn btn-main w100" id="bc-btn">Создать кабинет тренера</button>
+    <div class="lg-legal">Создавая кабинет, вы принимаете <a href="legal/terms.html" target="_blank" rel="noopener">условия для тренеров</a></div>
     <button class="lnk" id="bc-out">Войти другим аккаунтом</button>
   </div>
   <a class="ca-app" href="index.html"><i class="ti ti-barbell"></i><span><b>Занимаетесь сами?</b> Откройте приложение YOU</span><i class="ti ti-chevron-right"></i></a>
@@ -527,14 +576,20 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 
 <!-- Кабинет -->
 <div id="appv" class="hidden">
-  <div class="hdr"><div class="hdr-in">
-    <button class="hb hidden" id="back" title="Назад"><i class="ti ti-arrow-left"></i></button>
-    <div class="hdr-brand" id="brand"><b id="t-name"></b></div>
+  <!-- шапка главной: как на главной YOU -->
+  <div class="hdr" id="hdr-home"><div class="hdr-in">
+    <button class="fb-envelope" data-feedback aria-label="Обратная связь" title="Обратная связь"><i class="ti ti-mail"></i></button>
+    <button class="hadd" id="hadd" title="Добавить клиента"><i class="ti ti-user-plus"></i><span id="hadd-n"></span></button>
     <div class="sp"></div>
     <button id="c-theme" class="theme-toggle" aria-label="Светлая / тёмная тема" title="Светлая / тёмная тема"><span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span></button>
-    <button class="hb hdots" id="menu" aria-label="Меню"><span></span><span></span><span></span></button>
+    <button class="hdots" id="menu" aria-label="Меню"><span></span><span></span><span></span></button>
     <button class="hidden" id="help"></button><button class="hidden" id="out"></button>
   </div></div>
+  <!-- шапка раздела: как «Тренировки» в YOU -->
+  <div class="tr-header c-sh hidden" id="hdr-sec">
+    <div><button class="tr-back" id="back" title="Назад"><i class="ti ti-arrow-left"></i></button><span class="tr-title" id="t-name"></span></div>
+    <div id="sec-act"></div>
+  </div>
   <div class="wrap" id="main"><div class="loading">Загрузка…</div></div>
 </div>
 
@@ -567,14 +622,22 @@ window.Store = {
 <script src="js/body-progress.js"></script>
 <script src="js/coach-dash.js"></script>
 <script src="js/tour.js"></script>
+<script src="js/feedback.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, set, update, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp(window.FIREBASE_CONFIG);
 const db = getDatabase(app);
 const auth = getAuth(app);
+/* обратная связь (конверт): отправка той же функцией, что в приложении */
+window.__fbUser = () => auth.currentUser;
+window.FirebaseSync = window.FirebaseSync || {
+  sendFeedback: async (data) => { const u = auth.currentUser;
+    await Promise.race([push(ref(db, 'feedback'), { type: data.type || 'other', text: String(data.text || '').slice(0, 4000), contact: String(data.contact || '').slice(0, 200), telegram: String(data.telegram || '').slice(0, 64), uid: u ? u.uid : null, email: u ? u.email : null, at: new Date().toISOString(), ua: navigator.userAgent.slice(0, 200), from: 'coach' }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]); return true; },
+};
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const toArr = (v) => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : []);
@@ -611,6 +674,8 @@ $('#r-btn').onclick = async () => {
   const n = $('#r-name').value.trim(), e = $('#r-email').value.trim(), p = $('#r-pwd').value; $('#r-err').textContent = '';
   if (!n) { $('#r-err').textContent = 'Укажите имя'; return; }
   if (p.length < 6) { $('#r-err').textContent = 'Пароль минимум 6 символов'; return; }
+  if (!$('#r-terms').checked) { $('#r-err').textContent = 'Отметьте согласие с соглашением'; return; }
+  if (!$('#r-pd').checked) { $('#r-err').textContent = 'Отметьте согласие на обработку данных'; return; }
   $('#r-btn').disabled = true;
   try {
     const c = await createUserWithEmailAndPassword(auth, e, p);
@@ -651,6 +716,7 @@ $('#menu').onclick = () => {
   ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
   ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
 };
+$('#hadd').onclick = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
 $('#back').onclick = () => {
   if (view.name === 'client') view = { name: 'list', tab: view.back || 'hub' };
   else view = { name: 'list', tab: 'hub' };
@@ -661,7 +727,7 @@ function genCode() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; fo
 async function createTrainer(u, name) {
   let code = genCode();
   for (let i = 0; i < 5 && (await get(ref(db, 'invites/' + code))).exists(); i++) code = genCode();
-  const t = { name: name.slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 50, code };
+  const t = { name: name.slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 50, code, consent: { v: '2026-09-30', at: Date.now() } };
   await set(ref(db, 'trainers/' + u.uid), t);
   await set(ref(db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
 }
@@ -681,9 +747,8 @@ async function boot(u) {
       <button class="btn btn-ghost w100" style="margin-top:8px" onclick="document.getElementById('out').click()">Выйти</button>`;
     return;
   }
-  $('#t-name').textContent = trainer.name;
   show('appv');
-  await Promise.all([loadClients(), loadTemplates()]);
+  await Promise.all([loadClients(), loadTemplates(), loadSchedule()]);
   render();
 }
 
@@ -727,11 +792,20 @@ const cname = (c) => c.name || (c.email || '').split('@')[0] || 'Клиент';
 const ago = (d) => d == null ? 'ещё не тренировался' : d === 0 ? 'тренировка сегодня' : d === 1 ? 'вчера' : d + ' ' + pl(d, 'день', 'дня', 'дней') + ' назад';
 
 /* ═══ Отрисовка ═══ */
-const SECTIONS = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', add: 'Добавить клиента' };
+const SECTIONS = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', add: 'Добавить клиента', sched: 'Расписание' };
+/* цвета шапок разделов как у плиток */
+const SEC_COL = { clients: 'blue', add: 'blue', feed: 'green', tpl: 'violet', sched: 'amber' };
+const goAdd = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
+const SEC_ACT = { clients: ['ti-user-plus', 'Добавить клиента', goAdd], sched: ['ti-plus', 'Новая запись', () => { const b = $('#sc-add'); if (b) b.click(); }] };
 function render() {
   const atHub = view.name === 'list' && (!view.tab || view.tab === 'hub');
-  $('#back').classList.toggle('hidden', atHub);
-  $('#t-name').textContent = atHub || view.name === 'client' ? '' : (SECTIONS[view.tab] || '');
+  $('#hdr-home').classList.toggle('hidden', !atHub); $('#hdr-sec').classList.toggle('hidden', atHub);
+  const sec = view.name === 'client' ? 'clients' : view.tab;
+  $('#t-name').textContent = SECTIONS[sec] || '';
+  $('#hdr-sec').className = 'tr-header c-sh c-sh-' + (SEC_COL[sec] || 'blue') + (atHub ? ' hidden' : '');
+  const act = SEC_ACT[sec]; $('#sec-act').innerHTML = act ? `<button class="tr-back" id="sec-btn" title="${act[1]}"><i class="ti ${act[0]}"></i></button>` : '';
+  if (act) $('#sec-btn').onclick = act[2];
+  const hn = $('#hadd-n'); if (hn && trainer) hn.textContent = `${clients.length}/${trainer.limit || 50}`;
   if (view.name === 'client') return renderClient();
   renderList();
 }
@@ -739,11 +813,12 @@ function render() {
 function renderList() {
   if (!view.tab || view.tab === 'home') view.tab = 'hub';
   $('#main').innerHTML = '<div id="mbody"></div>';
-  const body = $('#mbody');
+  let body = $('#mbody');
   if (view.tab === 'hub') return renderHub(body);
   if (view.tab === 'feed') return renderFeed(body);
   if (view.tab === 'tpl') return renderTemplates(body);
   if (view.tab === 'add') return renderAdd(body);
+  if (view.tab === 'sched') return renderSched(body);
   renderHome(body);
 }
 
@@ -751,13 +826,14 @@ function renderList() {
 const AVA_COL = ['#3B5BDB', '#7048E8', '#0CA678', '#E67700', '#C2255C', '#1098AD'];
 function avaCol(c) { return AVA_COL[[...String(c.k)].reduce((s, ch) => s + ch.charCodeAt(0), 0) % AVA_COL.length]; }
 /* ═══ Главная кабинета: слайдер и плитки 1:1 как на главной YOU ═══ */
-const HUB_TILES = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', add: 'Добавить' };
+const HUB_TILES = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', sched: 'Расписание' };
 const TILE_DEF = {
   clients: { cls: 'home2-tile-training', icon: 'ti-users' },
   feed: { cls: 'home2-tile-habits', icon: 'ti-activity' },
   tpl: { cls: 'home2-tile-finance', icon: 'ti-template' },
-  add: { cls: 'home2-tile-goals', icon: 'ti-user-plus' },
+  sched: { cls: 'home2-tile-goals', icon: 'ti-calendar-event' },
 };
+const firstNameS = (s) => { const p = String(s || '').trim().split(/\s+/); return p.length > 1 ? p[1] : p[0]; };
 const firstName = (c) => { const p = cname(c).trim().split(/\s+/); return p.length > 1 ? p[1] : p[0]; };
 /* Блоки данных для слайдов. main = блок стоит первым, рисуем крупно */
 const numB = (v, l, main, color) => main
@@ -766,11 +842,14 @@ const numB = (v, l, main, color) => main
 const CB = [
   { id: 'today_who', sec: 'Тренировки', name: 'Кто тренируется сегодня', desc: 'Имена клиентов с тренировкой по плану',
     r: (x) => x.todayL.length ? `<div class="hero-big-text">${x.todayL.slice(0, 3).map(c => esc(firstName(c))).join(', ')}${x.todayL.length > 3 ? ' +' + (x.todayL.length - 3) : ''}</div>` : '<div class="hero-big-text hero-dim">Сегодня без тренировок</div>' },
+  { id: 'sched_next', sec: 'Расписание', name: 'Ближайшая тренировка', desc: 'Время и клиент из расписания',
+    r: (x) => { const n = x.sched.next; if (n) return `<div class="hero-big-text">${esc(n.tm)} ${esc(firstNameS(n.nm))}</div>`; return x.todayL.length ? `<div class="hero-big-text">${x.todayL.slice(0, 3).map(c => esc(firstName(c))).join(', ')}${x.todayL.length > 3 ? ' +' + (x.todayL.length - 3) : ''}</div>` : '<div class="hero-big-text hero-dim">Сегодня свободно</div>'; } },
+  { id: 'sched_n', sec: 'Расписание', name: 'Тренировок сегодня', desc: 'Записи и тренировки клиентов по плану', r: (x, m) => numB(x.sched.all.length, 'сегодня', m) },
   { id: 'today_n', sec: 'Тренировки', name: 'Тренировок сегодня', desc: 'Сколько клиентов тренируется сегодня', r: (x, m) => numB(x.todayL.length, 'сегодня', m) },
   { id: 'week_n', sec: 'Тренировки', name: 'Тренировок за неделю', desc: 'Сделано за последние 7 дней', r: (x, m) => numB(x.wk, 'за неделю', m) },
-  { id: 'week_tons', sec: 'Тренировки', name: 'Тоннаж за неделю', desc: 'Сколько подняли все клиенты', r: (x, m) => numB(String(x.tons).replace('.', ',') + ' т', 'поднято', m) },
+  { id: 'week_tons', sec: 'Тренировки', name: 'Тоннаж за неделю', desc: 'Сколько килограммов подняли все клиенты вместе', r: (x, m) => numB(String(x.tons).replace('.', ',') + ' т', 'подняли вместе', m) },
   { id: 'prs', sec: 'Тренировки', name: 'Рекорды за неделю', desc: 'Новые максимумы клиентов', r: (x, m) => numB(x.prs, pl(x.prs, 'рекорд', 'рекорда', 'рекордов'), m, x.prs ? '#FCD34D' : '') },
-  { id: 'rhythm', sec: 'Клиенты', name: 'В ритме', desc: 'Тренировались за последние 3 дня', r: (x, m) => numB(`${x.inR}<span class="hero-stat-of">/${x.live.length}</span>`, 'в ритме', m) },
+  { id: 'rhythm', sec: 'Клиенты', name: 'Активны', desc: 'Тренировались за последние 3 дня', r: (x, m) => numB(`${x.inR}<span class="hero-stat-of">/${x.live.length}</span>`, 'активны', m) },
   { id: 'attn', sec: 'Клиенты', name: 'Требуют внимания', desc: 'Пропадают или стоят на плато', r: (x, m) => numB(x.attnN, 'внимание', m, x.attnN ? '#FCA5A5' : '') },
   { id: 'att', sec: 'Клиенты', name: 'Посещаемость', desc: 'Средняя за 4 недели', r: (x, m) => numB(x.attAvg == null ? '–' : x.attAvg + '%', 'посещаемость', m, x.attAvg == null ? '' : x.attAvg >= 80 ? '#86EFAC' : x.attAvg < 50 ? '#FCA5A5' : '') },
   { id: 'total', sec: 'Клиенты', name: 'Клиентов', desc: 'Сколько подключено из лимита', r: (x, m) => numB(`${x.n}<span class="hero-stat-of">/${x.lim}</span>`, 'клиентов', m) },
@@ -796,17 +875,18 @@ const SLIDE_COLORS = [
   { name: 'Нефрит', cssClass: 'slide-jade', glow: '#34D399', bg: 'linear-gradient(135deg,#001a0d 0%,#00401f 40%,#005c2b 70%,#002a14 100%)' },
 ];
 const DEFAULT_SLIDES = [
-  { id: 's_today', label: 'СЕГОДНЯ', cssClass: 'slide-focus', glowClass: 'slide-glow-blue', enabled: true, route: 'clients', blocks: ['today_who', 'today_n', 'rhythm', 'fresh'] },
+  { id: 's_today', label: 'СЕГОДНЯ', cssClass: 'slide-focus', glowClass: 'slide-glow-blue', enabled: true, route: 'sched', blocks: ['sched_next', 'sched_n', 'rhythm', 'fresh'] },
   { id: 's_week', label: 'НЕДЕЛЯ', cssClass: 'slide-finance', glowClass: 'slide-glow-green', enabled: true, route: 'feed', blocks: ['week_n', 'week_tons', 'prs', 'att'] },
   { id: 's_clients', label: 'КЛИЕНТЫ', cssClass: 'slide-goals', glowClass: 'slide-glow-purple', enabled: true, route: 'clients', blocks: ['rhythm', 'attn', 'att', 'total'] },
 ];
-const ROUTES = [['', 'Никуда'], ['clients', 'Клиенты'], ['feed', 'Лента'], ['tpl', 'Шаблоны'], ['add', 'Добавить']];
+const ROUTES = [['', 'Никуда'], ['clients', 'Клиенты'], ['feed', 'Лента'], ['tpl', 'Шаблоны'], ['sched', 'Расписание'], ['add', 'Добавить клиента']];
 function hubUI() {
-  const def = { tiles: ['clients', 'feed', 'tpl', 'add'], hideTiles: [], layout: '2x2', autoplay: true, interval: 5, sliderHidden: false };
+  const def = { tiles: ['clients', 'feed', 'tpl', 'sched'], hideTiles: [], layout: '2x2', autoplay: true, interval: 5, sliderHidden: false };
   let u = trainer.ui || null; try { u = u || JSON.parse(localStorage.getItem('you_hub_' + trainer.uid) || 'null'); } catch (e) {}
   u = Object.assign({}, def, u || {});
   const fill = (arr, all) => arr.filter(k => all[k]).concat(Object.keys(all).filter(k => !arr.includes(k)));
-  u.tiles = fill(toArr(u.tiles), HUB_TILES); u.hideTiles = toArr(u.hideTiles);
+  /* плитку «Добавить» заменило расписание, добавление теперь в шапке */
+  u.tiles = fill(toArr(u.tiles).map(k => k === 'add' ? 'sched' : k), HUB_TILES); u.hideTiles = toArr(u.hideTiles).map(k => k === 'add' ? 'sched' : k);
   u.slides2 = toArr(u.slides2).filter(Boolean).map(s => Object.assign({}, s, { blocks: toArr(s.blocks) }));
   if (!u.slides2.length) u.slides2 = JSON.parse(JSON.stringify(DEFAULT_SLIDES));
   if (u.interval < 2) u.interval = 5;
@@ -822,7 +902,7 @@ function hubCtx() {
   const ev = window.CoachDash.feed(live, cname);
   const atts = live.map(c => c.stat.att).filter(x => x != null);
   const tons = Math.round(live.reduce((s, c) => { const w = c.d && c.d.weeks; return s + (w && w.length ? w[w.length - 1].tons || 0 : 0); }, 0) * 10) / 10;
-  return { lim, n, live, ev, tons,
+  return { lim, n, live, ev, tons, sched: schedToday(),
     inR: live.filter(c => c.stat.st === 'ok').length, lost: live.filter(c => c.stat.st === 'bad').length,
     todayL: live.filter(c => c.stat.today),
     fresh: ev.filter(e => e.t >= Date.now() - 864e5 * 1.5 && e.k !== 'miss').length,
@@ -849,10 +929,10 @@ function renderHub(body) {
   const ui = hubUI(), x = hubCtx();
   const slides = ui.sliderHidden ? [] : ui.slides2.filter(s => s.enabled !== false), n = slides.length;
   const TD = {
-    clients: x.n ? `${x.inR} из ${x.n} в ритме` : 'Пока нет',
+    clients: x.n ? `${x.inR} из ${x.n} активны` : 'Пока нет',
     feed: x.fresh ? `${x.fresh} за сутки` : 'Тихо',
     tpl: templates.length ? `${templates.length} ${pl(templates.length, 'программа', 'программы', 'программ')}` : 'Пока нет',
-    add: `${x.n} из ${x.lim}`,
+    sched: x.sched.all.length ? (x.sched.next ? `${x.sched.next.tm} ${firstNameS(x.sched.next.nm)}` : `Сегодня ${x.sched.all.length}`) : 'Сегодня свободно',
   };
   const tiles = ui.tiles.filter(k => !ui.hideTiles.includes(k)), wide = WIDE_BY_LAYOUT[ui.layout] || [];
   body.innerHTML = `<div class="c-home">
@@ -1028,7 +1108,7 @@ function openSliderSettings() {
 
 function renderHome(body) {
   const n = clients.length;
-  if (!n) { body.innerHTML = `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br><button class="btn btn-main" style="margin-top:14px" onclick="document.querySelector('#back').click()">На главную</button></div>`; return; }
+  if (!n) { body.innerHTML = `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br><button class="btn btn-main" style="margin-top:14px" onclick="document.getElementById('back').click()">На главную</button></div>`; return; }
   const live = clients.filter(c => c.ok);
   const todayL = live.filter(c => c.stat.today);
   const lost = live.filter(c => c.stat.st === 'bad');
@@ -1062,6 +1142,146 @@ function renderHome(body) {
 }
 
 let feedFilter = 'all';
+/* ═══ Расписание: личный планер тренера + тренировки клиентов по их планам ═══
+   trainerSchedule/{t}/{id} = { d:'2026-09-30', tm:'10:00', dur:60, ck:'ключ клиента'|'', nm:'имя', note, rep:true|false, skip:{дата:true}, done:{дата:true} } */
+let schedule = [], schedSel = null, schedWeek = 0;
+const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const fromYmd = (s) => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+const DOW = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+const MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+async function loadSchedule() {
+  let loc = []; try { loc = JSON.parse(localStorage.getItem('you_sched_' + trainer.uid) || '[]'); } catch (e) {}
+  try { const s = await get(ref(db, 'trainerSchedule/' + trainer.uid)); schedule = s.exists() ? Object.entries(s.val()).map(([id, v]) => ({ id, ...v })) : loc; }
+  catch (e) { schedule = loc; }
+}
+async function saveSlot(it) {
+  const i = schedule.findIndex(x => x.id === it.id); if (i >= 0) schedule[i] = it; else schedule.push(it);
+  try { localStorage.setItem('you_sched_' + trainer.uid, JSON.stringify(schedule)); } catch (e) {}
+  const { id, ...v } = it; try { await set(ref(db, 'trainerSchedule/' + trainer.uid + '/' + id), clean(v)); } catch (e) {}
+}
+async function removeSlot(id) {
+  schedule = schedule.filter(x => x.id !== id);
+  try { localStorage.setItem('you_sched_' + trainer.uid, JSON.stringify(schedule)); } catch (e) {}
+  try { await set(ref(db, 'trainerSchedule/' + trainer.uid + '/' + id), null); } catch (e) {}
+}
+/* день плана клиента на дату */
+function planDayOn(c, date) {
+  const p = activePlan(c); if (!p) return null; const t = +new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  let out = null;
+  toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => { if (out || !d) return; const dt = window.TrainingAI.planDayDate(p, d.date); if (dt && +dt === t) out = { wi, di, day: d }; }));
+  return out;
+}
+const workOf = (day) => { if (!day) return ''; trMigrateDayToSessions(day); const s = toArr(day.sessions).filter(x => x && x.type !== 'Отдых' && x.type !== 'Шаги'); return s.map(x => toArr(x.groups).join(' + ') || x.type).join(', '); };
+/* всё, что есть на день: записи тренера + клиенты, у которых по плану тренировка */
+function dayEntries(date) {
+  const k = ymd(date), wd = date.getDay(), out = [];
+  schedule.forEach(it => {
+    const on = it.rep ? (fromYmd(it.d).getDay() === wd && k >= it.d && !(it.skip || {})[k]) : it.d === k;
+    if (!on) return;
+    const c = it.ck ? clients.find(x => x.k === it.ck) : null, pd = c ? planDayOn(c, date) : null;
+    out.push({ it, c, pd, tm: it.tm || '', nm: c ? cname(c) : (it.nm || 'Без имени'), sub: it.note || workOf(pd && pd.day), done: !!((it.done || {})[k] || (pd && pd.day.done)) });
+  });
+  clients.filter(c => c.ok).forEach(c => {
+    if (out.some(e => e.c === c)) return;
+    const pd = planDayOn(c, date), w = workOf(pd && pd.day); if (!w) return;
+    out.push({ it: null, c, pd, tm: '', nm: cname(c), sub: w, done: !!pd.day.done });
+  });
+  return out.sort((a, b) => (a.tm || '99') < (b.tm || '99') ? -1 : (a.tm || '99') > (b.tm || '99') ? 1 : 0);
+}
+function schedToday() { const e = dayEntries(new Date()), now = new Date(), hm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'); return { all: e, next: e.find(x => x.tm && x.tm >= hm && !x.done) || null }; }
+
+function renderSched(body) {
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  if (!schedSel) schedSel = ymd(t0);
+  const mon = new Date(t0); mon.setDate(t0.getDate() - ((t0.getDay() + 6) % 7) + schedWeek * 7);
+  const days = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
+  const sel = fromYmd(schedSel), list = dayEntries(sel);
+  const range = `${days[0].getDate()} ${MON[days[0].getMonth()]} – ${days[6].getDate()} ${MON[days[6].getMonth()]}`;
+  body.innerHTML = `<div class="card sc">
+    <div class="sc-top"><button class="hb sc-nav" data-wk="-1" aria-label="Прошлая неделя"><i class="ti ti-chevron-left"></i></button><b>${range}</b><button class="hb sc-nav" data-wk="1" aria-label="Следующая неделя"><i class="ti ti-chevron-right"></i></button></div>
+    <div class="sc-week">${days.map(d => { const n = dayEntries(d).length, k = ymd(d);
+      return `<button class="sc-d${k === schedSel ? ' on' : ''}${+d === +t0 ? ' today' : ''}" data-d="${k}"><span>${DOW[d.getDay()]}</span><b>${d.getDate()}</b><i>${'<em></em>'.repeat(Math.min(n, 3))}</i></button>`; }).join('')}</div>
+    <div class="sc-dh"><b>${+sel === +t0 ? 'Сегодня' : DOW[sel.getDay()] + ', ' + sel.getDate() + ' ' + MON[sel.getMonth()]}</b><span>${list.length ? list.length + ' ' + pl(list.length, 'тренировка', 'тренировки', 'тренировок') : ''}</span></div>
+    <div class="sc-list">${list.length ? list.map((e, i) => `<button class="sc-it${e.done ? ' done' : ''}" data-i="${i}">
+        <span class="sc-tm">${e.tm ? esc(e.tm) : '<small>план</small>'}</span>
+        <span class="sc-av" style="background:${e.c ? avaCol(e.c) : '#475569'}">${esc((e.nm || '?').trim()[0] || '?').toUpperCase()}</span>
+        <span class="sc-tx"><b>${esc(e.nm)}</b>${e.sub ? `<small>${esc(e.sub)}</small>` : ''}</span>
+        ${e.done ? '<i class="ti ti-circle-check-filled sc-ok"></i>' : e.it && e.it.rep ? '<i class="ti ti-repeat sc-rep"></i>' : ''}</button>`).join('')
+      : '<div class="sc-empty">Свободный день</div>'}</div>
+    <button class="btn btn-main sc-add" id="sc-add"><i class="ti ti-plus"></i> Запись</button></div>`;
+  body.querySelectorAll('.sc-nav').forEach(b => b.onclick = () => { schedWeek += +b.dataset.wk; const d = new Date(mon); d.setDate(mon.getDate() + 7 * +b.dataset.wk); schedSel = ymd(d); renderSched(body); });
+  body.querySelectorAll('.sc-d').forEach(b => b.onclick = () => { schedSel = b.dataset.d; renderSched(body); });
+  body.querySelector('#sc-add').onclick = () => slotModal(null, schedSel, () => renderSched(body));
+  body.querySelectorAll('.sc-it').forEach(b => b.onclick = () => entryMenu(list[+b.dataset.i], sel, () => renderSched(body)));
+  coachTips('sched');
+}
+
+function entryMenu(e, date, done) {
+  const k = ymd(date), canDone = !!e.c || !!e.it;
+  const ov = sheet(`<h3>${esc(e.tm ? e.tm + ' · ' : '')}${esc(e.nm)}</h3>${e.sub ? `<p class="sc-msub">${esc(e.sub)}</p>` : ''}
+    <div class="mn">
+      ${canDone ? `<button data-m="done"><i class="ti ti-${e.done ? 'circle-x' : 'circle-check'}"></i>${e.done ? 'Снять отметку' : 'Провёл тренировку'}</button>` : ''}
+      ${e.c ? '<button data-m="open"><i class="ti ti-user"></i>Карточка клиента</button>' : ''}
+      ${e.it ? '<button data-m="edit"><i class="ti ti-edit"></i>Изменить</button>' : `<button data-m="time"><i class="ti ti-clock"></i>Назначить время</button>`}
+      ${e.it ? `<button data-m="del" class="bad"><i class="ti ti-trash"></i>${e.it.rep ? 'Убрать этот день' : 'Удалить запись'}</button>` : ''}
+      ${e.it && e.it.rep ? '<button data-m="delall" class="bad"><i class="ti ti-trash-x"></i>Удалить все повторы</button>' : ''}
+    </div>`);
+  const on = (m, fn) => { const b = ov.querySelector(`[data-m="${m}"]`); if (b) b.onclick = async () => { ov.remove(); await fn(); done(); }; };
+  on('done', async () => {
+    const want = !e.done;
+    if (e.c && e.pd) {
+      const plans = plansOf(e.c), p = activePlan(e.c); const pi = plans.indexOf(p); plans[pi].weeks = toArr(plans[pi].weeks);
+      const w = plans[pi].weeks[e.pd.wi]; w.days = toArr(w.days); const dd = w.days[e.pd.di]; trMigrateDayToSessions(dd);
+      if (want && !toArr(dd.sessions).some(s => s && s.type !== 'Отдых' && s.type !== 'Шаги')) dd.sessions = [{ type: 'Тренажерный зал', groups: [], exercises: [], byCoach: true }];
+      if (want) dd.done = { by: 'coach', at: Date.now() }; else delete dd.done;
+      await savePlans(e.c, plans);
+    }
+    if (e.it) { const it = Object.assign({}, e.it, { done: Object.assign({}, e.it.done || {}) }); if (want) it.done[k] = true; else delete it.done[k]; await saveSlot(it); }
+    toast(want ? 'Отмечено' : 'Отметка снята');
+  });
+  on('open', async () => { const i = clients.indexOf(e.c); if (i >= 0) { view.back = 'sched'; openClient(i); } });
+  const ob = ov.querySelector('[data-m="open"]'); if (ob) ob.onclick = () => { ov.remove(); const i = clients.indexOf(e.c); if (i >= 0) openClient(i); };
+  on('edit', async () => slotModal(e.it, k, done));
+  on('time', async () => slotModal({ ck: e.c ? e.c.k : '', d: k }, k, done));
+  on('del', async () => { if (e.it.rep) { const it = Object.assign({}, e.it, { skip: Object.assign({}, e.it.skip || {}, { [k]: true }) }); await saveSlot(it); } else await removeSlot(e.it.id); toast('Убрано'); });
+  on('delall', async () => { if (confirm('Удалить все повторы этой записи?')) { await removeSlot(e.it.id); toast('Удалено'); } });
+}
+
+function slotModal(it, dateK, done) {
+  it = Object.assign({ id: '', d: dateK, tm: '10:00', dur: 60, ck: '', nm: '', note: '', rep: false }, it || {});
+  const live = clients.filter(c => c.ok);
+  let ck = it.ck;
+  const ov = sheet(`<h3>${it.id ? 'Запись' : 'Новая запись'}</h3>
+    <div class="sc-lbl">Клиент</div>
+    <div class="chips" id="sc-cl">${live.map(c => `<button class="chip${ck === c.k ? ' on' : ''}" data-k="${c.k}">${esc(cname(c))}</button>`).join('')}<button class="chip${!ck ? ' on' : ''}" data-k="">Другой</button></div>
+    <input class="field${ck ? ' hidden' : ''}" id="sc-nm" placeholder="Имя, например пробная тренировка" value="${esc(it.nm || '')}">
+    <div class="sc-row"><label><span class="sc-lbl">Дата</span><input class="field" type="date" id="sc-d" value="${esc(it.d)}"></label>
+      <label><span class="sc-lbl">Время</span><input class="field" type="time" id="sc-tm" value="${esc(it.tm)}"></label></div>
+    <div class="chips" id="sc-dur">${[45, 60, 90, 120].map(m => `<button class="chip${+it.dur === m ? ' on' : ''}" data-m="${m}">${m} мин</button>`).join('')}</div>
+    <input class="field" id="sc-note" placeholder="Заметка: зал, онлайн, что делаем" value="${esc(it.note || '')}">
+    <label class="sc-chk"><input type="checkbox" id="sc-rep" ${it.rep ? 'checked' : ''}><span>Повторять каждую неделю</span></label>
+    <label class="sc-chk${ck ? '' : ' hidden'}" id="sc-tell-w"><input type="checkbox" id="sc-tell" ${it.id ? '' : 'checked'}><span>Написать клиенту в план</span></label>
+    <button class="btn btn-main" id="sc-save" style="width:100%;margin-top:6px">Сохранить</button>`);
+  let dur = +it.dur || 60;
+  ov.querySelectorAll('#sc-cl .chip').forEach(b => b.onclick = () => { ck = b.dataset.k; ov.querySelectorAll('#sc-cl .chip').forEach(x => x.classList.toggle('on', x === b)); ov.querySelector('#sc-nm').classList.toggle('hidden', !!ck); ov.querySelector('#sc-tell-w').classList.toggle('hidden', !ck); });
+  ov.querySelectorAll('#sc-dur .chip').forEach(b => b.onclick = () => { dur = +b.dataset.m; ov.querySelectorAll('#sc-dur .chip').forEach(x => x.classList.toggle('on', x === b)); });
+  ov.querySelector('#sc-save').onclick = async () => {
+    const d = ov.querySelector('#sc-d').value, tm = ov.querySelector('#sc-tm').value, nm = ov.querySelector('#sc-nm').value.trim();
+    if (!d) return toast('Выберите дату'); if (!ck && !nm) return toast('Выберите клиента или впишите имя');
+    const rec = { id: it.id || 's' + Date.now().toString(36), d, tm, dur, ck: ck || '', nm: ck ? '' : nm.slice(0, 60), note: ov.querySelector('#sc-note').value.trim().slice(0, 120), rep: ov.querySelector('#sc-rep').checked, skip: it.skip || null, done: it.done || null, at: it.at || Date.now() };
+    ov.remove(); await saveSlot(rec);
+    /* клиент увидит время в своём плане заметкой тренера */
+    const c = ck && clients.find(x => x.k === ck);
+    if (c && ov.querySelector('#sc-tell').checked) {
+      const pd = planDayOn(c, fromYmd(d));
+      if (pd) { const plans = plansOf(c), pi = plans.indexOf(activePlan(c)); plans[pi].weeks = toArr(plans[pi].weeks); const w = plans[pi].weeks[pd.wi]; w.days = toArr(w.days); const dd = w.days[pd.di];
+        const line = `Тренировка с тренером в ${tm}${rec.note ? ', ' + rec.note : ''}`;
+        dd.coachNote = dd.coachNote && !dd.coachNote.includes(line) ? dd.coachNote + '\n' + line : line; await savePlans(c, plans); }
+    }
+    schedSel = d; toast('Записано'); done && done();
+  };
+}
+
 function renderFeed(body) {
   const live = clients.filter(c => c.ok);
   const all = window.CoachDash.feed(live, cname);
@@ -1112,9 +1332,14 @@ function renderAdd(body) {
 
 /* ═══ Подсказки: по одному разу на каждый экран ═══ */
 const CT = {
+  sched: [
+    { sel: '.sc-week', t: 'Неделя', d: 'Точки показывают занятые дни. Тренировки клиентов по их планам появляются сами.' },
+    { sel: '#sc-add', t: 'Новая запись', d: 'Клиент, время, повтор каждую неделю. Время можно сразу написать клиенту в план.' },
+  ],
   home: [
     { sel: '.hero-slider', t: 'Слайды', d: 'Главные цифры дня. Листайте пальцем, а что на них показывать, настраивается в меню.' },
-    { sel: '.home2-grid', t: 'Разделы', d: 'Клиенты, лента, шаблоны и добавление клиентов.' },
+    { sel: '.home2-grid', t: 'Разделы', d: 'Клиенты, лента, шаблоны и расписание.' },
+    { sel: '#hadd', t: 'Добавить клиента', d: 'Здесь же видно, сколько мест занято.' },
     { sel: '#menu', t: 'Меню', d: 'Редактор слайдов, плитки и слайдер: всё как в приложении YOU.' },
   ],
   clients: [

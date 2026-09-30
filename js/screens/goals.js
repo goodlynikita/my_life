@@ -101,10 +101,12 @@ function goalsGet() {
     }
   }
   /* Новый пользователь — показываем демо-цели (не сохраняем, только для показа) */
+  if (Store.get().goals?.demoOff) return [];
   return JSON.parse(JSON.stringify(GOALS_DEMO));
 }
 function goalsIsDemo() {
   const s = Store.get().goals?.directions;
+  if (Store.get().goals?.demoOff) return false;
   if (!s) return true;
   const arr = Array.isArray(s) ? s : Object.values(s);
   return arr.filter(Boolean).length === 0;
@@ -566,7 +568,7 @@ window.Screens.goals = function(mount) {
         if(!result)return;
         /* При первом сохранении своей цели — инициализируем пустой список (сбрасываем демо) */
         const current = goalsIsDemo() ? [] : goalsGet();
-        current.push(result); goalsSave(current); render();
+        current.push(result); goalsSave(current); Store.set('goals.demoOff', true); render();
       });
     });
     // Кнопка «Заполнить своё» — очищает демо-цели
@@ -574,7 +576,7 @@ window.Screens.goals = function(mount) {
     if (clearDemoBtn) {
       clearDemoBtn.addEventListener('click', () => {
         if (!confirm('Удалить демо-цели и начать с чистого листа?')) return;
-        goalsSave([]); render();
+        goalsSave([]); Store.set('goals.demoOff', true); render();
       });
     }
     // цвет кнопки + под текущий сезон

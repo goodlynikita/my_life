@@ -64,6 +64,8 @@ window.Screens.login = function(mount, opts) {
           <input id="reg-email" type="email" inputmode="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-pwd2" type="password" placeholder="Повтори пароль" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:10px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
+          <label class="lg-chk"><input type="checkbox" id="reg-terms"><span>Принимаю <a href="legal/terms.html" target="_blank" rel="noopener">Пользовательское соглашение</a> и <a href="legal/privacy.html" target="_blank" rel="noopener">Политику обработки данных</a></span></label>
+          <label class="lg-chk"><input type="checkbox" id="reg-pd"><span>Даю <a href="legal/consent.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a></span></label>
           <div id="reg-err" style="font-size:12px;color:#F87171;margin-bottom:10px;min-height:16px;text-align:center;"></div>
           <button id="reg-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Montserrat',sans-serif;box-shadow:0 4px 20px rgba(5,150,105,0.4);">Создать аккаунт</button>
         </div>
@@ -72,6 +74,7 @@ window.Screens.login = function(mount, opts) {
       <div style="margin-top:20px;font-size:11px;color:rgba(242,244,248,0.2);text-align:center;">На каждом устройстве нужно войти один раз</div>
       <a href="coach.html" class="login-coach-link"><i class="ti ti-user-star"></i><span><b>Вы тренер?</b> Откройте кабинет тренера</span><i class="ti ti-chevron-right"></i></a>
       <a href="start.html" style="margin-top:10px;font-size:12px;font-weight:700;color:rgba(142,168,255,0.75);text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-sparkles"></i> Что умеет YOU</a>
+      <div class="lg-legal"><a href="legal/terms.html" target="_blank" rel="noopener">Соглашение</a> · <a href="legal/privacy.html" target="_blank" rel="noopener">Политика данных</a> · <a href="legal/requisites.html" target="_blank" rel="noopener">Реквизиты</a></div>
     </div>`;
 
   /* Tab switching */
@@ -202,6 +205,8 @@ window.Screens.login = function(mount, opts) {
       await Auth.attemptLogin(email, pwd);
       /* onAuthStateChanged в app.js подхватит и переключит роутер */
       await FirebaseSync.pullIntoStore();
+      /* фиксируем, какую редакцию документов и когда принял пользователь */
+      try { Store.set('profile.consent', { v: '2026-09-30', at: Date.now(), terms: true, pd: true }); } catch (x) {}
       Router.go('/home');
       if (window.FirebaseSync.myTrainer) FirebaseSync.myTrainer().catch(() => {});
       if (window.Notices) setTimeout(() => Notices.check(), 1200);
@@ -223,11 +228,15 @@ window.Screens.login = function(mount, opts) {
     if (!email)        { err.textContent = 'Введи email'; return; }
     if (pwd.length < 6){ err.textContent = 'Пароль минимум 6 символов'; return; }
     if (pwd !== pwd2)  { err.textContent = 'Пароли не совпадают'; return; }
+    if (!document.getElementById('reg-terms').checked) { err.textContent = 'Отметь согласие с соглашением'; return; }
+    if (!document.getElementById('reg-pd').checked) { err.textContent = 'Отметь согласие на обработку данных'; return; }
 
     btn.textContent = '...'; btn.disabled = true; err.textContent = '';
     try {
       await Auth.register(email, pwd, name || null);
       await FirebaseSync.pullIntoStore();
+      /* фиксируем, какую редакцию документов и когда принял пользователь */
+      try { Store.set('profile.consent', { v: '2026-09-30', at: Date.now(), terms: true, pd: true }); } catch (x) {}
       Router.go('/home');
     } catch(e) {
       if (e.code === 'app/limit-reached') { showSeats(LIMIT); document.getElementById('tab-reg').click(); return; }

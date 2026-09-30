@@ -419,7 +419,7 @@ window.Screens.finance = function(mount) {
       { id:'b14', name:'Подарки',                     amt:3000,  color:'#FBBF24' },
       { id:'b15', name:'Непредвиденные расходы',      amt:5000,  color:'#EF4444' },
     ];
-    const cats = stored.categories || DEFAULT_CATS;
+    const cats = stored.categories || (stored.demoOff ? [] : DEFAULT_CATS);
     const totalBase = cats.reduce((s,c)=>s+(c.amt||0),0);
 
     /* Расчёт от реального дохода */
@@ -458,7 +458,7 @@ window.Screens.finance = function(mount) {
 
         ${inc > 0 ? `<div class="plan-bar">${segs.filter(x => x.w > 0).map(x => `<span style="flex:${x.w / segTotal};background:${x.c};"></span>`).join('')}</div>` : ''}
 
-        ${!stored.categories ? `
+        ${!stored.categories && !stored.demoOff ? `
         <div class="plan-demo">
           <i class="ti ti-bulb"></i>
           <div>
@@ -526,7 +526,7 @@ window.Screens.finance = function(mount) {
     const clearDemoCatsBtn = document.getElementById('fin-clear-demo-cats');
     if (clearDemoCatsBtn) clearDemoCatsBtn.addEventListener('click', () => {
       if (!confirm('Удалить все демо-категории и начать с нуля?')) return;
-      Store.set('finance.balance', { categories: [], goalIncome: GOAL_INCOME, savePct: SAVE_PCT });
+      Store.set('finance.balance', { categories: [], goalIncome: GOAL_INCOME, savePct: SAVE_PCT, demoOff: true });
       renderBalance();
     });
 
@@ -589,7 +589,7 @@ window.Screens.finance = function(mount) {
         ov.querySelectorAll('.bi-amt').forEach(inp=>{ cats[+inp.dataset.i].amt=parseFloat(inp.value)||0; });
         const newGoal = parseFloat(ov.querySelector('#bi-goal').value)||GOAL_INCOME;
         const newPct = parseFloat(ov.querySelector('#bi-pct').value)||SAVE_PCT;
-        Store.set('finance.balance', {categories:cats, goalIncome:newGoal, savePct:newPct});
+        Store.set('finance.balance', {categories:cats, goalIncome:newGoal, savePct:newPct, demoOff:true});
         ov.remove();
         renderBalance();
       });

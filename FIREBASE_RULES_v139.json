@@ -1,0 +1,123 @@
+{
+  "rules": {
+    "nik-data": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      ".write": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      "training": {
+        ".read": "auth != null && root.child('clientTrainer/nik-data/trainerUid').val() === auth.uid && root.child('trainers').child(auth.uid).child('blocked').val() !== true",
+        ".write": "auth != null && root.child('clientTrainer/nik-data/trainerUid').val() === auth.uid && root.child('trainers').child(auth.uid).child('blocked').val() !== true"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "training": {
+          ".read": "auth != null && root.child('clientTrainer').child($uid).child('trainerUid').val() === auth.uid && root.child('trainers').child(auth.uid).child('blocked').val() !== true",
+          ".write": "auth != null && root.child('clientTrainer').child($uid).child('trainerUid').val() === auth.uid && root.child('trainers').child(auth.uid).child('blocked').val() !== true"
+        }
+      }
+    },
+    "trainers": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.email === 'nedomolkin.1998@mail.ru' || ($uid === auth.uid && newData.exists() && newData.child('blocked').val() === data.child('blocked').val() && ((!data.exists() && newData.child('limit').val() === 50 && newData.child('tier').val() === 'free') || (data.exists() && newData.child('limit').val() === data.child('limit').val() && newData.child('tier').val() === data.child('tier').val()))))"
+      }
+    },
+    "invites": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.email === 'nedomolkin.1998@mail.ru' || ((!data.exists() || data.child('trainerUid').val() === auth.uid) && (!newData.exists() || newData.child('trainerUid').val() === auth.uid)))"
+      }
+    },
+    "accessKeys": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid) || (data.exists() && !newData.exists() && root.child('clientTrainer').child(data.child('key').val()).child('trainerUid').val() === auth.uid))"
+      }
+    },
+    "clientTrainer": {
+      "$k": {
+        ".read": "auth != null && ($k === auth.uid || ($k === 'nik-data' && auth.token.email === 'nedomolkin.1998@mail.ru') || data.child('trainerUid').val() === auth.uid)",
+        ".write": "auth != null && ($k === auth.uid || ($k === 'nik-data' && auth.token.email === 'nedomolkin.1998@mail.ru') || (data.child('trainerUid').val() === auth.uid && !newData.exists()) || (newData.child('trainerUid').val() === auth.uid && root.child('accessKeys').child(newData.child('akey').val()).child('key').val() === $k && root.child('accessKeys').child(newData.child('akey').val()).child('expiresAt').val() > now))"
+      }
+    },
+    "trainerClients": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      "$t": {
+        ".read": "auth != null && $t === auth.uid",
+        "$c": {
+          ".write": "auth != null && ($t === auth.uid || $c === auth.uid || ($c === 'nik-data' && auth.token.email === 'nedomolkin.1998@mail.ru'))"
+        }
+      }
+    },
+    "trainerAI": {
+      "$t": {
+        ".read": "auth != null && $t === auth.uid",
+        ".write": "auth != null && $t === auth.uid"
+      }
+    },
+    "trainerTemplates": {
+      "$t": {
+        ".read": "auth != null && $t === auth.uid",
+        ".write": "auth != null && $t === auth.uid"
+      }
+    },
+    "trainerSchedule": {
+      "$t": {
+        ".read": "auth != null && $t === auth.uid",
+        ".write": "auth != null && $t === auth.uid"
+      }
+    },
+    "aiUsage": {
+      "$uid": {
+        ".read": "auth != null && $uid === auth.uid"
+      }
+    },
+    "aiStats": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'"
+    },
+    "stats": {
+      ".read": true,
+      "usersCount": {
+        ".write": "auth != null"
+      }
+    },
+    "settings": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'"
+    },
+    "feedback": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      "$id": {
+        ".write": "!data.exists() || (auth != null && auth.token.email === 'nedomolkin.1998@mail.ru')"
+      }
+    },
+    "userIndex": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+        "email": {
+          ".write": "$uid === auth.uid"
+        },
+        "name": {
+          ".write": "$uid === auth.uid"
+        },
+        "createdAt": {
+          ".write": "$uid === auth.uid"
+        },
+        "lastSeen": {
+          ".write": "$uid === auth.uid"
+        },
+        "ua": {
+          ".write": "$uid === auth.uid"
+        },
+        "noticeSeen": {
+          ".write": "$uid === auth.uid"
+        }
+      }
+    }
+  }
+}

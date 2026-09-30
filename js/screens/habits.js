@@ -42,7 +42,8 @@ function habGetList() {
   return (Store.get().habits?.list || []).filter(Boolean);
 }
 function habIsDemo() {
-  return habGetList().length === 0;
+  /* демо только пока человек его не убрал и ничего своего не добавил */
+  return habGetList().length === 0 && !Store.get().habits?.demoOff;
 }
 
 function habGetMarks(monthKey) {
@@ -600,6 +601,7 @@ window.Screens.habits = function(mount) {
       clearDemoBtn.addEventListener('click', () => {
         if (!confirm('Удалить демо-привычки и начать с нуля?')) return;
         habSaveList([]);
+        Store.set('habits.demoOff', true);
         renderGrid();
       });
     }
@@ -611,6 +613,7 @@ window.Screens.habits = function(mount) {
         const list = habIsDemo() ? [] : habGetList();
         list.push(result);
         habSaveList(list);
+        Store.set('habits.demoOff', true);
         renderGrid();
       });
     });

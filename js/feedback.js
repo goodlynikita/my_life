@@ -22,7 +22,7 @@ window.Feedback = (function () {
   function open(opts) {
     opts = opts || {};
     let type = opts.type || 'idea';
-    const user = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null;
+    const user = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : (window.__fbUser ? window.__fbUser() : null);
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay fb-overlay';
     ov.innerHTML = `
@@ -42,6 +42,7 @@ window.Feedback = (function () {
         </div>
         <div class="fb-err" id="fb-err"></div>
         <button class="fb-send" id="fb-send"><i class="ti ti-send"></i> Отправить</button>
+        <div class="fb-legal">Отправляя сообщение, ты соглашаешься с <a href="legal/privacy.html" target="_blank" rel="noopener">Политикой обработки данных</a></div>
       </div>`;
     document.body.appendChild(ov);
     const close = () => ov.remove();

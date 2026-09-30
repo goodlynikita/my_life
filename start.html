@@ -412,6 +412,7 @@ body:not(.for-coach) [data-for="coach"]{display:none!important}
 footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area-inset-bottom,0px));color:var(--faint);font-size:13px}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot a{color:var(--soft)} .foot a:hover{color:#fff}
+.foot-legal{margin-top:18px;font-size:12px;line-height:1.6} .foot-legal nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:6px} .foot-legal a{color:var(--soft)} .foot-legal a:hover{color:#fff} .foot-legal p{margin:0;color:var(--faint)}
 
 /* Мобильная CTA-плашка */
 .mcta{display:none;position:fixed;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));z-index:60;transform:translateY(-160%);transition:transform .4s var(--ease)}
@@ -924,7 +925,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   <div class="c-dash" id="c-dash" aria-hidden="true">
     <div class="cd-top"><div><b>Сегодня</b><span>среда, 30 сентября</span></div><span class="cd-live"><i></i>онлайн</span></div>
     <div class="cd-kp">
-      <div><b data-count="7" data-suf="/8">0</b><span>в ритме</span></div>
+      <div><b data-count="7" data-suf="/8">0</b><span>активны</span></div>
       <div><b data-count="23">0</b><span>тренировок за неделю</span></div>
       <div><b data-count="91" data-suf="%">0</b><span>посещаемость</span></div>
     </div>
@@ -1185,6 +1186,10 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   <a class="logo" href="#top"><img src="icon.png" alt="" style="width:28px;height:28px">YOU</a>
   <div style="display:flex;gap:18px;flex-wrap:wrap"><a href="./#/login">Войти</a><a href="https://t.me/help_youvsyou" target="_blank" rel="noopener">Поддержка</a><a href="#faq">Вопросы</a></div>
   <span>© <span id="yr"></span> YOU</span>
+</div>
+<div class="wrap foot-legal">
+  <nav><a href="legal/terms.html">Пользовательское соглашение</a><a href="legal/privacy.html">Политика обработки персональных данных</a><a href="legal/consent.html">Согласие на обработку данных</a><a href="legal/requisites.html">Реквизиты</a></nav>
+  <p>ИП Недомолкин Никита <span class="req-otch">[ОТЧЕСТВО]</span> · ИНН 366231388645 · ОГРНИП <span class="req-ogrnip">[ОГРНИП]</span> · г. Воронеж</p>
 </div></footer>
 
 <div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Получить приложение</a><a class="btn btn-main" href="coach.html" data-for="coach"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>

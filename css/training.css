@@ -1748,3 +1748,9 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 /* v137: все замеры сразу, выбранный показатель подсвечен */
 .bp-m.on { border-color: rgba(110,148,255,0.6); background: rgba(74,124,255,0.1); }
 .bp-grid-l { margin-top: 8px; }
+/* v139: вкладки на телефоне помещаются, подсветка не впритык к тексту */
+.tr-tab .tt-sm { display: none; }
+@media (max-width: 440px) {
+  .tr-tab { flex: 1 1 0; min-width: 0; padding: 12px 4px; font-size: 12.5px; }
+  .tr-tab .tt-lg { display: none; } .tr-tab .tt-sm { display: inline; }
+}

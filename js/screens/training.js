@@ -1576,7 +1576,7 @@ window.Screens.training = function (mount) {
       </div>
       <div class="tr-tabs">
         <button class="tr-tab active" data-tab="plan">План</button>
-        <button class="tr-tab" data-tab="working-weight">Рабочий вес</button>
+        <button class="tr-tab" data-tab="working-weight"><span class="tt-lg">Рабочий вес</span><span class="tt-sm">Веса</span></button>
         <button class="tr-tab" data-tab="one-rm">1RM</button>
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
@@ -1992,35 +1992,42 @@ window.Screens.training = function (mount) {
           <div style="text-align:center;margin-bottom:28px;">
             <div style="font-size:36px;margin-bottom:12px;">🏋️</div>
             <div style="font-size:18px;font-weight:800;color:#E8E5DC;margin-bottom:8px;">Начни свой первый план</div>
-            <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Нажми «Новый план», и приложение создаст тебе 8-недельную сетку. Ты сам заполняешь её под себя.</div>
+            <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Появится сетка на 8 недель. Заполни её сам или попроси AI.</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <span style="font-size:20px;">📅</span>
+              <i class="ti ti-calendar-plus" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
               <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Добавляй тренировки по дням</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Нажми «+» рядом с нужным днём → выбери тип (Зал, Бег, Теннис…) → добавь упражнения.</div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тренировки по дням</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Нажми «+» у дня, выбери тип: зал, бег, теннис и другие. Потом добавь упражнения.</div>
               </div>
             </div>
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <span style="font-size:20px;">💪</span>
+              <i class="ti ti-sparkles" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
               <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Упражнения в «Рабочем весе»</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Рабочий вес» видишь все свои упражнения и прогресс. Там же редактор упражнений: можно убрать лишнее и добавить своё.</div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">План от AI</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке AI расскажи цель, и он соберёт программу с весами под тебя.</div>
               </div>
             </div>
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <span style="font-size:20px;">🔄</span>
+              <i class="ti ti-barbell" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
               <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тип и группы: кликай на тег</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">После добавления тренировки нажми на тег типа (например «Зал ✏️»), появится быстрый выбор. Группы мышц выбираются при добавлении упражнения.</div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Веса и рекорды</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Веса» рабочие веса по каждому упражнению, в «1RM» твои максимумы.</div>
               </div>
             </div>
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <span style="font-size:20px;">📈</span>
+              <i class="ti ti-ruler-measure" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
               <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Данные сохраняются между планами</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Список упражнений, рабочие веса и прогресс переходят в следующий план автоматически.</div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Итоги и замеры</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Статистика за период, вес и объёмы тела с выводами, что меняется.</div>
+              </div>
+            </div>
+            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+              <i class="ti ti-user-star" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Есть тренер?</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Подключи его значком тренера сверху. Он будет вести план, а ты тренироваться.</div>
               </div>
             </div>
           </div>

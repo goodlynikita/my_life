@@ -1,4 +1,28 @@
 <!DOCTYPE html>
+<!--
+
+            ▄▄█████▄▄
+           ███████████
+           ▀████▄████▀
+            █████████
+            █████████
+            █████████
+            █████████
+            █████████
+            █████████
+            █████████
+       ▄▄███████████████▄▄
+     ███████████ ███████████
+     ███████████ ███████████
+      ▀███████▀   ▀███████▀
+
+   ───────────────────────────────────
+     Код смотришь? Держи 😏
+     Здесь ничего интересного.
+     Лучше иди потренируйся.    YOU
+   ───────────────────────────────────
+
+-->
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -186,6 +210,17 @@ html[data-theme="light"] .top{filter:invert(1) hue-rotate(180deg) contrast(.893)
 html[data-theme="light"] .top img,html[data-theme="light"] .top .tt-ico{filter:none}
 html[data-theme="light"]{--soft:#C9CFDF;--faint:#AEB6CB}
 html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
+/* v132: меньше шума в обзоре */
+details.more{padding:0}
+details.more>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:16px}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary b{font-size:16px} details.more>summary span{grid-column:1;font-size:12px;color:var(--faint)}
+details.more>summary i{grid-column:2;grid-row:1/span 2;align-self:center;color:var(--faint);transition:transform .2s}
+details.more[open]>summary i{transform:rotate(180deg)}
+details.more>*:not(summary){margin:0 16px 16px}
+details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
+.more-t{font-size:13.5px;font-weight:800;margin-bottom:10px} .more-t span{font-size:11.5px;color:var(--faint);font-weight:600;margin-left:4px}
+#cw-card>.cd-kpis{margin-top:0}
 /* v126: оценка эффективности */
 .rp{border-radius:22px;padding:16px;margin-bottom:12px;border:1px solid var(--line2);background:linear-gradient(160deg,rgba(27,35,64,.85),rgba(16,20,31,.92))}
 .rp-good{border-color:rgba(74,222,128,.35);background:linear-gradient(160deg,rgba(22,60,45,.55),rgba(16,20,31,.92))}
@@ -198,7 +233,8 @@ html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
 @media (max-width:620px){.rp-p{grid-template-columns:1fr 1fr}}
 .rp-c{background:rgba(10,14,26,.45);border:1px solid var(--line);border-radius:15px;padding:11px 12px;min-width:0}
 .rp-t{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--soft);font-weight:700} .rp-t i{font-size:15px}
-.rp-c b{display:block;font-size:22px;font-weight:900;margin:6px 0 2px}
+.rp-c b{display:block;font-size:22px;font-weight:900;margin:6px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp-c b.sm{font-size:17px;line-height:26px}
 .rp-c em{display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-bottom:4px}
 .rp-c em i{font-size:12px}
 .rp-c.good em{background:rgba(74,222,128,.14);color:#86EFAC} .rp-c.ok em{background:rgba(251,191,36,.14);color:#FCD34D} .rp-c.bad em{background:rgba(248,113,113,.14);color:#FCA5A5}
@@ -278,7 +314,8 @@ html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
 .cd-track{fill:rgba(110,148,255,.18)} .cd-fill{fill:#4A7CFF} .cd-bar.cur .cd-fill{fill:#8B5CF6}
 .cd-bar:hover .cd-fill{fill:#6E97FF} .cd-bar:hover .cd-track{fill:rgba(110,148,255,.3)}
 .cd-val{fill:#E5E7EB;font-size:9.5px;font-weight:700;text-anchor:middle} .cd-lbl{fill:#6F7C9E;font-size:8.5px;text-anchor:middle}
-.cd-lifts{display:grid;grid-template-columns:1fr 1fr;gap:8px} @media (max-width:560px){.cd-lifts{grid-template-columns:1fr}}
+.cd-lifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px} .cd-lift{min-width:0}
+@media (max-width:560px){.cd-lift{padding:9px 10px}.cd-lift-t{flex-direction:column;align-items:flex-start;gap:1px}.cd-lifts .cd-lift-t b{font-size:12px;white-space:normal;line-height:1.25;overflow:visible}.cd-lift-t span{font-size:13px}}
 .cd-lift{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .cd-lift-t{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:6px}
 .cd-lift-t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cd-lift-t span{font-size:13px;font-weight:800;white-space:nowrap}
@@ -689,10 +726,10 @@ const CT = {
     { sel: '.tier', t: 'Лимит', d: 'Бесплатно до 50 клиентов.' },
   ],
   client: [
-    { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с графиками, план, разбор прогресса, AI-помощник и ваши заметки о клиенте.' },
+    { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с оценкой прогресса, план, AI-помощник и ваши заметки о клиенте.' },
     { sel: '.rp', t: 'Оценка за 4 недели', d: 'Четыре опоры прогресса: регулярность, сила, нагрузка и тело. Цвет сразу показывает, где всё хорошо, а где просело.' },
     { sel: '.todo', t: 'Что сделать', d: 'Конкретные шаги по данным клиента: кому написать, где плато, каких подходов мало.' },
-    { sel: '.att', t: 'Тренировки по неделям', d: 'Кружок: тренировка в плане. Закрашен: сделана. Шаги не считаются.' },
+    { sel: '.att', t: 'Тренировки', d: 'Кружок: тренировка в плане. Закрашен: сделана. Остальные графики спрятаны в «Подробнее».' },
     { sel: '#bp-card', t: 'Прогресс тела', d: 'Вес, объёмы, процент жира и выводы по ним. Замерили клиента в зале? Внесите замер сами кнопкой ниже.' },
     { sel: '#cw-card', t: 'Итоги недели', d: 'Цифры считаются сами. Допишите пару слов и отправьте: клиент увидит карточку в приложении. Или сохраните картинкой для мессенджера.' },
   ],
@@ -860,7 +897,8 @@ async function savePlans(c, plans) {
   /* всё, что тренер вписал на сегодня и вперёд, помечаем как план тренера:
      такие тренировки считаются сделанными только с галочкой */
   plans.forEach(p => { if (!p) return; toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = window.TrainingAI.planDayDate(p, d.date);
-    if (dt && dt >= t0) toArr(d.sessions).forEach(s => { if (s && !s.byCoach) s.byCoach = true; }); })); });
+    /* снимок плана тренера: если клиент потом поменяет веса или повторы, тренировка засчитается как сделанная */
+    if (dt && dt >= t0) toArr(d.sessions).forEach(s => { if (!s) return; if (!s.byCoach) s.byCoach = true; toArr(s.exercises).forEach(e => { if (e) e.pv = window.CoachDash.sig(e); }); }); })); });
   c.training.plans = clean(plans); c.training.coachRev = rev;
   try { await update(ref(db, c.root + '/training'), { plans: clean(plans), coachRev: rev }); c.stat = stats(c); }
   catch (e) { alert('Не получилось сохранить. Возможно, клиент отключился от вас.'); }
@@ -874,7 +912,7 @@ function renderClient() {
     $('#rm').onclick = async () => { await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k), null).catch(() => {}); await set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k), null).catch(() => {}); view = { name: 'list' }; await loadClients(); render(); };
     return;
   }
-  const tabs = [['dash', 'ti-layout-dashboard', 'Обзор'], ['plan', 'ti-calendar', 'План'], ['ins', 'ti-chart-dots', 'Разбор'], ['ai', 'ti-sparkles', 'AI'], ['note', 'ti-notes', 'Заметки']];
+  const tabs = [['dash', 'ti-layout-dashboard', 'Обзор'], ['plan', 'ti-calendar', 'План'], ['ai', 'ti-sparkles', 'AI'], ['note', 'ti-notes', 'Заметки']];
   $('#main').innerHTML = `
     <div class="c-head"><div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>
       <div style="min-width:0;flex:1"><b>${esc(cname(c))}</b><span>${esc(c.email || '')} · ${ago(c.stat.days)}</span></div></div>

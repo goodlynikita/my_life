@@ -31,7 +31,20 @@ window.CoachDash = (function () {
   }
   /* Сделано: галочка (клиент или тренер) или своя запись клиента.
      Тренировки, которые заранее вписал тренер, без галочки не считаем. */
-  const doneDay = (x) => x.work && (!!x.day.done || x.sessions.some(s => !s.byCoach && sData(s)));
+  /* Сделано, если:
+     • стоит галочка (клиент или тренер);
+     • своя тренировка клиента с заполненными данными;
+     • тренировка из плана тренера, но клиент поменял в ней веса, повторы или добавил упражнение.
+     Старые записи без снимка плана считаем по заполненным данным. */
+  const sig = (e) => [e.sets, e.reps, e.weight, e.distance, e.duration, e.steps].map(v => v == null ? '' : String(v)).join('|');
+  const exVal = (e) => e && ((+e.weight || 0) > 0 || (+e.reps || 0) > 0 || (+e.distance || 0) > 0 || (+e.duration || 0) > 0 || (+e.steps || 0) > 0);
+  function sessionDone(s) {
+    if (!s.byCoach) return sData(s);
+    const ex = toArr(s.exercises).filter(Boolean);
+    if (!ex.some(e => e.pv != null)) return sData(s);
+    return ex.some(e => exVal(e) && (e.pv == null || sig(e) !== e.pv));
+  }
+  const doneDay = (x) => x.work && (!!x.day.done || x.sessions.some(sessionDone));
   function parseMDate(s) {
     const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/); if (!m) return null;
     let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000;
@@ -185,37 +198,36 @@ window.CoachDash = (function () {
     /* советы */
     const lastDone = d.past.filter(d.isDone).pop(), idle = lastDone ? Math.floor((now - lastDone.date) / DAY) : null;
     if (idle != null && idle >= 7) todo.push({ st: 'bad', t: `Не тренировался ${idle} дней`, s: 'Напишите клиенту: чем раньше, тем проще вернуть в ритм' });
-    if (att != null && att < 60) todo.push({ st: 'bad', t: `Регулярность ${att}%`, s: 'Обсудите график. Реалистичный план на 3 тренировки лучше сорванного на 4' });
-    else if (att != null && att < 80) todo.push({ st: 'ok', t: `Регулярность ${att}%`, s: 'Норма, но есть пропуски. Уточните, какие дни неудобны' });
+    if (att != null && att < 60 && !(idle != null && idle >= 7)) todo.push({ st: 'bad', t: 'Много пропусков', s: 'Обсудите график: реалистичный план на 3 тренировки лучше сорванного на 4' });
     if (sg_ != null && sg_ < -2) todo.push({ st: 'bad', t: 'Сила падает', s: 'Проверьте сон и питание. Возможно, пора разгрузочная неделя: −40% объёма' });
     const pl = window.TrainingInsights ? TrainingInsights._plateaus(d.an) : [];
-    if (pl.length) todo.push({ st: 'ok', t: `Плато: ${pl.slice(0, 2).map(x => x.name).join(', ')}`, s: pl[0].alts && pl[0].alts.length ? `Смените вариацию на 3–4 недели, например: ${pl[0].alts[0]}. Или другой диапазон повторов` : 'Смените вариацию или диапазон повторов на 3–4 недели' });
+    if (pl.length) todo.push({ st: 'ok', t: `Плато: ${pl.slice(0, 2).map(x => x.name).join(', ')}`, s: pl[0].alts && pl[0].alts.length ? `Замена на 3–4 недели: ${pl[0].alts[0]}` : 'Смените вариацию или диапазон повторов' });
     const spw = setsPerWeek(d);
     const low = Object.entries(spw).filter(([g, n]) => NORM[g] && n > 0 && n < NORM[g][0]), high = Object.entries(spw).filter(([g, n]) => NORM[g] && n > NORM[g][1] + 2);
-    if (low.length) todo.push({ st: 'ok', t: `Мало подходов в неделю: ${low.map(([g, n]) => g.toLowerCase() + ' ' + n).join(', ')}`, s: 'Для роста мышце нужно примерно 10–20 рабочих подходов в неделю (плечам 8–16, рукам 6–14). Добавляйте по 2–4 подхода' });
-    if (high.length) todo.push({ st: 'ok', t: `Много подходов: ${high.map(([g, n]) => g.toLowerCase() + ' ' + n).join(', ')}`, s: 'Выше рабочей зоны прирост обычно не растёт, а восстановление страдает' });
+    if (low.length) todo.push({ st: 'ok', t: `Добавить подходов: ${low.map(([g]) => g.toLowerCase()).join(', ')}`, s: 'Меньше рабочей зоны для роста, по 2–4 подхода в неделю' });
+    if (high.length) todo.push({ st: 'ok', t: `Снизить объём: ${high.map(([g]) => g.toLowerCase()).join(', ')}`, s: 'Больше рабочей зоны, восстановление страдает' });
     if (bs && bs.main && bs.main.k === 'warn') todo.push({ st: 'bad', t: bs.main.t, s: bs.main.s });
-    if (!bs) todo.push({ st: 'ok', t: 'Нет замеров', s: 'Внесите талию, грудь, руки и ноги. Метр честнее весов: вода и соль его не сбивают' });
-    else if (bs.since > 28) todo.push({ st: 'ok', t: `Замерам ${bs.since} дней`, s: 'Обновите раз в 2–4 недели, в одно время, утром' });
+    if (!bs) todo.push({ st: 'ok', t: 'Сделать замеры', s: 'Талия, грудь, руки, ноги' });
+    else if (bs.since > 28) todo.push({ st: 'ok', t: 'Обновить замеры', s: `последние ${bs.since} дн. назад` });
     const good = P.filter(x => x.st === 'good').length, bad = P.filter(x => x.st === 'bad').length;
     const verdict = bad >= 2 ? { st: 'bad', t: 'Нужно вмешаться', s: 'Несколько показателей просели. Начните с первого пункта ниже' }
       : bad === 1 ? { st: 'ok', t: 'В целом хорошо, есть что подтянуть', s: 'Один показатель просел, остальное в порядке' }
       : good >= 3 ? { st: 'good', t: 'Отличный прогресс', s: 'Клиент регулярен и растёт. Самое время похвалить' }
       : { st: 'ok', t: 'Стабильно', s: 'Всё держится. Можно добавить нагрузку, чтобы был рост' };
-    return { P, todo: todo.slice(0, 5), verdict, spw };
+    return { P, todo: todo.slice(0, 4), verdict, spw };
   }
   function reportHtml(r) {
     const icon = { good: 'ti-circle-check', ok: 'ti-point', bad: 'ti-alert-triangle', none: 'ti-minus' };
     return `<div class="rp rp-${r.verdict.st}"><div class="rp-v"><i class="ti ${r.verdict.st === 'good' ? 'ti-rosette-discount-check' : r.verdict.st === 'bad' ? 'ti-alert-octagon' : 'ti-activity'}"></i><div><b>${esc(r.verdict.t)}</b><span>${esc(r.verdict.s)}</span></div></div>
-      <div class="rp-p">${r.P.map(x => `<div class="rp-c ${x.st}"><div class="rp-t"><i class="ti ${x.i}"></i>${esc(x.t)}</div><b>${esc(x.v)}</b>${x.w ? `<em><i class="ti ${icon[x.st]}"></i>${esc(x.w)}</em>` : ''}<small>${esc(x.s)}</small></div>`).join('')}</div></div>
-      ${r.todo.length ? `<div class="card"><div class="card-h"><div><b>Что сделать</b><span>по данным за последние недели</span></div></div>
+      <div class="rp-p">${r.P.map(x => `<div class="rp-c ${x.st}"><div class="rp-t"><i class="ti ${x.i}"></i>${esc(x.t)}</div><b class="${String(x.v).length > 7 ? 'sm' : ''}">${esc(x.v)}</b>${x.w ? `<em><i class="ti ${icon[x.st]}"></i>${esc(x.w)}</em>` : ''}<small>${esc(x.s)}</small></div>`).join('')}</div></div>
+      ${r.todo.length ? `<div class="card"><div class="card-h"><div><b>Что сделать</b></div></div>
         <div class="todo">${r.todo.map((x, i) => `<div class="td ${x.st}"><span>${i + 1}</span><div><b>${esc(x.t)}</b><small>${esc(x.s)}</small></div></div>`).join('')}</div></div>` : ''}`;
   }
   function setsHtml(spw) {
     const gs = Object.keys(NORM).filter(g => spw[g]);
     if (!gs.length) return '';
     const max = Math.max(24, ...gs.map(g => spw[g]));
-    return `<div class="card"><div class="card-h"><div><b>Подходы на мышцу в неделю</b><span>в среднем за 2 недели. Зелёная зона: рабочий объём для роста</span></div></div>
+    return `<div class="more-b"><div class="more-t">Подходы на мышцу в неделю <span>зелёная зона: рабочий объём</span></div>
       <div class="sets">${gs.map(g => { const n = spw[g], nr = NORM[g], st = n < nr[0] ? 'low' : n > nr[1] ? 'high' : 'ok';
         return `<div class="st-r"><span class="st-n">${g}</span><div class="st-bar"><i class="st-zone" style="left:${nr[0] / max * 100}%;width:${(nr[1] - nr[0]) / max * 100}%"></i><i class="st-val ${st}" style="width:${Math.min(100, n / max * 100)}%"></i></div><b class="${st}">${n}</b></div>`; }).join('')}</div></div>`;
   }
@@ -226,20 +238,23 @@ window.CoachDash = (function () {
     if (!d.past.some(x => x.work) && !d.lastM) return `<div class="empty"><i class="ti ti-chart-bar"></i>Данных пока нет.<br>Составьте план во вкладке «План»: как только пройдут первые тренировки, здесь появятся посещаемость, объём и сила.</div>
       <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { coach: true }) : ''}<button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>`;
     const r = report(d, c);
+    const lifts = d.lifts.length ? `<div class="card"><div class="card-h"><div><b>Сила</b><span>максимум на 1 повтор</span></div></div>
+      <div class="cd-lifts">${d.lifts.map(l => { const f = l.pts[0].v, la = l.pts[l.pts.length - 1].v, dl = Math.round((la - f) * 10) / 10;
+        return `<div class="cd-lift"><div class="cd-lift-t"><b>${esc(l.name)}</b><span>${kg(la)} кг <em class="${dl >= 0 ? 'up' : 'down'}">${dl >= 0 ? '+' : ''}${kg(dl)}</em></span></div>${lineSvg(l.pts)}</div>`; }).join('')}</div></div>` : '';
+    const comments = d.comments.length ? `<div class="more-b"><div class="more-t">Комментарии клиента</div>
+      <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : '';
     return `
     ${reportHtml(r)}
-    <div class="card"><div class="card-h"><div><b>Тренировки по неделям</b><span>кружок = тренировка в плане, закрашен = сделана. Шаги не считаются</span></div></div>
+    <div class="card"><div class="card-h"><div><b>Тренировки</b><span>закрашен кружок: сделано (внесены свои веса или галочка)</span></div></div>
       ${attHtml(d.weeks)}</div>
-    <div class="card"><div class="card-h"><div><b>Сколько поднято за неделю</b><span>сумма по силовым: подходы × повторы × вес, в тоннах</span></div></div>
-      ${tonsHtml(d.weeks)}</div>
-    ${setsHtml(r.spw)}
-    ${d.lifts.length ? `<div class="card"><div class="card-h"><div><b>Сила в ключевых упражнениях</b><span>расчётный максимум на 1 повтор</span></div></div>
-      <div class="cd-lifts">${d.lifts.map(l => { const f = l.pts[0].v, la = l.pts[l.pts.length - 1].v, dl = Math.round((la - f) * 10) / 10;
-        return `<div class="cd-lift"><div class="cd-lift-t"><b>${esc(l.name)}</b><span>${kg(la)} кг <em class="${dl >= 0 ? 'up' : 'down'}">${dl >= 0 ? '+' : ''}${kg(dl)}</em></span></div>${lineSvg(l.pts)}</div>`; }).join('')}</div></div>` : ''}
-    <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { hist: d.hist, coach: true, period: c._bp, main: c._bpm }) : ''}
+    ${lifts}
+    <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { hist: d.hist, coach: true, compact: true, period: c._bp, main: c._bpm }) : ''}
       <button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>
-    ${d.comments.length ? `<div class="card"><div class="card-h"><div><b>Комментарии клиента</b><span>заметки к дням тренировок</span></div></div>
-      <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : ''}
+    <details class="card more"><summary><b>Подробнее</b><span>объём по неделям, подходы на мышцы, комментарии</span><i class="ti ti-chevron-down"></i></summary>
+      <div class="more-b"><div class="more-t">Сколько поднято за неделю <span>в тоннах</span></div>${tonsHtml(d.weeks)}</div>
+      ${setsHtml(r.spw)}
+      ${comments}
+    </details>
     ${weekly}`;
   }
 
@@ -252,17 +267,16 @@ window.CoachDash = (function () {
     return { body, range: fmtD(wc.from) + ' – ' + fmtD(wc.to), count: wk.done || wc.count, planned: wk.planned, tons: Math.round(wc.tL / 100) / 10, delta: wc.delta, grew: wc.grew.slice(0, 4), lag: wc.lag};
   }
   function weeklyFormHtml(s, sent) {
-    return `<div class="card" id="cw-card"><div class="card-h"><div><b>Итоги недели для клиента</b><span>${esc(s.range)}${sent ? ' · отправлено ' + fmtD(new Date(sent.at)) : ''}</span></div></div>
+    return `<details class="card more" id="cw-card"${sent ? '' : ''}><summary><b>Итоги недели для клиента</b><span>${esc(s.range)}${sent ? ' · отправлено ' + fmtD(new Date(sent.at)) : ' · ещё не отправлено'}</span><i class="ti ti-chevron-down"></i></summary>
       <div class="cd-kpis three"><div class="cd-kpi"><b>${s.count}${s.planned ? '<small>/' + s.planned + '</small>' : ''}</b><span>тренировок</span></div>
         <div class="cd-kpi"><b>${String(s.tons).replace('.', ',')}</b><span>тонн</span></div>
         <div class="cd-kpi"><b>${s.delta == null ? '–' : (s.delta > 0 ? '+' : '') + s.delta + '%'}</b><span>к прошлой</span></div></div>
       ${s.grew.length ? `<div class="cd-grew">${s.grew.map(g => `<div><i class="ti ti-trending-up"></i>${esc(g)}</div>`).join('')}</div>` : ''}
       ${s.body && s.body.length ? `<div class="cd-grew body">${s.body.map(g => `<div><i class="ti ti-ruler-measure"></i>${esc(g)}</div>`).join('')}</div>` : ''}
-      ${s.lag.length ? `<div class="cd-grew lag">${s.lag.map(g => `<div><i class="ti ti-alert-circle"></i>Мало: ${esc(g)}</div>`).join('')}</div>` : ''}
       <textarea class="field" id="cw-text" placeholder="Ваш комментарий: что получилось, на что обратить внимание на следующей неделе">${esc(sent && sent.text || '')}</textarea>
       <div class="inv-btns" style="margin-top:4px"><button class="btn btn-main btn-sm" id="cw-send"><i class="ti ti-send"></i> Отправить в приложение</button>
         <button class="btn btn-ghost btn-sm" id="cw-img"><i class="ti ti-photo"></i> Картинкой</button></div>
-      <div class="faint" style="font-size:11.5px;margin-top:8px">Клиент увидит карточку в «Тренировках». Картинку можно переслать в мессенджер.</div></div>`;
+      <div class="faint" style="font-size:11.5px;margin-top:8px">Клиент увидит карточку в «Тренировках». Картинку можно переслать в мессенджер.</div></details>`;
   }
   async function weeklyImage(s, text, trainer, client) {
     const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
@@ -343,5 +357,5 @@ window.CoachDash = (function () {
     return { weeks, fromClient, empty };
   }
 
-  return { analyze, feed, feedHtml, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
+  return { sig, analyze, feed, feedHtml, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
 })();

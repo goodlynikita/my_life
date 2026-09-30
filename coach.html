@@ -133,6 +133,9 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 .loading{text-align:center;padding:40px;color:var(--soft)}
 
 /* v116: сводки, лента, шаблоны */
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px} .mgrid label span{display:block;font-size:11px;color:var(--soft);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mgrid .field{height:42px;margin:0;font-size:14px;padding:0 10px}
+.cd-grew.body div{color:#CFFAFE} .cd-grew.body i{color:#67E8F9}
+#bp-card .add-ex{display:flex;align-items:center;justify-content:center;gap:6px}
 @media (max-width:440px){.top-in:has(#back:not(.hidden)) .brand span{display:none} .top-in{gap:7px}}
 .mtabs{margin-bottom:12px}
 .ctabs{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
@@ -265,6 +268,7 @@ window.Store = {
 </script>
 <script src="js/screens/training-ai.js"></script>
 <script src="js/screens/training-insights.js"></script>
+<script src="js/body-progress.js"></script>
 <script src="js/coach-dash.js"></script>
 <script src="js/tour.js"></script>
 <script type="module">
@@ -529,6 +533,7 @@ const CT = {
     { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с графиками, план, разбор прогресса, AI-помощник и ваши заметки о клиенте.' },
     { sel: '.cd-kpis', t: 'Главное', d: 'Посещаемость за 4 недели, серия без пропусков, объём нагрузки и вес тела.' },
     { sel: '.cd-svg', t: 'Посещаемость', d: 'Светлое: сколько тренировок было в плане, яркое: сколько сделано. Наведите или нажмите на столбик.' },
+    { sel: '#bp-card', t: 'Прогресс тела', d: 'Вес, объёмы, процент жира и выводы по ним. Замерили клиента в зале? Внесите замер сами кнопкой ниже.' },
     { sel: '#cw-card', t: 'Итоги недели', d: 'Цифры считаются сами. Допишите пару слов и отправьте: клиент увидит карточку в приложении. Или сохраните картинкой для мессенджера.' },
   ],
   plan: [
@@ -735,6 +740,8 @@ function renderClient() {
 function renderDash(c, body) {
   const d = c.d, sum = window.CoachDash.weekSummary(d), sent = c.training.coachWeekly && c.training.coachWeekly.range === sum.range ? c.training.coachWeekly : null;
   body.innerHTML = window.CoachDash.dashHtml(c, d, window.CoachDash.weeklyFormHtml(sum, sent));
+  const bpc = $('#bp-card'); if (bpc) window.BodyProgress.bind(bpc, (p) => { c._bp = p; renderDash(c, body); });
+  const bpa = $('#bp-add'); if (bpa) bpa.onclick = () => measureModal(c, () => renderDash(c, body));
   if (!$('#cw-send')) return;
   coachTips('client');
   $('#cw-send').onclick = async () => {
@@ -750,6 +757,26 @@ function renderDash(c, body) {
     const file = new File([blob], 'itogi-nedeli.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: 'Итоги недели' }).catch(() => {});
     else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'itogi-nedeli-' + cname(c) + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Картинка сохранена'); }
+  };
+}
+
+/* ── Замер от тренера (например, после встречи в зале) ── */
+function measureModal(c, done) {
+  const F = Object.keys(window.BodyProgress.FIELDS), t = new Date();
+  const def = String(t.getDate()).padStart(2, '0') + '.' + String(t.getMonth() + 1).padStart(2, '0') + '.' + t.getFullYear();
+  const ms = toArr(c.training.measurements).filter(Boolean), lastV = (ms[ms.length - 1] || {}).values || {};
+  const ov = sheet(`<h3>Замер: ${esc(cname(c))}</h3>
+    <div class="lbl">Дата</div><input class="field" id="md" value="${def}" inputmode="numeric">
+    <div class="mgrid">${F.map(f => `<label><span>${esc(f)}</span><input class="field" data-f="${esc(f)}" inputmode="decimal" placeholder="${esc(lastV[f] || '')}"></label>`).join('')}</div>
+    <p class="faint" style="font-size:11.5px;margin:4px 0 0">Серым подсказаны прошлые значения. Пустые поля не сохранятся. Клиент увидит замер у себя.</p>
+    <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Сохранить</button></div>`);
+  ov.querySelector('#x').onclick = () => ov.remove();
+  ov.querySelector('#ok').onclick = async () => {
+    const values = {}; ov.querySelectorAll('[data-f]').forEach(i => { const v = i.value.trim(); if (v) values[i.dataset.f] = v; });
+    if (!Object.keys(values).length) { toast('Заполните хотя бы одно поле'); return; }
+    const list = ms.concat([{ date: ov.querySelector('#md').value.trim() || def, values, byCoach: true }]);
+    try { await update(ref(db, c.root + '/training'), { measurements: clean(list), coachRev: Date.now() }); c.training.measurements = list; c.stat = stats(c); ov.remove(); toast('Замер сохранён'); done && done(); }
+    catch (e) { alert('Не получилось сохранить.'); }
   };
 }
 

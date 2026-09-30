@@ -135,7 +135,8 @@ window.CoachDash = (function () {
   /* ═══ Обзор клиента ═══ */
   function dashHtml(c, d, weekly) {
     const att = d.att;
-    if (!d.past.some(x => x.work) && !d.lastM) return `<div class="empty"><i class="ti ti-chart-bar"></i>Данных пока нет.<br>Составьте план во вкладке «План»: как только пройдут первые тренировки, здесь появятся посещаемость, объём, сила и замеры.</div>${weekly && d.hist.length ? weekly : ''}`;
+    if (!d.past.some(x => x.work) && !d.lastM) return `<div class="empty"><i class="ti ti-chart-bar"></i>Данных пока нет.<br>Составьте план во вкладке «План»: как только пройдут первые тренировки, здесь появятся посещаемость, объём и сила.</div>
+      <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { coach: true }) : ''}<button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>`;
     return `
     <div class="cd-kpis">
       <div class="cd-kpi"><b>${att == null ? '–' : att + '%'}</b><span>выполнено за 4 нед.</span><small>${d.dn4} из ${d.pl4}</small></div>
@@ -147,15 +148,13 @@ window.CoachDash = (function () {
       ${barsSvg(d.weeks, 'done', { track: 'planned', label: 'Посещаемость по неделям', fmt: w => w.planned ? `${w.done}/${w.planned}` : '', tip: w => `Неделя с ${w.label}: сделано ${w.done} из ${w.planned}` })}</div>
     <div class="card"><div class="card-h"><div><b>Объём нагрузки</b><span>тонн за неделю (подходы × повторы × вес)</span></div></div>
       ${barsSvg(d.weeks, 'tons', { label: 'Тоннаж по неделям', fmt: w => w.tons ? String(w.tons).replace('.', ',') : '', tip: w => `Неделя с ${w.label}: ${String(w.tons).replace('.', ',')} т` })}</div>
+    <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { hist: d.hist, coach: true, period: c._bp }) : ''}
+      <button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>
     ${d.lifts.length ? `<div class="card"><div class="card-h"><div><b>Сила в ключевых упражнениях</b><span>расчётный максимум на 1 повтор</span></div></div>
       <div class="cd-lifts">${d.lifts.map(l => { const f = l.pts[0].v, la = l.pts[l.pts.length - 1].v, dl = Math.round((la - f) * 10) / 10;
         return `<div class="cd-lift"><div class="cd-lift-t"><b>${esc(l.name)}</b><span>${kg(la)} кг <em class="${dl >= 0 ? 'up' : 'down'}">${dl >= 0 ? '+' : ''}${kg(dl)}</em></span></div>${lineSvg(l.pts)}</div>`; }).join('')}</div></div>` : ''}
     ${d.comments.length ? `<div class="card"><div class="card-h"><div><b>Комментарии клиента</b><span>заметки к дням тренировок</span></div></div>
       <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : ''}
-    ${d.lastM ? `<div class="card"><div class="card-h"><div><b>Замеры</b><span>последние от ${esc(d.lastM.date)}${d.ms.length > 1 ? ', в скобках разница с первыми' : ''}</span></div></div>
-      <div class="cd-ms">${Object.entries(d.lastM.values).map(([k, v]) => { const a = parseFloat(String(v).replace(',', '.')), b = d.ms.length > 1 ? parseFloat(String((d.firstM.values || {})[k] || '').replace(',', '.')) : NaN;
-        const df = !isNaN(a) && !isNaN(b) ? Math.round((a - b) * 10) / 10 : null;
-        return `<div><span>${esc(k)}</span><b>${esc(v)}${df ? ` <em>(${df > 0 ? '+' : ''}${kg(df)})</em>` : ''}</b></div>`; }).join('')}</div></div>` : ''}
     ${weekly}`;
   }
 
@@ -164,7 +163,8 @@ window.CoachDash = (function () {
     const wc = window.TrainingInsights._weekCard(d.hist, d.an);
     const mon = monday(new Date()), from = new Date(+mon - WEEK);
     const wk = d.weeks.find(w => +w.from === +from) || { planned: 0, done: 0 };
-    return { range: fmtD(wc.from) + ' – ' + fmtD(wc.to), count: wk.done || wc.count, planned: wk.planned, tons: Math.round(wc.tL / 100) / 10, delta: wc.delta, grew: wc.grew.slice(0, 4), lag: wc.lag};
+    const body = window.BodyProgress ? BodyProgress.weekDelta(d.ms, from, mon) : [];
+    return { body, range: fmtD(wc.from) + ' – ' + fmtD(wc.to), count: wk.done || wc.count, planned: wk.planned, tons: Math.round(wc.tL / 100) / 10, delta: wc.delta, grew: wc.grew.slice(0, 4), lag: wc.lag};
   }
   function weeklyFormHtml(s, sent) {
     return `<div class="card" id="cw-card"><div class="card-h"><div><b>Итоги недели для клиента</b><span>${esc(s.range)}${sent ? ' · отправлено ' + fmtD(new Date(sent.at)) : ''}</span></div></div>
@@ -172,6 +172,7 @@ window.CoachDash = (function () {
         <div class="cd-kpi"><b>${String(s.tons).replace('.', ',')}</b><span>тонн</span></div>
         <div class="cd-kpi"><b>${s.delta == null ? '–' : (s.delta > 0 ? '+' : '') + s.delta + '%'}</b><span>к прошлой</span></div></div>
       ${s.grew.length ? `<div class="cd-grew">${s.grew.map(g => `<div><i class="ti ti-trending-up"></i>${esc(g)}</div>`).join('')}</div>` : ''}
+      ${s.body && s.body.length ? `<div class="cd-grew body">${s.body.map(g => `<div><i class="ti ti-ruler-measure"></i>${esc(g)}</div>`).join('')}</div>` : ''}
       ${s.lag.length ? `<div class="cd-grew lag">${s.lag.map(g => `<div><i class="ti ti-alert-circle"></i>Мало: ${esc(g)}</div>`).join('')}</div>` : ''}
       <textarea class="field" id="cw-text" placeholder="Ваш комментарий: что получилось, на что обратить внимание на следующей неделе">${esc(sent && sent.text || '')}</textarea>
       <div class="inv-btns" style="margin-top:4px"><button class="btn btn-main btn-sm" id="cw-send"><i class="ti ti-send"></i> Отправить в приложение</button>
@@ -194,6 +195,8 @@ window.CoachDash = (function () {
     let y = 620;
     if (s.grew.length) { g.fillStyle = '#86EFAC'; g.font = F(800, 34); g.fillText('Выросло', 80, y); y += 56;
       g.font = F(600, 32); s.grew.slice(0, 4).forEach(t => { g.fillStyle = '#E5E7EB'; g.fillText('↑ ' + t.slice(0, 44), 80, y); y += 50; }); y += 20; }
+    if (s.body && s.body.length) { g.fillStyle = '#67E8F9'; g.font = F(800, 34); g.fillText('Тело', 80, y); y += 56;
+      g.font = F(600, 32); s.body.slice(0, 3).forEach(t => { g.fillStyle = '#E5E7EB'; g.fillText(t.replace('−', '-'), 80, y); y += 50; }); y += 20; }
     if (text) { g.fillStyle = 'rgba(255,255,255,.06)'; const lines = wrap(g, text, W - 220, F(500, 34)); const bh = Math.min(8, lines.length) * 50 + 70; rr(80, y, W - 160, bh, 30); g.fill();
       g.fillStyle = '#E0E7FF'; g.font = F(500, 34); lines.slice(0, 8).forEach((l, i) => g.fillText(l, 118, y + 64 + i * 50)); }
     g.fillStyle = '#6F7C9E'; g.font = F(700, 30); g.fillText('YOU · приложение для тренировок', 80, H - 70);

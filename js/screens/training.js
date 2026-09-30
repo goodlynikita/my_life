@@ -2109,6 +2109,8 @@ window.Screens.training = function (mount) {
       }
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
+      const bpBox = document.getElementById('tr-bp');
+      if (bpBox && window.BodyProgress) BodyProgress.bind(bpBox, (p) => { window._bpPeriod = p; renderTab('summary'); });
       const addBtn = document.getElementById('tr-add-measure');
       if (addBtn) {
         if (role === 'coach') {
@@ -3049,7 +3051,12 @@ function trRenderSummary(plan) {
     ? allHtml
     : `<div class="tr-empty-state"><i class="ti ti-chart-bar"></i>Прогрессия появится здесь после нескольких недель тренировок.</div>`;
 
-  return exercisesHtml + trRenderMeasurementsBlock();
+  let body = '';
+  if (window.BodyProgress) {
+    let hist = null; try { hist = window.TrainingAI ? TrainingAI.collect(trGetPlans()) : null; } catch (e) {}
+    body = `<div class="tr-group-card bp-wrap" id="tr-bp">${BodyProgress.html(Store.get().training.measurements, { hist, period: window._bpPeriod })}</div>`;
+  }
+  return body + exercisesHtml + trRenderMeasurementsBlock();
 }
 
 function trRenderMeasurementsBlock() {
@@ -3099,7 +3106,7 @@ function trOpenMeasureModal(onSave, existingIdx) {
       </div>
       <div class="tr-measure-form-grid">
         ${MEASURE_FIELDS.map(f => `
-          <label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="—" value="${values[f] !== undefined ? values[f] : ''}"></label>
+          <label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="0" value="${values[f] !== undefined ? values[f] : ''}"></label>
         `).join('')}
       </div>
       <div class="tr-modal-actions">

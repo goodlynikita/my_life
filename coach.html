@@ -924,19 +924,16 @@ function renderDash(c, body) {
 
 /* ── Замер от тренера (например, после встречи в зале) ── */
 function measureModal(c, done) {
-  const F = Object.keys(window.BodyProgress.FIELDS), t = new Date();
-  const def = String(t.getDate()).padStart(2, '0') + '.' + String(t.getMonth() + 1).padStart(2, '0') + '.' + t.getFullYear();
+  const t = new Date(), def = String(t.getDate()).padStart(2, '0') + '.' + String(t.getMonth() + 1).padStart(2, '0') + '.' + t.getFullYear();
   const ms = toArr(c.training.measurements).filter(Boolean), lastV = (ms[ms.length - 1] || {}).values || {};
-  const ov = sheet(`<h3>Замер: ${esc(cname(c))}</h3>
-    <div class="lbl">Дата</div><input class="field" id="md" value="${def}" inputmode="numeric">
-    <div class="mgrid">${F.map(f => `<label><span>${esc(f)}</span><input class="field" data-f="${esc(f)}" inputmode="decimal" placeholder="${esc(lastV[f] || '')}"></label>`).join('')}</div>
-    <p class="faint" style="font-size:11.5px;margin:4px 0 0">Серым подсказаны прошлые значения. Пустые поля не сохранятся. Клиент увидит замер у себя.</p>
+  const ov = sheet(`<h3>Замер: ${esc(cname(c))}</h3>${window.BodyProgress.formHtml({}, lastV, def)}
+    <p class="faint" style="font-size:11.5px;margin:8px 0 0">Клиент увидит замер у себя в «Итогах».</p>
     <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Сохранить</button></div>`);
   ov.querySelector('#x').onclick = () => ov.remove();
   ov.querySelector('#ok').onclick = async () => {
-    const values = {}; ov.querySelectorAll('[data-f]').forEach(i => { const v = i.value.trim(); if (v) values[i.dataset.f] = v; });
-    if (!Object.keys(values).length) { toast('Заполните хотя бы одно поле'); return; }
-    const list = ms.concat([{ date: ov.querySelector('#md').value.trim() || def, values, byCoach: true }]);
+    const r = window.BodyProgress.readForm(ov);
+    if (!Object.keys(r.values).length) { toast('Заполните хотя бы одно поле'); return; }
+    const list = ms.concat([{ date: r.date || def, values: r.values, byCoach: true }]);
     try { await update(ref(db, c.root + '/training'), { measurements: clean(list), coachRev: Date.now() }); c.training.measurements = list; c.stat = stats(c); ov.remove(); toast('Замер сохранён'); done && done(); }
     catch (e) { alert('Не получилось сохранить.'); }
   };

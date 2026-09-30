@@ -3098,17 +3098,15 @@ function trOpenMeasureModal(onSave, existingIdx) {
 
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
+  const prevM = isEdit ? (list[existingIdx - 1] || null) : (list.filter(Boolean).slice(-1)[0] || null);
+  const formInner = window.BodyProgress && BodyProgress.formHtml
+    ? BodyProgress.formHtml(values, prevM ? prevM.values : {}, dateValue)
+    : `<div class="tr-modal-row"><label style="flex:1 1 100%">Дата (ДД.ММ.ГГГГ)<input type="text" id="m-measure-date" value="${dateValue}"></label></div>
+       <div class="tr-measure-form-grid">${MEASURE_FIELDS.map(f => `<label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" value="${values[f] !== undefined ? values[f] : ''}"></label>`).join('')}</div>`;
   overlay.innerHTML = `
-    <div class="tr-modal" style="max-height:80vh; overflow-y:auto;">
+    <div class="tr-modal mf-modal">
       <p class="tr-modal-title">${isEdit ? 'Редактировать замер' : 'Новый замер'}</p>
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Дата (ДД.ММ.ГГГГ)<input type="text" id="m-measure-date" value="${dateValue}" placeholder="29.06.2026"></label>
-      </div>
-      <div class="tr-measure-form-grid">
-        ${MEASURE_FIELDS.map(f => `
-          <label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" placeholder="0" value="${values[f] !== undefined ? values[f] : ''}"></label>
-        `).join('')}
-      </div>
+      ${formInner}
       <div class="tr-modal-actions">
         ${isEdit ? '<button class="tr-modal-btn-secondary" id="m-delete">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>'}
         <button class="tr-modal-btn-primary" id="m-save">Сохранить</button>
@@ -3125,11 +3123,11 @@ function trOpenMeasureModal(onSave, existingIdx) {
     overlay.remove();
   });
   overlay.querySelector('#m-save').addEventListener('click', () => {
-    const newValues = {};
-    overlay.querySelectorAll('input[data-field]').forEach(input => {
-      if (input.value.trim() !== '') newValues[input.dataset.field] = input.value.trim();
-    });
-    const newDate = overlay.querySelector('#m-measure-date').value.trim() || defaultDate;
+    let newValues = {}, newDate = '';
+    if (window.BodyProgress && BodyProgress.readForm && overlay.querySelector('.mf')) { const r = BodyProgress.readForm(overlay); newValues = r.values; newDate = r.date; }
+    else { overlay.querySelectorAll('input[data-field]').forEach(input => { if (input.value.trim() !== '') newValues[input.dataset.field] = input.value.trim(); }); newDate = overlay.querySelector('#m-measure-date').value.trim(); }
+    newDate = newDate || defaultDate;
+    if (!Object.keys(newValues).length) { alert('Заполни хотя бы один замер'); return; }
     trSnapshotBeforeChange();
     const freshList = Store.get().training.measurements || [];
     if (isEdit) {

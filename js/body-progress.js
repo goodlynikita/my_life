@@ -191,5 +191,37 @@ window.BodyProgress = (function () {
     const dlt = (k) => { const pts = win(by[k] || [], from); return pts.length >= 2 ? Math.round((pts[pts.length - 1].v - pts[0].v) * 10) / 10 : null; };
     return { main, since, count: list.length, waist: dlt('Талия'), weight: dlt('Вес') };
   }
-  return { html, bind, weekDelta, series, summary, FIELDS };
+  /* ── Удобная форма замера (приложение и кабинет тренера) ── */
+  const GROUPS = [
+    ['Главное', ['Вес', 'Талия', '% жира']],
+    ['Объёмы', ['Плечи', 'Грудь', 'Бедро']],
+    ['Руки', ['Лев рука', 'Прав рука']],
+    ['Ноги', ['Лев нога', 'Прав нога']],
+  ];
+  const EXTRA = ['Мышечная масса', 'Оценка InBody'];
+  const LABEL = { 'Лев рука': 'Левая', 'Прав рука': 'Правая', 'Лев нога': 'Левая', 'Прав нога': 'Правая', '% жира': 'Жир' };
+  function toISO(s) { const d = parseDate(s) || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function field(f, v, prev) {
+    const u = (FIELDS[f] || {}).u || '';
+    return `<label class="mf-f"><span>${esc(LABEL[f] || f)}${prev != null && prev !== '' ? `<i>было ${esc(prev)}</i>` : ''}</span>
+      <div class="mf-in"><input data-field="${esc(f)}" inputmode="decimal" autocomplete="off" value="${v != null ? esc(v) : ''}" placeholder="">${u ? `<em>${u}</em>` : ''}</div></label>`;
+  }
+  function formHtml(values, prevValues, dateStr) {
+    values = values || {}; prevValues = prevValues || {};
+    const hasExtra = EXTRA.some(f => values[f] || prevValues[f]);
+    return `<div class="mf">
+      <label class="mf-date"><i class="ti ti-calendar"></i><span>Дата замера</span><input type="date" data-mf-date value="${toISO(dateStr)}"></label>
+      ${GROUPS.map(([t, fs]) => `<div class="mf-g"><div class="mf-h">${t}</div><div class="mf-row c${fs.length}">${fs.map(f => field(f, values[f], prevValues[f])).join('')}</div></div>`).join('')}
+      <details class="mf-g mf-x"${hasExtra ? ' open' : ''}><summary class="mf-h">InBody и мышцы <i class="ti ti-chevron-down"></i></summary><div class="mf-row c2">${EXTRA.map(f => field(f, values[f], prevValues[f])).join('')}</div></details>
+      <div class="mf-hint">Только то, что меряли, остальное можно пропустить. Лучше утром натощак, в одно и то же время.</div>
+    </div>`;
+  }
+  function readForm(root) {
+    const values = {};
+    root.querySelectorAll('input[data-field]').forEach(i => { const v = i.value.trim().replace('.', ','); if (v !== '') values[i.dataset.field] = v; });
+    const di = root.querySelector('[data-mf-date]'); let date = '';
+    if (di && di.value) { const [y, m, d] = di.value.split('-'); date = d + '.' + m + '.' + y; }
+    return { date, values };
+  }
+  return { html, bind, weekDelta, series, summary, formHtml, readForm, FIELDS };
 })();

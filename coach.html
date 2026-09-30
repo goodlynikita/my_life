@@ -15,7 +15,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/training.css">
+<link rel="stylesheet" href="css/light.css">
 <link rel="stylesheet" href="css/tour.css">
 <style>
 :root{--bg:#0B0E17;--panel:#111624;--card:#161D2E;--raised:#1F2840;--line:rgba(110,139,255,.12);--line2:rgba(110,139,255,.22);
@@ -170,6 +172,65 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
   .ca-feats{display:none} .ca-mock{height:118px;transform:scale(.88);transform-origin:left top;margin-bottom:-12px}
   .ca-mock{height:128px} .ca-m.m2{left:auto;right:-12%;top:42px} .ca-m.m4{left:0;top:88px} .ca-m.m3{display:none}
 }
+/* v126: шапка как в приложении и переключатель темы */
+.top{background:linear-gradient(135deg,#34198a 0%,#4f3bd1 50%,#2563eb 100%);border-bottom:none;box-shadow:0 8px 30px rgba(20,16,60,.35)}
+.top .brand span{color:rgba(255,255,255,.7)} .top .ib{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22)}
+.theme-toggle{position:relative;width:68px;height:38px;border-radius:19px;cursor:pointer;padding:0;flex-shrink:0;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);-webkit-tap-highlight-color:transparent}
+.theme-toggle .tt-ico{position:absolute;top:3px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;pointer-events:none;z-index:1}
+.theme-toggle .tt-sun{left:3px} .theme-toggle .tt-moon{right:3px}
+.theme-toggle .tt-knob{position:absolute;top:3px;left:3px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.3);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:left .28s cubic-bezier(.34,1.56,.64,1);box-sizing:border-box}
+.theme-toggle[data-mode="dark"] .tt-knob{left:33px}
+@media (max-width:440px){.top .brand div{display:none}.top-in{gap:6px}.theme-toggle{width:60px;height:36px}.theme-toggle .tt-ico,.theme-toggle .tt-knob{width:28px;height:28px}.theme-toggle[data-mode="dark"] .tt-knob{left:27px}}
+/* светлая тема: шапку возвращаем к оригиналу, как в разделах приложения */
+html[data-theme="light"] .top{filter:invert(1) hue-rotate(180deg) contrast(.893)}
+html[data-theme="light"] .top img,html[data-theme="light"] .top .tt-ico{filter:none}
+html[data-theme="light"]{--soft:#C9CFDF;--faint:#AEB6CB}
+html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
+/* v126: оценка эффективности */
+.rp{border-radius:22px;padding:16px;margin-bottom:12px;border:1px solid var(--line2);background:linear-gradient(160deg,rgba(27,35,64,.85),rgba(16,20,31,.92))}
+.rp-good{border-color:rgba(74,222,128,.35);background:linear-gradient(160deg,rgba(22,60,45,.55),rgba(16,20,31,.92))}
+.rp-bad{border-color:rgba(248,113,113,.35);background:linear-gradient(160deg,rgba(70,25,30,.5),rgba(16,20,31,.92))}
+.rp-v{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.rp-v>i{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(110,148,255,.18);color:#A5B4FC;flex-shrink:0}
+.rp-good .rp-v>i{background:rgba(74,222,128,.18);color:#4ADE80} .rp-bad .rp-v>i{background:rgba(248,113,113,.18);color:#F87171}
+.rp-v b{display:block;font-size:17px} .rp-v span{font-size:12.5px;color:var(--soft)}
+.rp-p{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:620px){.rp-p{grid-template-columns:1fr 1fr}}
+.rp-c{background:rgba(10,14,26,.45);border:1px solid var(--line);border-radius:15px;padding:11px 12px;min-width:0}
+.rp-t{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--soft);font-weight:700} .rp-t i{font-size:15px}
+.rp-c b{display:block;font-size:22px;font-weight:900;margin:6px 0 2px}
+.rp-c em{display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-bottom:4px}
+.rp-c em i{font-size:12px}
+.rp-c.good em{background:rgba(74,222,128,.14);color:#86EFAC} .rp-c.ok em{background:rgba(251,191,36,.14);color:#FCD34D} .rp-c.bad em{background:rgba(248,113,113,.14);color:#FCA5A5}
+.rp-c.good .rp-t i{color:#4ADE80} .rp-c.ok .rp-t i{color:#FBBF24} .rp-c.bad .rp-t i{color:#F87171} .rp-c.none .rp-t i{color:var(--faint)}
+.rp-c small{display:block;font-size:11px;color:var(--faint);line-height:1.35}
+.todo{display:flex;flex-direction:column;gap:6px}
+.td{display:flex;gap:11px;align-items:flex-start;padding:10px 12px;border-radius:13px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.td>span{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;background:rgba(251,191,36,.15);color:#FCD34D}
+.td.bad>span{background:rgba(248,113,113,.15);color:#FCA5A5}
+.td b{display:block;font-size:13.5px} .td small{display:block;font-size:12px;color:var(--soft);line-height:1.45;margin-top:2px}
+.sets{display:flex;flex-direction:column;gap:9px}
+.st-r{display:grid;grid-template-columns:70px 1fr 32px;gap:10px;align-items:center}
+.st-n{font-size:12.5px;color:var(--soft)} .st-r>b{font-size:14px;text-align:right}
+.st-bar{position:relative;height:12px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden}
+.st-zone{position:absolute;top:0;bottom:0;background:rgba(74,222,128,.16);border-left:1px solid rgba(74,222,128,.4);border-right:1px solid rgba(74,222,128,.4)}
+.st-val{position:absolute;left:0;top:3px;bottom:3px;border-radius:4px;background:#4A7CFF}
+.st-val.low{background:#FBBF24} .st-val.high{background:#F87171}
+.st-r b.low{color:#FCD34D} .st-r b.high{color:#FCA5A5} .st-r b.ok{color:#86EFAC}
+/* v125: понятные графики */
+.att{display:flex;flex-direction:column;gap:4px}
+.att-r{display:grid;grid-template-columns:118px 1fr auto;gap:12px;align-items:center;padding:9px 10px;border-radius:12px}
+.att-r.cur{background:rgba(110,148,255,.08)}
+.att-d{font-size:12.5px;color:var(--soft);white-space:nowrap} .att-r.cur .att-d{color:#fff;font-weight:700}
+.att-dots{display:flex;gap:6px;flex-wrap:wrap} .att-dots i{width:16px;height:16px;border-radius:50%;border:2px solid rgba(110,148,255,.45)} .att-dots i.on{background:#4A7CFF;border-color:#4A7CFF;box-shadow:0 0 8px rgba(74,124,255,.5)}
+.att-dots em{font-style:normal;font-size:12px;color:var(--faint)}
+.att-v{font-size:13px;font-weight:800;white-space:nowrap} .att-v.g{color:#86EFAC} .att-v.w{color:#FCD34D} .att-v.b{color:#FCA5A5}
+.tn{display:flex;gap:8px;align-items:stretch;height:170px}
+.tn-c{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.tn-v{font-size:11.5px;font-weight:800;white-space:nowrap;min-height:15px}
+.tn-b{flex:1;width:100%;max-width:44px;display:flex;align-items:flex-end;border-radius:8px;background:rgba(255,255,255,.03)}
+.tn-b i{display:block;width:100%;border-radius:8px;background:#4A7CFF} .tn-c.cur .tn-b i{background:#8B5CF6}
+.tn-l{font-size:10.5px;color:var(--faint)}
 /* v116: сводки, лента, шаблоны */
 .inst{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,rgba(139,92,246,.16),rgba(74,124,255,.12))!important;border-color:rgba(167,139,250,.35)!important}
 .inst>i{font-size:24px;color:#C4B5FD} .inst div{flex:1} .inst b{display:block;font-size:14px;margin-bottom:3px} .inst span{font-size:12.5px;color:var(--soft);line-height:1.45}
@@ -283,14 +344,20 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 
 <!-- Стать тренером (есть аккаунт YOU, но нет кабинета) -->
 <div class="auth hidden" id="become">
+ <div class="ca">
+  <div class="ca-hero" id="bc-hero"></div>
+  <div class="ca-side">
   <div class="auth-card">
-    <div class="auth-logo"><img src="icon.png" alt=""><div><b>Кабинет тренера</b><span id="bc-email"></span></div></div>
-    <p class="muted" style="font-size:13.5px;line-height:1.55;margin:0 0 14px">У этого аккаунта ещё нет кабинета тренера. Создайте его: получите ссылку для клиентов и сможете вести до 50 человек бесплатно.</p>
-    <input class="field" id="bc-name" type="text" placeholder="Имя, как вас увидят клиенты">
+    <div class="auth-h"><b>Создать кабинет</b><span id="bc-email"></span></div>
+    <p class="muted" style="font-size:13.5px;line-height:1.55;margin:0 0 14px">Вы вошли аккаунтом YOU. Осталось создать кабинет тренера: получите ключ-приглашение для клиентов и сможете вести до 50 человек бесплатно.</p>
+    <input class="field" id="bc-name" type="text" placeholder="Имя и фамилия, как увидят клиенты" autocomplete="name">
     <div class="err" id="bc-err"></div>
-    <button class="btn btn-main w100" id="bc-btn">Создать кабинет</button>
-    <div style="display:flex;gap:8px;margin-top:10px"><a class="btn btn-ghost w100" href="index.html">Назад</a><button class="btn btn-ghost w100" id="bc-out">Выйти</button></div>
+    <button class="btn btn-main w100" id="bc-btn">Создать кабинет тренера</button>
+    <button class="lnk" id="bc-out">Войти другим аккаунтом</button>
   </div>
+  <a class="ca-app" href="index.html"><i class="ti ti-barbell"></i><span><b>Занимаетесь сами?</b> Откройте приложение YOU</span><i class="ti ti-chevron-right"></i></a>
+  </div>
+ </div>
 </div>
 
 <!-- Кабинет -->
@@ -298,6 +365,7 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
   <div class="top"><div class="top-in">
     <div class="brand" id="brand"><img src="icon.png" alt=""><div><b id="t-name">Кабинет тренера</b><span>Кабинет тренера YOU</span></div></div>
     <button class="ib hidden" id="back" title="Назад"><i class="ti ti-arrow-left"></i></button>
+    <button id="c-theme" class="theme-toggle" aria-label="Светлая / тёмная тема" title="Светлая / тёмная тема"><span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span></button>
     <button class="ib" id="help" title="Подсказки"><i class="ti ti-help"></i></button>
     <a class="ib" href="index.html" title="Мои тренировки"><i class="ti ti-barbell"></i></a>
     <button class="ib" id="out" title="Выйти"><i class="ti ti-logout"></i></button>
@@ -408,6 +476,7 @@ async function createTrainer(u, name) {
   await set(ref(db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
 }
 
+try { const h = document.querySelector('#auth .ca-hero'); if (h) $('#bc-hero').innerHTML = h.innerHTML; } catch (e) {}
 onAuthStateChanged(auth, (u) => { me = u; if (!u) { show('auth'); return; } boot(u); });
 
 async function boot(u) {
@@ -460,7 +529,7 @@ function stats(c) {
   /* сегодня по плану */
   const p = activePlan(c); let today = null;
   if (p) { const t0 = new Date(); t0.setHours(0, 0, 0, 0);
-    toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = A.planDayDate(p, d.date); if (dt && +dt === +t0) { trMigrateDayToSessions(d); const s = toArr(d.sessions).filter(x => x && x.type !== 'Отдых'); if (s.length) today = s.map(x => toArr(x.groups).join(' + ') || x.type).join(', '); } })); }
+    toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = A.planDayDate(p, d.date); if (dt && +dt === +t0) { trMigrateDayToSessions(d); const s = toArr(d.sessions).filter(x => x && x.type !== 'Отдых' && x.type !== 'Шаги'); if (s.length) today = s.map(x => toArr(x.groups).join(' + ') || x.type).join(', '); } })); }
   return { hist, an, lastTs, days, wk, plat, recs, st, today, workouts: doneDays.length, att: d.att };
 }
 const initials = (c) => ((c.name || c.email || '?').trim()[0] || '?').toUpperCase();
@@ -621,8 +690,9 @@ const CT = {
   ],
   client: [
     { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с графиками, план, разбор прогресса, AI-помощник и ваши заметки о клиенте.' },
-    { sel: '.cd-kpis', t: 'Главное', d: 'Посещаемость за 4 недели, серия без пропусков, объём нагрузки и вес тела.' },
-    { sel: '.cd-svg', t: 'Посещаемость', d: 'Светлое: сколько тренировок было в плане, яркое: сколько сделано. Наведите или нажмите на столбик.' },
+    { sel: '.rp', t: 'Оценка за 4 недели', d: 'Четыре опоры прогресса: регулярность, сила, нагрузка и тело. Цвет сразу показывает, где всё хорошо, а где просело.' },
+    { sel: '.todo', t: 'Что сделать', d: 'Конкретные шаги по данным клиента: кому написать, где плато, каких подходов мало.' },
+    { sel: '.att', t: 'Тренировки по неделям', d: 'Кружок: тренировка в плане. Закрашен: сделана. Шаги не считаются.' },
     { sel: '#bp-card', t: 'Прогресс тела', d: 'Вес, объёмы, процент жира и выводы по ним. Замерили клиента в зале? Внесите замер сами кнопкой ниже.' },
     { sel: '#cw-card', t: 'Итоги недели', d: 'Цифры считаются сами. Допишите пару слов и отправьте: клиент увидит карточку в приложении. Или сохраните картинкой для мессенджера.' },
   ],
@@ -647,6 +717,8 @@ function coachTips(k) {
     Tour.play(CT[k], 'coach-' + k);
   }, 700);
 }
+(function(){ const b = $('#c-theme'); if (!b || !window.Theme) return; b.dataset.mode = Theme.get();
+  b.onclick = () => { const n = Theme.get() === 'light' ? 'dark' : 'light'; b.dataset.mode = n; setTimeout(() => Theme.set(n), 180); }; })();
 $('#help').onclick = () => {
   try { Object.keys(localStorage).filter(k => k.startsWith('you_ctips_' + trainer.uid)).forEach(k => localStorage.removeItem(k)); localStorage.removeItem('you_tour_anon'); } catch (e) {}
   const k = view.name === 'client' ? (view.tab === 'plan' ? 'plan' : 'client') : (view.tab || 'home');
@@ -830,7 +902,7 @@ function renderClient() {
 function renderDash(c, body) {
   const d = c.d, sum = window.CoachDash.weekSummary(d), sent = c.training.coachWeekly && c.training.coachWeekly.range === sum.range ? c.training.coachWeekly : null;
   body.innerHTML = window.CoachDash.dashHtml(c, d, window.CoachDash.weeklyFormHtml(sum, sent));
-  const bpc = $('#bp-card'); if (bpc) window.BodyProgress.bind(bpc, (p) => { c._bp = p; renderDash(c, body); });
+  const bpc = $('#bp-card'); if (bpc) window.BodyProgress.bind(bpc, (p, m) => { if (p) c._bp = p; if (m) c._bpm = m; renderDash(c, body); });
   const bpa = $('#bp-add'); if (bpa) bpa.onclick = () => measureModal(c, () => renderDash(c, body));
   if (!$('#cw-send')) return;
   coachTips('client');
@@ -917,7 +989,7 @@ function renderPlan(c, body) {
           const ss = toArr(d.sessions).filter(Boolean);
           return `<div class="dy${isT ? ' today' : ''}">
             <div class="dy-h"><b>${esc(d.date)} ${esc(d.dow)}</b>${isT ? '<span class="today-b">сегодня</span>' : ''}<span class="sp"></span>
-              ${(past || isT) && ss.some(s => s.type !== 'Отдых') ? `<button class="dn${d.done ? ' on' : ''}" data-act="done" data-w="${wi}" data-d="${di}" title="${d.done ? 'Снять отметку' : 'Отметить: тренировка проведена'}"><i class="ti ti-${d.done ? 'circle-check-filled' : 'circle-check'}"></i>${d.done ? (d.done.by === 'coach' ? 'провёл' : 'сделал') : 'отметить'}</button>` : ''}
+              ${(past || isT) && ss.some(s => s.type !== 'Отдых' && s.type !== 'Шаги') ? `<button class="dn${d.done ? ' on' : ''}" data-act="done" data-w="${wi}" data-d="${di}" title="${d.done ? 'Снять отметку' : 'Отметить: тренировка проведена'}"><i class="ti ti-${d.done ? 'circle-check-filled' : 'circle-check'}"></i>${d.done ? (d.done.by === 'coach' ? 'провёл' : 'сделал') : 'отметить'}</button>` : ''}
               <button class="mini" data-act="note" data-w="${wi}" data-d="${di}" title="Заметка тренера"><i class="ti ti-message-2"></i></button>
               <button class="mini" data-act="sess" data-w="${wi}" data-d="${di}" title="Добавить тренировку"><i class="ti ti-plus"></i></button></div>
             ${d.coachNote ? `<div class="cnote"><i class="ti ti-user-star"></i><span>${esc(d.coachNote)}</span></div>` : ''}

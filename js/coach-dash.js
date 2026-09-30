@@ -20,7 +20,7 @@ window.CoachDash = (function () {
     toArr(training && training.plans).filter(Boolean).forEach((p, pi) => toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => {
       if (!d) return; if (typeof trMigrateDayToSessions === 'function') trMigrateDayToSessions(d);
       const date = A().planDayDate(p, d.date); if (!date) return;
-      const ss = toArr(d.sessions).filter(s => s && s.type !== 'Отдых');
+      const ss = toArr(d.sessions).filter(s => s && s.type !== 'Отдых' && s.type !== 'Шаги'); /* шаги не тренировка */
       out.push({ date, day: d, plan: p, pi, wi, di, work: ss.length > 0, sessions: ss });
     })));
     return out.sort((a, b) => a.date - b.date);
@@ -106,6 +106,23 @@ window.CoachDash = (function () {
   }
 
   /* ═══ Графики (SVG, без библиотек) ═══ */
+  /* Посещаемость: неделя = строка, тренировка = кружок */
+  function attHtml(weeks) {
+    const ws = weeks.slice(-6).reverse();
+    if (!ws.some(w => w.planned)) return '<div class="fd-empty">Тренировок в плане за последние недели нет.</div>';
+    return `<div class="att">${ws.map((w, i) => { const to = new Date(+w.from + 6 * DAY);
+      const pct = w.planned ? Math.round(w.done / w.planned * 100) : null;
+      return `<div class="att-r${i === 0 ? ' cur' : ''}"><span class="att-d">${i === 0 ? 'эта неделя' : fmtD(w.from) + ' – ' + fmtD(to)}</span>
+        <span class="att-dots">${w.planned ? Array.from({ length: Math.max(w.planned, w.done) }, (_, k) => `<i class="${k < w.done ? 'on' : ''}"></i>`).join('') : '<em>нет в плане</em>'}</span>
+        <span class="att-v${pct == null ? '' : pct >= 80 ? ' g' : pct >= 50 ? ' w' : ' b'}">${w.planned ? `${w.done} из ${w.planned}` : ''}</span></div>`; }).join('')}</div>`;
+  }
+  /* Тоннаж: обычные столбики с подписями в тоннах */
+  function tonsHtml(weeks) {
+    const ws = weeks.slice(-8), max = Math.max(0.1, ...ws.map(w => w.tons));
+    if (!ws.some(w => w.tons)) return '<div class="fd-empty">Силовых тренировок с весами пока нет.</div>';
+    return `<div class="tn">${ws.map((w, i) => `<div class="tn-c${i === ws.length - 1 ? ' cur' : ''}" title="Неделя с ${w.label}: ${Math.round(w.tons * 1000).toLocaleString('ru-RU')} кг">
+      <span class="tn-v">${w.tons ? String(w.tons).replace('.', ',') + ' т' : ''}</span><div class="tn-b"><i style="height:${w.tons ? Math.max(4, w.tons / max * 100) : 0}%"></i></div><span class="tn-l">${w.label}</span></div>`).join('')}</div>`;
+  }
   function barsSvg(weeks, key, opt) {
     const W = 320, H = 120, pad = 18, n = weeks.length, bw = (W - 8) / n;
     const max = Math.max(1, ...weeks.map(w => opt.track ? Math.max(w[opt.track], w[key]) : w[key]));
@@ -132,27 +149,95 @@ window.CoachDash = (function () {
     return `<svg viewBox="0 0 ${W} ${H}" class="cd-spark"><path d="${d}" class="cd-line"/><circle cx="${X(l.t)}" cy="${Y(l.v)}" r="3.5" class="cd-dot"/></svg>`;
   }
 
+  /* ═══ Оценка эффективности: 4 опоры, которыми тренеры оценивают прогресс ═══
+     1) регулярность, 2) прогрессия силы, 3) объём нагрузки, 4) изменения тела.
+     Плюс подходы на мышцу в неделю (рабочая зона 10–20) и конкретные советы. */
+  const NORM = { 'Грудь': [10, 20], 'Спина': [10, 20], 'Ноги': [10, 20], 'Плечи': [8, 16], 'Руки': [6, 14], 'Кор': [4, 12] };
+  function setsPerWeek(d) {
+    const from = new Date(+t0() - 14 * DAY), v = {};
+    d.hist.filter(h => h.date >= from).forEach(h => h.exercises.forEach(e => { const g = ((d.an.ex[e.key] || {}).cls || {}).group; if (g) v[g] = (v[g] || 0) + Math.max(1, +e.sets || 3); }));
+    Object.keys(v).forEach(k => { v[k] = Math.round(v[k] / 2); });
+    return v;
+  }
+  function report(d, c) {
+    const P = [], todo = [];
+    /* регулярность */
+    const att = d.att;
+    P.push({ k: 'att', i: 'ti-calendar-check', t: 'Регулярность', v: att == null ? '–' : att + '%', s: att == null ? 'нет тренировок в плане' : `${d.dn4} из ${d.pl4} за 4 недели`,
+      st: att == null ? 'none' : att >= 80 ? 'good' : att >= 60 ? 'ok' : 'bad', w: att == null ? '' : att >= 80 ? 'отлично' : att >= 60 ? 'норма' : 'мало' });
+    /* сила: лучший результат за 4 недели против лучшего раньше */
+    const now = Date.now(), g = [];
+    d.lifts.forEach(l => { const rec = l.pts.filter(p => now - p.t <= 28 * DAY), old = l.pts.filter(p => now - p.t > 28 * DAY && now - p.t <= 84 * DAY);
+      if (rec.length && old.length) g.push((Math.max(...rec.map(p => p.v)) - Math.max(...old.map(p => p.v))) / Math.max(...old.map(p => p.v)) * 100); });
+    const sg_ = g.length ? Math.round(g.reduce((a, b) => a + b, 0) / g.length * 10) / 10 : null;
+    P.push({ k: 'str', i: 'ti-barbell', t: 'Сила', v: sg_ == null ? '–' : (sg_ > 0 ? '+' : '') + String(sg_).replace('.', ',') + '%', s: sg_ == null ? 'мало данных для сравнения' : 'максимум в базе за 4 недели',
+      st: sg_ == null ? 'none' : sg_ > 2 ? 'good' : sg_ >= -2 ? 'ok' : 'bad', w: sg_ == null ? '' : sg_ > 2 ? 'растёт' : sg_ >= -2 ? 'держится' : 'падает' });
+    /* объём: средний тоннаж последних 3 полных недель против 3 до них */
+    const W = d.weeks, avg = (a) => a.reduce((s, w) => s + w.tons, 0) / a.length;
+    const r3 = avg(W.slice(4, 7)), p3 = avg(W.slice(1, 4));
+    const vd = p3 > 0 ? Math.round((r3 - p3) / p3 * 100) : null;
+    P.push({ k: 'vol', i: 'ti-stack-2', t: 'Нагрузка', v: vd == null ? (r3 ? String(Math.round(r3 * 10) / 10).replace('.', ',') + ' т' : '–') : (vd > 0 ? '+' : '') + vd + '%', s: vd == null ? 'тонн в неделю' : `${String(Math.round(r3 * 10) / 10).replace('.', ',')} т в неделю`,
+      st: vd == null ? 'none' : vd > 5 ? 'good' : vd >= -10 ? 'ok' : 'bad', w: vd == null ? '' : vd > 5 ? 'растёт' : vd >= -10 ? 'стабильно' : 'снизилась' });
+    /* тело */
+    const bs = window.BodyProgress ? BodyProgress.summary(c.training.measurements, 56, d.hist) : null;
+    P.push({ k: 'body', i: 'ti-ruler-measure', t: 'Тело', v: bs ? (bs.waist != null ? 'талия ' + (bs.waist > 0 ? '+' : bs.waist < 0 ? '−' : '') + String(Math.abs(bs.waist)).replace('.', ',') + ' см' : bs.weight != null ? (bs.weight > 0 ? '+' : bs.weight < 0 ? '−' : '') + String(Math.abs(bs.weight)).replace('.', ',') + ' кг' : 'есть') : '–', s: bs ? (bs.main ? bs.main.t : 'без заметных изменений') : 'замеров нет',
+      st: !bs ? 'none' : bs.main ? (bs.main.k === 'good' ? 'good' : 'bad') : 'ok', w: !bs ? '' : bs.main ? (bs.main.k === 'good' ? 'прогресс' : 'внимание') : 'стабильно' });
+    /* советы */
+    const lastDone = d.past.filter(d.isDone).pop(), idle = lastDone ? Math.floor((now - lastDone.date) / DAY) : null;
+    if (idle != null && idle >= 7) todo.push({ st: 'bad', t: `Не тренировался ${idle} дней`, s: 'Напишите клиенту: чем раньше, тем проще вернуть в ритм' });
+    if (att != null && att < 60) todo.push({ st: 'bad', t: `Регулярность ${att}%`, s: 'Обсудите график. Реалистичный план на 3 тренировки лучше сорванного на 4' });
+    else if (att != null && att < 80) todo.push({ st: 'ok', t: `Регулярность ${att}%`, s: 'Норма, но есть пропуски. Уточните, какие дни неудобны' });
+    if (sg_ != null && sg_ < -2) todo.push({ st: 'bad', t: 'Сила падает', s: 'Проверьте сон и питание. Возможно, пора разгрузочная неделя: −40% объёма' });
+    const pl = window.TrainingInsights ? TrainingInsights._plateaus(d.an) : [];
+    if (pl.length) todo.push({ st: 'ok', t: `Плато: ${pl.slice(0, 2).map(x => x.name).join(', ')}`, s: pl[0].alts && pl[0].alts.length ? `Смените вариацию на 3–4 недели, например: ${pl[0].alts[0]}. Или другой диапазон повторов` : 'Смените вариацию или диапазон повторов на 3–4 недели' });
+    const spw = setsPerWeek(d);
+    const low = Object.entries(spw).filter(([g, n]) => NORM[g] && n > 0 && n < NORM[g][0]), high = Object.entries(spw).filter(([g, n]) => NORM[g] && n > NORM[g][1] + 2);
+    if (low.length) todo.push({ st: 'ok', t: `Мало подходов в неделю: ${low.map(([g, n]) => g.toLowerCase() + ' ' + n).join(', ')}`, s: 'Для роста мышце нужно примерно 10–20 рабочих подходов в неделю (плечам 8–16, рукам 6–14). Добавляйте по 2–4 подхода' });
+    if (high.length) todo.push({ st: 'ok', t: `Много подходов: ${high.map(([g, n]) => g.toLowerCase() + ' ' + n).join(', ')}`, s: 'Выше рабочей зоны прирост обычно не растёт, а восстановление страдает' });
+    if (bs && bs.main && bs.main.k === 'warn') todo.push({ st: 'bad', t: bs.main.t, s: bs.main.s });
+    if (!bs) todo.push({ st: 'ok', t: 'Нет замеров', s: 'Внесите талию, грудь, руки и ноги. Метр честнее весов: вода и соль его не сбивают' });
+    else if (bs.since > 28) todo.push({ st: 'ok', t: `Замерам ${bs.since} дней`, s: 'Обновите раз в 2–4 недели, в одно время, утром' });
+    const good = P.filter(x => x.st === 'good').length, bad = P.filter(x => x.st === 'bad').length;
+    const verdict = bad >= 2 ? { st: 'bad', t: 'Нужно вмешаться', s: 'Несколько показателей просели. Начните с первого пункта ниже' }
+      : bad === 1 ? { st: 'ok', t: 'В целом хорошо, есть что подтянуть', s: 'Один показатель просел, остальное в порядке' }
+      : good >= 3 ? { st: 'good', t: 'Отличный прогресс', s: 'Клиент регулярен и растёт. Самое время похвалить' }
+      : { st: 'ok', t: 'Стабильно', s: 'Всё держится. Можно добавить нагрузку, чтобы был рост' };
+    return { P, todo: todo.slice(0, 5), verdict, spw };
+  }
+  function reportHtml(r) {
+    const icon = { good: 'ti-circle-check', ok: 'ti-point', bad: 'ti-alert-triangle', none: 'ti-minus' };
+    return `<div class="rp rp-${r.verdict.st}"><div class="rp-v"><i class="ti ${r.verdict.st === 'good' ? 'ti-rosette-discount-check' : r.verdict.st === 'bad' ? 'ti-alert-octagon' : 'ti-activity'}"></i><div><b>${esc(r.verdict.t)}</b><span>${esc(r.verdict.s)}</span></div></div>
+      <div class="rp-p">${r.P.map(x => `<div class="rp-c ${x.st}"><div class="rp-t"><i class="ti ${x.i}"></i>${esc(x.t)}</div><b>${esc(x.v)}</b>${x.w ? `<em><i class="ti ${icon[x.st]}"></i>${esc(x.w)}</em>` : ''}<small>${esc(x.s)}</small></div>`).join('')}</div></div>
+      ${r.todo.length ? `<div class="card"><div class="card-h"><div><b>Что сделать</b><span>по данным за последние недели</span></div></div>
+        <div class="todo">${r.todo.map((x, i) => `<div class="td ${x.st}"><span>${i + 1}</span><div><b>${esc(x.t)}</b><small>${esc(x.s)}</small></div></div>`).join('')}</div></div>` : ''}`;
+  }
+  function setsHtml(spw) {
+    const gs = Object.keys(NORM).filter(g => spw[g]);
+    if (!gs.length) return '';
+    const max = Math.max(24, ...gs.map(g => spw[g]));
+    return `<div class="card"><div class="card-h"><div><b>Подходы на мышцу в неделю</b><span>в среднем за 2 недели. Зелёная зона: рабочий объём для роста</span></div></div>
+      <div class="sets">${gs.map(g => { const n = spw[g], nr = NORM[g], st = n < nr[0] ? 'low' : n > nr[1] ? 'high' : 'ok';
+        return `<div class="st-r"><span class="st-n">${g}</span><div class="st-bar"><i class="st-zone" style="left:${nr[0] / max * 100}%;width:${(nr[1] - nr[0]) / max * 100}%"></i><i class="st-val ${st}" style="width:${Math.min(100, n / max * 100)}%"></i></div><b class="${st}">${n}</b></div>`; }).join('')}</div></div>`;
+  }
+
   /* ═══ Обзор клиента ═══ */
   function dashHtml(c, d, weekly) {
     const att = d.att;
     if (!d.past.some(x => x.work) && !d.lastM) return `<div class="empty"><i class="ti ti-chart-bar"></i>Данных пока нет.<br>Составьте план во вкладке «План»: как только пройдут первые тренировки, здесь появятся посещаемость, объём и сила.</div>
       <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { coach: true }) : ''}<button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>`;
+    const r = report(d, c);
     return `
-    <div class="cd-kpis">
-      <div class="cd-kpi"><b>${att == null ? '–' : att + '%'}</b><span>выполнено за 4 нед.</span><small>${d.dn4} из ${d.pl4}</small></div>
-      <div class="cd-kpi"><b>${d.streak}</b><span>подряд без пропусков</span></div>
-      <div class="cd-kpi"><b>${d.weeks.slice(-4).reduce((s, w) => s + w.tons, 0).toFixed(1).replace('.', ',')}</b><span>тонн за 4 нед.</span></div>
-      <div class="cd-kpi"><b>${d.wNow ? kg(d.wNow) : '–'}</b><span>вес тела, кг</span><small>${d.wNow && d.wStart && d.ms.length > 1 ? (d.wNow - d.wStart > 0 ? '+' : '') + kg(d.wNow - d.wStart) + ' с начала' : 'нет замеров'}</small></div>
-    </div>
-    <div class="card"><div class="card-h"><div><b>Посещаемость</b><span>светлое: запланировано, яркое: сделано</span></div></div>
-      ${barsSvg(d.weeks, 'done', { track: 'planned', label: 'Посещаемость по неделям', fmt: w => w.planned ? `${w.done}/${w.planned}` : '', tip: w => `Неделя с ${w.label}: сделано ${w.done} из ${w.planned}` })}</div>
-    <div class="card"><div class="card-h"><div><b>Объём нагрузки</b><span>тонн за неделю (подходы × повторы × вес)</span></div></div>
-      ${barsSvg(d.weeks, 'tons', { label: 'Тоннаж по неделям', fmt: w => w.tons ? String(w.tons).replace('.', ',') : '', tip: w => `Неделя с ${w.label}: ${String(w.tons).replace('.', ',')} т` })}</div>
-    <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { hist: d.hist, coach: true, period: c._bp }) : ''}
-      <button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>
+    ${reportHtml(r)}
+    <div class="card"><div class="card-h"><div><b>Тренировки по неделям</b><span>кружок = тренировка в плане, закрашен = сделана. Шаги не считаются</span></div></div>
+      ${attHtml(d.weeks)}</div>
+    <div class="card"><div class="card-h"><div><b>Сколько поднято за неделю</b><span>сумма по силовым: подходы × повторы × вес, в тоннах</span></div></div>
+      ${tonsHtml(d.weeks)}</div>
+    ${setsHtml(r.spw)}
     ${d.lifts.length ? `<div class="card"><div class="card-h"><div><b>Сила в ключевых упражнениях</b><span>расчётный максимум на 1 повтор</span></div></div>
       <div class="cd-lifts">${d.lifts.map(l => { const f = l.pts[0].v, la = l.pts[l.pts.length - 1].v, dl = Math.round((la - f) * 10) / 10;
         return `<div class="cd-lift"><div class="cd-lift-t"><b>${esc(l.name)}</b><span>${kg(la)} кг <em class="${dl >= 0 ? 'up' : 'down'}">${dl >= 0 ? '+' : ''}${kg(dl)}</em></span></div>${lineSvg(l.pts)}</div>`; }).join('')}</div></div>` : ''}
+    <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { hist: d.hist, coach: true, period: c._bp, main: c._bpm }) : ''}
+      <button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>
     ${d.comments.length ? `<div class="card"><div class="card-h"><div><b>Комментарии клиента</b><span>заметки к дням тренировок</span></div></div>
       <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : ''}
     ${weekly}`;

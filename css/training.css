@@ -1715,3 +1715,9 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .bp-m-v em { font-style: normal; font-size: 12px; font-weight: 800; color: #A5B4FC; } .bp-m-v em.good { color: #4ADE80; } .bp-m-v em.bad { color: #F87171; }
 .bp-m-p { font-size: 10.5px; color: #6F7C9E; margin-top: 1px; }
 .tr-header:has(.tl-chip) #tr-trainer { display: none; }
+.bp-mm { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.bp-mm button { height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(110,148,255,0.2); background: none; color: #9AA3BC; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.bp-mm button.on { background: rgba(74,124,255,0.9); border-color: transparent; color: #fff; }
+.bp-w-d b.wbad { color: #FCA5A5; }
+.bp-note { font-size: 11.5px; color: #8B93AD; line-height: 1.45; margin-top: 6px; }
+.bp-m[data-bpm] { cursor: pointer; transition: border-color .2s; } .bp-m[data-bpm]:hover { border-color: rgba(110,148,255,0.35); }

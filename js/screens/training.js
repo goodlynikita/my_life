@@ -2110,7 +2110,7 @@ window.Screens.training = function (mount) {
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
       const bpBox = document.getElementById('tr-bp');
-      if (bpBox && window.BodyProgress) BodyProgress.bind(bpBox, (p) => { window._bpPeriod = p; renderTab('summary'); });
+      if (bpBox && window.BodyProgress) BodyProgress.bind(bpBox, (p, m) => { if (p) window._bpPeriod = p; if (m) window._bpMain = m; renderTab('summary'); });
       const addBtn = document.getElementById('tr-add-measure');
       if (addBtn) {
         if (role === 'coach') {
@@ -3054,7 +3054,7 @@ function trRenderSummary(plan) {
   let body = '';
   if (window.BodyProgress) {
     let hist = null; try { hist = window.TrainingAI ? TrainingAI.collect(trGetPlans()) : null; } catch (e) {}
-    body = `<div class="tr-group-card bp-wrap" id="tr-bp">${BodyProgress.html(Store.get().training.measurements, { hist, period: window._bpPeriod })}</div>`;
+    body = `<div class="tr-group-card bp-wrap" id="tr-bp">${BodyProgress.html(Store.get().training.measurements, { hist, period: window._bpPeriod, main: window._bpMain })}</div>`;
   }
   return body + exercisesHtml + trRenderMeasurementsBlock();
 }

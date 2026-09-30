@@ -20,8 +20,10 @@ window.BodyProgress = (function () {
   const FIELDS = {
     'Вес': { u: 'кг', dir: 0 }, 'Талия': { u: 'см', dir: -1 }, 'Плечи': { u: 'см', dir: 1 }, 'Грудь': { u: 'см', dir: 1 },
     'Лев рука': { u: 'см', dir: 1 }, 'Прав рука': { u: 'см', dir: 1 }, 'Лев нога': { u: 'см', dir: 1 }, 'Прав нога': { u: 'см', dir: 1 },
-    'Бедро': { u: 'см', dir: 0 }, 'Мышечная масса': { u: 'кг', dir: 1 }, '% жира': { u: '%', dir: -1 }, 'Оценка InBody': { u: '', dir: 1 },
+    'Бедро': { u: 'см', dir: 0 }, 'Пропорция': { u: '', dir: 1 }, 'Мышечная масса': { u: 'кг', dir: 1 }, '% жира': { u: '%', dir: -1 }, 'Оценка InBody': { u: '', dir: 1 },
   };
+  const PROP = 'Пропорция';
+  let PROP_TOP = 'Плечи';
   const ORDER = Object.keys(FIELDS);
   const SHORT = { 'Мышечная масса': 'Мышцы', 'Оценка InBody': 'InBody', 'Лев рука': 'Рука лев.', 'Прав рука': 'Рука прав.', 'Лев нога': 'Нога лев.', 'Прав нога': 'Нога прав.' };
 
@@ -34,6 +36,12 @@ window.BodyProgress = (function () {
     const list = toArr(ms).filter(m => m && m.values).map(m => ({ d: parseDate(m.date), v: m.values, raw: m })).filter(m => m.d).sort((a, b) => a.d - b.d);
     const by = {};
     list.forEach(m => Object.entries(m.v).forEach(([k, v]) => { const n = num(v); if (n == null) return; (by[k] = by[k] || []).push({ d: m.d, v: n }); }));
+    /* пропорция: плечи (или грудь) к талии, чем выше, тем атлетичнее фигура */
+    const top = by['Плечи'] ? 'Плечи' : by['Грудь'] ? 'Грудь' : null;
+    if (top && by['Талия']) {
+      const R = []; list.forEach(m => { const a = num(m.v[top]), b = num(m.v['Талия']); if (a && b) R.push({ d: m.d, v: Math.round(a / b * 100) / 100 }); });
+      if (R.length) { by[PROP] = R; PROP_TOP = top; }
+    }
     return { list, by };
   }
 
@@ -53,6 +61,15 @@ window.BodyProgress = (function () {
       else if (w.d > 0.5 && wa.d > 1) out.push({ k: 'warn', i: 'ti-alert-triangle', t: 'Вес растёт вместе с талией', s: `талия ${sg(wa.d)} см. Стоит проверить питание` });
       else if (w.d < -0.5 && volUp != null && volUp < -0.7) out.push({ k: 'warn', i: 'ti-alert-triangle', t: 'Вместе с весом уходят объёмы', s: `объёмы в среднем ${sg(volUp)} см. Возможно, мало белка или слишком резкий дефицит` });
     }
+    /* только сантиметры: многие тренеры верят метру, а не весам */
+    if (!w && wa) {
+      if (wa.d <= -1 && volUp != null && volUp >= 0) out.push({ k: 'good', i: 'ti-flame', t: 'Талия уходит, объёмы растут', s: `талия ${sg(wa.d)} см, объёмы в среднем ${sg(volUp)} см: жир уходит, мышцы набираются` });
+      else if (wa.d <= -1) out.push({ k: 'good', i: 'ti-flame', t: `Талия ${sg(wa.d)} см`, s: volUp != null && volUp < -0.7 ? `объёмы тоже уходят (${sg(volUp)} см), проверь белок и восстановление` : 'жир уходит' });
+      else if (wa.d >= 1 && (volUp == null || volUp < wa.d / 2)) out.push({ k: 'warn', i: 'ti-alert-triangle', t: 'Талия растёт быстрее объёмов', s: `талия ${sg(wa.d)} см${volUp != null ? `, объёмы ${sg(volUp)} см` : ''}. Стоит проверить питание` });
+      else if (volUp != null && volUp >= 0.5) out.push({ k: 'good', i: 'ti-barbell', t: 'Объёмы растут, талия держится', s: `объёмы в среднем ${sg(volUp)} см, талия ${sg(wa.d)} см` });
+    }
+    const pr = ch(PROP);
+    if (pr && Math.abs(pr.d) >= 0.02) out.push({ k: pr.d > 0 ? 'good' : 'warn', i: 'ti-triangle-inverted', t: `Пропорция ${PROP_TOP.toLowerCase()} к талии ${pr.d > 0 ? 'растёт' : 'падает'}`, s: `было ${String(pr.a).replace('.', ',')}, сейчас ${String(pr.b).replace('.', ',')}. ${pr.d > 0 ? 'Фигура становится атлетичнее' : 'Талия растёт быстрее верха'}` });
     if (w && w.days >= 10) {
       const perW = w.d / w.days * 7, pct = Math.abs(perW) / w.a * 100;
       if (perW < 0 && pct > 1) out.push({ k: 'warn', i: 'ti-trending-down', t: 'Вес уходит слишком быстро', s: `${f1(Math.abs(perW))} кг в неделю, это больше 1% веса. Растёт риск потерять мышцы` });
@@ -80,21 +97,23 @@ window.BodyProgress = (function () {
   }
 
   /* ── Графики ── */
-  function weightChart(pts) {
+  function weightChart(pts, unit, dec) {
+    unit = unit == null ? 'кг' : unit; const fx = (v) => dec === 2 ? String(Math.round(v * 100) / 100).replace('.', ',') : f1(v);
     const W = 340, H = 130, pl_ = 30, pr = 12, pt = 16, pb = 20;
     const t0 = +pts[0].d, t1 = +pts[pts.length - 1].d || t0 + 1;
     const vs = pts.map(p => p.v); let mn = Math.min(...vs), mx = Math.max(...vs);
-    if (mx - mn < 1) { const c = (mx + mn) / 2; mn = c - 0.5; mx = c + 0.5; }
+    const minSpan = dec === 2 ? 0.05 : 1;
+    if (mx - mn < minSpan) { const c = (mx + mn) / 2; mn = c - minSpan / 2; mx = c + minSpan / 2; }
     const pad = (mx - mn) * 0.15; mn -= pad; mx += pad;
     const X = (t) => pl_ + (t - t0) / Math.max(1, t1 - t0) * (W - pl_ - pr), Y = (v) => pt + (1 - (v - mn) / (mx - mn)) * (H - pt - pb);
     const line = pts.map((p, i) => (i ? 'L' : 'M') + X(+p.d).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
     const area = line + ` L${X(+pts[pts.length - 1].d).toFixed(1)} ${H - pb} L${X(t0).toFixed(1)} ${H - pb} Z`;
     const ticks = [mx - pad, (mx + mn) / 2, mn + pad];
-    return `<svg viewBox="0 0 ${W} ${H}" class="bp-chart" role="img" aria-label="График веса">
+    return `<svg viewBox="0 0 ${W} ${H}" class="bp-chart" role="img" aria-label="График">
       <defs><linearGradient id="bpg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4A7CFF" stop-opacity=".28"/><stop offset="1" stop-color="#4A7CFF" stop-opacity="0"/></linearGradient></defs>
-      ${ticks.map(v => `<line x1="${pl_}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" class="bp-grid"/><text x="${pl_ - 5}" y="${Y(v) + 3}" class="bp-ax" text-anchor="end">${f1(v)}</text>`).join('')}
+      ${ticks.map(v => `<line x1="${pl_}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" class="bp-grid"/><text x="${pl_ - 5}" y="${Y(v) + 3}" class="bp-ax" text-anchor="end">${fx(v)}</text>`).join('')}
       <path d="${area}" fill="url(#bpg)"/><path d="${line}" class="bp-line"/>
-      ${pts.map((p, i) => `<g class="bp-pt"><title>${fmtD(p.d)}: ${f1(p.v)} кг</title><circle cx="${X(+p.d)}" cy="${Y(p.v)}" r="10" fill="transparent"/><circle cx="${X(+p.d)}" cy="${Y(p.v)}" r="${i === pts.length - 1 ? 4.5 : 3.2}" class="bp-dot${i === pts.length - 1 ? ' last' : ''}"/></g>`).join('')}
+      ${pts.map((p, i) => `<g class="bp-pt"><title>${fmtD(p.d)}: ${fx(p.v)} ${unit}</title><circle cx="${X(+p.d)}" cy="${Y(p.v)}" r="10" fill="transparent"/><circle cx="${X(+p.d)}" cy="${Y(p.v)}" r="${i === pts.length - 1 ? 4.5 : 3.2}" class="bp-dot${i === pts.length - 1 ? ' last' : ''}"/></g>`).join('')}
       <text x="${pl_}" y="${H - 5}" class="bp-ax">${fmtD(pts[0].d)}</text><text x="${W - pr}" y="${H - 5}" class="bp-ax" text-anchor="end">${fmtD(pts[pts.length - 1].d)}</text>
     </svg>`;
   }
@@ -116,7 +135,12 @@ window.BodyProgress = (function () {
     const from = period === 'all' ? list[0].d : new Date(+last - (+period) * DAY);
     const inP = list.filter(m => m.d >= from);
     const since = Math.round((Date.now() - +last) / DAY);
-    const w = win(by['Вес'] || [], from);
+    const mains = ['Вес', 'Талия', PROP].concat(ORDER).filter((k, i, a) => a.indexOf(k) === i && by[k] && by[k].length);
+    const main = mains.includes(opts.main) ? opts.main : mains[0];
+    const mu = main === PROP ? '' : ((FIELDS[main] || {}).u || '');
+    const w = win(by['Вес'] || [], from), mw = win(by[main] || [], from);
+    const md = mw.length >= 2 ? mw[mw.length - 1].v - mw[0].v : null, mdays = mw.length >= 2 ? (mw[mw.length - 1].d - mw[0].d) / DAY : 0;
+    const mdir = (FIELDS[main] || {}).dir || 0;
     const wd = w.length >= 2 ? w[w.length - 1].v - w[0].v : null;
     const wdays = w.length >= 2 ? (w[w.length - 1].d - w[0].d) / DAY : 0;
     const perW = wd != null && wdays >= 7 ? wd / wdays * 7 : null;
@@ -126,24 +150,28 @@ window.BodyProgress = (function () {
       <div class="bp-h"><div><b>Прогресс тела</b><span>${inP.length} ${pl(inP.length, 'замер', 'замера', 'замеров')} · ${fmtD(inP[0] ? inP[0].d : from)} – ${fmtD(last)}</span></div>
         ${list.length > 2 ? `<div class="bp-per">${PERIODS.map(p => `<button data-bp="${p[0]}" class="${period === p[0] ? 'on' : ''}">${p[1]}</button>`).join('')}</div>` : ''}</div>
       ${since > 21 ? `<div class="bp-remind"><i class="ti ti-calendar-time"></i><span>Последний замер ${since} ${pl(since, 'день', 'дня', 'дней')} назад. ${opts.coach ? 'Попросите клиента обновить или внесите сами.' : 'Пора обновить: лучше раз в 2–4 недели, утром натощак.'}</span></div>` : ''}
-      ${w.length ? `<div class="bp-w">
-        <div class="bp-w-top"><div><span>Вес</span><b>${f1(w[w.length - 1].v)}<small> кг</small></b></div>
-          ${wd != null ? `<div class="bp-w-d"><b class="${Math.abs(wd) < 0.3 ? '' : wd < 0 ? 'wdown' : 'wup'}">${sg(wd)} кг</b><span>за период</span></div>` : ''}
-          ${perW != null ? `<div class="bp-w-d"><b>${sg(perW)} кг</b><span>в неделю</span></div>` : ''}</div>
-        ${w.length >= 2 ? weightChart(w) : ''}</div>` : ''}
+      ${mw.length ? `<div class="bp-w">
+        ${mains.length > 1 ? `<div class="bp-mm">${mains.slice(0, 6).map(k => `<button data-bpm="${esc(k)}" class="${k === main ? 'on' : ''}">${esc(k === PROP ? PROP_TOP + ' ÷ талия' : (SHORT[k] || k))}</button>`).join('')}</div>` : ''}
+        <div class="bp-w-top"><div><span>${esc(main === PROP ? PROP_TOP + ' ÷ талия' : main)}</span><b>${main === PROP ? String(mw[mw.length - 1].v).replace('.', ',') : f1(mw[mw.length - 1].v)}<small> ${mu}</small></b></div>
+          ${md != null ? `<div class="bp-w-d"><b class="${Math.abs(md) < (main === PROP ? 0.01 : 0.3) || !mdir ? (main === 'Вес' && Math.abs(md) >= 0.3 ? (md < 0 ? 'wdown' : 'wup') : '') : md * mdir > 0 ? 'wdown' : 'wbad'}">${main === PROP ? (md > 0 ? '+' : '') + String(Math.round(md * 100) / 100).replace('.', ',') : sg(md) + ' ' + mu}</b><span>за период</span></div>` : ''}
+          ${md != null && mdays >= 7 && main !== PROP ? `<div class="bp-w-d"><b>${sg(md / mdays * 7)} ${mu}</b><span>в неделю</span></div>` : ''}</div>
+        ${mw.length >= 2 ? weightChart(mw, mu, main === PROP ? 2 : 1) : ''}
+        ${main === PROP ? '<div class="bp-note">Во сколько раз верх шире талии. Растёт, значит фигура становится атлетичнее, даже если вес стоит на месте.</div>' : ''}</div>` : ''}
       ${ins.length ? `<div class="bp-ins">${ins.map(x => `<div class="bp-in ${x.k}"><i class="ti ${x.i}"></i><div><b>${esc(x.t)}</b><span>${esc(x.s)}</span></div></div>`).join('')}</div>` : ''}
-      <div class="bp-grid-l">${keys.filter(k => k !== 'Вес').map(k => {
+      <div class="bp-grid-l">${keys.filter(k => k !== main).map(k => {
         const s = win(by[k], from), all = by[k], cur = all[all.length - 1];
         const d = s.length >= 2 ? s[s.length - 1].v - s[0].v : null, prev = all.length >= 2 ? cur.v - all[all.length - 2].v : null;
         const dir = (FIELDS[k] || {}).dir || 0, u = (FIELDS[k] || {}).u || '';
         const cls = d == null || Math.abs(d) < 0.2 || !dir ? '' : d * dir > 0 ? 'good' : 'bad';
-        return `<div class="bp-m"><div class="bp-m-t"><span>${esc(SHORT[k] || k)}</span>${spark(s)}</div>
-          <div class="bp-m-v"><b>${f1(cur.v)}<small> ${u}</small></b>${d != null ? `<em class="${cls}">${sg(d)}</em>` : ''}</div>
-          ${prev != null && all.length > 2 ? `<div class="bp-m-p">с прошлого ${sg(prev)}</div>` : ''}</div>`; }).join('')}</div>
+        const isP = k === PROP, fv = (v) => isP ? String(v).replace('.', ',') : f1(v), fd = (v) => isP ? (v > 0 ? '+' : v < 0 ? '−' : '') + String(Math.abs(Math.round(v * 100) / 100)).replace('.', ',') : sg(v);
+        return `<div class="bp-m" data-bpm="${esc(k)}" title="Показать на графике"><div class="bp-m-t"><span>${esc(isP ? PROP_TOP + ' ÷ талия' : (SHORT[k] || k))}</span>${spark(s)}</div>
+          <div class="bp-m-v"><b>${fv(cur.v)}<small> ${u}</small></b>${d != null ? `<em class="${isP ? (Math.abs(d) < 0.01 ? '' : d > 0 ? 'good' : 'bad') : cls}">${fd(d)}</em>` : ''}</div>
+          ${prev != null && all.length > 2 ? `<div class="bp-m-p">с прошлого ${fd(prev)}</div>` : ''}</div>`; }).join('')}</div>
     </div>`;
   }
   function bind(root, rerender) {
-    root.querySelectorAll('[data-bp]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); rerender(b.dataset.bp); }));
+    root.querySelectorAll('[data-bp]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); rerender(b.dataset.bp, undefined); }));
+    root.querySelectorAll('[data-bpm]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); rerender(undefined, b.dataset.bpm); }));
   }
   /* Изменение за неделю для итогов недели */
   function weekDelta(measurements, from, to) {
@@ -153,5 +181,15 @@ window.BodyProgress = (function () {
       out.push(`${k}: ${f1(cur.v)}${base ? ` (${sg(cur.v - base.v)})` : ''}`); });
     return out;
   }
-  return { html, bind, weekDelta, series, FIELDS };
+  /* Короткий итог по телу для обзора тренера */
+  function summary(measurements, days, hist) {
+    const { list, by } = series(measurements); if (!list.length) return null;
+    const last = list[list.length - 1].d, from = new Date(+last - (days || 56) * DAY);
+    const ins = insights(by, from, hist).filter(x => x.k !== 'info');
+    const since = Math.round((Date.now() - +last) / DAY);
+    const main = ins.find(x => x.k === 'warn') || ins.find(x => x.k === 'good') || null;
+    const dlt = (k) => { const pts = win(by[k] || [], from); return pts.length >= 2 ? Math.round((pts[pts.length - 1].v - pts[0].v) * 10) / 10 : null; };
+    return { main, since, count: list.length, waist: dlt('Талия'), weight: dlt('Вес') };
+  }
+  return { html, bind, weekDelta, series, summary, FIELDS };
 })();

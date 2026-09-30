@@ -12,7 +12,7 @@ window.TrainerClient = (function () {
 
   /* ── Галочка «Сделал» ── */
   function doneBtn(day, plan, w, d) {
-    if (!on() || !(day.sessions || []).some(s => s && s.type !== 'Отдых')) return '';
+    if (!on() || !(day.sessions || []).some(s => s && s.type !== 'Отдых' && s.type !== 'Шаги')) return '';
     const dt = window.TrainingAI ? TrainingAI.planDayDate(plan, day.date) : null; if (!dt) return '';
     const t0 = new Date(); t0.setHours(0, 0, 0, 0); if (dt > t0) return '';
     const dn = day.done;

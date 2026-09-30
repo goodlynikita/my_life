@@ -118,6 +118,42 @@ window.TrainingAI = (function () {
   }
   const weekKey = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); const dow = (x.getDay() + 6) % 7; x.setDate(x.getDate() - dow); return x.toISOString().slice(0, 10); };
 
+  /* ── День недели: берём подпись дня («пн»…), планы могли начинаться не с понедельника ── */
+  const DOW_IDX = { 'пн': 0, 'вт': 1, 'ср': 2, 'чт': 3, 'пт': 4, 'сб': 5, 'вс': 6 };
+  function dayDow(d, date) {
+    const s = String((d && d.dow) || '').toLowerCase().slice(0, 2);
+    if (s in DOW_IDX) return DOW_IDX[s];
+    return date ? (date.getDay() + 6) % 7 : null;
+  }
+  function findDayIdx(week, dow) { return toArr(week && week.days).findIndex(x => x && dayDow(x, planDayDate({}, x.date)) === dow); }
+
+  /* ── Одно упражнение под разными названиями ──
+     «Жим штанга», «Жим штанги лёжа», «жим штанги лежа» → один ключ */
+  const STOP = new Set(['на', 'с', 'со', 'в', 'из', 'за', 'для', 'к', 'по', 'и', 'от', 'до']);
+  function stem(w) {
+    w = w.replace(/ё/g, 'е');
+    if (w.length > 4) w = w.replace(/(ами|ями|ого|его|ому|ему|ыми|ими|ой|ей|ий|ый|ая|яя|ое|ее|ые|ие|ам|ям|ах|ях|ом|ем|ую|юю|а|я|ы|и|у|ю|е|о|ь)$/, '');
+    return w.slice(0, 7);
+  }
+  function exKey(name) {
+    return String(name || '').toLowerCase().replace(/ё/g, 'е').replace(/\(.*?\)/g, ' ').replace(/[^a-zа-я0-9 ]+/g, ' ')
+      .split(/\s+/).filter(t => t && !STOP.has(t)).map(stem).join(' ');
+  }
+  /* Склеиваем «короткое» название с единственным «длинным», которое его содержит */
+  function mergeKeys(stats) {
+    const keys = Object.keys(stats), alias = {}, merges = [];
+    keys.forEach(k => {
+      const tk = k.split(' ');
+      const sup = keys.filter(o => o !== k && tk.every(t => o.split(' ').includes(t)));
+      if (sup.length !== 1) return;
+      const g1 = (classify(stats[k].name) || {}).group, g2 = (classify(stats[sup[0]].name) || {}).group;
+      if (g1 && g2 && g1 !== g2) return;
+      alias[k] = sup[0]; merges.push([stats[k].name, stats[sup[0]].name]);
+    });
+    const res = k => { let x = k, n = 0; while (alias[x] && n++ < 5) x = alias[x]; return x; };
+    return { res, merges };
+  }
+
   /* ── Сбор истории: все силовые тренировки до сегодня ── */
   function collect(plans) {
     const today = new Date(); today.setHours(23, 59, 59, 0);
@@ -134,76 +170,133 @@ window.TrainingAI = (function () {
         let groups = toArr(s.groups).filter(Boolean);
         if (groups.includes('FULL BODY')) groups = ['Грудь', 'Спина', 'Ноги'];
         if (!groups.length) groups = [...new Set(ex.map(e => (classify(e.name) || {}).group).filter(Boolean))];
-        out.push({ date, dow: (date.getDay() + 6) % 7, planId: p.id, planNum: p.number, wi, di, groups: groups.filter(g => GROUPS.includes(g)), exercises: ex });
+        groups = [...new Set(groups.filter(g => GROUPS.includes(g)))].sort((a, b) => GROUPS.indexOf(a) - GROUPS.indexOf(b));
+        out.push({ date, dow: dayDow(d, date), planId: p.id, planNum: p.number, wi, di, groups,
+          exercises: ex.map((e, i) => ({ ...e, key: exKey(e.name), pos: i })) });
       });
     })));
     return out.sort((a, b) => a.date - b.date);
   }
 
   /* ── Анализ ── */
-  function analyze(history) {
-    const weeks = [...new Set(history.map(h => weekKey(h.date)))];
-    const recent = history.filter(h => Date.now() - h.date < 42 * DAY); /* последние 6 недель */
-    const base = recent.length >= MIN_WORKOUTS ? recent : history;
-    const baseWeeks = Math.max(1, new Set(base.map(h => weekKey(h.date))).size);
-    const freq = Math.max(2, Math.min(5, Math.round(base.length / baseWeeks)));
+  function median(arr) { if (!arr.length) return 0; const s = arr.slice().sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; }
+  function analyze(history, prefs) {
+    prefs = prefs || {};
+    /* названия → общие ключи */
+    const raw = {};
+    history.forEach(h => h.exercises.forEach(e => { const x = raw[e.key] || (raw[e.key] = { name: e.name, n: 0 }); x.n++; }));
+    const { res, merges } = mergeKeys(raw);
+    history.forEach(h => h.exercises.forEach(e => { e.key = res(e.key); }));
+
+    const weekMap = {};
+    history.forEach(h => { const k = weekKey(h.date); weekMap[k] = (weekMap[k] || 0) + 1; });
+    const weeks = Object.keys(weekMap);
+    let freq = Math.max(1, Math.min(6, median(Object.values(weekMap)) || 3));
 
     const dowCnt = new Array(7).fill(0);
-    base.forEach(h => dowCnt[h.dow]++);
-    const days = dowCnt.map((c, i) => ({ c, i })).sort((a, b) => b.c - a.c || a.i - b.i).slice(0, freq).map(x => x.i).sort((a, b) => a - b);
-    /* если данных по дням мало — равномерно */
-    const spread = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4] }[freq];
-    const trainDays = dowCnt.filter(Boolean).length >= freq ? days : spread;
+    history.forEach(h => { if (h.dow != null) dowCnt[h.dow]++; });
+    let trainDays = dowCnt.map((c, i) => ({ c, i })).filter(x => x.c > 0).sort((a, b) => b.c - a.c || a.i - b.i).slice(0, freq).map(x => x.i).sort((a, b) => a - b);
+    const spread = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5] }[freq];
+    if (trainDays.length < freq) trainDays = spread;
+    const prefDays = toArr(prefs.days).map(Number).filter(n => n >= 0 && n < 7);
+    if (prefDays.length) { trainDays = prefDays.slice().sort((a, b) => a - b); freq = trainDays.length; }
 
-    const comboCnt = {};
-    base.forEach(h => { if (!h.groups.length) return; const k = h.groups.slice().sort((a, b) => GROUPS.indexOf(a) - GROUPS.indexOf(b)).join('+'); comboCnt[k] = (comboCnt[k] || 0) + 1; });
-    const combos = Object.entries(comboCnt).sort((a, b) => b[1] - a[1]).map(([k, c]) => ({ groups: k.split('+'), c }));
+    /* связки групп и их тренировки */
+    const comboMap = {};
+    history.forEach(h => {
+      if (!h.groups.length) return;
+      const k = h.groups.join('+');
+      const c = comboMap[k] || (comboMap[k] = { key: k, groups: h.groups.slice(), c: 0, sessions: [], last: 0 });
+      c.c++; c.sessions.push(h); c.last = Math.max(c.last, +h.date);
+    });
+    const combos = Object.values(comboMap).sort((a, b) => b.c - a.c || b.last - a.last);
 
     /* по упражнениям */
     const ex = {};
     history.forEach(h => h.exercises.forEach(e => {
-      const x = ex[e.name] || (ex[e.name] = { name: e.name, cls: classify(e.name), count: 0, last: null, first: null, best1rm: 0 });
-      x.count++;
-      const rec = { sets: +e.sets || 0, reps: +e.reps || 0, weight: +e.weight || 0, date: h.date };
+      const x = ex[e.key] || (ex[e.key] = { key: e.key, name: e.name, names: {}, cls: null, count: 0, last: null, first: null, best1rm: 0 });
+      x.count++; x.names[e.name] = (x.names[e.name] || 0) + 1;
+      const rec = { sets: +e.sets || 0, reps: +e.reps || 0, weight: +e.weight || 0, date: h.date, planNum: h.planNum };
       if (!x.first) x.first = rec;
-      x.last = rec;
+      (x.hist || (x.hist = [])).push(rec); if (x.hist.length > 16) x.hist.shift();
+      x.last = rec; x.name = e.name; /* последнее использованное название */
       const rm = rec.weight > 0 && rec.reps > 0 ? rec.weight * (1 + rec.reps / 30) : 0;
       if (rm > x.best1rm) x.best1rm = rm;
     }));
+    Object.values(ex).forEach(x => { x.cls = classify(x.name) || Object.keys(x.names).map(classify).find(Boolean) || null; });
 
-    /* объём: подходы на группу/зону в неделю (по последним 2 неделям) */
-    const last2 = history.filter(h => Date.now() - h.date < 14 * DAY);
-    const volWeeks = Math.max(1, new Set(last2.map(h => weekKey(h.date))).size);
-    const vol = {};
-    last2.forEach(h => h.exercises.forEach(e => {
-      const c = classify(e.name); if (!c) return;
-      const g = vol[c.group] || (vol[c.group] = { sets: 0, regions: {} });
-      const s = Math.max(1, +e.sets || 3);
-      g.sets += s; g.regions[c.region] = (g.regions[c.region] || 0) + s;
-    }));
-    Object.values(vol).forEach(g => { g.sets = Math.round(g.sets / volWeeks); Object.keys(g.regions).forEach(r => g.regions[r] = Math.round(g.regions[r] / volWeeks)); });
-
-    return { workouts: history.length, weeks: weeks.length, freq, trainDays, combos, ex, vol, enough: weeks.length >= MIN_WEEKS || history.length >= MIN_WORKOUTS };
+    return { workouts: history.length, weeks: weeks.length, weekMap, freq, trainDays, dowCnt, combos, ex, merges,
+      enough: weeks.length >= MIN_WEEKS || history.length >= MIN_WORKOUTS };
   }
 
-  /* ── Сплит на неделю ── */
-  function buildSplit(an) {
-    /* Берём ТОЛЬКО твои реальные связки групп (без склеек, которых ты не делал).
-       Если связок больше, чем тренировок в неделю, они чередуются по неделям. */
+  /* ── Сплит: только твои реальные связки ── */
+  function buildSplit(an, prefs) {
+    const want = toArr((prefs || {}).splits);
+    if (want.length) {
+      const sel = want.map(k => an.combos.find(c => c.key === k) || { key: k, groups: k.split('+'), c: 0, sessions: [] });
+      if (sel.length) return sel;
+    }
     const n = an.trainDays.length;
-    const mine = an.combos.filter(c => c.groups.length).slice(0, 4).map(c => c.groups.slice());
-    if (mine.length) return mine;
-    return (DEFAULT_SPLITS[n] || DEFAULT_SPLITS[3]).map(d => d.slice());
+    const real = an.combos.filter(c => c.c >= 2);
+    const pick = (real.length ? real : an.combos).slice(0, Math.max(n, Math.min(4, real.length)));
+    if (pick.length) return pick;
+    return (DEFAULT_SPLITS[n] || DEFAULT_SPLITS[3]).map(g => ({ key: g.join('+'), groups: g.slice(), c: 0, sessions: [] }));
+  }
+
+  /* Зоны, которые должны быть в тренировке группы */
+  const MUST = { 'Спина': ['width', 'thickness'], 'Грудь': ['upper', 'middle'], 'Ноги': ['quads', 'hams'], 'Плечи': ['side', 'rear'], 'Руки': ['biceps', 'triceps'] };
+
+  /* ── Тренировка для связки: из твоих тренировок с этой связкой ── */
+  function sessionFor(combo, an) {
+    const S = combo.sessions || [], n = S.length, items = [], added = [];
+    if (n >= 2) {
+      const agg = {};
+      S.forEach(s => s.exercises.forEach(e => {
+        const a = agg[e.key] || (agg[e.key] = { key: e.key, cnt: 0, pos: 0, lastDate: 0 });
+        a.cnt++; a.pos += e.pos / Math.max(1, s.exercises.length - 1); a.lastDate = Math.max(a.lastDate, +s.date);
+      }));
+      const typical = Math.round(median(S.map(s => s.exercises.length))) || 5;
+      const list = Object.values(agg)
+        .map(a => ({ ...a, share: a.cnt / n, avgPos: a.pos / a.cnt }))
+        .filter(a => a.share >= 0.3 || a.lastDate >= Math.max(...S.map(s => +s.date)))
+        .sort((a, b) => b.share - a.share || b.lastDate - a.lastDate)
+        .slice(0, Math.max(4, Math.min(8, typical)))
+        .sort((a, b) => a.avgPos - b.avgPos);
+      list.forEach(a => { const x = an.ex[a.key]; if (!x) return;
+        items.push({ key: a.key, name: x.name, group: (x.cls && x.cls.group) || combo.groups[0], region: x.cls ? x.cls.region : '', isNew: false, share: Math.round(a.share * 100) }); });
+    } else {
+      const used = new Set();
+      combo.groups.forEach((g, pos) => slotsFor(g, pos, combo.groups.length).forEach(slot => {
+        const pick = pickExercise(slot, g, an, used); if (!pick) return;
+        used.add(pick.key || pick.name);
+        items.push({ key: pick.key || exKey(pick.name), name: pick.name, isNew: pick.isNew, group: g, region: slot.region });
+      }));
+    }
+    /* закрываем пропущенные зоны: максимум одно новое упражнение на группу */
+    if (n >= 2) combo.groups.forEach(g => {
+      const need = (MUST[g] || []).filter(r => !items.some(it => it.group === g && it.region === r));
+      if (!need.length || items.length >= 8) return;
+      const slot = (SLOTS[g] || []).find(sl => sl.region === need[0]); if (!slot) return;
+      const pick = pickExercise(slot, g, an, new Set(items.map(i => i.key)));
+      if (!pick) return;
+      const it = { key: pick.key || exKey(pick.name), name: pick.name, isNew: pick.isNew, group: g, region: need[0], why: 'не хватало: ' + (REGION_LABEL[need[0]] || need[0]) };
+      /* базовое упражнение на «первую» зону группы (верх груди, ширина спины) ставим в начало группы */
+      const first = slot.kind === 'comp' && (SLOTS[g] || [])[0] && SLOTS[g][0].region === need[0];
+      const at = first ? items.map(i => i.group).indexOf(g) : items.map(i => i.group).lastIndexOf(g) + 1;
+      items.splice(at >= 0 ? at : items.length, 0, it);
+      added.push(g + ': ' + (REGION_LABEL[need[0]] || need[0]) + ' («' + pick.name + '»)');
+    });
+    return { key: combo.key, groups: combo.groups, items, from: n, added };
   }
 
   /* ── Подбор упражнения в слот: сначала твои любимые, потом база ── */
   function pickExercise(slot, group, an, used) {
     const mine = Object.values(an.ex)
-      .filter(x => x.cls && x.cls.group === group && x.cls.region === slot.region && (!slot.kind || x.cls.kind === slot.kind) && !used.has(x.name))
+      .filter(x => x.cls && x.cls.group === group && x.cls.region === slot.region && (!slot.kind || x.cls.kind === slot.kind) && !used.has(x.key) && !used.has(x.name))
       .sort((a, b) => b.count - a.count);
-    if (mine.length) return { name: mine[0].name, isNew: false };
-    const fb = slot.fb.find(n => !used.has(n));
-    return fb ? { name: fb, isNew: !an.ex[fb] } : null;
+    if (mine.length) return { name: mine[0].name, key: mine[0].key, isNew: false };
+    const fb = slot.fb.find(n => !used.has(n) && !used.has(exKey(n)));
+    return fb ? { name: fb, key: exKey(fb), isNew: !an.ex[exKey(fb)] } : null;
   }
 
   /* Сколько упражнений на группу: одна группа за день — все слоты,
@@ -221,41 +314,80 @@ window.TrainingAI = (function () {
   }
 
   /* ── Прогрессия ── */
-  function stepFor(name, cls) {
-    if (/гантел|молотк/i.test(name)) return 2;
-    if (cls && cls.group === 'Ноги' && (cls.kind === 'comp' || cls.region === 'calves')) return 5;
-    return 2.5;
+  /* ── Шаг веса: какие веса реально можно поставить ──
+     Штанга: 2 блина на гриф, шаг = 2 × самый маленький блин в твоём зале.
+     Гантели: шаг ряда гантелей. Блоки и тренажёры: шаг плиток стека.
+     Настраивается в «Плане» → «Шаг веса». */
+  const EQUIP = {
+    bar:   { label: 'Штанга',             opts: [2.5, 5, 10],   def: 5 },
+    db:    { label: 'Гантели',            opts: [1, 2, 2.5, 5], def: 2 },
+    block: { label: 'Блоки и тренажёры',  opts: [1, 2.5, 5],    def: 5 },
+  };
+  function equipOf(name) {
+    const n = String(name || '').toLowerCase();
+    if (/гантел|молотк/.test(n)) return 'db';
+    if (/блок|кроссовер|канат|бабочк|тренаж|машин|гакк|смит|жим ногами|разгибания ног|сгибания ног|пуловер|рычаж|хаммер|отведение ног|приведение ног|пек/.test(n)) return 'block';
+    if (/штанг|гриф|ez|присед|станов|румынск|армейск|шраги|тяга т/.test(n)) return 'bar';
+    return 'block';
   }
-  /* Округление под реальные блины: гантели шагом 1 кг, штанга/тренажёры 2,5 кг */
-  const round = (w, step) => { const u = step === 2 ? 1 : 2.5; return Math.max(0, Math.round(w / u) * u); };
+  function stepFor(name) {
+    const e = equipOf(name), st = (prefsGet().steps || {})[e];
+    return +st > 0 ? +st : EQUIP[e].def;
+  }
+  /* Ставим только достижимые веса: кратно шагу */
+  const snap = (w, step) => Math.max(0, Math.round(w / step) * step);
+  const upTo = (w, step) => Math.ceil((w + 0.001) / step) * step;          /* следующий вес выше текущего */
+  const downTo = (w, step) => Math.max(step, Math.floor(w / step) * step); /* ближайший вес не выше */
 
-  function progression(name, an, weeksN, deloadLast) {
-    const x = an.ex[name];
-    const cls = classify(name);
-    const step = stepFor(name, cls);
+  /* ── Цель тренировок: диапазон повторов и отдых ── */
+  const GOALS = {
+    mass:     { label: 'Масса',  lo: 8,  hi: 12, rest: '1,5–2 мин', compSets: 4, isoSets: 3 },
+    strength: { label: 'Сила',   lo: 4,  hi: 6,  rest: '2–3 мин',   compSets: 5, isoSets: 3 },
+    cut:      { label: 'Рельеф', lo: 12, hi: 15, rest: '45–60 с',   compSets: 3, isoSets: 3 },
+  };
+  let GOAL = GOALS.mass;
+
+  /* ── Прогрессия по реальным результатам ──
+     Смотрим два последних раза:
+     • добрал верх диапазона → вес вверх, повторы с низа диапазона
+     • два раза подряд не добрал низ диапазона → вес −7,5%
+     • один раз не добрал → держим вес
+     • иначе +1 повтор в неделю */
+  function progression(key, name, an, weeksN, deloadLast) {
+    const x = an.ex[key];
+    const cls = (x && x.cls) || classify(name);
+    const step = stepFor(name);
     const isCore = cls && cls.group === 'Кор';
-    const baseSets = cls && cls.kind === 'comp' ? 4 : 3;
-    const sets = x && x.last && x.last.sets ? Math.max(3, Math.min(4, x.last.sets)) : baseSets;
+    const G = GOAL;
+    const sets = cls && cls.kind === 'comp' ? G.compSets : G.isoSets;
     const out = [];
+    const h = toArr(x && x.hist), last = h[h.length - 1], prev = h[h.length - 2];
     if (isCore) {
-      let r = x && x.last && x.last.reps ? x.last.reps : 12;
-      for (let k = 0; k < weeksN; k++) { r = Math.min(25, r + (k === 0 ? 0 : 2)); out.push({ sets: 3, reps: r, weight: x && x.last && x.last.weight ? x.last.weight : 0, up: false }); }
-      return { rows: out, step };
+      let r = last && last.reps ? last.reps : 12;
+      for (let k = 0; k < weeksN; k++) { r = Math.min(25, r + (k === 0 ? 0 : 2)); out.push({ sets: 3, reps: r, weight: last && last.weight ? last.weight : 0, up: false }); }
+      return { rows: out, step, why: '' };
     }
-    let w = x && x.last && x.last.weight ? x.last.weight : 0;
-    let r = x && x.last && x.last.reps ? x.last.reps : 9;
+    let w = last && last.weight ? last.weight : 0;
+    let r = last && last.reps ? last.reps : G.lo;
+    let why = '', first = null;
+    /* прошлый вес, которого нет в твоём шаге, приводим к ближайшему доступному */
+    if (w && Math.abs(w / step - Math.round(w / step)) > 1e-6) { w = downTo(w, step); why = 'вес под шаг ' + String(step).replace('.', ',') + ' кг'; }
+    if (last) {
+      if (last.reps >= G.hi && w) { w = upTo(last.weight, step); r = G.lo; first = 'up'; why = `добрал ${last.reps} повт., вес вверх`; }
+      else if (last.reps < G.lo && prev && prev.reps < G.lo && w && prev.weight >= w) { w = downTo(w * 0.925, step); r = G.lo; first = 'down'; why = 'два раза недобор, вес −7,5%'; }
+      else if (last.reps < G.lo) { r = G.lo; first = 'hold'; why = 'недобор, держим вес'; }
+      else { r = Math.min(G.hi, last.reps + 1); first = 'rep'; }
+    }
     for (let k = 0; k < weeksN; k++) {
       const deload = deloadLast && k === weeksN - 1;
-      if (deload) {
-        out.push({ sets: Math.max(2, sets - 1), reps: 10, weight: w ? round(w * 0.85, step) : 0, up: false, deload: true });
-        continue;
-      }
-      let up = false;
-      if (r >= 12) { if (w) { w = round(w + step, step); up = true; } r = 8; }
-      else r = Math.max(8, r + 1);
-      out.push({ sets, reps: r, weight: w, up });
+      if (deload) { out.push({ sets: Math.max(2, sets - 1), reps: G.lo + 2, weight: w ? downTo(w * 0.85, step) : 0, up: false, deload: true }); continue; }
+      let up = false, down = false;
+      if (k === 0) { up = first === 'up'; down = first === 'down'; }
+      else if (r >= G.hi) { if (w) { w = upTo(w, step); up = true; } r = G.lo; }
+      else r = Math.max(G.lo, r + 1);
+      out.push({ sets, reps: r, weight: w, up, down });
     }
-    return { rows: out, step };
+    return { rows: out, step, why };
   }
 
   /* ── С какой недели заполнять: текущая, если на ней ещё нет записанных тренировок ── */
@@ -290,69 +422,167 @@ window.TrainingAI = (function () {
     }));
   }
 
+  /* подпись истории: меняется, когда появилась/изменилась тренировка */
+  function sigOf(history) {
+    let n = 0; history.forEach(h => h.exercises.forEach(e => { n = (n * 31 + ((+e.weight || 0) * 100 + (+e.reps || 0) * 7 + (+e.sets || 0))) % 1e9; }));
+    return history.length + ':' + n;
+  }
+
   /* ── Генерация ── */
+  function prefsGet() { return (Store.get().training || {}).aiPrefs || {}; }
   function generate(plans, plan, opts) {
     opts = opts || {};
+    const prefs = opts.prefs || prefsGet();
+    GOAL = GOALS[prefs.goal] || GOALS.mass;
     const history = collect(plans);
-    const an = analyze(history);
+    const an = analyze(history, prefs);
     if (!an.enough) return { error: 'data', an };
     const weeksList = toArr(plan.weeks);
     const fromWeek = Math.min(weeksList.length, opts.fromWeek != null ? opts.fromWeek : autoFromWeek(plan));
     const weeksN = weeksList.length - fromWeek;
     if (weeksN <= 0) return { error: 'ended', an };
     const deloadLast = weeksN >= 4;
-    const split = buildSplit(an);
+    const split = buildSplit(an, prefs);
+    const sessions = split.map(c => sessionFor(c, an));
+    /* замены упражнений при плато (выбраны в «Разборе») */
+    const swaps = prefs.swaps || {};
+    sessions.forEach(ss => ss.items.forEach(it => {
+      const to = swaps[it.key]; if (!to) return;
+      const k2 = exKey(to); it.swappedFrom = it.name; it.name = to; it.key = k2; it.isNew = !an.ex[k2]; it.why = 'замена при плато: было «' + it.swappedFrom + '»';
+    }));
 
-    /* упражнения на каждую тренировку сплита (одинаковые во все недели — для прогрессии) */
-    const sessions = split.map(groups => {
-      const used = new Set(); const items = [];
-      groups.forEach((g, pos) => slotsFor(g, pos, groups.length).forEach(slot => {
-        const pick = pickExercise(slot, g, an, used);
-        if (!pick) return;
-        used.add(pick.name);
-        items.push({ name: pick.name, isNew: pick.isNew, group: g, region: slot.region, why: slot.why || '' });
-      }));
-      return { groups, items };
-    });
     const prog = {};
-    sessions.forEach(s => s.items.forEach(it => { if (!prog[it.name]) prog[it.name] = progression(it.name, an, weeksN, deloadLast); }));
+    sessions.forEach(s => s.items.forEach(it => { if (!prog[it.key]) prog[it.key] = progression(it.key, it.name, an, weeksN, deloadLast); }));
 
+    /* связку ставим в тот день, в который ты её обычно делаешь */
+    const nd = an.trainDays.length;
+    let dayPlan = null;
+    if (sessions.length <= nd) {
+      const score = (ss, dow) => (split.find(c => c.key === ss.key) || { sessions: [] }).sessions.filter(x => x.dow === dow).length;
+      const pairs = [];
+      sessions.forEach((ss, si) => an.trainDays.forEach((dow, di) => pairs.push({ si, di, v: score(ss, dow) })));
+      pairs.sort((a, b) => b.v - a.v);
+      const bySlot = new Array(nd).fill(-1), used = new Set();
+      pairs.forEach(p => { if (p.v > 0 && bySlot[p.di] < 0 && !used.has(p.si)) { bySlot[p.di] = p.si; used.add(p.si); } });
+      let rest = sessions.map((_, i) => i).filter(i => !used.has(i));
+      for (let i = 0; i < nd; i++) if (bySlot[i] < 0) bySlot[i] = rest.length ? rest.shift() : i % sessions.length;
+      dayPlan = bySlot;
+    }
     const weeks = [];
+    let seq = 0;
     for (let k = 0; k < weeksN; k++) {
       const wi = fromWeek + k;
       const wk = weeksList[wi] || {};
       const days = an.trainDays.map((dow, j) => {
-        const s = sessions[(k * an.trainDays.length + j) % sessions.length];
-        const day = toArr(wk.days)[dow] || {};
+        const s = dayPlan ? sessions[dayPlan[j]] : sessions[seq++ % sessions.length];
+        const idx = findDayIdx(wk, dow);
+        const day = idx >= 0 ? toArr(wk.days)[idx] : {};
         return {
-          di: dow, date: day.date || '', dow: day.dow || DOW[dow], groups: s.groups,
-          exercises: s.items.map(it => ({ name: it.name, group: it.group, region: it.region, isNew: it.isNew, step: prog[it.name].step, ...prog[it.name].rows[k] })),
+          di: idx >= 0 ? idx : dow, date: day.date || '', dow: day.dow || DOW[dow], groups: s.groups,
+          exercises: s.items.map(it => {
+            const x = an.ex[it.key], last = x && x.last;
+            return { name: it.name, group: it.group, region: it.region, isNew: it.isNew, why: it.why || (k === 0 ? prog[it.key].why : '') || '', step: prog[it.key].step,
+              base: last && (last.weight || last.reps) ? (last.weight ? String(last.weight).replace('.', ',') + '×' : '') + last.reps + (last.planNum ? ' · план №' + last.planNum : '') : '',
+              ...prog[it.key].rows[k] };
+          }),
           transferred: false,
         };
       });
       weeks.push({ wi, deload: deloadLast && k === weeksN - 1, days });
     }
 
-    /* что учтено — человеческим языком */
+    /* как считал — простым языком */
+    const pl = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
     const notes = [];
-    notes.push(`${an.freq} ${an.freq === 1 ? 'тренировка' : an.freq < 5 ? 'тренировки' : 'тренировок'} в неделю: ${an.trainDays.map(d => DOW[d]).join(', ')}`);
-    notes.push('Связки групп как у тебя: ' + split.map(s => s.join(' + ')).join(' · ') + (split.length > an.trainDays.length ? '. Чередуются по неделям' : ''));
-    const v = an.vol;
-    if (v['Спина'] && !(v['Спина'].regions.thickness > 0)) notes.push('Спина: добавил упражнения на толщину, раньше была только ширина');
-    else if (v['Спина'] && !(v['Спина'].regions.width > 0)) notes.push('Спина: добавил вертикальные тяги на ширину');
-    else notes.push('Спина: ширина и толщина в каждой тренировке спины');
-    if (v['Грудь'] && !(v['Грудь'].regions.upper > 0)) notes.push('Грудь: добавил верх груди и поставил его первым');
-    else notes.push('Грудь: верх первым, затем середина и низ');
-    if (v['Ноги'] && !(v['Ноги'].regions.hams > 0)) notes.push('Ноги: добавил заднюю поверхность бедра, её не было');
-    else notes.push('Ноги: квадрицепс, задняя поверхность и икры');
-    if (v['Плечи'] && !(v['Плечи'].regions.rear > 0)) notes.push('Плечи: добавил заднюю дельту, её не было');
-    notes.push('Прогрессия 8–12: каждую неделю +1 повтор, на 12 повторах вес вверх и снова с 8');
+    const wc = Object.values(an.weekMap);
+    notes.push(`Частота: обычно ${an.freq} ${pl(an.freq, 'тренировка', 'тренировки', 'тренировок')} в неделю (смотрел ${an.weeks} ${pl(an.weeks, 'неделю', 'недели', 'недель')}: ${wc.join(', ')})${toArr(prefs.days).length ? '. Дни выбраны вручную' : ''}`);
+    notes.push('Дни: ' + an.trainDays.map(d => DOW[d] + (an.dowCnt[d] ? ` (${an.dowCnt[d]} раз)` : '')).join(', '));
+    notes.push('Связки: ' + sessions.map(s => s.groups.join(' + ') + (s.from ? ` (по ${s.from} ${pl(s.from, 'тренировке', 'тренировкам', 'тренировкам')})` : ' (шаблон)')).join(' · ') + (sessions.length > an.trainDays.length ? '. Чередуются по очереди' : ''));
+    notes.push('Упражнения и их порядок взяты из твоих тренировок с той же связкой, веса из последнего раза');
+    sessions.forEach(s => s.added.forEach(a => notes.push('Добавил, чтобы не отставало: ' + a)));
+    an.merges.slice(0, 6).forEach(m => notes.push(`Считаю одним упражнением: «${m[0]}» = «${m[1]}»`));
+    notes.push(`Цель: ${GOAL.label.toLowerCase()}. Диапазон ${GOAL.lo}–${GOAL.hi} повторов, отдых ${GOAL.rest}`);
+    notes.push(`Прогрессия по факту: добрал ${GOAL.hi} повторов, вес вверх и снова с ${GOAL.lo}. Два раза подряд меньше ${GOAL.lo}, вес −7,5%. Один раз меньше, держим вес`);
     if (deloadLast) notes.push(`Неделя ${fromWeek + weeksN}: разгрузка, вес −15%, подходов меньше`);
 
     return {
       planId: plan.id, planNumber: plan.number, generatedAt: new Date().toISOString(),
-      fromWeek, basedOn: { workouts: an.workouts, weeks: an.weeks, plans: [...new Set(history.map(x => x.planNum))].filter(Boolean) }, notes, weeks,
+      fromWeek, goal: prefs.goal || 'mass', lastWorkout: history.length ? +history[history.length - 1].date : 0, sig: sigOf(history),
+      basedOn: { workouts: an.workouts, weeks: an.weeks, plans: [...new Set(history.map(x => x.planNum))].filter(Boolean) }, notes, weeks,
     };
+  }
+
+  /* ── Сводка для чата с тренером (текстом, коротко) ── */
+  function buildContext(plans, plan) {
+    const cp = chosenPlans(plans);
+    const history = collect(cp.on.map(x => x.p));
+    const an = analyze(history, prefsGet());
+    const L = [];
+    const cw = currentWeekIdx(plan);
+    L.push(`Текущий план №${plan.number || '?'}, неделя ${Math.min(toArr(plan.weeks).length, cw + 1)} из ${toArr(plan.weeks).length}.`);
+    L.push(`Тренировок в истории: ${an.workouts} за ${an.weeks} нед. Обычно ${an.freq} в неделю, дни: ${an.trainDays.map(d => DOW[d]).join(', ')}.`);
+    if (an.combos.length) L.push('Связки мышц: ' + an.combos.slice(0, 6).map(c => `${c.groups.join('+')} (${c.c})`).join(', ') + '.');
+    /* объём за последние 2 недели по группам */
+    const vol = {}; const since = Date.now() - 14 * DAY;
+    history.filter(h => h.date >= since).forEach(h => h.exercises.forEach(e => { const g = ((an.ex[e.key] || {}).cls || {}).group; if (g) vol[g] = (vol[g] || 0) + (+e.sets || 3); }));
+    if (Object.keys(vol).length) L.push('Подходов за 2 недели: ' + Object.entries(vol).map(([g, v]) => `${g} ${v}`).join(', ') + '.');
+    L.push('Упражнения (последний раз; история весов×повторов):');
+    Object.values(an.ex).sort((a, b) => b.count - a.count).slice(0, 25).forEach(x => {
+      const h = toArr(x.hist).slice(-6).map(r => (r.weight ? r.weight + '×' : '') + r.reps).join(', ');
+      const last = x.last || {};
+      const flat = toArr(x.hist).length >= 3 && x.hist.slice(-3).every(r => r.weight === last.weight && r.reps <= (x.hist[x.hist.length - 3].reps || 0));
+      const rm = x.best1rm ? `, 1ПМ ~${Math.round(x.best1rm)} кг` : '';
+      L.push(`- ${x.name}${x.cls ? ' [' + x.cls.group + ', ' + (REGION_LABEL[x.cls.region] || '') + ']' : ''}: ${last.sets || '?'}×${last.reps || '?'}${last.weight ? '×' + last.weight + 'кг' : ''}; ${h}${rm}${flat ? '; ПЛАТО' : ''}`);
+    });
+    const ai = load();
+    if (ai && ai.planId === plan.id) L.push('AI-план уже составлен с недели ' + (ai.fromWeek + 1) + '.');
+    return L.join('\n');
+  }
+
+  /* ── Автоподстройка: появилась новая тренировка → пересчитываем AI-план
+     и ещё не наступившие AI-тренировки в основном плане ── */
+  function autoAdjust(plan, h) {
+    const ai = load();
+    if (!ai || ai.planId !== plan.id) return null;
+    const plans = chosenPlans(h.getPlans()).on.map(x => x.p);
+    const history = collect(plans);
+    const sig = sigOf(history);
+    if (!ai.sig || sig === ai.sig) { if (!ai.sig) { ai.sig = sig; save(ai); } return null; }
+    const fw = Math.max(ai.fromWeek || 0, autoFromWeek(plan));
+    const res = generate(plans, plan, { fromWeek: fw });
+    if (res.error) { ai.sig = sig; save(ai); return null; }
+    /* что поменялось в ближайших тренировках */
+    const oldFirst = {}; ai.weeks.forEach(w => w.days.forEach(d => d.exercises.forEach(e => { if (!(e.name in oldFirst) && w.wi >= fw) oldFirst[e.name] = e; })));
+    const changes = [];
+    const seen = new Set();
+    const fresh = new Set(history.filter(x => +x.date > (ai.lastWorkout || 0)).flatMap(x => x.exercises.map(e => e.name)));
+    res.weeks.slice(0, 1).forEach(w => w.days.forEach(d => d.exercises.forEach(e => {
+      if (seen.has(e.name) || (fresh.size && !fresh.has(e.name))) return; seen.add(e.name);
+      const o = oldFirst[e.name]; if (!o) return;
+      if ((o.weight || 0) !== (e.weight || 0)) changes.push(`${e.name}: ${o.weight || 0} → ${e.weight || 0} кг`);
+    })));
+    /* сохраняем отметки «в плане» и обновляем будущие AI-тренировки основного плана */
+    const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); }));
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const all = h.getPlans(); const p = all.find(x => x && x.id === plan.id);
+    let touched = false;
+    res.weeks.forEach(w => w.days.forEach(d => {
+      if (!done.has(w.wi + ':' + d.di)) return;
+      d.transferred = true;
+      const day = p && toArr(p.weeks)[w.wi] && toArr(p.weeks[w.wi].days)[d.di];
+      if (!day) return;
+      const dt = planDayDate(p, day.date); if (!dt || dt <= today) return;
+      toArr(day.sessions).forEach(sess => {
+        if (!sess || !sess.ai) return;
+        const exs = toArr(sess.exercises);
+        exs.forEach(ex => { const n = d.exercises.find(z => z.name === ex.name); if (n && ex.kind === 'strength') { ex.sets = n.sets; ex.reps = n.reps; ex.weight = n.weight || 0; touched = true; } });
+        sess.exercises = exs;
+      });
+    }));
+    if (touched) h.savePlans(all);
+    res.adjusted = { at: Date.now(), changes };
+    save(res);
+    return res.adjusted;
   }
 
   function toast(content, text) {
@@ -378,18 +608,38 @@ window.TrainingAI = (function () {
   }
   const TYPE = 'Тренажерный зал';
 
+  function viewTabs() {
+    const v = window._aiView || 'plan';
+    const fresh = new Date().getDay() === 1 ? '<i class="ai-view-dot"></i>' : '';
+    return `<div class="ai-views"><button class="ai-view${v === 'plan' ? ' on' : ''}" data-v="plan"><i class="ti ti-calendar-stats"></i> План</button><button class="ai-view${v === 'insights' ? ' on' : ''}" data-v="insights"><i class="ti ti-chart-dots"></i> Разбор${fresh}</button><button class="ai-view${v === 'chat' ? ' on' : ''}" data-v="chat"><i class="ti ti-message-chatbot"></i> Чат</button></div>`;
+  }
+  function bindViews(content, plan, h) {
+    content.querySelectorAll('.ai-view').forEach(b => b.addEventListener('click', () => { window._aiView = b.dataset.v; render(content, plan, h); }));
+  }
   function render(content, plan, h) {
+    if (window._aiView === 'chat' && window.TrainingChat) {
+      TrainingChat.render(content, plan, h, viewTabs(), () => bindViews(content, plan, h));
+      return;
+    }
+    if (window._aiView === 'insights' && window.TrainingInsights) {
+      try { autoAdjust(plan, h); } catch (e) {}
+      TrainingInsights.render(content, plan, h, viewTabs(), () => bindViews(content, plan, h));
+      return;
+    }
     const cp = chosenPlans(h.getPlans());
     const plans = cp.on.map(x => x.p);
     const history = collect(plans);
-    const an = analyze(history);
+    const prefs = prefsGet();
+    const an = analyze(history, prefs);
+    let adj = null;
+    try { adj = autoAdjust(plan, h); } catch (e) { console.error('autoAdjust', e); }
     let ai = load();
     if (ai && ai.planId !== plan.id) ai = null; /* план для другого 8-недельного блока */
 
     if (!an.enough) {
       const wPct = Math.min(100, Math.round(an.weeks / MIN_WEEKS * 100));
       const tPct = Math.min(100, Math.round(an.workouts / MIN_WORKOUTS * 100));
-      content.innerHTML = `<div class="ai-wrap">
+      content.innerHTML = `<div class="ai-wrap">${viewTabs()}
         <div class="ai-hero">
           <div class="ai-hero-ico"><i class="ti ti-sparkles"></i></div>
           <div class="ai-hero-t">AI-тренер пока собирает данные</div>
@@ -401,20 +651,39 @@ window.TrainingAI = (function () {
           <div class="ai-hint">Хватит любого из двух условий.</div>
         </div>${sourcesHtml(cp.src, cp.on, plan)}</div>`;
       bindSources(content, plan, h, cp.src, cp.on);
+      bindViews(content, plan, h);
       return;
     }
 
     const favEx = Object.values(an.ex).sort((a, b) => b.count - a.count).slice(0, 5);
+    const prefDays = toArr(prefs.days), prefSplits = toArr(prefs.splits);
+    const splitNow = buildSplit(an, prefs).map(c => c.key);
     const statsHtml = `
       <div class="ai-stats">
         <div><b>${an.workouts}</b><span>тренировок</span></div>
         <div><b>${an.freq}×</b><span>в неделю</span></div>
-        <div><b>${an.trainDays.map(d => DOW[d]).join(' ')}</b><span>твои дни</span></div>
+        <div><b>${an.weeks}</b><span>недель</span></div>
       </div>
-      ${an.combos.length ? `<div class="ai-chips">${an.combos.slice(0, 4).map(c => `<span class="ai-chip">${esc(c.groups.join(' + '))} · ${c.c}</span>`).join('')}</div>` : ''}
-      ${favEx.length ? `<div class="ai-fav">${favEx.map(x => {
+      <div class="ai-pref">
+        <div class="ai-pref-t"><i class="ti ti-target"></i> Цель <em>${(GOALS[prefs.goal] || GOALS.mass).lo}–${(GOALS[prefs.goal] || GOALS.mass).hi} повторов · отдых ${(GOALS[prefs.goal] || GOALS.mass).rest}</em></div>
+        <div class="ai-goals">${Object.entries(GOALS).map(([k, g]) => `<button class="ai-goal${(prefs.goal || 'mass') === k ? ' on' : ''}" data-g="${k}"><b>${g.label}</b><span>${g.lo}–${g.hi}</span></button>`).join('')}</div>
+      </div>
+      <div class="ai-pref">
+        <div class="ai-pref-t"><i class="ti ti-weight"></i> Шаг веса <em>какие веса есть в твоём зале</em></div>
+        <div class="ai-steps">${Object.entries(EQUIP).map(([k, e]) => `<label class="ai-step"><span>${e.label}</span><select data-eq="${k}">${e.opts.map(o => `<option value="${o}"${(+(prefs.steps || {})[k] || e.def) === o ? ' selected' : ''}>+${String(o).replace('.', ',')} кг</option>`).join('')}</select></label>`).join('')}</div>
+      </div>
+      <div class="ai-pref">
+        <div class="ai-pref-t"><i class="ti ti-calendar-week"></i> Дни тренировок <em>${prefDays.length ? 'выбраны тобой' : 'по истории, можно поменять'}</em></div>
+        <div class="ai-days">${DOW.map((d, i) => `<button class="ai-day-chip${an.trainDays.includes(i) ? ' on' : ''}" data-d="${i}"><b>${d}</b><span>${an.dowCnt[i] || ''}</span></button>`).join('')}</div>
+      </div>
+      <div class="ai-pref">
+        <div class="ai-pref-t"><i class="ti ti-arrows-shuffle"></i> Связки мышц <em>${prefSplits.length ? 'выбраны тобой' : 'твои частые'}</em></div>
+        <div class="ai-chips">${an.combos.slice(0, 8).map(c => `<button class="ai-chip ai-split${splitNow.includes(c.key) ? ' on' : ''}" data-k="${esc(c.key)}">${esc(c.groups.join(' + '))}<span>${c.c}</span></button>`).join('')}</div>
+        ${prefDays.length || prefSplits.length ? '<button class="ai-pref-reset" id="ai-pref-reset"><i class="ti ti-refresh"></i> Вернуть как по истории</button>' : ''}
+      </div>
+      ${favEx.length ? `<div class="ai-fav"><div class="ai-pref-t"><i class="ti ti-trending-up"></i> Частые упражнения</div>${favEx.map(x => {
         const d = x.first && x.last && x.first.weight && x.last.weight ? Math.round((x.last.weight - x.first.weight) * 10) / 10 : 0;
-        return `<div class="ai-fav-row"><span>${esc(x.name)}</span><b>${x.last && x.last.weight ? String(x.last.weight).replace('.', ',') + ' кг' : '—'}${d > 0 ? ` <em>+${String(d).replace('.', ',')}</em>` : ''}</b></div>`;
+        return `<div class="ai-fav-row"><span>${esc(x.name)}<small>${x.count} раз</small></span><b>${x.last && x.last.weight ? String(x.last.weight).replace('.', ',') + ' кг' : 'без веса'}${d > 0 ? ` <em>+${String(d).replace('.', ',')}</em>` : ''}</b></div>`;
       }).join('')}</div>` : ''}`;
 
     let body;
@@ -428,10 +697,11 @@ window.TrainingAI = (function () {
       const allDays = ai.weeks.reduce((s, w) => s + w.days.length, 0);
       body = `
         <div class="ai-meta">
-          <div>Составлен ${new Date(ai.generatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} · по ${ai.basedOn.workouts} тренировкам${toArr(ai.basedOn.plans).length ? ' из плана №' + toArr(ai.basedOn.plans).join(', №') : ''} · перенесено ${doneDays} из ${allDays}</div>
-          <div class="ai-meta-r">${weekSel}<button class="ai-regen" id="ai-gen"><i class="ti ti-refresh"></i> Перегенерировать</button><button class="ai-reset" id="ai-reset"><i class="ti ti-trash"></i> Сбросить</button></div>
+          <div class="ai-meta-t">Составлен ${new Date(ai.generatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} · ${ai.basedOn.workouts} трен.${toArr(ai.basedOn.plans).length ? ' из плана №' + toArr(ai.basedOn.plans).join(', №') : ''} · в плане ${doneDays} из ${allDays}</div>
+          <div class="ai-meta-r">${weekSel}<button class="ai-regen" id="ai-gen"><i class="ti ti-refresh"></i> Пересобрать</button><button class="ai-reset" id="ai-reset" title="Сбросить"><i class="ti ti-trash"></i></button></div>
         </div>
-        <details class="ai-notes"><summary><i class="ti ti-bulb"></i> Что учтено</summary><ul>${ai.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>
+        ${ai.adjusted && Date.now() - ai.adjusted.at < 3 * 864e5 ? `<div class="ai-adjusted"><i class="ti ti-wand"></i><div><b>План подстроен под последнюю тренировку</b>${toArr(ai.adjusted.changes).length ? '<span>' + toArr(ai.adjusted.changes).slice(0, 4).map(esc).join('<br>') + '</span>' : '<span>Веса и повторы пересчитаны по твоим результатам</span>'}</div></div>` : ''}
+        <details class="ai-notes"><summary><i class="ti ti-bulb"></i> Как я считал</summary><ul>${ai.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>
         ${ai.weeks.map((w, wk) => `
           <div class="ai-week">
             <div class="ai-week-h">
@@ -448,18 +718,19 @@ window.TrainingAI = (function () {
                 </div>
                 <div class="ai-ex">${d.exercises.map(e => `
                   <div class="ai-ex-row">
-                    <div class="ai-ex-name">${esc(e.name)}${e.isNew ? '<span class="ai-new">новое</span>' : ''}<small>${esc(REGION_LABEL[e.region] || '')}</small></div>
-                    <div class="ai-ex-load">${fmtW(e)}${e.up ? '<i class="ti ti-trending-up ai-up" title="вес вверх"></i>' : ''}</div>
+                    <div class="ai-ex-name">${esc(e.name)}${e.isNew ? '<span class="ai-new">новое</span>' : ''}<small>${esc([e.why ? '' : (REGION_LABEL[e.region] || ''), e.base ? 'было ' + e.base : '', e.why || ''].filter(Boolean).join(' · '))}</small></div>
+                    <div class="ai-ex-load">${fmtW(e)}${e.up ? '<i class="ti ti-trending-up ai-up" title="вес вверх"></i>' : ''}${e.down ? '<i class="ti ti-trending-down ai-down" title="вес ниже"></i>' : ''}</div>
                   </div>`).join('')}</div>
               </div>`).join('')}
           </div>`).join('')}`;
     }
 
-    content.innerHTML = `<div class="ai-wrap">
+    content.innerHTML = `<div class="ai-wrap">${viewTabs()}
       <div class="ai-card">
         <div class="ai-card-h"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div><div class="ai-hero-t">AI-тренер</div><div class="ai-hero-d">План №${plan.number || ''} · сейчас неделя ${Math.min(toArr(plan.weeks).length, currentWeekIdx(plan) + 1)} из ${toArr(plan.weeks).length}</div></div></div>
         ${statsHtml}
         ${sourcesHtml(cp.src, cp.on, plan)}
+        <button class="ai-export" id="ai-export"><i class="ti ti-download"></i> Выгрузить историю тренировок</button>
       </div>
       ${body}
     </div>`;
@@ -487,6 +758,38 @@ window.TrainingAI = (function () {
       Store.set('training.ai', null); render(content, plan, h); toast(content, 'AI-план сброшен');
     });
     bindSources(content, plan, h, cp.src, cp.on);
+    bindViews(content, plan, h);
+    const setPrefs = (p2) => { Store.set('training.aiPrefs', p2); render(content, plan, h); };
+    content.querySelectorAll('.ai-day-chip').forEach(b => b.addEventListener('click', () => {
+      const cur = new Set(an.trainDays); const d = +b.dataset.d;
+      if (cur.has(d)) { if (cur.size === 1) return; cur.delete(d); } else cur.add(d);
+      setPrefs({ ...prefs, days: [...cur].sort((x, y) => x - y) });
+    }));
+    content.querySelectorAll('.ai-split').forEach(b => b.addEventListener('click', () => {
+      const cur = splitNow.slice(); const k = b.dataset.k; const i = cur.indexOf(k);
+      if (i >= 0) { if (cur.length === 1) return; cur.splice(i, 1); } else cur.push(k);
+      setPrefs({ ...prefs, splits: cur });
+    }));
+    const pr = content.querySelector('#ai-pref-reset'); if (pr) pr.addEventListener('click', () => setPrefs({ goal: prefs.goal, swaps: prefs.swaps }));
+    content.querySelectorAll('.ai-step select').forEach(sel => sel.addEventListener('change', () => {
+      const p2 = { ...prefs, steps: { ...(prefs.steps || {}), [sel.dataset.eq]: +sel.value } }; Store.set('training.aiPrefs', p2);
+      if (ai) { const res = generate(plans, plan, { fromWeek: ai.fromWeek, prefs: p2 });
+        if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
+      render(content, plan, h); toast(content, 'Шаг веса учтён' + (ai ? ', план пересчитан' : ''));
+    }));
+    content.querySelectorAll('.ai-goal').forEach(b => b.addEventListener('click', () => {
+      const p2 = { ...prefs, goal: b.dataset.g }; Store.set('training.aiPrefs', p2);
+      if (ai) { const fw = content.querySelector('#ai-from'); const res = generate(plans, plan, { fromWeek: fw ? +fw.value : ai.fromWeek, prefs: p2 });
+        if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
+      render(content, plan, h); toast(content, 'Цель: ' + GOALS[b.dataset.g].label.toLowerCase() + (ai ? ', план пересчитан' : ''));
+    }));
+    const exb = content.querySelector('#ai-export'); if (exb) exb.addEventListener('click', () => {
+      const data = { exportedAt: new Date().toISOString(), plans: h.getPlans() };
+      const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'you-trainings-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      toast(content, 'Файл с историей скачан');
+    });
     content.querySelectorAll('.ai-move').forEach(b => b.addEventListener('click', () => openMove(content, plan, h, +b.dataset.week, +b.dataset.day)));
     content.querySelectorAll('.ai-week-btn').forEach(b => b.addEventListener('click', () => {
       const a = load(); const w = a.weeks[+b.dataset.week];
@@ -545,5 +848,7 @@ window.TrainingAI = (function () {
     };
   }
 
-  return { render, generate, analyze, collect, classify, _progression: progression };
+  function rerender(content, plan, h) { render(content, plan, h); }
+  return { render, generate, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
+    GOALS, EQUIP, equipOf, stepFor, SLOTS, REGION_LABEL, DOW, toArr, esc, currentWeekIdx, planDayDate, weekKey, _progression: progression };
 })();

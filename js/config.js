@@ -36,5 +36,7 @@ window.FIREBASE_CONFIG = {
    ============================================================ */
 window.APP_CONFIG = {
   freeUsersLimit: 1000,                      /* сколько бесплатных регистраций */
-  supportUrl: 'https://t.me/help_youvsyou'   /* бот техподдержки */
+  supportUrl: 'https://t.me/help_youvsyou',  /* бот техподдержки */
+  aiChatUrl: '',                             /* адрес облачной функции Yandex Cloud для чата с AI-тренером */
+  aiChatLimit: 20                            /* бесплатных сообщений в месяц */
 };

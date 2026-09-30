@@ -397,6 +397,8 @@ const FirebaseSync = (() => {
   }
 
   /* Сброс пароля: Firebase присылает письмо со ссылкой */
+  async function idToken() { return _auth && _auth.currentUser ? _auth.currentUser.getIdToken() : null; }
+
   async function resetPassword(email) {
     if (!_auth) throw new Error('not-configured');
     try { _auth.languageCode = 'ru'; } catch (e) {}
@@ -404,7 +406,7 @@ const FirebaseSync = (() => {
   }
 
   return {
-    isConfigured, pullIntoStore, scheduleSave, resetPassword,
+    isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,
     getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,

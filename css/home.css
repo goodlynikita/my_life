@@ -1448,3 +1448,40 @@ html, body {
 /* Сообщение/объявление от команды */
 .nt-ico { color: #FBBF24 !important; background: rgba(251,191,36,0.14) !important; border-color: rgba(251,191,36,0.3) !important; }
 .nt-text { font-size: 15px; line-height: 1.6; color: #E8EAF0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 14px; word-break: break-word; }
+
+/* ═══ v110: живое движение внутри плиток — у каждой своё, внутри границ ═══ */
+.tiles-v88 .home2-tile { overflow: hidden !important; isolation: isolate; }
+.tiles-v88 .home2-tile::before, .tiles-v88 .home2-tile::after { animation-timing-function: ease-in-out !important; animation-iteration-count: infinite !important; animation-direction: alternate !important; will-change: transform; }
+.tiles-v88 .home2-tile-training::before { animation: blobT1 9s infinite alternate ease-in-out !important; }
+.tiles-v88 .home2-tile-training::after  { animation: blobT2 13s infinite alternate ease-in-out !important; }
+.tiles-v88 .home2-tile-habits::before   { animation: blobH1 11s infinite ease-in-out !important; }
+.tiles-v88 .home2-tile-habits::after    { animation: blobH2 7s infinite alternate ease-in-out !important; }
+.tiles-v88 .home2-tile-finance::before  { animation: blobF1 15s infinite alternate ease-in-out !important; }
+.tiles-v88 .home2-tile-finance::after   { animation: blobF2 10s infinite ease-in-out !important; }
+.tiles-v88 .home2-tile-goals::before    { animation: blobG1 8s infinite alternate ease-in-out !important; }
+.tiles-v88 .home2-tile-goals::after     { animation: blobG2 12s infinite ease-in-out !important; }
+/* тренировки: широкая дуга */
+@keyframes blobT1 { 0% { transform: translate(0,0) scale(1); } 33% { transform: translate(-70px,-25px) scale(1.15); } 66% { transform: translate(-30px,-55px) scale(.9); } 100% { transform: translate(-110px,-10px) scale(1.1); } }
+@keyframes blobT2 { 0% { transform: translate(0,0); } 50% { transform: translate(60px,35px) scale(1.2); } 100% { transform: translate(120px,10px) scale(.95); } }
+/* привычки: восьмёрка */
+@keyframes blobH1 { 0%,100% { transform: translate(0,0); } 25% { transform: translate(45px,-30px) scale(1.1); } 50% { transform: translate(90px,0) scale(.9); } 75% { transform: translate(45px,-45px) scale(1.15); } }
+@keyframes blobH2 { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-55px,45px) scale(1.25); } }
+/* финансы: медленный дрейф по диагонали */
+@keyframes blobF1 { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(-90px,40px) scale(1.2); } 100% { transform: translate(-40px,70px) scale(.9); } }
+@keyframes blobF2 { 0%,100% { transform: translate(0,0); } 30% { transform: translate(70px,-30px) scale(1.15); } 60% { transform: translate(140px,-10px) scale(.9); } }
+/* цели: покачивание и пульс */
+@keyframes blobG1 { 0% { transform: translate(0,0) scale(.9); } 50% { transform: translate(-50px,30px) scale(1.25); } 100% { transform: translate(30px,20px) scale(1); } }
+@keyframes blobG2 { 0%,100% { transform: translate(0,0) scale(1); } 40% { transform: translate(-80px,-20px) scale(1.2); } 70% { transform: translate(-20px,-40px) scale(.85); } }
+@media (prefers-reduced-motion: reduce) { .tiles-v88 .home2-tile::before, .tiles-v88 .home2-tile::after { animation: none !important; } }
+
+/* ═══ Шапка-слайдер: переливы как облака ═══ */
+.hero-slide::after { opacity: .5 !important; filter: blur(10px); background-size: 300% 300% !important; animation: hero-clouds 10s ease-in-out infinite alternate !important; }
+@keyframes hero-clouds {
+  0% { background-position: 0% 30%; transform: scale(1.1) translateX(0); }
+  50% { background-position: 100% 60%; transform: scale(1.25) translateX(-6%); }
+  100% { background-position: 40% 100%; transform: scale(1.15) translateX(4%); }
+}
+.hero-slide::before { opacity: .45 !important; width: 220px !important; height: 220px !important; }
+
+/* Форма обратной связи: Telegram и email друг под другом */
+.fb-contacts { grid-template-columns: 1fr !important; gap: 0 !important; }

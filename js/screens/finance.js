@@ -644,13 +644,16 @@ window.Screens.finance = function(mount) {
     var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);
     var balance = srcTotal - expTotal;
 
+    var wide = !window.matchMedia || window.matchMedia('(min-width: 561px)').matches;
+    var dragL = function(i){ return wide ? '<td class="xp-drag exp-drag-l" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical"></i></td>' : ''; };
+    var dragR = function(i){ return wide ? '<td class="xp-drag exp-drag-r" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical"></i></td>' : ''; };
     var rows = list.map(function(e,i){
       return '<tr data-idx="'+i+'">'
-        + '<td class="xp-drag exp-drag-l" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical"></i></td>'
+        + dragL(i)
         + '<td class="exp-cl xp-name" data-idx="'+i+'" data-side="expense">'+(e.name||'')+'</td>'
         + '<td class="exp-cl xp-amt xp-red" data-idx="'+i+'" data-side="expense">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
         + '<td class="xp-sep"></td>'
-        + '<td class="xp-drag exp-drag-r" data-idx="'+i+'" draggable="true"><i class="ti ti-grip-vertical"></i></td>'
+        + dragR(i)
         + '<td class="exp-cr xp-name xp-green" data-idx="'+i+'" data-side="source">'+(e.source||'')+'</td>'
         + '<td class="exp-cr xp-amt xp-green" data-idx="'+i+'" data-side="source">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
@@ -672,10 +675,11 @@ window.Screens.finance = function(mount) {
       + '</div>'
       + '<div class="xp-scroll">'
       + '<table class="xp-table">'
-      + '<colgroup><col style="width:24px"><col><col style="width:110px"><col style="width:1px"><col style="width:24px"><col><col style="width:110px"></colgroup>'
-      + '<thead><tr><th></th><th>Расход</th><th class="r">Сумма</th><th class="xp-sep"></th><th></th><th>Потенциал</th><th class="r">Сумма</th></tr></thead>'
-      + '<tbody id="exp-body">'+(rows || '<tr class="xp-empty-row"><td colspan="7">Пока пусто. Добавь первый расход</td></tr>')+'</tbody>'
-      + '<tfoot><tr><td></td><td>Итого</td><td class="r xp-red">'+finFmtFull(expTotal)+'</td><td class="xp-sep"></td><td></td>'
+      + (wide ? '<colgroup><col style="width:24px"><col><col style="width:110px"><col style="width:1px"><col style="width:24px"><col><col style="width:110px"></colgroup>'
+              : '<colgroup><col><col style="width:84px"><col style="width:1px"><col><col style="width:84px"></colgroup>')
+      + '<thead><tr>'+(wide?'<th></th>':'')+'<th>Расход</th><th class="r">Сумма</th><th class="xp-sep"></th>'+(wide?'<th></th>':'')+'<th>Потенциал</th><th class="r">Сумма</th></tr></thead>'
+      + '<tbody id="exp-body">'+(rows || '<tr class="xp-empty-row"><td colspan="'+(wide?7:5)+'">Пока пусто. Добавь первый расход</td></tr>')+'</tbody>'
+      + '<tfoot><tr>'+(wide?'<td></td>':'')+'<td>Итого</td><td class="r xp-red">'+finFmtFull(expTotal)+'</td><td class="xp-sep"></td>'+(wide?'<td></td>':'')
       +   '<td class="'+(pos?'xp-green':'xp-red')+'">'+(pos?'Профит':'Дефицит')+'</td>'
       +   '<td class="r '+(pos?'xp-green':'xp-red')+'">'+(pos?'+':'')+finFmtFull(balance)+'</td></tr></tfoot>'
       + '</table></div></div>';

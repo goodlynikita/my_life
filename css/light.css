@@ -110,3 +110,8 @@ html[data-theme="light"] .hh-bar span { filter: invert(1) hue-rotate(180deg) sat
 /* Кнопка «+» в целях и цветные вкладки сезонов — мягче */
 html[data-theme="light"] .goals-season-tabs .goals-season-tab.active { filter: saturate(.8); }
 
+
+/* v110: в светлой теме тоже видно движение */
+html[data-theme="light"] .tiles-v88 .home2-tile::before, html[data-theme="light"] .tiles-v88 .home2-tile::after { opacity: .75 !important; }
+html[data-theme="light"] .hero-slide::after { mix-blend-mode: normal !important; opacity: .6 !important; }
+html[data-theme="light"] .hero-slide::before { opacity: .6 !important; }

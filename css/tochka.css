@@ -253,3 +253,18 @@ html.fin-dark-on .pg-done > i { color: #977FE9; }
 .tochka-screen.fin-inv > .tochka-tabs, .tochka-screen.fin-inv > .tochka-body { filter: invert(1) hue-rotate(180deg) contrast(1.05) brightness(.97); }
 .tochka-screen.fin-inv .pg-card, .tochka-screen.fin-inv img { filter: invert(1) hue-rotate(180deg); }
 html.fin-inv-on .modal-finance .tr-modal, html.fin-inv-on .pg-sheet { filter: invert(1) hue-rotate(180deg); }
+
+/* v110: приходы без «зебры» — дата подписью, строки на одном фоне */
+.fin-dark .tochka-date-label { background: transparent !important; border: none !important; padding: 12px 20px 2px !important; color: #7E7894 !important; }
+.fin-dark .tochka-row { border-bottom: none !important; }
+.fin-dark .tochka-date-group { border-bottom: 1px solid var(--tk-line) !important; padding-bottom: 4px; }
+.fin-dark .tochka-date-group:last-child { border-bottom: none !important; }
+
+/* Расходы на телефоне: таблица по ширине экрана, без горизонтальной прокрутки */
+@media (max-width: 560px) {
+  .xp-table { min-width: 0 !important; }
+  .xp-table td, .xp-table th { padding-left: 6px !important; padding-right: 6px !important; font-size: 13px !important; }
+  .xp-table th { font-size: 11.5px !important; }
+  .xp-table td:first-child, .xp-table th:first-child { padding-left: 14px !important; }
+  .xp-table td:last-child, .xp-table th:last-child { padding-right: 14px !important; }
+}

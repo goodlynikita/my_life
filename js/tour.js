@@ -20,7 +20,7 @@ window.Tour = (function () {
       { sel: '.home2-tile-finance', t: 'Финансы', d: 'Доходы, копилка с защитой от импульсивных трат и план распределения денег.' },
       { sel: '.home2-tile-goals', t: 'Цели', d: 'Желания по сезонам с суммами. Видно, сколько закрыто и сколько осталось.' },
       { sel: '.theme-toggle', t: 'Светлая и тёмная тема', d: 'Переключай одним касанием. Выбор сохранится на всех устройствах.' },
-      { sel: '#home-menu-btn', t: 'Меню', d: 'Настройка слайдов и плиток, повтор подсказок и выход из аккаунта.' },
+      { sel: '#home-menu-btn', t: 'Меню', d: 'Настройка слайдов и плиток, подключение тренера, повтор подсказок и выход из аккаунта.' },
       { sel: '.fb-envelope-home, [data-feedback]', t: 'Связь с нами', d: 'Нашёл ошибку или есть идея? Пиши сюда или сразу в Telegram, отвечаем лично.' },
     ],
     '/training': [
@@ -120,7 +120,7 @@ window.Tour = (function () {
     try { Store.set('home.tour', s); } catch (e) {}
   }
   function disableAll() { const s = st() || { seen: {} }; s.enabled = false; s.rev = (s.rev || 0) + 1; save(s); queue = []; }
-  function isCoach() { return window.Auth && Auth.role && Auth.role() === 'coach'; }
+  function isCoach() { return typeof Auth !== 'undefined' && Auth.role && Auth.role() === 'coach'; }
   function hasData(s) {
     const tr = (s.training || {}).plans, hb = (s.habits || {}).months, fy = (s.finance || {}).years, g = s.goals;
     const n = (o) => o ? (Array.isArray(o) ? o.length : Object.keys(o).length) : 0;
@@ -275,5 +275,5 @@ window.Tour = (function () {
     if (tab) setTimeout(() => onTab(path, tab), 450);
   }, true);
 
-  return { onScreen, onTab, restart, _state: st };
+  return { onScreen, onTab, restart, play, _state: st };
 })();

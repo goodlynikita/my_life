@@ -29,6 +29,12 @@ const Router = (() => {
     const prevY = window.scrollY;
     let path = currentPath();
     const loggedIn = Auth.isLoggedIn();
+    /* Ссылка тренера: #/join/КОД → запоминаем код, после входа предложим подключиться */
+    if (path.indexOf('/join/') === 0) {
+      try { localStorage.setItem('you_join', decodeURIComponent(path.slice(6)).toUpperCase()); } catch (e) {}
+      location.hash = loggedIn ? '/training' : '/register';
+      return;
+    }
 
     if (!loggedIn && path !== '/login' && path !== '/register') {
       path = '/login';
@@ -51,6 +57,11 @@ const Router = (() => {
     try {
       handler();
       if (window.Tour && !keepScroll) Tour.onScreen(path);
+      if (window.TrainerLink && loggedIn) {
+        if (path === '/training') TrainerLink.decorate();
+        let pend = null; try { pend = localStorage.getItem('you_join'); } catch (e) {}
+        if (pend && Auth.role() !== 'coach') setTimeout(() => TrainerLink.offer(), 700);
+      }
     } catch (e) {
       console.error('Screen render error on', path, e);
       const el = mount();

@@ -1660,3 +1660,21 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .ai-step { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: #8F9BBE; font-weight: 600; min-width: 0; }
 .ai-step span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ai-step select { height: 34px; border-radius: 10px; border: 1px solid rgba(110,139,255,0.25); background: #151B2B; color: #F2F4F8; font-family: inherit; font-size: 13px; font-weight: 700; padding: 0 8px; }
+.tr-day-coachnote { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0 4px; padding: 9px 12px; border-radius: 12px; background: rgba(74,124,255,0.1); border: 1px solid rgba(74,124,255,0.25); font-size: 12.5px; line-height: 1.45; color: #C7D2FE; }
+.tr-day-coachnote i { font-size: 16px; color: #8EA8FF; margin-top: 1px; } .tr-day-coachnote b { color: #fff; }
+
+/* ── v116: итоги недели от тренера ── */
+.tr-cweek { margin: 12px 12px 4px; padding: 14px; border-radius: 18px; background: linear-gradient(150deg, rgba(74,124,255,0.2), rgba(139,92,246,0.14)); border: 1px solid rgba(110,148,255,0.35); }
+.tr-cweek-h { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.tr-cweek-h > i { width: 36px; height: 36px; border-radius: 11px; background: linear-gradient(135deg, #4A7CFF, #8B5CF6); color: #fff; font-size: 19px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tr-cweek-h div { flex: 1; min-width: 0; } .tr-cweek-h b { display: block; font-size: 14.5px; color: #fff; } .tr-cweek-h span { font-size: 11.5px; color: #A5B4FC; }
+.tr-cweek-x { background: none; border: none; color: #8B93AD; font-size: 18px; cursor: pointer; padding: 4px; }
+.tr-cweek-k { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tr-cweek-k div { background: rgba(10,14,30,0.35); border-radius: 12px; padding: 9px 10px; } .tr-cweek-k b { display: block; font-size: 17px; color: #fff; } .tr-cweek-k span { font-size: 10.5px; color: #A5B4FC; }
+.tr-cweek-g { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.tr-cweek-g div { display: flex; gap: 7px; align-items: center; font-size: 12.5px; color: #D1FAE5; } .tr-cweek-g i { color: #4ADE80; }
+.tr-cweek-t { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(10,14,30,0.35); font-size: 13px; line-height: 1.5; color: #E0E7FF; }
+/* v116: галочка «Сделал» (видна только клиентам с тренером) */
+.tr-day-done { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 6px; border-radius: 999px; border: none; background: none; color: #555; font-size: 18px; cursor: pointer; font-family: inherit; }
+.tr-day-done span { font-size: 11px; font-weight: 700; }
+.tr-day-done.on { color: #4ADE80; background: rgba(74,222,128,0.1); padding: 0 9px 0 6px; }

@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, push, update, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -93,6 +93,19 @@ const FirebaseSync = (() => {
       const sections = new Set();
       for (const [path] of entries) sections.add(path.split('.')[0]);
       if (isCoachUser(_auth.currentUser)) [...sections].forEach(t => { if (t !== 'training') sections.delete(t); });
+      /* Клиента ведёт тренер: если тренер успел поменять план — сначала берём его версию */
+      if (sections.has('training') && _myTrainer && !isCoachUser(_auth.currentUser)) {
+        try {
+          const rs = await get(ref(_db, root + '/training/coachRev'));
+          const srv = rs.exists() ? +rs.val() : 0, loc = +((Store.get().training || {}).coachRev || 0);
+          if (srv > loc) {
+            const ts = await get(ref(_db, root + '/training'));
+            const cur = Store.get(); cur.training = ts.val() || cur.training; Store.replaceAll(cur);
+            sections.delete('training');
+            window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: { conflict: true } }));
+          }
+        } catch (e) {}
+      }
       for (const top of sections) {
         const data = Store.get()[top];
         if (data !== undefined) await set(ref(_db, root + '/' + top), sanitizeKeys(data));
@@ -384,6 +397,7 @@ const FirebaseSync = (() => {
   async function logout() {
     _loaded = false;
     _coachRoot = null;
+    try { _myTrainer = null; stopWatch(); if (_linkUnsub) { _linkUnsub(); _linkUnsub = null; } } catch (e) {}
     Store.replaceAll(Store.defaultData ? Store.defaultData() : {});
     await signOut(_auth);
   }
@@ -405,7 +419,122 @@ const FirebaseSync = (() => {
     await sendPasswordResetEmail(_auth, String(email || '').trim());
   }
 
+  /* ════════ Тренеры и клиенты (B2B) ════════
+     trainers/{uid}            — профиль тренера (name, code, limit)
+     invites/{code}            — код приглашения → тренер
+     clientTrainer/{key}       — у клиента (key = uid или 'nik-data') его тренер
+     trainerClients/{t}/{key}  — список клиентов тренера
+     Тренер пишет только в training клиента и ставит training.coachRev */
+  let _myTrainer = null, _revUnsub = null;
+  const myKey = () => rootKeyFor(_auth.currentUser);
+  function genCode() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 6; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
+  async function isTrainer() { const u = _auth.currentUser; if (!u || isCoachUser(u)) return false; try { return (await get(ref(_db, 'trainers/' + u.uid))).exists(); } catch (e) { return false; } }
+  async function becomeTrainer(name) {
+    const u = _auth.currentUser; if (!u) throw new Error('auth');
+    const ex = await get(ref(_db, 'trainers/' + u.uid)); if (ex.exists()) return ex.val();
+    let code = genCode();
+    for (let i = 0; i < 5 && (await get(ref(_db, 'invites/' + code))).exists(); i++) code = genCode();
+    const t = { name: String(name || u.displayName || u.email.split('@')[0]).slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 10, code };
+    await set(ref(_db, 'trainers/' + u.uid), t);
+    await set(ref(_db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
+    return t;
+  }
+  async function findInvite(code) {
+    code = String(code || '').trim().toUpperCase(); if (!code) return null;
+    const s = await get(ref(_db, 'invites/' + code)); return s.exists() ? { code, ...s.val() } : null;
+  }
+  async function myTrainer() {
+    const k = myKey(); if (!k || isCoachUser(_auth.currentUser)) return null;
+    try { const s = await get(ref(_db, 'clientTrainer/' + k)); _myTrainer = s.exists() ? s.val() : null; } catch (e) { _myTrainer = null; }
+    await cleanupPrev(k);
+    if (_myTrainer) watchCoachRev(); else stopWatch();
+    watchLink();
+    return _myTrainer;
+  }
+  /* Новый тренер подключился по ключу → убираем себя из списка прежнего */
+  async function cleanupPrev(k) {
+    const t = _myTrainer; if (!t || !t.prev || t.prev === t.trainerUid) return;
+    try { await set(ref(_db, 'trainerClients/' + t.prev + '/' + k), null); await set(ref(_db, 'clientTrainer/' + k + '/prev'), null); } catch (e) {}
+    delete t.prev;
+  }
+  /* Следим за связью с тренером: тренер может подключиться по ключу в любой момент */
+  let _linkUnsub = null;
+  function watchLink() {
+    if (_linkUnsub) return; const k = myKey(); if (!k) return;
+    _linkUnsub = onValue(ref(_db, 'clientTrainer/' + k), async (snap) => {
+      const v = snap.exists() ? snap.val() : null;
+      const was = _myTrainer ? _myTrainer.trainerUid : null, now = v ? v.trainerUid : null;
+      _myTrainer = v;
+      if (v) { await cleanupPrev(k); watchCoachRev(); } else stopWatch();
+      if (was !== now) window.dispatchEvent(new CustomEvent('trainer-link-change', { detail: { trainer: v } }));
+    }, () => {});
+  }
+
+  /* ── Ключ доступа: клиент выдаёт его тренеру сам ──
+     accessKeys/{KEY} = { key, uid, root, name, email, createdAt, expiresAt, prev } */
+  const KEY_TTL = 24 * 3600 * 1000;
+  function genKey() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 8; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
+  async function createAccessKey(fullName) {
+    const u = _auth.currentUser; if (!u) throw { code: 'auth' };
+    await revokeAccessKey();
+    let code = genKey();
+    for (let i = 0; i < 5 && (await get(ref(_db, 'accessKeys/' + code))).exists(); i++) code = genKey();
+    const now = Date.now(), cur = _myTrainer || await myTrainer();
+    const rec = { key: myKey(), uid: u.uid, root: userRoot(), name: String(fullName).slice(0, 80), email: u.email || '', createdAt: now, expiresAt: now + KEY_TTL };
+    if (cur) rec.prev = cur.trainerUid;
+    await set(ref(_db, 'accessKeys/' + code), rec);
+    try { localStorage.setItem('you_akey_' + u.uid, JSON.stringify({ code, expiresAt: rec.expiresAt, name: rec.name })); } catch (e) {}
+    watchLink();
+    return { code, ...rec };
+  }
+  function myAccessKey() {
+    const u = _auth.currentUser; if (!u) return null;
+    try { const v = JSON.parse(localStorage.getItem('you_akey_' + u.uid) || 'null'); return v && v.expiresAt > Date.now() ? v : null; } catch (e) { return null; }
+  }
+  async function revokeAccessKey() {
+    const u = _auth.currentUser; if (!u) return;
+    let v = null; try { v = JSON.parse(localStorage.getItem('you_akey_' + u.uid) || 'null'); } catch (e) {}
+    if (v && v.code) { try { await set(ref(_db, 'accessKeys/' + v.code), null); } catch (e) {} }
+    try { localStorage.removeItem('you_akey_' + u.uid); } catch (e) {}
+  }
+  async function connectTrainer(code, fullName) {
+    const u = _auth.currentUser; if (!u) throw { code: 'auth' };
+    const inv = await findInvite(code); if (!inv) throw { code: 'not-found' };
+    if (inv.trainerUid === u.uid) throw { code: 'self' };
+    if (inv.full) throw { code: 'full' };
+    const k = myKey(); const old = await myTrainer();
+    if (old && old.trainerUid !== inv.trainerUid) { try { await set(ref(_db, 'trainerClients/' + old.trainerUid + '/' + k), null); } catch (e) {} }
+    const now = Date.now();
+    await set(ref(_db, 'clientTrainer/' + k), { trainerUid: inv.trainerUid, name: inv.name || 'Тренер', code: inv.code, since: now, uid: u.uid });
+    await set(ref(_db, 'trainerClients/' + inv.trainerUid + '/' + k), { uid: u.uid, email: u.email || '', name: String(fullName || u.displayName || '').slice(0, 80), code: inv.code, since: now, root: userRoot() });
+    _myTrainer = { trainerUid: inv.trainerUid, name: inv.name, code: inv.code, since: now };
+    watchCoachRev();
+    return _myTrainer;
+  }
+  async function disconnectTrainer() {
+    const k = myKey(); const t = _myTrainer || await myTrainer(); if (!t) return;
+    try { await set(ref(_db, 'trainerClients/' + t.trainerUid + '/' + k), null); } catch (e) {}
+    await set(ref(_db, 'clientTrainer/' + k), null);
+    _myTrainer = null; stopWatch();
+  }
+  /* Тренер поменял план → сразу подтягиваем тренировки */
+  function watchCoachRev() {
+    if (_revUnsub) return; const root = userRoot(); if (!root) return;
+    _revUnsub = onValue(ref(_db, root + '/training/coachRev'), async (snap) => {
+      const srv = snap.exists() ? +snap.val() : 0, loc = +((Store.get().training || {}).coachRev || 0);
+      if (!srv || srv <= loc || _queue.size > 0 || _flushing) return;
+      try {
+        const ts = await get(ref(_db, root + '/training'));
+        if (!ts.exists()) return;
+        const cur = Store.get(); cur.training = ts.val(); Store.replaceAll(cur);
+        window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: {} }));
+      } catch (e) {}
+    });
+  }
+  function stopWatch() { if (_revUnsub) { try { _revUnsub(); } catch (e) {} _revUnsub = null; } }
+
   return {
+    isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer,
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,

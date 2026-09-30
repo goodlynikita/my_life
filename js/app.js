@@ -81,6 +81,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.Theme) Theme.syncFromStore();
     window._appReady = true;
     Router.render();
+    if (window.FirebaseSync && FirebaseSync.myTrainer && typeof Auth !== 'undefined' && Auth.isLoggedIn() && Auth.role() !== 'coach') {
+      FirebaseSync.myTrainer().then((t) => { if (Router.currentPath() !== '/training') return; if (t) Router.render({ keepScroll: true }); else if (window.TrainerLink) TrainerLink.decorate(); }).catch(() => {});
+      FirebaseSync.isTrainer().then(v => { window._isTrainer = v; }).catch(() => {});
+    }
     if (window.Notices) setTimeout(() => Notices.check(), 1200);
   }
 });

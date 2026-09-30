@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B0E17">
+<title>YOU · Кабинет тренера</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/training.css">
+<link rel="stylesheet" href="css/tour.css">
+<style>
+:root{--bg:#0B0E17;--panel:#111624;--card:#161D2E;--raised:#1F2840;--line:rgba(110,139,255,.12);--line2:rgba(110,139,255,.22);
+  --txt:#F2F4F8;--soft:#A0A9C4;--faint:#6F7C9E;--acc:#4A7CFF;--acc2:#8B5CF6;--ok:#4ADE80;--warn:#FBBF24;--bad:#F87171}
+*{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Montserrat,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font-family:inherit}
+.hidden{display:none!important}
+body{background:radial-gradient(700px 400px at 90% -10%,rgba(74,124,255,.16),transparent 65%),radial-gradient(600px 400px at -10% 30%,rgba(139,92,246,.10),transparent 65%),var(--bg);background-attachment:fixed;min-height:100vh}
+/* Вход */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line2);border-radius:24px;padding:28px 22px;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.auth-logo img{width:52px;height:52px;border-radius:15px;box-shadow:0 8px 24px rgba(74,124,255,.4)}
+.auth-logo b{display:block;font-size:19px} .auth-logo span{font-size:12.5px;color:var(--soft)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-bottom:14px}
+.seg button{height:40px;border:none;border-radius:11px;background:none;color:var(--soft);font-weight:700;font-size:13.5px;cursor:pointer}
+.seg button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.field{width:100%;height:48px;border-radius:13px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:0 14px;font-size:15px;outline:none;margin-bottom:9px}
+.field:focus{border-color:var(--acc)}
+textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;line-height:1.5}
+.btn{height:46px;border:none;border-radius:13px;padding:0 18px;font-size:14px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s,opacity .2s;color:var(--txt);text-decoration:none}
+.btn:active{transform:scale(.97)} .btn:disabled{opacity:.5}
+.btn-main{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 8px 22px rgba(74,124,255,.35)}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--line2)}
+.btn-sm{height:36px;padding:0 12px;font-size:12.5px;border-radius:11px}
+.btn-bad{background:rgba(248,113,113,.1);color:var(--bad);border:1px solid rgba(248,113,113,.3)}
+.w100{width:100%} .err{min-height:18px;color:var(--bad);font-size:12.5px;margin:2px 0 10px}
+.muted{color:var(--soft)} .faint{color:var(--faint)}
+/* Каркас */
+.top{position:sticky;top:0;z-index:20;background:rgba(11,14,23,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top-in{max-width:980px;margin:0 auto;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand img{width:36px;height:36px;border-radius:11px}
+.brand b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .brand span{display:block;font-size:11.5px;color:var(--faint)}
+.ib{width:38px;height:38px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--txt);font-size:18px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:16px 16px 60px}
+.card{background:linear-gradient(160deg,rgba(27,35,64,.8),rgba(16,20,31,.92));border:1px solid var(--line2);border-radius:22px;padding:16px;margin-bottom:12px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.card-h b{display:block;font-size:16px} .card-h span{font-size:12px;color:var(--faint)}
+/* Приглашение */
+.inv{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.inv-code{font-size:28px;font-weight:900;letter-spacing:.14em;color:#fff}
+.inv-link{font-size:12px;color:var(--soft);word-break:break-all;margin-top:2px}
+.inv-btns{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.tier{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--soft)}
+.tier-bar{flex:1;height:7px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden}
+.tier-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--acc))}
+.tier b{color:#fff}
+/* Сводка */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:rgba(110,148,255,.08);border:1px solid rgba(110,148,255,.16);border-radius:15px;padding:12px}
+.kpi b{display:block;font-size:22px} .kpi span{font-size:11.5px;color:var(--soft)}
+.today{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.today div{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#D5DAEA;line-height:1.45}
+.today i{font-size:17px;color:#8EA8FF;margin-top:1px} .today .w{color:var(--warn)} .today .b{color:var(--bad)} .today .g{color:var(--ok)}
+/* Клиенты */
+.cl-list{display:flex;flex-direction:column;gap:8px}
+.cl{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:13px 14px;border-radius:18px;background:var(--card);border:1px solid var(--line);cursor:pointer;transition:border-color .2s,transform .15s}
+.cl:hover{border-color:var(--line2)} .cl:active{transform:scale(.99)}
+.ava{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;position:relative;background:linear-gradient(135deg,#3B5BDB,#7048E8)}
+.ava i{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--card)}
+.st-ok{background:var(--ok)} .st-warn{background:var(--warn)} .st-bad{background:var(--bad)} .st-new{background:#6F7C9E}
+.cl-m{min-width:0} .cl-m b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cl-m span{display:block;font-size:12px;color:var(--soft);margin-top:2px}
+.cl-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--soft)}
+.tag.w{background:rgba(251,191,36,.12);color:#FCD34D} .tag.b{background:rgba(248,113,113,.12);color:#FCA5A5} .tag.g{background:rgba(74,222,128,.12);color:#86EFAC}
+.cl-r{text-align:right} .cl-r b{display:block;font-size:15px} .cl-r span{font-size:11px;color:var(--faint)}
+.empty{text-align:center;padding:30px 14px;color:var(--soft);font-size:13.5px;line-height:1.55}
+.empty i{font-size:34px;color:#8EA8FF;display:block;margin-bottom:8px}
+/* Клиент */
+.c-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.c-head .ava{width:52px;height:52px;font-size:20px;border-radius:16px}
+.c-head b{display:block;font-size:18px} .c-head span{font-size:12.5px;color:var(--soft)}
+.ctabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:rgba(110,139,255,.08);border:1px solid var(--line);margin-bottom:12px}
+.ctabs button{height:40px;border:none;border-radius:11px;background:none;color:var(--soft);font-weight:700;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.ctabs button.on{background:linear-gradient(135deg,var(--acc),#7C5CF0);color:#fff}
+@media (max-width:420px){.ctabs button i{display:none}}
+/* План клиента */
+.pl-top{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.pl-top select{height:38px;border-radius:11px;border:1px solid var(--line2);background:var(--card);color:var(--txt);padding:0 10px;font-weight:700}
+.wk{margin-bottom:8px}
+.wk-h{display:flex;justify-content:space-between;align-items:center;padding:12px 6px;cursor:pointer;font-size:14.5px;font-weight:800}
+.wk-h span{font-size:12px;color:var(--faint);font-weight:600}
+.wk-h i{transition:transform .2s;color:var(--faint)} .wk.open .wk-h i{transform:rotate(90deg)}
+.wk-b{display:none} .wk.open .wk-b{display:block}
+.dy{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-bottom:8px}
+.dy.today{border-color:rgba(74,124,255,.7);box-shadow:0 0 0 1px rgba(74,124,255,.3)}
+.dy-h{display:flex;align-items:center;gap:8px}
+.dy-h b{font-size:14px} .dy-h .sp{flex:1}
+.today-b{font-size:10px;font-weight:800;background:var(--acc);color:#fff;padding:2px 8px;border-radius:999px;text-transform:uppercase}
+.mini{width:32px;height:32px;border-radius:50%;border:none;background:var(--raised);color:var(--soft);cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center}
+.mini:hover{color:#fff}
+.ss{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.ss-h{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.pill{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--raised);color:#C7D2FE}
+.ex{display:flex;align-items:center;gap:10px;padding:8px 4px;border-radius:10px;cursor:pointer}
+.ex:hover{background:rgba(255,255,255,.03)}
+.ex-n{flex:1;min-width:0;font-size:14px} .ex-n small{display:block;font-size:11px;color:var(--faint)}
+.ex-v{font-size:13.5px;font-weight:800;white-space:nowrap} .ex-v.done{color:var(--ok)}
+.cnote{display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:8px 11px;border-radius:11px;background:rgba(74,124,255,.1);border:1px solid rgba(74,124,255,.22);font-size:12.5px;color:#C7D2FE}
+.cnote-c{background:rgba(255,255,255,.04);border-color:var(--line);color:var(--soft)}
+.add-ex{margin-top:4px;background:none;border:1px dashed var(--line2);border-radius:10px;color:#8EA8FF;font-size:12.5px;font-weight:700;padding:7px;width:100%;cursor:pointer}
+/* Модалки */
+.ov{position:fixed;inset:0;z-index:100;background:rgba(3,5,10,.7);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;padding:0}
+@media (min-width:600px){.ov{align-items:center;padding:20px}}
+.sheet{width:100%;max-width:460px;background:#151B2B;border:1px solid var(--line2);border-radius:24px 24px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));max-height:90vh;overflow-y:auto;animation:up .28s cubic-bezier(.22,1,.36,1)}
+@media (min-width:600px){.sheet{border-radius:24px}}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet h3{margin:0 0 12px;font-size:18px}
+.lbl{font-size:12px;color:var(--soft);font-weight:600;margin:4px 0 6px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line2);background:none;color:var(--soft);font-weight:700;font-size:12.5px;cursor:pointer}
+.chip.on{background:rgba(74,124,255,.2);border-color:var(--acc);color:#fff}
+.acts{display:flex;gap:8px;margin-top:12px} .acts .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:200;background:#1B2340;border:1px solid rgba(110,148,255,.4);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-weight:700;box-shadow:0 12px 30px rgba(0,0,0,.45);white-space:nowrap;transition:opacity .3s}
+/* AI и разбор из приложения: без переключателя режимов */
+.coach-ai .ai-views{display:none!important}
+.loading{text-align:center;padding:40px;color:var(--soft)}
+
+/* v116: сводки, лента, шаблоны */
+@media (max-width:440px){.top-in:has(#back:not(.hidden)) .brand span{display:none} .top-in{gap:7px}}
+.mtabs{margin-bottom:12px}
+.ctabs{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
+.ctabs button{font-size:12px;gap:4px;padding:0 2px}
+@media (max-width:440px){.ctabs button i{display:none}}
+.kpis4{grid-template-columns:repeat(4,1fr)} @media (max-width:560px){.kpis4{grid-template-columns:repeat(2,1fr)}}
+.kpi small{font-size:13px;color:var(--faint);font-weight:700}
+.attn{display:flex;flex-direction:column;gap:6px}
+.attn-i{display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#D5DAEA;font-size:13px;line-height:1.4;cursor:pointer;font-family:inherit}
+.attn-i span{flex:1} .attn-i b{color:#fff} .attn-i>i:first-child{font-size:18px} .attn-i>i:last-child{color:var(--faint)}
+.attn-i .b,.today .b{color:var(--bad)} .attn-i .w{color:var(--warn)}
+.feed{display:flex;flex-direction:column}
+.fd-day{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:12px 0 4px}
+.fd-day:first-child{margin-top:0}
+.fd{display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45;color:#C9D0E2;cursor:pointer}
+.fd:last-child{border-bottom:none} .fd b{color:#fff} .fd i{font-size:17px;margin-top:1px;color:#8EA8FF}
+.fd-done i{color:var(--ok)} .fd-pr i{color:#FCD34D} .fd-miss i{color:var(--warn)} .fd-comment i{color:#A5B4FC} .fd-measure i{color:#67E8F9}
+.fd-empty{font-size:13px;color:var(--soft);padding:10px 0;line-height:1.5}
+.bad{color:#FCA5A5}
+.tpl{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.tpl-i{width:40px;height:40px;border-radius:12px;background:rgba(74,124,255,.15);color:#8EA8FF;display:flex;align-items:center;justify-content:center;font-size:20px}
+.pick{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:40vh;overflow-y:auto}
+.pk{display:flex;align-items:center;gap:12px;text-align:left;padding:11px 12px;border-radius:14px;border:1px solid var(--line2);background:none;color:var(--txt);cursor:pointer;font-family:inherit}
+.pk i{font-size:20px;color:#8EA8FF} .pk b{display:block;font-size:14px} .pk small{display:block;font-size:11.5px;color:var(--soft);margin-top:2px}
+.pk.on{border-color:var(--acc);background:rgba(74,124,255,.14)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--soft);line-height:1.45;margin-top:4px;cursor:pointer}
+.chk input{margin-top:2px;accent-color:#4A7CFF;width:16px;height:16px;flex-shrink:0}
+.dn{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 10px 0 7px;border-radius:999px;border:1px dashed var(--line2);background:none;color:var(--soft);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.dn i{font-size:16px} .dn.on{border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.1);color:#86EFAC}
+/* обзор клиента */
+.cd-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.cd-kpis.three{grid-template-columns:repeat(3,1fr)}
+@media (max-width:560px){.cd-kpis{grid-template-columns:repeat(2,1fr)} .cd-kpis.three{grid-template-columns:repeat(3,1fr)}}
+.cd-kpi{background:linear-gradient(160deg,rgba(27,35,64,.8),rgba(16,20,31,.92));border:1px solid var(--line2);border-radius:16px;padding:12px}
+.card .cd-kpi{background:rgba(110,148,255,.08);border-color:rgba(110,148,255,.16)}
+.cd-kpi b{display:block;font-size:22px} .cd-kpi b small{font-size:13px;color:var(--faint)} .cd-kpi span{display:block;font-size:11.5px;color:var(--soft)} .cd-kpi>small{display:block;font-size:11px;color:var(--faint);margin-top:3px}
+.cd-svg{width:100%;height:auto;display:block;overflow:visible}
+.cd-base{stroke:rgba(255,255,255,.1);stroke-width:1}
+.cd-track{fill:rgba(110,148,255,.18)} .cd-fill{fill:#4A7CFF} .cd-bar.cur .cd-fill{fill:#8B5CF6}
+.cd-bar:hover .cd-fill{fill:#6E97FF} .cd-bar:hover .cd-track{fill:rgba(110,148,255,.3)}
+.cd-val{fill:#E5E7EB;font-size:9.5px;font-weight:700;text-anchor:middle} .cd-lbl{fill:#6F7C9E;font-size:8.5px;text-anchor:middle}
+.cd-lifts{display:grid;grid-template-columns:1fr 1fr;gap:8px} @media (max-width:560px){.cd-lifts{grid-template-columns:1fr}}
+.cd-lift{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.cd-lift-t{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:6px}
+.cd-lift-t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cd-lift-t span{font-size:13px;font-weight:800;white-space:nowrap}
+.cd-lift-t em{font-style:normal;font-size:11.5px} .cd-lift-t em.up{color:var(--ok)} .cd-lift-t em.down{color:var(--bad)}
+.cd-spark{width:100%;height:auto;display:block} .cd-line{fill:none;stroke:#4A7CFF;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke} .cd-dot{fill:#8B5CF6;stroke:#161D2E;stroke-width:2;vector-effect:non-scaling-stroke}
+.cd-feels{display:flex;flex-direction:column}
+.cd-feel{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45;color:#C9D0E2}
+.cd-feel:last-child{border-bottom:none} .cd-feel-d{font-weight:800;color:#fff;min-width:44px}
+.cd-ms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.cd-ms div{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.cd-ms span{display:block;font-size:11px;color:var(--soft)} .cd-ms b{font-size:14px} .cd-ms em{font-style:normal;font-size:11px;color:var(--soft);font-weight:600}
+.cd-grew{display:flex;flex-direction:column;gap:4px;margin:12px 0 4px} .cd-grew div{display:flex;gap:7px;align-items:center;font-size:12.5px;color:#BBF7D0} .cd-grew i{color:var(--ok)}
+.cd-grew.lag div{color:#FDE68A} .cd-grew.lag i{color:var(--warn)}
+#cw-card textarea{margin-top:10px;min-height:90px}
+</style>
+</head>
+<body>
+
+<!-- Вход -->
+<div class="auth hidden" id="auth">
+  <div class="auth-card">
+    <div class="auth-logo"><img src="icon.png" alt=""><div><b>Кабинет тренера</b><span>Ведите клиентов в YOU</span></div></div>
+    <div class="seg" id="auth-seg"><button class="on" data-m="login">Войти</button><button data-m="reg">Регистрация</button></div>
+    <div id="f-login">
+      <input class="field" id="l-email" type="email" inputmode="email" placeholder="Email" autocomplete="email">
+      <input class="field" id="l-pwd" type="password" placeholder="Пароль" autocomplete="current-password">
+      <div class="err" id="l-err"></div>
+      <button class="btn btn-main w100" id="l-btn">Войти</button>
+    </div>
+    <div id="f-reg" class="hidden">
+      <input class="field" id="r-name" type="text" placeholder="Имя, как вас увидят клиенты">
+      <input class="field" id="r-email" type="email" inputmode="email" placeholder="Email" autocomplete="email">
+      <input class="field" id="r-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password">
+      <div class="err" id="r-err"></div>
+      <button class="btn btn-main w100" id="r-btn">Создать кабинет тренера</button>
+      <p class="faint" style="font-size:12px;line-height:1.5;margin:12px 0 0">Первые 10 клиентов бесплатно. Клиенты подключаются по вашей ссылке и видят только тренировки.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Стать тренером (есть аккаунт YOU, но нет кабинета) -->
+<div class="auth hidden" id="become">
+  <div class="auth-card">
+    <div class="auth-logo"><img src="icon.png" alt=""><div><b>Кабинет тренера</b><span id="bc-email"></span></div></div>
+    <p class="muted" style="font-size:13.5px;line-height:1.55;margin:0 0 14px">У этого аккаунта ещё нет кабинета тренера. Создайте его: получите ссылку для клиентов и сможете вести до 10 человек бесплатно.</p>
+    <input class="field" id="bc-name" type="text" placeholder="Имя, как вас увидят клиенты">
+    <div class="err" id="bc-err"></div>
+    <button class="btn btn-main w100" id="bc-btn">Создать кабинет</button>
+    <div style="display:flex;gap:8px;margin-top:10px"><a class="btn btn-ghost w100" href="index.html">Назад</a><button class="btn btn-ghost w100" id="bc-out">Выйти</button></div>
+  </div>
+</div>
+
+<!-- Кабинет -->
+<div id="appv" class="hidden">
+  <div class="top"><div class="top-in">
+    <div class="brand" id="brand"><img src="icon.png" alt=""><div><b id="t-name">Кабинет тренера</b><span>Кабинет тренера YOU</span></div></div>
+    <button class="ib hidden" id="back" title="Назад"><i class="ti ti-arrow-left"></i></button>
+    <button class="ib" id="help" title="Подсказки"><i class="ti ti-help"></i></button>
+    <a class="ib" href="index.html" title="Мои тренировки"><i class="ti ti-barbell"></i></a>
+    <button class="ib" id="out" title="Выйти"><i class="ti ti-logout"></i></button>
+  </div></div>
+  <div class="wrap" id="main"><div class="loading">Загрузка…</div></div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+/* ── Мини-хранилище под выбранного клиента (для AI и разбора из приложения) ── */
+window.__coachMode = true;
+const DOW_NAMES = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+function trMigrateDayToSessions(day) {
+  if (!day) return day;
+  if (day.sessions) {
+    day.sessions = Array.isArray(day.sessions) ? day.sessions : Object.values(day.sessions);
+    day.sessions.forEach(s => { if (!s || typeof s !== 'object') return;
+      s.exercises = Array.isArray(s.exercises) ? s.exercises : (s.exercises ? Object.values(s.exercises) : []);
+      s.groups = Array.isArray(s.groups) ? s.groups : (s.groups ? Object.values(s.groups) : []); });
+    return day;
+  }
+  day.sessions = day.type ? [{ type: day.type, groups: day.groups || [], exercises: day.exercises || [] }] : [];
+  delete day.type; delete day.groups; delete day.exercises; return day;
+}
+window.CoachStore = { cur: null, onSet: null };
+window.Store = {
+  get() { const c = CoachStore.cur; if (!c) return { training: {} }; return { training: Object.assign({}, c.training, { ai: c.tai.ai || null, aiPrefs: c.tai.aiPrefs || {}, aiSources: c.tai.aiSources || [] }) }; },
+  set(path, val) { if (CoachStore.onSet) CoachStore.onSet(path, val); },
+  replaceAll() {},
+};
+</script>
+<script src="js/screens/training-ai.js"></script>
+<script src="js/screens/training-insights.js"></script>
+<script src="js/coach-dash.js"></script>
+<script src="js/tour.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp(window.FIREBASE_CONFIG);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const toArr = (v) => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : []);
+const clean = (v) => JSON.parse(JSON.stringify(v === undefined ? null : v));
+const DAY = 864e5;
+const APP_URL = location.href.replace(/coach\.html.*$/, '');
+const pl = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
+function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.style.opacity = '0', 2200); setTimeout(() => el.remove(), 2600); }
+function show(id) { ['auth', 'become', 'appv'].forEach(x => $('#' + x).classList.toggle('hidden', x !== id)); }
+
+let me = null, trainer = null, clients = [], templates = [], view = { name: 'list', tab: null };
+
+/* ═══ Вход и регистрация ═══ */
+document.querySelectorAll('#auth-seg button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#auth-seg button').forEach(x => x.classList.toggle('on', x === b));
+  $('#f-login').classList.toggle('hidden', b.dataset.m !== 'login'); $('#f-reg').classList.toggle('hidden', b.dataset.m !== 'reg');
+});
+$('#l-btn').onclick = async () => {
+  const e = $('#l-email').value.trim(), p = $('#l-pwd').value; $('#l-err').textContent = '';
+  if (!e || !p) { $('#l-err').textContent = 'Введите email и пароль'; return; }
+  $('#l-btn').disabled = true;
+  try { await signInWithEmailAndPassword(auth, e, p); } catch (x) { $('#l-err').textContent = 'Неверный email или пароль'; }
+  $('#l-btn').disabled = false;
+};
+$('#r-btn').onclick = async () => {
+  const n = $('#r-name').value.trim(), e = $('#r-email').value.trim(), p = $('#r-pwd').value; $('#r-err').textContent = '';
+  if (!n) { $('#r-err').textContent = 'Укажите имя'; return; }
+  if (p.length < 6) { $('#r-err').textContent = 'Пароль минимум 6 символов'; return; }
+  $('#r-btn').disabled = true;
+  try {
+    const c = await createUserWithEmailAndPassword(auth, e, p);
+    try { await updateProfile(c.user, { displayName: n }); } catch (x) {}
+    await createTrainer(c.user, n);
+    boot(c.user);
+  } catch (x) {
+    $('#r-err').textContent = x.code === 'auth/email-already-in-use' ? 'Этот email уже есть. Войдите, и кабинет можно будет создать' : x.code === 'auth/invalid-email' ? 'Некорректный email' : 'Не получилось. Попробуйте ещё раз';
+  }
+  $('#r-btn').disabled = false;
+};
+$('#bc-btn').onclick = async () => {
+  const n = $('#bc-name').value.trim(); if (!n) { $('#bc-err').textContent = 'Укажите имя'; return; }
+  $('#bc-btn').disabled = true;
+  try { await createTrainer(me, n); boot(me); } catch (x) { $('#bc-err').textContent = 'Не получилось. Проверьте правила базы'; }
+  $('#bc-btn').disabled = false;
+};
+$('#bc-out').onclick = () => signOut(auth);
+$('#out').onclick = () => { if (confirm('Выйти из кабинета?')) signOut(auth); };
+$('#back').onclick = () => { view = { name: 'list', tab: view.back || 'home' }; render(); };
+
+function genCode() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 6; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
+async function createTrainer(u, name) {
+  let code = genCode();
+  for (let i = 0; i < 5 && (await get(ref(db, 'invites/' + code))).exists(); i++) code = genCode();
+  const t = { name: name.slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 10, code };
+  await set(ref(db, 'trainers/' + u.uid), t);
+  await set(ref(db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
+}
+
+onAuthStateChanged(auth, (u) => { me = u; if (!u) { show('auth'); return; } boot(u); });
+
+async function boot(u) {
+  const ts = await get(ref(db, 'trainers/' + u.uid));
+  if (!ts.exists()) { $('#bc-email').textContent = u.email; $('#bc-name').value = u.displayName || ''; show('become'); return; }
+  trainer = ts.val(); trainer.uid = u.uid;
+  $('#t-name').textContent = trainer.name;
+  show('appv');
+  await Promise.all([loadClients(), loadTemplates()]);
+  render();
+}
+
+/* ═══ Данные клиентов ═══ */
+async function loadClients() {
+  const s = await get(ref(db, 'trainerClients/' + trainer.uid));
+  const list = s.exists() ? Object.entries(s.val()).map(([k, v]) => ({ k, ...v })) : [];
+  clients = await Promise.all(list.map(async c => {
+    try { const t = await get(ref(db, c.root + '/training')); c.training = t.exists() ? t.val() : { plans: [] }; c.ok = true; }
+    catch (e) { c.training = { plans: [] }; c.ok = false; }
+    c.stat = stats(c); return c;
+  }));
+  clients.sort((a, b) => (b.stat.lastTs || 0) - (a.stat.lastTs || 0));
+  /* лимит: когда мест нет, приглашение помечается как заполненное */
+  const full = clients.length >= (trainer.limit || 10);
+  try { await update(ref(db, 'invites/' + trainer.code), { full, count: clients.length }); } catch (e) {}
+}
+function plansOf(c) { return toArr(c.training && c.training.plans).filter(Boolean); }
+function activePlan(c) { const ps = plansOf(c); return ps.find(p => p.status === 'active') || ps[ps.length - 1] || null; }
+function stats(c) {
+  const A = window.TrainingAI;
+  const hist = A.collect(plansOf(c));
+  const an = A.analyze(hist, {});
+  const d = window.CoachDash.analyze(c.training); c.d = d;
+  const doneDays = d.past.filter(d.isDone);
+  const lastTs = doneDays.length ? +doneDays[doneDays.length - 1].date : 0;
+  const days = lastTs ? Math.floor((Date.now() - lastTs) / DAY) : null;
+  const weekAgo = Date.now() - 7 * DAY;
+  const wk = doneDays.filter(x => +x.date >= weekAgo).length;
+  const plat = window.TrainingInsights._plateaus(an);
+  const recs = window.TrainingInsights._records(an, {}).filter(r => r.pr);
+  const st = !c.ok ? 'bad' : days == null ? 'new' : days <= 3 ? 'ok' : days <= 7 ? 'warn' : 'bad';
+  /* сегодня по плану */
+  const p = activePlan(c); let today = null;
+  if (p) { const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = A.planDayDate(p, d.date); if (dt && +dt === +t0) { trMigrateDayToSessions(d); const s = toArr(d.sessions).filter(x => x && x.type !== 'Отдых'); if (s.length) today = s.map(x => toArr(x.groups).join(' + ') || x.type).join(', '); } })); }
+  return { hist, an, lastTs, days, wk, plat, recs, st, today, workouts: doneDays.length, att: d.att };
+}
+const initials = (c) => ((c.name || c.email || '?').trim()[0] || '?').toUpperCase();
+const cname = (c) => c.name || (c.email || '').split('@')[0] || 'Клиент';
+const ago = (d) => d == null ? 'ещё не тренировался' : d === 0 ? 'тренировка сегодня' : d === 1 ? 'вчера' : d + ' ' + pl(d, 'день', 'дня', 'дней') + ' назад';
+
+/* ═══ Отрисовка ═══ */
+function render() {
+  $('#back').classList.toggle('hidden', view.name === 'list');
+  if (view.name === 'client') return renderClient();
+  renderList();
+}
+
+function renderList() {
+  const lim = trainer.limit || 10, n = clients.length;
+  if (!view.tab) view.tab = n ? 'home' : 'add';
+  const tabs = [['home', 'ti-layout-dashboard', 'Сводка'], ['feed', 'ti-activity', 'Лента'], ['tpl', 'ti-template', 'Шаблоны'], ['add', 'ti-user-plus', 'Добавить']];
+  $('#main').innerHTML = `<div class="ctabs mtabs">${tabs.map(t => `<button data-t="${t[0]}" class="${view.tab === t[0] ? 'on' : ''}"><i class="ti ${t[1]}"></i>${t[2]}</button>`).join('')}</div><div id="mbody"></div>`;
+  document.querySelectorAll('.mtabs button').forEach(b => b.onclick = () => { view.tab = b.dataset.t; renderList(); });
+  const body = $('#mbody');
+  if (view.tab === 'feed') return renderFeed(body);
+  if (view.tab === 'tpl') return renderTemplates(body);
+  if (view.tab === 'add') return renderAdd(body);
+  renderHome(body);
+}
+
+function renderHome(body) {
+  const n = clients.length;
+  if (!n) { body.innerHTML = `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br>Добавьте первого во вкладке «Добавить».</div>`; return; }
+  const live = clients.filter(c => c.ok);
+  const todayL = live.filter(c => c.stat.today);
+  const lost = live.filter(c => c.stat.st === 'bad');
+  const ev = window.CoachDash.feed(live, cname);
+  const miss = ev.filter(e => e.k === 'miss' && Date.now() - e.t < 7 * DAY);
+  const prs = ev.filter(e => e.k === 'pr' && Date.now() - e.t < 7 * DAY);
+  const atts = live.map(c => c.stat.att).filter(x => x != null);
+  const attAvg = atts.length ? Math.round(atts.reduce((a, b) => a + b, 0) / atts.length) : null;
+  const plat = live.filter(c => c.stat.plat.length);
+  const attn = [];
+  lost.forEach(c => attn.push({ c, i: 'ti-alert-triangle b', t: `<b>${esc(cname(c))}</b> пропал: ${ago(c.stat.days)}` }));
+  [...new Set(miss.map(e => e.c))].forEach(c => { const k = miss.filter(e => e.c === c).length; attn.push({ c, i: 'ti-clock-exclamation w', t: `<b>${esc(cname(c))}</b>: ${k} ${pl(k, 'тренировка не отмечена', 'тренировки не отмечены', 'тренировок не отмечено')} за неделю` }); });
+  plat.forEach(c => attn.push({ c, i: 'ti-chart-line w', t: `<b>${esc(cname(c))}</b>: плато, ${c.stat.plat.slice(0, 2).map(p => esc(p.name)).join(', ')}` }));
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-h"><div><b>Сводка</b><span>${new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div></div>
+      <div class="kpis kpis4">
+        <div class="kpi"><b>${live.filter(c => c.stat.st === 'ok').length}<small>/${live.length}</small></b><span>в ритме</span></div>
+        <div class="kpi"><b>${clients.reduce((s, c) => s + c.stat.wk, 0)}</b><span>тренировок за 7 дн.</span></div>
+        <div class="kpi"><b>${attAvg == null ? '–' : attAvg + '%'}</b><span>посещаемость, 4 нед.</span></div>
+        <div class="kpi"><b>${prs.length}</b><span>рекордов за неделю</span></div>
+      </div>
+      <div class="today">
+        ${todayL.length ? `<div><i class="ti ti-calendar-event"></i><span><b>Сегодня:</b> ${todayL.map(c => esc(cname(c)) + ' (' + esc(c.stat.today) + ')').join(', ')}</span></div>` : '<div><i class="ti ti-calendar-event"></i><span>Сегодня тренировок по планам нет</span></div>'}
+        ${prs.slice(0, 3).map(e => `<div><i class="ti ti-trophy g"></i><span>${e.html}</span></div>`).join('')}
+      </div>
+    </div>
+    ${attn.length ? `<div class="card"><div class="card-h"><div><b>Нужно внимание</b><span>кому написать или что поменять</span></div></div>
+      <div class="attn">${attn.slice(0, 8).map(a => `<button class="attn-i" data-ck="${esc(a.c.k)}"><i class="ti ${a.i}"></i><span>${a.t}</span><i class="ti ti-chevron-right"></i></button>`).join('')}</div></div>` : ''}
+    <div class="card">
+      <div class="card-h"><div><b>Клиенты</b><span>зелёный: тренируется, жёлтый: пауза 4–7 дней, красный: больше недели</span></div></div>
+      <div class="cl-list">${clients.map((c, i) => `
+        <div class="cl" data-i="${i}">
+          <div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>
+          <div class="cl-m"><b>${esc(cname(c))}</b><span>${c.ok ? ago(c.stat.days) : 'отключился'}</span>
+            <div class="cl-tags">${c.stat.today ? '<span class="tag g">сегодня</span>' : ''}${c.stat.att != null ? `<span class="tag${c.stat.att >= 80 ? ' g' : c.stat.att < 50 ? ' b' : ' w'}">посещаемость ${c.stat.att}%</span>` : ''}${c.stat.plat.length ? `<span class="tag w">плато ${c.stat.plat.length}</span>` : ''}</div></div>
+          <div class="cl-r"><b>${c.stat.wk}</b><span>за 7 дн.</span></div>
+        </div>`).join('')}</div>
+    </div>
+    <div class="card"><div class="card-h"><div><b>Последнее</b><span>из ленты</span></div><button class="btn btn-ghost btn-sm" id="to-feed">Вся лента</button></div>
+      <div class="feed">${window.CoachDash.feedHtml(ev, 6)}</div></div>`;
+  body.querySelectorAll('.cl').forEach(el => el.onclick = () => openClient(+el.dataset.i));
+  body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
+  $('#to-feed').onclick = () => { view.tab = 'feed'; renderList(); };
+  coachTips('home');
+}
+
+let feedFilter = 'all';
+function renderFeed(body) {
+  const live = clients.filter(c => c.ok);
+  const all = window.CoachDash.feed(live, cname);
+  const F = [['all', 'Всё'], ['done', 'Тренировки'], ['pr', 'Рекорды'], ['miss', 'Не отмечены'], ['comment', 'Комментарии']];
+  const list = feedFilter === 'all' ? all : all.filter(e => e.k === feedFilter);
+  body.innerHTML = `<div class="card"><div class="card-h"><div><b>Лента</b><span>последние 2 недели по всем клиентам</span></div></div>
+    <div class="chips">${F.map(f => `<button class="chip${feedFilter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}${f[0] !== 'all' ? ' ' + all.filter(e => e.k === f[0]).length : ''}</button>`).join('')}</div>
+    <div class="feed">${window.CoachDash.feedHtml(list, 80)}</div></div>`;
+  body.querySelectorAll('.chip').forEach(b => b.onclick = () => { feedFilter = b.dataset.f; renderFeed(body); });
+  body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
+}
+
+function renderAdd(body) {
+  const lim = trainer.limit || 10, n = clients.length;
+  const link = APP_URL + 'index.html#/join/' + trainer.code;
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-h"><div><b>Добавить по ключу</b><span>Клиент создаёт ключ в приложении: Меню → Подключить тренера → Выдать ключ</span></div></div>
+      <div style="display:flex;gap:8px"><input class="field" id="k-in" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="margin:0;flex:1;letter-spacing:.1em;font-weight:800;text-transform:uppercase">
+        <button class="btn btn-main" id="k-btn" ${n >= lim ? 'disabled' : ''}>Добавить</button></div>
+      <div class="err" id="k-err" style="margin:6px 0 0"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div><b>Или пригласить по ссылке</b><span>Отправьте ссылку или код. Клиент подключится за минуту</span></div></div>
+      <div class="inv"><div><div class="inv-code">${esc(trainer.code)}</div><div class="inv-link">${esc(link)}</div></div></div>
+      <div class="inv-btns">
+        <button class="btn btn-main btn-sm" id="i-share"><i class="ti ti-share"></i> Отправить ссылку</button>
+        <button class="btn btn-ghost btn-sm" id="i-copy"><i class="ti ti-copy"></i> Скопировать</button>
+      </div>
+      <div class="tier"><span>Клиенты</span><div class="tier-bar"><span style="width:${Math.min(100, n / lim * 100)}%"></span></div><b>${n} из ${lim}</b></div>
+      ${n >= lim ? `<div class="today" style="margin-top:10px"><div><i class="ti ti-crown w"></i><span>Бесплатные места заняты. Тариф «Про» до 20 клиентов и «Студия» до 50 скоро. <a href="${esc((window.APP_CONFIG || {}).supportUrl || '#')}" target="_blank" style="color:#8EA8FF">Написать нам</a></span></div></div>` : ''}
+    </div>
+    <div class="card"><div class="card-h"><div><b>Как это работает</b></div></div>
+      <div class="today">
+        <div><i class="ti ti-key"></i><span>Клиент сам выдаёт ключ с фамилией и именем, поэтому вы сразу видите, кто это</span></div>
+        <div><i class="ti ti-eye"></i><span>Вам открыты только тренировки клиента. Финансы, привычки и цели закрыты</span></div>
+        <div><i class="ti ti-refresh"></i><span>Всё, что вы меняете в плане, у клиента обновляется само</span></div>
+        <div><i class="ti ti-building"></i><span>Тренируете в зале? Отмечайте проведённые тренировки галочкой в плане клиента</span></div>
+      </div></div>`;
+  coachTips('add');
+  $('#i-copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(link); toast('Ссылка скопирована'); };
+  $('#i-share').onclick = () => {
+    const text = `Веду тренировки в приложении YOU. Подключайся по ссылке: ${link} (код ${trainer.code})`;
+    if (navigator.share) navigator.share({ title: 'Тренировки со мной в YOU', text, url: link }).catch(() => {});
+    else { navigator.clipboard && navigator.clipboard.writeText(text); toast('Текст приглашения скопирован'); }
+  };
+  const kb = $('#k-btn'), ki = $('#k-in');
+  ki.onkeydown = (e) => { if (e.key === 'Enter') kb.click(); };
+  kb.onclick = async () => {
+    $('#k-err').textContent = ''; kb.disabled = true;
+    try { const c = await useKey(ki.value); toast(c + ' добавлен'); await loadClients(); view.tab = 'home'; render(); }
+    catch (e) { $('#k-err').textContent = ({ bad: 'Ключ не найден. Проверьте символы', expired: 'Ключ истёк. Попросите клиента создать новый', full: 'Все бесплатные места заняты', self: 'Это ваш собственный ключ', dup: 'Этот клиент уже у вас' })[e && e.code] || 'Не получилось подключить. Попробуйте ещё раз'; kb.disabled = false; }
+  };
+}
+
+/* ═══ Подсказки: по одному разу на каждый экран ═══ */
+const CT = {
+  home: [
+    { sel: '.mtabs', t: 'Четыре раздела', d: 'Сводка по всем клиентам, лента событий, шаблоны программ и добавление новых клиентов.' },
+    { sel: '.kpis4', t: 'Сводка дня', d: 'Сколько клиентов в ритме, сколько тренировок за неделю, средняя посещаемость и рекорды.' },
+    { sel: '.attn', t: 'Нужно внимание', d: 'Кто пропал, у кого не отмечены тренировки, где плато. Нажмите, чтобы открыть клиента.' },
+    { sel: '.cl-list', t: 'Клиенты', d: 'Цвет точки: зелёный тренируется, жёлтый пауза 4–7 дней, красный больше недели. Нажмите на клиента, чтобы открыть его.' },
+    { sel: '.feed', t: 'Последнее', d: 'Свежие события: тренировки, рекорды, комментарии и замеры. Вся лента во вкладке «Лента».' },
+    { sel: '#help', t: 'Подсказки', d: 'Захотите пройти подсказки снова, нажмите сюда.' },
+  ],
+  add: [
+    { sel: '#k-in', t: 'Ключ от клиента', d: 'Клиент создаёт ключ в приложении YOU и присылает вам. Введите его здесь, и клиент появится в списке с фамилией и именем.' },
+    { sel: '.inv', t: 'Или ссылка', d: 'Можно наоборот: отправьте клиенту ссылку, он откроет её и подключится сам.' },
+    { sel: '.tier', t: 'Лимит', d: 'Бесплатно до 10 клиентов.' },
+  ],
+  client: [
+    { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с графиками, план, разбор прогресса, AI-помощник и ваши заметки о клиенте.' },
+    { sel: '.cd-kpis', t: 'Главное', d: 'Посещаемость за 4 недели, серия без пропусков, объём нагрузки и вес тела.' },
+    { sel: '.cd-svg', t: 'Посещаемость', d: 'Светлое: сколько тренировок было в плане, яркое: сколько сделано. Наведите или нажмите на столбик.' },
+    { sel: '#cw-card', t: 'Итоги недели', d: 'Цифры считаются сами. Допишите пару слов и отправьте: клиент увидит карточку в приложении. Или сохраните картинкой для мессенджера.' },
+  ],
+  plan: [
+    { sel: '.dn', t: 'Отметка тренировки', d: 'Тренировка считается сделанной, когда клиент или вы поставили галочку. Тренировали в зале? Отметьте сами.' },
+    { sel: '.mini[data-act="note"]', t: 'Заметка к дню', d: 'Клиент увидит её над тренировкой: техника, самочувствие, на что обратить внимание.' },
+    { sel: '.ex', t: 'Упражнение', d: 'Нажмите, чтобы поменять подходы, повторы и вес. У клиента план обновится сам.' },
+    { sel: '#st', t: 'В шаблоны', d: 'Сохраните удачную программу и назначайте её другим клиентам. Веса подставятся из их истории.' },
+    { sel: '#np', t: 'Новый план', d: 'Пустой на 8 недель или из шаблона. Старый уйдёт в архив, записи клиента сохранятся.' },
+  ],
+  tpl: [
+    { sel: '.tpl, .empty', t: 'Шаблоны', d: 'Готовые программы. Кнопка с человечком назначает шаблон клиенту.' },
+  ],
+};
+function coachTips(k) {
+  if (!window.Tour || !Tour.play || !trainer) return;
+  const key = 'you_ctips_' + trainer.uid + '_' + k;
+  try { if (localStorage.getItem(key)) return; const st = Tour._state && Tour._state(); if (st && st.enabled === false) return; } catch (e) { return; }
+  setTimeout(() => {
+    if (document.querySelector('.tour-root, .ov')) return;
+    try { localStorage.setItem(key, '1'); } catch (e) {}
+    Tour.play(CT[k], 'coach-' + k);
+  }, 700);
+}
+$('#help').onclick = () => {
+  try { Object.keys(localStorage).filter(k => k.startsWith('you_ctips_' + trainer.uid)).forEach(k => localStorage.removeItem(k)); localStorage.removeItem('you_tour_anon'); } catch (e) {}
+  const k = view.name === 'client' ? (view.tab === 'plan' ? 'plan' : 'client') : (view.tab || 'home');
+  if (CT[k]) coachTips(k); else toast('Подсказки включены');
+};
+
+/* ═══ Шаблоны программ ═══ */
+async function loadTemplates() {
+  try { const s = await get(ref(db, 'trainerTemplates/' + trainer.uid)); templates = s.exists() ? Object.entries(s.val()).map(([id, v]) => ({ id, ...v })).sort((a, b) => b.createdAt - a.createdAt) : []; }
+  catch (e) { templates = []; }
+}
+function tplMeta(t) { return `${t.weeksCount || toArr(t.weeks).length} ${pl(t.weeksCount || 0, 'неделя', 'недели', 'недель')} · ${t.sessions || 0} ${pl(t.sessions || 0, 'тренировка', 'тренировки', 'тренировок')}`; }
+function renderTemplates(body) {
+  body.innerHTML = `<div class="card"><div class="card-h"><div><b>Шаблоны программ</b><span>Соберите программу один раз и назначайте её клиентам. Веса подставятся из истории каждого клиента</span></div></div>
+    ${templates.length ? `<div class="cl-list">${templates.map(t => `<div class="tpl">
+      <div class="tpl-i"><i class="ti ti-template"></i></div>
+      <div class="cl-m"><b>${esc(t.name)}</b><span>${tplMeta(t)}${t.from ? ' · из плана ' + esc(t.from) : ''}</span></div>
+      <button class="mini" data-use="${t.id}" title="Назначить клиенту"><i class="ti ti-user-share"></i></button>
+      <button class="mini" data-del="${t.id}" title="Удалить"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`
+    : `<div class="empty"><i class="ti ti-template"></i>Шаблонов пока нет.<br>Откройте клиента → «План» → «Сохранить как шаблон». Удобно для типовых программ: новичок, набор массы, подготовка к старту.</div>`}</div>`;
+  coachTips('tpl');
+  body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const t = templates.find(x => x.id === b.dataset.del); if (!t || !confirm('Удалить шаблон «' + t.name + '»? У клиентов планы останутся.')) return;
+    await set(ref(db, 'trainerTemplates/' + trainer.uid + '/' + t.id), null).catch(() => {}); await loadTemplates(); renderTemplates(body); toast('Шаблон удалён');
+  });
+  body.querySelectorAll('[data-use]').forEach(b => b.onclick = () => {
+    const t = templates.find(x => x.id === b.dataset.use); const live = clients.filter(c => c.ok);
+    if (!live.length) { toast('Сначала добавьте клиента'); return; }
+    const ov = sheet(`<h3>Кому назначить «${esc(t.name)}»?</h3><div class="cl-list">${live.map(c => `<div class="cl" data-k="${esc(c.k)}"><div class="ava">${esc(initials(c))}</div><div class="cl-m"><b>${esc(cname(c))}</b><span>${activePlan(c) ? 'сейчас план №' + esc(activePlan(c).number) : 'без плана'}</span></div><i class="ti ti-chevron-right faint"></i></div>`).join('')}</div>`);
+    ov.querySelectorAll('.cl').forEach(el => el.onclick = async () => { ov.remove(); const i = clients.findIndex(c => c.k === el.dataset.k);
+      await openClient(i, 'plan'); planModal(clients[i], t.id); });
+  });
+}
+async function saveTemplate(c) {
+  const p = activePlan(c); if (!p) return;
+  const probe = window.CoachDash.templateFrom(p, 'x');
+  if (!probe.sessions) { alert('В плане нет тренировок, сохранять нечего.'); return; }
+  const ov = sheet(`<h3>Сохранить как шаблон</h3>
+    <p class="muted" style="font-size:13px;line-height:1.5;margin:0 0 12px">Сохранятся тренировки, упражнения, подходы, повторы, веса и ваши заметки к дням: ${probe.weeksCount} ${pl(probe.weeksCount, 'неделя', 'недели', 'недель')}, ${probe.sessions} ${pl(probe.sessions, 'тренировка', 'тренировки', 'тренировок')}. При назначении другому клиенту веса подставятся из его истории.</p>
+    <div class="lbl">Название</div><input class="field" id="tn" placeholder="Например: Масса, 3 раза в неделю" value="${esc(p.tpl || '')}">
+    <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Сохранить</button></div>`);
+  const inp = ov.querySelector('#tn'); setTimeout(() => inp.focus(), 50);
+  ov.querySelector('#x').onclick = () => ov.remove();
+  ov.querySelector('#ok').onclick = async () => {
+    const name = inp.value.trim(); if (!name) { inp.focus(); return; }
+    const t = window.CoachDash.templateFrom(p, name); t.from = cname(c) + ', №' + (p.number || '');
+    const id = 't' + Date.now().toString(36);
+    await set(ref(db, 'trainerTemplates/' + trainer.uid + '/' + id), clean(t));
+    ov.remove(); await loadTemplates(); toast('Шаблон «' + t.name + '» сохранён');
+  };
+}
+/* Новый план: пустой или из шаблона */
+function planModal(c, tplId) {
+  const mon = window.CoachDash.monday(new Date()), next = new Date(+mon + 7 * DAY), F = window.CoachDash.fmtD;
+  let pick = tplId || '', start = tplId ? 'next' : 'this', keep = false;
+  const ov = sheet('');
+  const draw = () => {
+    ov.querySelector('.sheet').innerHTML = `<h3>Новый план: ${esc(cname(c))}</h3>
+      <div class="lbl">Основа</div>
+      <div class="pick">
+        <button class="pk${!pick ? ' on' : ''}" data-p=""><i class="ti ti-file"></i><span><b>Пустой план на 8 недель</b><small>заполните сами или с AI</small></span></button>
+        ${templates.map(t => `<button class="pk${pick === t.id ? ' on' : ''}" data-p="${t.id}"><i class="ti ti-template"></i><span><b>${esc(t.name)}</b><small>${tplMeta(t)}</small></span></button>`).join('')}
+      </div>
+      <div class="lbl">Начало</div>
+      <div class="chips"><button class="chip${start === 'this' ? ' on' : ''}" data-s="this">Этот понедельник, ${F(mon)}</button><button class="chip${start === 'next' ? ' on' : ''}" data-s="next">Следующий, ${F(next)}</button></div>
+      ${pick ? `<label class="chk"><input type="checkbox" id="keep" ${keep ? 'checked' : ''}><span>Если клиент ещё не делал упражнение, взять вес из шаблона. Иначе вес останется пустым</span></label>` : ''}
+      <p class="faint" style="font-size:12px;line-height:1.5;margin:10px 0 0">Текущий план уйдёт в архив, все записи клиента сохранятся.</p>
+      <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Создать</button></div>`;
+    ov.querySelectorAll('.pk').forEach(b => b.onclick = () => { pick = b.dataset.p; draw(); });
+    ov.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { start = b.dataset.s; draw(); });
+    const k = ov.querySelector('#keep'); if (k) k.onchange = () => { keep = k.checked; };
+    ov.querySelector('#x').onclick = () => ov.remove();
+    ov.querySelector('#ok').onclick = async () => { ov.remove(); await createPlan(c, pick ? templates.find(t => t.id === pick) : null, start === 'next' ? next : mon, keep); };
+  };
+  draw();
+}
+async function createPlan(c, tpl, start, keep) {
+  const plans = plansOf(c); plans.forEach(p => { if (p.status === 'active') p.status = 'archived'; });
+  const num = plans.reduce((m, p) => Math.max(m, p.number || 0), 0) + 1;
+  let weeks, info = '';
+  if (tpl) {
+    CoachStore.cur = CoachStore.cur || { training: c.training, tai: {} };
+    const r = window.CoachDash.applyTemplate(tpl, start, window.CoachDash.clientWeights(c.d), keep);
+    weeks = r.weeks; info = r.fromClient ? `, веса из истории: ${r.fromClient}` : ''; if (r.empty) info += `, без веса: ${r.empty}`;
+  } else {
+    weeks = window.CoachDash.applyTemplate({ weeks: [] }, start, {}, false).weeks;
+  }
+  plans.push({ id: 'p' + Date.now().toString(36), number: num, startDate: start.toISOString(), status: 'active', nutrition: {}, weeks, byCoach: true, tpl: tpl ? tpl.name : null });
+  await savePlans(c, plans); view.open = 0; renderClient(); toast('План №' + num + ' создан' + info);
+}
+
+/* ═══ Подключение по ключу клиента ═══
+   Клиент сам создал ключ (фамилия и имя внутри), значит согласие есть.
+   Порядок записей важен для правил базы: связь → список → ключ сгорает. */
+async function useKey(raw) {
+  const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length !== 8) throw { code: 'bad' };
+  const s = await get(ref(db, 'accessKeys/' + code));
+  if (!s.exists()) throw { code: 'bad' };
+  const k = s.val();
+  if (!k.expiresAt || k.expiresAt < Date.now()) throw { code: 'expired' };
+  if (k.uid === trainer.uid) throw { code: 'self' };
+  if (clients.some(c => c.k === k.key)) throw { code: 'dup' };
+  if (clients.length >= (trainer.limit || 10)) throw { code: 'full' };
+  const now = Date.now();
+  const link = { trainerUid: trainer.uid, name: trainer.name, code: trainer.code, since: now, uid: k.uid, akey: code };
+  if (k.prev && k.prev !== trainer.uid) link.prev = k.prev;
+  await set(ref(db, 'clientTrainer/' + k.key), link);
+  await set(ref(db, 'trainerClients/' + trainer.uid + '/' + k.key), { uid: k.uid, email: k.email || '', name: k.name || '', code, since: now, root: k.root, via: 'key' });
+  try { await set(ref(db, 'accessKeys/' + code), null); } catch (e) {}
+  return k.name || 'Клиент';
+}
+
+/* ═══ Клиент ═══ */
+async function openClient(i, tab) {
+  const c = clients[i];
+  let tai = {};
+  try { const s = await get(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k)); tai = s.exists() ? s.val() : {}; } catch (e) {}
+  CoachStore.cur = { k: c.k, training: c.training, tai };
+  CoachStore.onSet = (path, val) => {
+    const m = path.match(/^training\.(ai|aiPrefs|aiSources)$/);
+    if (m) { CoachStore.cur.tai[m[1]] = val; set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
+  };
+  view = { name: 'client', i, tab: tab || (view.name === 'client' && view.i === i ? view.tab : 'dash'), open: null, back: view.name === 'list' ? view.tab : (view.back || 'home') };
+  window._aiView = 'plan';
+  window.scrollTo(0, 0);
+  render();
+}
+function h() {
+  const c = clients[view.i];
+  return {
+    getPlans: () => plansOf(c),
+    savePlans: (plans) => savePlans(c, plans),
+    afterTransfer: () => { toast('Добавлено в план клиента'); },
+  };
+}
+async function savePlans(c, plans) {
+  const rev = Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  /* всё, что тренер вписал на сегодня и вперёд, помечаем как план тренера:
+     такие тренировки считаются сделанными только с галочкой */
+  plans.forEach(p => { if (!p) return; toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = window.TrainingAI.planDayDate(p, d.date);
+    if (dt && dt >= t0) toArr(d.sessions).forEach(s => { if (s && !s.byCoach) s.byCoach = true; }); })); });
+  c.training.plans = clean(plans); c.training.coachRev = rev;
+  try { await update(ref(db, c.root + '/training'), { plans: clean(plans), coachRev: rev }); c.stat = stats(c); }
+  catch (e) { alert('Не получилось сохранить. Возможно, клиент отключился от вас.'); }
+}
+
+function renderClient() {
+  const c = clients[view.i]; if (!c) { view = { name: 'list' }; return render(); }
+  if (!c.ok) {
+    $('#main').innerHTML = `<div class="empty"><i class="ti ti-plug-connected-x"></i><b>${esc(cname(c))}</b><br>Клиент отключился или подключил другого тренера. Доступа к его тренировкам больше нет.<br>
+      <button class="btn btn-ghost" id="rm" style="margin-top:14px"><i class="ti ti-trash"></i> Убрать из списка</button></div>`;
+    $('#rm').onclick = async () => { await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k), null).catch(() => {}); await set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k), null).catch(() => {}); view = { name: 'list' }; await loadClients(); render(); };
+    return;
+  }
+  const tabs = [['dash', 'ti-layout-dashboard', 'Обзор'], ['plan', 'ti-calendar', 'План'], ['ins', 'ti-chart-dots', 'Разбор'], ['ai', 'ti-sparkles', 'AI'], ['note', 'ti-notes', 'Заметки']];
+  $('#main').innerHTML = `
+    <div class="c-head"><div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>
+      <div style="min-width:0;flex:1"><b>${esc(cname(c))}</b><span>${esc(c.email || '')} · ${ago(c.stat.days)}</span></div></div>
+    <div class="ctabs">${tabs.map(t => `<button data-t="${t[0]}" class="${view.tab === t[0] ? 'on' : ''}"><i class="ti ${t[1]}"></i>${t[2]}</button>`).join('')}</div>
+    <div id="cbody"></div>`;
+  document.querySelectorAll('.ctabs button').forEach(b => b.onclick = () => { view.tab = b.dataset.t; renderClient(); });
+  const body = $('#cbody');
+  if (view.tab === 'dash') renderDash(c, body);
+  else if (view.tab === 'plan') renderPlan(c, body);
+  else if (view.tab === 'ins') { body.className = 'coach-ai'; window.TrainingInsights.render(body, activePlan(c) || { weeks: [] }, h(), '', null); }
+  else if (view.tab === 'ai') {
+    body.className = 'coach-ai';
+    const p = activePlan(c);
+    if (!p) { body.innerHTML = '<div class="empty"><i class="ti ti-sparkles"></i>Сначала создайте клиенту план во вкладке «План», и AI поможет его заполнить.</div>'; return; }
+    window._aiView = 'plan';
+    window.TrainingAI.render(body, p, h());
+    const hint = document.createElement('div'); hint.className = 'cnote'; hint.style.marginBottom = '12px';
+    hint.innerHTML = '<i class="ti ti-info-circle"></i><span>Это ваш помощник: AI предлагает, вы решаете. Кнопка «В план» добавит тренировку клиенту от вашего имени. Клиент свой AI-план не видит, чтобы не было двух разных планов.</span>';
+    body.prepend(hint);
+  }
+  else renderNote(c, body);
+}
+
+/* ── Обзор клиента + итоги недели ── */
+function renderDash(c, body) {
+  const d = c.d, sum = window.CoachDash.weekSummary(d), sent = c.training.coachWeekly && c.training.coachWeekly.range === sum.range ? c.training.coachWeekly : null;
+  body.innerHTML = window.CoachDash.dashHtml(c, d, window.CoachDash.weeklyFormHtml(sum, sent));
+  if (!$('#cw-send')) return;
+  coachTips('client');
+  $('#cw-send').onclick = async () => {
+    const text = $('#cw-text').value.trim().slice(0, 1000);
+    const cw = clean({ ...sum, lag: null, text, trainer: trainer.name, at: Date.now() });
+    try { await update(ref(db, c.root + '/training'), { coachWeekly: cw, coachRev: Date.now() }); c.training.coachWeekly = cw; toast('Итоги отправлены клиенту'); renderDash(c, body); }
+    catch (e) { alert('Не получилось отправить.'); }
+  };
+  $('#cw-img').onclick = async () => {
+    const b = $('#cw-img'); b.disabled = true;
+    const blob = await window.CoachDash.weeklyImage(sum, $('#cw-text').value.trim(), trainer.name, cname(c));
+    b.disabled = false;
+    const file = new File([blob], 'itogi-nedeli.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: 'Итоги недели' }).catch(() => {});
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'itogi-nedeli-' + cname(c) + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Картинка сохранена'); }
+  };
+}
+
+/* ── Заметки тренера о клиенте (видит только тренер) ── */
+function renderNote(c, body) {
+  body.innerHTML = `<div class="card">
+    <div class="card-h"><div><b>Заметки о клиенте</b><span>Цели, травмы, ограничения. Клиент их не видит</span></div></div>
+    <textarea class="field" id="note" placeholder="Например: цель минус 5 кг к лету, беречь левое колено, 3 тренировки в неделю">${esc(c.note || '')}</textarea>
+    <div class="faint" id="note-s" style="font-size:12px">Сохраняется автоматически</div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div><b>Доступ</b><span>Подключён ${c.since ? new Date(c.since).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</span></div></div>
+    <button class="btn btn-bad w100" id="drop"><i class="ti ti-user-minus"></i> Отключить клиента</button>
+  </div>`;
+  let t = null;
+  $('#note').oninput = (e) => { clearTimeout(t); $('#note-s').textContent = 'Сохраняю…'; t = setTimeout(async () => {
+    c.note = e.target.value; await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k + '/note'), c.note).catch(() => {}); $('#note-s').textContent = 'Сохранено'; }, 600); };
+  $('#drop').onclick = async () => {
+    if (!confirm('Отключить ' + cname(c) + '? Вы потеряете доступ к его тренировкам. Его план и записи останутся у него.')) return;
+    try { await set(ref(db, 'clientTrainer/' + c.k), null); } catch (e) {}
+    await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k), null);
+    await set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k), null).catch(() => {});
+    clients.splice(view.i, 1); view = { name: 'list' }; await loadClients(); render(); toast('Клиент отключён');
+  };
+}
+
+/* ── План клиента: просмотр и правка ── */
+const TYPES = ['Тренажерный зал', 'Кардио', 'Бег', 'Шаги', 'Теннис', 'Растяжка', 'Отдых'];
+const GROUPS = ['Грудь', 'Спина', 'Ноги', 'Плечи', 'Руки', 'Кор', 'FULL BODY'];
+function renderPlan(c, body) {
+  const ps = plansOf(c); const p = activePlan(c);
+  if (!p) {
+    body.innerHTML = `<div class="empty"><i class="ti ti-calendar-plus"></i>У клиента пока нет плана.<br><button class="btn btn-main" id="np" style="margin-top:14px"><i class="ti ti-plus"></i> Создать план</button></div>`;
+    $('#np').onclick = () => planModal(c); return;
+  }
+  const A = window.TrainingAI; const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const cw = Math.max(0, Math.min(toArr(p.weeks).length - 1, A.currentWeekIdx(p)));
+  const openW = view.open != null ? view.open : cw;
+  body.innerHTML = `
+    <div class="pl-top"><b style="flex:1">План №${esc(p.number || '')}${p.tpl ? `<small class="faint" style="display:block;font-weight:600;font-size:12px">по шаблону «${esc(p.tpl)}»</small>` : ''}</b>
+      <button class="btn btn-ghost btn-sm" id="st" title="Сохранить как шаблон"><i class="ti ti-template"></i> В шаблоны</button>
+      <button class="btn btn-ghost btn-sm" id="np"><i class="ti ti-plus"></i> Новый</button></div>
+    ${toArr(p.weeks).map((w, wi) => `
+      <div class="wk${wi === openW ? ' open' : ''}" data-w="${wi}">
+        <div class="wk-h"><div><i class="ti ti-chevron-right"></i> Неделя ${wi + 1}</div><span>${esc(w.range || '')}</span></div>
+        <div class="wk-b">${toArr(w.days).map((d, di) => { trMigrateDayToSessions(d);
+          const dt = A.planDayDate(p, d.date); const isT = dt && +dt === +t0; const past = dt && dt < t0;
+          const ss = toArr(d.sessions).filter(Boolean);
+          return `<div class="dy${isT ? ' today' : ''}">
+            <div class="dy-h"><b>${esc(d.date)} ${esc(d.dow)}</b>${isT ? '<span class="today-b">сегодня</span>' : ''}<span class="sp"></span>
+              ${(past || isT) && ss.some(s => s.type !== 'Отдых') ? `<button class="dn${d.done ? ' on' : ''}" data-act="done" data-w="${wi}" data-d="${di}" title="${d.done ? 'Снять отметку' : 'Отметить: тренировка проведена'}"><i class="ti ti-${d.done ? 'circle-check-filled' : 'circle-check'}"></i>${d.done ? (d.done.by === 'coach' ? 'провёл' : 'сделал') : 'отметить'}</button>` : ''}
+              <button class="mini" data-act="note" data-w="${wi}" data-d="${di}" title="Заметка тренера"><i class="ti ti-message-2"></i></button>
+              <button class="mini" data-act="sess" data-w="${wi}" data-d="${di}" title="Добавить тренировку"><i class="ti ti-plus"></i></button></div>
+            ${d.coachNote ? `<div class="cnote"><i class="ti ti-user-star"></i><span>${esc(d.coachNote)}</span></div>` : ''}
+            ${d.comment ? `<div class="cnote cnote-c"><i class="ti ti-message-circle"></i><span>Клиент: ${esc(d.comment)}</span></div>` : ''}
+            ${ss.map((s, si) => `<div class="ss">
+              <div class="ss-h"><span class="pill">${esc(s.type || '')}</span>${toArr(s.groups).map(g => `<span class="pill">${esc(g)}</span>`).join('')}${s.ai ? '<span class="pill" style="color:#A5B4FF">AI</span>' : ''}
+                <span style="flex:1"></span><button class="mini" data-act="dels" data-w="${wi}" data-d="${di}" data-s="${si}" title="Удалить тренировку"><i class="ti ti-trash"></i></button></div>
+              ${toArr(s.exercises).filter(Boolean).map((e, ei) => `<div class="ex" data-w="${wi}" data-d="${di}" data-s="${si}" data-e="${ei}">
+                <div class="ex-n">${esc(e.name || '')}${e.kind && e.kind !== 'strength' ? `<small>${esc(e.kind)}</small>` : ''}</div>
+                <div class="ex-v${past && (d.done || !s.byCoach) ? ' done' : ''}">${e.kind === 'strength' || !e.kind ? `${e.sets || 0}×${e.reps || 0}${e.weight ? ' × ' + String(e.weight).replace('.', ',') + ' кг' : ''}` : esc(e.steps ? e.steps + ' шагов' : e.distance ? e.distance + ' км' : e.duration ? e.duration + ' мин' : '')}</div></div>`).join('')}
+              ${s.type !== 'Отдых' ? `<button class="add-ex" data-act="addex" data-w="${wi}" data-d="${di}" data-s="${si}">+ упражнение</button>` : ''}
+            </div>`).join('')}
+          </div>`; }).join('')}</div>
+      </div>`).join('')}`;
+  body.querySelectorAll('.wk-h').forEach(el => el.onclick = () => { const w = +el.parentElement.dataset.w; view.open = view.open === w ? -1 : w; renderPlan(c, body); });
+  body.querySelector('#np').onclick = () => planModal(c);
+  body.querySelector('#st').onclick = () => saveTemplate(c);
+  coachTips('plan');
+  const P = () => plansOf(c); const idx = () => P().indexOf(activePlan(c));
+  const day = (plans, w, d) => { const x = toArr(plans[idx()].weeks)[w]; x.days = toArr(x.days); trMigrateDayToSessions(x.days[d]); return x.days[d]; };
+  body.querySelectorAll('[data-act]').forEach(b => b.onclick = async (ev) => {
+    ev.stopPropagation();
+    const w = +b.dataset.w, d = +b.dataset.d, plans = P(); plans[idx()].weeks = toArr(plans[idx()].weeks);
+    const dd = day(plans, w, d);
+    if (b.dataset.act === 'done') {
+      if (dd.done) delete dd.done; else dd.done = { by: 'coach', at: Date.now() };
+      await savePlans(c, plans); renderPlan(c, body); return;
+    }
+    if (b.dataset.act === 'note') {
+      const v = prompt('Заметка тренера на этот день (клиент её увидит)', dd.coachNote || ''); if (v === null) return;
+      dd.coachNote = v.trim() || null; await savePlans(c, plans); renderPlan(c, body); toast('Заметка сохранена');
+    } else if (b.dataset.act === 'sess') sessionModal(c, plans, dd, () => renderPlan(c, body));
+    else if (b.dataset.act === 'dels') { if (!confirm('Удалить эту тренировку у клиента?')) return; dd.sessions.splice(+b.dataset.s, 1); await savePlans(c, plans); renderPlan(c, body); }
+    else if (b.dataset.act === 'addex') exModal(c, plans, dd.sessions[+b.dataset.s], null, () => renderPlan(c, body));
+  });
+  body.querySelectorAll('.ex').forEach(el => el.onclick = () => {
+    const plans = P(); plans[idx()].weeks = toArr(plans[idx()].weeks);
+    const dd = day(plans, +el.dataset.w, +el.dataset.d); const s = dd.sessions[+el.dataset.s]; s.exercises = toArr(s.exercises);
+    exModal(c, plans, s, +el.dataset.e, () => renderPlan(c, body));
+  });
+}
+function sheet(html) { const ov = document.createElement('div'); ov.className = 'ov'; ov.innerHTML = `<div class="sheet">${html}</div>`; document.body.appendChild(ov); ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); }); return ov; }
+function sessionModal(c, plans, dd, done) {
+  let type = TYPES[0], groups = new Set();
+  const ov = sheet(`<h3>Новая тренировка</h3><div class="lbl">Тип</div><div class="chips" id="ty">${TYPES.map((t, i) => `<button class="chip${i ? '' : ' on'}" data-v="${t}">${t}</button>`).join('')}</div>
+    <div id="gr-w"><div class="lbl">Группы мышц</div><div class="chips" id="gr">${GROUPS.map(g => `<button class="chip" data-v="${g}">${g}</button>`).join('')}</div></div>
+    <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Добавить</button></div>`);
+  ov.querySelectorAll('#ty .chip').forEach(b => b.onclick = () => { type = b.dataset.v; ov.querySelectorAll('#ty .chip').forEach(x => x.classList.toggle('on', x === b)); ov.querySelector('#gr-w').style.display = type === 'Тренажерный зал' ? '' : 'none'; });
+  ov.querySelectorAll('#gr .chip').forEach(b => b.onclick = () => { b.classList.toggle('on'); groups.has(b.dataset.v) ? groups.delete(b.dataset.v) : groups.add(b.dataset.v); });
+  ov.querySelector('#x').onclick = () => ov.remove();
+  ov.querySelector('#ok').onclick = async () => { dd.sessions = toArr(dd.sessions); dd.sessions.push({ type, groups: [...groups], exercises: [], byCoach: true }); await savePlans(c, plans); ov.remove(); done(); toast('Тренировка добавлена'); };
+}
+function exModal(c, plans, s, ei, done) {
+  s.exercises = toArr(s.exercises); const e = ei != null ? s.exercises[ei] : { kind: 'strength', name: '', sets: 3, reps: 10, weight: 0 };
+  const strength = !e.kind || e.kind === 'strength';
+  const ov = sheet(`<h3>${ei != null ? 'Упражнение' : 'Новое упражнение'}</h3>
+    <div class="lbl">Название</div><input class="field" id="n" value="${esc(e.name || '')}" placeholder="Жим штанги лёжа">
+    ${strength ? `<div class="row3"><div><div class="lbl">Подходы</div><input class="field" id="s" type="number" inputmode="numeric" value="${e.sets || 0}"></div>
+      <div><div class="lbl">Повторы</div><input class="field" id="r" type="number" inputmode="numeric" value="${e.reps || 0}"></div>
+      <div><div class="lbl">Вес, кг</div><input class="field" id="w" type="number" inputmode="decimal" step="0.5" value="${e.weight || 0}"></div></div>` : '<p class="muted" style="font-size:12.5px">Это не силовое упражнение, можно поменять только название.</p>'}
+    <div class="acts">${ei != null ? '<button class="btn btn-bad" id="del">Удалить</button>' : '<button class="btn btn-ghost" id="x">Отмена</button>'}<button class="btn btn-main" id="ok">Сохранить</button></div>`);
+  const x = ov.querySelector('#x'); if (x) x.onclick = () => ov.remove();
+  const del = ov.querySelector('#del'); if (del) del.onclick = async () => { s.exercises.splice(ei, 1); await savePlans(c, plans); ov.remove(); done(); };
+  ov.querySelector('#ok').onclick = async () => {
+    const n = ov.querySelector('#n').value.trim(); if (!n) return;
+    const ne = { ...e, name: n };
+    if (strength) { ne.kind = 'strength'; ne.sets = +ov.querySelector('#s').value || 0; ne.reps = +ov.querySelector('#r').value || 0; ne.weight = +String(ov.querySelector('#w').value).replace(',', '.') || 0; }
+    if (ei != null) s.exercises[ei] = ne; else s.exercises.push(ne);
+    await savePlans(c, plans); ov.remove(); done(); toast('Сохранено');
+  };
+}
+</script>
+</body>
+</html>

@@ -178,6 +178,11 @@ h2{font-size:clamp(30px,4.2vw,52px);line-height:1.08;letter-spacing:-.03em;margi
 .ai-phones{position:relative;height:620px}
 .ai-phones .phone{position:absolute;width:280px}
 .ai-phones .pa{left:0;top:40px;transform:rotate(-5deg)} .ai-phones .pb{right:0;top:0;transform:rotate(4deg);z-index:2}
+.coach-sec{padding-top:40px}
+.coach-cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:26px}
+.coach-cta span{font-size:13px;color:var(--soft);font-weight:600}
+@media (max-width:980px){.coach-sec .ai-grid>div:last-child{order:-1}}
+@media (max-width:560px){.coach-sec .ai-feats{grid-template-columns:1fr 1fr;gap:8px}.coach-sec .ai-feat{padding:12px}.coach-sec .ai-feat b{font-size:13px}.coach-sec .ai-feat span{font-size:11.5px;line-height:1.4}}
 
 /* Карточки-фичи */
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:56px}
@@ -521,7 +526,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 <nav class="nav" id="nav"><div class="wrap nav-in">
   <a class="logo" href="#top"><img src="icon.png" alt="">YOU</a>
   <div class="nav-links">
-    <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
+    <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#coach">Тренерам</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
   </div>
   <div class="sp"></div>
   <a class="btn btn-ghost btn-sm nav-login" href="./#/login">Войти</a>
@@ -685,6 +690,32 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   <div class="story-pic rv rv-r"><div class="story-glow"></div><img src="img/landing/story.webp" alt="Прогресс за 8 недель для сторис" loading="lazy"></div>
 </div></section>
 
+
+<!-- Для тренеров -->
+<section class="coach-sec" id="coach"><div class="wrap ai-grid">
+  <div class="ai-phones coach-phones rv">
+    <div class="phone pa float"><div class="scr"><img src="img/landing/coach_client.webp" alt="Карточка клиента в кабинете тренера" loading="lazy"></div></div>
+    <div class="phone pb float"><div class="scr"><img src="img/landing/coach_home.webp" alt="Сводка по клиентам" loading="lazy"></div></div>
+  </div>
+  <div>
+    <span class="eyebrow">Для тренеров</span>
+    <h2 class="rv">Все ученики<br>в <span class="grad-t">одном кабинете</span></h2>
+    <p class="sec-lead rv">Онлайн или в зале: вы ведёте план, клиент тренируется по нему в своём YOU. Утром открыли сводку и за минуту поняли, кто молодец, кто пропал и кому что поменять.</p>
+    <div class="ai-feats rv">
+      <div class="ai-feat"><i class="ti ti-layout-dashboard"></i><b>Сводка и лента</b><span>Кто тренировался, рекорды, пропуски и комментарии по всем клиентам</span></div>
+      <div class="ai-feat"><i class="ti ti-chart-bar"></i><b>Обзор клиента</b><span>Посещаемость, объём нагрузки, сила в базе и замеры на графиках</span></div>
+      <div class="ai-feat"><i class="ti ti-template"></i><b>Шаблоны программ</b><span>Собрали раз, назначаете в два клика. Веса подставятся из истории клиента</span></div>
+      <div class="ai-feat"><i class="ti ti-send"></i><b>Итоги недели</b><span>Цифры считаются сами, вы добавляете комментарий, клиент видит в приложении</span></div>
+      <div class="ai-feat"><i class="ti ti-sparkles"></i><b>AI в помощь</b><span>Подскажет прогрессию и плато, а решение за вами. Клиента он у вас не заберёт</span></div>
+      <div class="ai-feat"><i class="ti ti-lock"></i><b>Только тренировки</b><span>Клиент сам выдаёт ключ доступа. Его деньги, привычки и цели закрыты</span></div>
+    </div>
+    <div class="coach-cta rv">
+      <a class="btn btn-main" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a>
+      <span>До 10 клиентов бесплатно</span>
+    </div>
+  </div>
+</div></section>
+
 <!-- Бенто: фишки -->
 <section id="money"><div class="wrap">
   <div class="center"><span class="eyebrow">Детали, которые решают</span><h2 class="rv">Продумано до мелочей</h2></div>
@@ -841,6 +872,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <details class="qa rv"><summary>Где скачать? В App Store нет.<i class="ti ti-plus"></i></summary><p>Скачивать ничего не нужно. YOU открывается в браузере и ставится на экран телефона как обычное приложение: на iPhone через «Поделиться» → «На экран Домой», на Android через меню браузера.</p></details>
     <details class="qa rv"><summary>Кто видит мои данные?<i class="ti ti-plus"></i></summary><p>Только ты. Данные каждого пользователя хранятся отдельно, доступ к ним закрыт правилами базы на сервере. Тренер, если ты его подключишь, видит только тренировки.</p></details>
     <details class="qa rv"><summary>Как работает AI-тренер?<i class="ti ti-plus"></i></summary><p>Он анализирует твои записанные тренировки: дни, связки мышц, веса и повторы, даже если в разных планах упражнения назывались по-разному. По выбранной цели (масса, сила или рельеф) расписывает план до конца блока и после каждой тренировки сам подстраивает веса: добрал повторы, вес вверх, недобрал, держим или снижаем. Учитывает шаг блинов и гантелей в твоём зале, ловит плато и предлагает замены. Скоро добавим чат, где тренеру можно задать вопрос.</p></details>
+    <details class="qa rv"><summary>Я тренер. Как вести клиентов?<i class="ti ti-plus"></i></summary><p>Зарегистрируйтесь и выберите «Я тренер», или откройте кабинет тренера по ссылке выше. Клиент ставит YOU, создаёт в меню ключ доступа и присылает вам, либо переходит по вашей ссылке. Вы видите только его тренировки, ведёте план, отмечаете тренировки в зале и отправляете итоги недели. До 10 клиентов бесплатно.</p></details>
     <details class="qa rv"><summary>Можно пользоваться на нескольких устройствах?<i class="ti ti-plus"></i></summary><p>Да. Войди под своим email на телефоне и на компьютере, данные синхронизируются автоматически.</p></details>
     <details class="qa rv"><summary>Что будет, когда места закончатся?<i class="ti ti-plus"></i></summary><p>Регистрация закроется, а новые пользователи смогут получить личный инвайт через поддержку. Те, кто уже внутри, продолжают пользоваться как раньше.</p></details>
   </div>

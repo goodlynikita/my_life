@@ -542,6 +542,7 @@ window.TrainingAI = (function () {
   /* ── Автоподстройка: появилась новая тренировка → пересчитываем AI-план
      и ещё не наступившие AI-тренировки в основном плане ── */
   function autoAdjust(plan, h) {
+    if (!window.__coachMode && window.FirebaseSync && FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached()) return null;
     const ai = load();
     if (!ai || ai.planId !== plan.id) return null;
     const plans = chosenPlans(h.getPlans()).on.map(x => x.p);
@@ -624,6 +625,20 @@ window.TrainingAI = (function () {
     if (window._aiView === 'insights' && window.TrainingInsights) {
       try { autoAdjust(plan, h); } catch (e) {}
       TrainingInsights.render(content, plan, h, viewTabs(), () => bindViews(content, plan, h));
+      return;
+    }
+    /* Клиента ведёт тренер: план составляет тренер, AI помогает ему в кабинете тренера */
+    const myT = !window.__coachMode && window.FirebaseSync && FirebaseSync.myTrainerCached ? FirebaseSync.myTrainerCached() : null;
+    if (myT) {
+      content.innerHTML = `<div class="ai-wrap">${viewTabs()}
+        <div class="ai-hero">
+          <div class="ai-hero-ico"><i class="ti ti-user-star"></i></div>
+          <div class="ai-hero-t">План ведёт тренер: ${esc(myT.name || 'тренер')}</div>
+          <div class="ai-hero-d">Чтобы не было двух разных планов, AI-план выключен. AI-тренер работает на твоего тренера: подсказывает ему, где плато и что подтянуть, а тренер решает, что поменять. «Разбор» с твоим прогрессом остаётся у тебя.</div>
+          <button class="ai-regen" id="ai-go-ins" style="margin-top:14px"><i class="ti ti-chart-dots"></i> Открыть разбор</button>
+        </div></div>`;
+      bindViews(content, plan, h);
+      const gi = content.querySelector('#ai-go-ins'); if (gi) gi.onclick = () => { window._aiView = 'insights'; render(content, plan, h); };
       return;
     }
     const cp = chosenPlans(h.getPlans());

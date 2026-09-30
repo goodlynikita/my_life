@@ -1,0 +1,259 @@
+/* ============================================================
+   КАБИНЕТ ТРЕНЕРА: расчёты и отрисовка сводок
+   Чистые функции: получают training клиента, отдают данные и HTML.
+   Чтение и запись в базу остаются в coach.html.
+   ============================================================ */
+window.CoachDash = (function () {
+  const DAY = 864e5, WEEK = 7 * DAY;
+  const A = () => window.TrainingAI;
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const toArr = (v) => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : []);
+  const e1 = (r) => (+r.weight || 0) * (1 + (+r.reps || 0) / 30);
+  const kg = (w) => String(Math.round(w * 10) / 10).replace('.', ',');
+  const monday = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  const fmtD = (d) => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
+  const t0 = () => { const x = new Date(); x.setHours(0, 0, 0, 0); return x; };
+
+  /* Все дни всех планов с датами */
+  function days(training) {
+    const out = [];
+    toArr(training && training.plans).filter(Boolean).forEach((p, pi) => toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => {
+      if (!d) return; if (typeof trMigrateDayToSessions === 'function') trMigrateDayToSessions(d);
+      const date = A().planDayDate(p, d.date); if (!date) return;
+      const ss = toArr(d.sessions).filter(s => s && s.type !== 'Отдых');
+      out.push({ date, day: d, plan: p, pi, wi, di, work: ss.length > 0, sessions: ss });
+    })));
+    return out.sort((a, b) => a.date - b.date);
+  }
+  function hasData(x) { return x.sessions.some(sData); }
+  function sData(s) {
+    return (toArr(s.exercises).some(e => e && ((+e.weight || 0) > 0 || (+e.reps || 0) > 0 || (+e.distance || 0) > 0 || (+e.duration || 0) > 0 || (+e.steps || 0) > 0)));
+  }
+  /* Сделано: галочка (клиент или тренер) или своя запись клиента.
+     Тренировки, которые заранее вписал тренер, без галочки не считаем. */
+  const doneDay = (x) => x.work && (!!x.day.done || x.sessions.some(s => !s.byCoach && sData(s)));
+  function parseMDate(s) {
+    const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/); if (!m) return null;
+    let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000;
+    const d = new Date(y, +m[2] - 1, +m[1]); if (!m[3] && d > new Date()) d.setFullYear(y - 1); return d;
+  }
+
+  /* ═══ Всё по одному клиенту ═══ */
+  function analyze(training) {
+    const today = t0(), all = days(training);
+    const past = all.filter(x => x.date <= today);
+    const isDone = doneDay;
+    const plans = toArr(training && training.plans).filter(Boolean);
+    const hist = A().collect(plans);
+    const an = A().analyze(hist, {});
+    /* недели: последние 8 */
+    const m0 = monday(today), weeks = [];
+    for (let i = 7; i >= 0; i--) {
+      const from = new Date(+m0 - i * WEEK), to = new Date(+from + WEEK);
+      const inW = past.filter(x => x.date >= from && x.date < to && x.work);
+      const tons = hist.filter(h => h.date >= from && h.date < to).reduce((s, h) => s + h.exercises.reduce((a, e) => a + (+e.sets || 0) * (+e.reps || 0) * (+e.weight || 0), 0), 0) / 1000;
+      weeks.push({ from, label: fmtD(from), planned: inW.length, done: inW.filter(isDone).length, tons: Math.round(tons * 10) / 10 });
+    }
+    const last4 = weeks.slice(-4), pl4 = last4.reduce((s, w) => s + w.planned, 0), dn4 = last4.reduce((s, w) => s + w.done, 0);
+    const comments = past.filter(x => x.day.comment).map(x => ({ date: x.date, text: x.day.comment })).reverse().slice(0, 5);
+    /* серия подряд выполненных тренировок */
+    let streak = 0; const workPast = past.filter(x => x.work && +x.date !== +today).reverse();
+    for (const x of workPast) { if (isDone(x)) streak++; else break; }
+    /* 1RM по ключевым упражнениям */
+    const lifts = Object.values(an.ex).filter(x => x.cls && x.cls.kind === 'comp').map(x => {
+      const h = toArr(x.hist).filter(r => r.weight > 0 && r.reps > 0).map(r => ({ t: +r.date, v: Math.round(e1(r) * 10) / 10, w: r.weight, reps: r.reps }));
+      return { key: x.key, name: x.name, pts: h, best: h.length ? Math.max(...h.map(p => p.v)) : 0 };
+    }).filter(x => x.pts.length >= 2).sort((a, b) => b.pts.length - a.pts.length || b.best - a.best).slice(0, 4);
+    /* замеры */
+    const ms = toArr(training && training.measurements).filter(m => m && m.values).map(m => ({ ...m, d: parseMDate(m.date) })).sort((a, b) => (a.d || 0) - (b.d || 0));
+    const lastM = ms[ms.length - 1] || null, firstM = ms[0] || null;
+    const weight = (m) => m && m.values && parseFloat(String(m.values['Вес'] || '').replace(',', '.'));
+    return { all, past, isDone, hist, an, weeks, att: pl4 ? Math.round(dn4 / pl4 * 100) : null, pl4, dn4, comments, streak, lifts, ms, lastM, firstM,
+      wNow: weight(lastM), wStart: weight(firstM) };
+  }
+  function groupsOf(x) { return [...new Set(x.sessions.flatMap(s => toArr(s.groups).length ? toArr(s.groups) : [s.type]))].join(' + '); }
+
+  /* ═══ Лента событий по всем клиентам ═══ */
+  function feed(clients, nameOf) {
+    const ev = [], today = t0(), from = new Date(+today - 14 * DAY);
+    clients.forEach(c => {
+      if (!c.ok || !c.d) return; const d = c.d, who = nameOf(c);
+      d.past.filter(x => x.date >= from && x.work).forEach(x => {
+        if (d.isDone(x)) {
+          const hs = d.hist.filter(h => +h.date === +x.date).flatMap(h => h.exercises);
+          const top = hs.sort((a, b) => e1(b) - e1(a))[0];
+          ev.push({ t: +x.date, k: 'done', c, html: `<b>${esc(who)}</b> ${x.day.done && x.day.done.by === 'coach' ? 'тренировка с вами' : 'сделал тренировку'}: ${esc(groupsOf(x))}${top && top.weight > 0 ? `, ${esc(top.name)} ${kg(top.weight)}×${top.reps}` : ''}` });
+        } else if (+x.date < +today) ev.push({ t: +x.date, k: 'miss', c, html: `<b>${esc(who)}</b>: тренировка не отмечена (${esc(groupsOf(x))})` });
+        if (x.day.comment) ev.push({ t: +x.date + 1, k: 'comment', c, html: `<b>${esc(who)}</b> написал: «${esc(x.day.comment)}»` });
+      });
+      /* рекорды */
+      Object.values(d.an.ex).forEach(x => {
+        const h = toArr(x.hist).filter(r => r.weight > 0 && r.reps > 0); if (h.length < 3 || !x.cls || x.cls.kind !== 'comp') return;
+        let best = 0; h.forEach((r, i) => { const v = e1(r); if (i >= 2 && v > best + 0.01 && r.date >= from) ev.push({ t: +r.date + 2, k: 'pr', c, html: `<b>${esc(who)}</b> рекорд: ${esc(x.name)} ${kg(r.weight)}×${r.reps} (1ПМ ≈ ${kg(Math.round(v))} кг)` }); best = Math.max(best, v); });
+      });
+      d.ms.filter(m => m.d && m.d >= from).forEach(m => { const w = parseFloat(String(m.values['Вес'] || '').replace(',', '.'));
+        ev.push({ t: +m.d, k: 'measure', c, html: `<b>${esc(who)}</b> внёс замеры${w ? ': вес ' + kg(w) + ' кг' : ''}` }); });
+    });
+    return ev.sort((a, b) => b.t - a.t);
+  }
+  const EV_ICON = { done: 'ti-circle-check', miss: 'ti-clock-exclamation', comment: 'ti-message-circle', pr: 'ti-trophy', measure: 'ti-ruler-2' };
+  function whenLabel(t) { const d = Math.round((+t0() - +new Date(new Date(t).setHours(0, 0, 0, 0))) / DAY); return d <= 0 ? 'сегодня' : d === 1 ? 'вчера' : fmtD(new Date(t)); }
+  function feedHtml(list, limit) {
+    if (!list.length) return '<div class="fd-empty">Пока тихо. Здесь появятся тренировки, рекорды, пропуски и комментарии клиентов.</div>';
+    let last = '';
+    return list.slice(0, limit || 40).map(e => { const w = whenLabel(e.t); const h = w !== last ? `<div class="fd-day">${w}</div>` : ''; last = w;
+      return h + `<div class="fd fd-${e.k}" data-ck="${esc(e.c.k)}"><i class="ti ${EV_ICON[e.k]}"></i><span>${e.html}</span></div>`; }).join('');
+  }
+
+  /* ═══ Графики (SVG, без библиотек) ═══ */
+  function barsSvg(weeks, key, opt) {
+    const W = 320, H = 120, pad = 18, n = weeks.length, bw = (W - 8) / n;
+    const max = Math.max(1, ...weeks.map(w => opt.track ? Math.max(w[opt.track], w[key]) : w[key]));
+    const y = (v) => H - pad - (v / max) * (H - pad - 14);
+    let s = `<svg viewBox="0 0 ${W} ${H}" class="cd-svg" role="img" aria-label="${esc(opt.label)}">`;
+    s += `<line x1="0" x2="${W}" y1="${H - pad}" y2="${H - pad}" class="cd-base"/>`;
+    weeks.forEach((w, i) => {
+      const x = 4 + i * bw + bw * 0.2, bwi = bw * 0.6, cur = i === n - 1;
+      const tip = opt.tip(w);
+      s += `<g class="cd-bar${cur ? ' cur' : ''}"><title>${esc(tip)}</title><rect x="${4 + i * bw}" y="0" width="${bw}" height="${H}" fill="transparent"/>`;
+      if (opt.track && w[opt.track]) s += `<rect x="${x}" y="${y(w[opt.track])}" width="${bwi}" height="${H - pad - y(w[opt.track])}" rx="4" class="cd-track"/>`;
+      if (w[key]) s += `<rect x="${x}" y="${y(w[key])}" width="${bwi}" height="${Math.max(2, H - pad - y(w[key]))}" rx="4" class="cd-fill"/>`;
+      if (w[key] || (opt.track && w[opt.track])) s += `<text x="${x + bwi / 2}" y="${y(Math.max(w[key], opt.track ? w[opt.track] : 0)) - 4}" class="cd-val">${opt.fmt(w)}</text>`;
+      s += `<text x="${x + bwi / 2}" y="${H - 4}" class="cd-lbl">${w.label}</text></g>`;
+    });
+    return s + '</svg>';
+  }
+  function lineSvg(pts) {
+    const W = 300, H = 64, p = 6;
+    const t0_ = pts[0].t, t1 = pts[pts.length - 1].t || t0_ + 1, vs = pts.map(x => x.v), mn = Math.min(...vs), mx = Math.max(...vs);
+    const X = (t) => p + (t - t0_) / Math.max(1, t1 - t0_) * (W - 2 * p), Y = (v) => H - p - (mx === mn ? 0.5 : (v - mn) / (mx - mn)) * (H - 2 * p);
+    const d = pts.map((x, i) => (i ? 'L' : 'M') + X(x.t).toFixed(1) + ' ' + Y(x.v).toFixed(1)).join(' ');
+    const l = pts[pts.length - 1];
+    return `<svg viewBox="0 0 ${W} ${H}" class="cd-spark"><path d="${d}" class="cd-line"/><circle cx="${X(l.t)}" cy="${Y(l.v)}" r="3.5" class="cd-dot"/></svg>`;
+  }
+
+  /* ═══ Обзор клиента ═══ */
+  function dashHtml(c, d, weekly) {
+    const att = d.att;
+    if (!d.past.some(x => x.work) && !d.lastM) return `<div class="empty"><i class="ti ti-chart-bar"></i>Данных пока нет.<br>Составьте план во вкладке «План»: как только пройдут первые тренировки, здесь появятся посещаемость, объём, сила и замеры.</div>${weekly && d.hist.length ? weekly : ''}`;
+    return `
+    <div class="cd-kpis">
+      <div class="cd-kpi"><b>${att == null ? '–' : att + '%'}</b><span>выполнено за 4 нед.</span><small>${d.dn4} из ${d.pl4}</small></div>
+      <div class="cd-kpi"><b>${d.streak}</b><span>подряд без пропусков</span></div>
+      <div class="cd-kpi"><b>${d.weeks.slice(-4).reduce((s, w) => s + w.tons, 0).toFixed(1).replace('.', ',')}</b><span>тонн за 4 нед.</span></div>
+      <div class="cd-kpi"><b>${d.wNow ? kg(d.wNow) : '–'}</b><span>вес тела, кг</span><small>${d.wNow && d.wStart && d.ms.length > 1 ? (d.wNow - d.wStart > 0 ? '+' : '') + kg(d.wNow - d.wStart) + ' с начала' : 'нет замеров'}</small></div>
+    </div>
+    <div class="card"><div class="card-h"><div><b>Посещаемость</b><span>светлое: запланировано, яркое: сделано</span></div></div>
+      ${barsSvg(d.weeks, 'done', { track: 'planned', label: 'Посещаемость по неделям', fmt: w => w.planned ? `${w.done}/${w.planned}` : '', tip: w => `Неделя с ${w.label}: сделано ${w.done} из ${w.planned}` })}</div>
+    <div class="card"><div class="card-h"><div><b>Объём нагрузки</b><span>тонн за неделю (подходы × повторы × вес)</span></div></div>
+      ${barsSvg(d.weeks, 'tons', { label: 'Тоннаж по неделям', fmt: w => w.tons ? String(w.tons).replace('.', ',') : '', tip: w => `Неделя с ${w.label}: ${String(w.tons).replace('.', ',')} т` })}</div>
+    ${d.lifts.length ? `<div class="card"><div class="card-h"><div><b>Сила в ключевых упражнениях</b><span>расчётный максимум на 1 повтор</span></div></div>
+      <div class="cd-lifts">${d.lifts.map(l => { const f = l.pts[0].v, la = l.pts[l.pts.length - 1].v, dl = Math.round((la - f) * 10) / 10;
+        return `<div class="cd-lift"><div class="cd-lift-t"><b>${esc(l.name)}</b><span>${kg(la)} кг <em class="${dl >= 0 ? 'up' : 'down'}">${dl >= 0 ? '+' : ''}${kg(dl)}</em></span></div>${lineSvg(l.pts)}</div>`; }).join('')}</div></div>` : ''}
+    ${d.comments.length ? `<div class="card"><div class="card-h"><div><b>Комментарии клиента</b><span>заметки к дням тренировок</span></div></div>
+      <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : ''}
+    ${d.lastM ? `<div class="card"><div class="card-h"><div><b>Замеры</b><span>последние от ${esc(d.lastM.date)}${d.ms.length > 1 ? ', в скобках разница с первыми' : ''}</span></div></div>
+      <div class="cd-ms">${Object.entries(d.lastM.values).map(([k, v]) => { const a = parseFloat(String(v).replace(',', '.')), b = d.ms.length > 1 ? parseFloat(String((d.firstM.values || {})[k] || '').replace(',', '.')) : NaN;
+        const df = !isNaN(a) && !isNaN(b) ? Math.round((a - b) * 10) / 10 : null;
+        return `<div><span>${esc(k)}</span><b>${esc(v)}${df ? ` <em>(${df > 0 ? '+' : ''}${kg(df)})</em>` : ''}</b></div>`; }).join('')}</div></div>` : ''}
+    ${weekly}`;
+  }
+
+  /* ═══ Итоги недели ═══ */
+  function weekSummary(d) {
+    const wc = window.TrainingInsights._weekCard(d.hist, d.an);
+    const mon = monday(new Date()), from = new Date(+mon - WEEK);
+    const wk = d.weeks.find(w => +w.from === +from) || { planned: 0, done: 0 };
+    return { range: fmtD(wc.from) + ' – ' + fmtD(wc.to), count: wk.done || wc.count, planned: wk.planned, tons: Math.round(wc.tL / 100) / 10, delta: wc.delta, grew: wc.grew.slice(0, 4), lag: wc.lag};
+  }
+  function weeklyFormHtml(s, sent) {
+    return `<div class="card" id="cw-card"><div class="card-h"><div><b>Итоги недели для клиента</b><span>${esc(s.range)}${sent ? ' · отправлено ' + fmtD(new Date(sent.at)) : ''}</span></div></div>
+      <div class="cd-kpis three"><div class="cd-kpi"><b>${s.count}${s.planned ? '<small>/' + s.planned + '</small>' : ''}</b><span>тренировок</span></div>
+        <div class="cd-kpi"><b>${String(s.tons).replace('.', ',')}</b><span>тонн</span></div>
+        <div class="cd-kpi"><b>${s.delta == null ? '–' : (s.delta > 0 ? '+' : '') + s.delta + '%'}</b><span>к прошлой</span></div></div>
+      ${s.grew.length ? `<div class="cd-grew">${s.grew.map(g => `<div><i class="ti ti-trending-up"></i>${esc(g)}</div>`).join('')}</div>` : ''}
+      ${s.lag.length ? `<div class="cd-grew lag">${s.lag.map(g => `<div><i class="ti ti-alert-circle"></i>Мало: ${esc(g)}</div>`).join('')}</div>` : ''}
+      <textarea class="field" id="cw-text" placeholder="Ваш комментарий: что получилось, на что обратить внимание на следующей неделе">${esc(sent && sent.text || '')}</textarea>
+      <div class="inv-btns" style="margin-top:4px"><button class="btn btn-main btn-sm" id="cw-send"><i class="ti ti-send"></i> Отправить в приложение</button>
+        <button class="btn btn-ghost btn-sm" id="cw-img"><i class="ti ti-photo"></i> Картинкой</button></div>
+      <div class="faint" style="font-size:11.5px;margin-top:8px">Клиент увидит карточку в «Тренировках». Картинку можно переслать в мессенджер.</div></div>`;
+  }
+  async function weeklyImage(s, text, trainer, client) {
+    const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+    try { await Promise.all(['900', '800', '600', '500'].map(w => document.fonts.load(`${w} 40px Montserrat`, 'Итоги недели АБВ'))); } catch (e) {}
+    const F = (w, sz) => `${w} ${sz}px Montserrat, sans-serif`;
+    const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#101830'); bg.addColorStop(1, '#0A0D18'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    const glow = g.createRadialGradient(W * .85, 80, 10, W * .85, 80, 700); glow.addColorStop(0, 'rgba(74,124,255,.45)'); glow.addColorStop(1, 'rgba(74,124,255,0)'); g.fillStyle = glow; g.fillRect(0, 0, W, H);
+    const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+    g.fillStyle = '#A5B4FC'; g.font = F(700, 34); g.fillText('ИТОГИ НЕДЕЛИ · ' + s.range, 80, 130);
+    g.fillStyle = '#fff'; g.font = F(900, 76); g.fillText(client.slice(0, 22), 80, 230);
+    g.fillStyle = '#8B93AD'; g.font = F(500, 34); g.fillText('Тренер: ' + trainer.slice(0, 30), 80, 290);
+    const k = [[s.count + (s.planned ? '/' + s.planned : ''), 'тренировок'], [String(s.tons).replace('.', ','), 'тонн'], [s.delta == null ? '–' : (s.delta > 0 ? '+' : '') + s.delta + '%', 'к прошлой']];
+    k.forEach((x, i) => { const bx = 80 + i * 314; g.fillStyle = 'rgba(110,148,255,.13)'; rr(bx, 350, 290, 190, 32); g.fill();
+      g.fillStyle = '#fff'; g.font = F(900, 70); g.fillText(x[0], bx + 32, 460); g.fillStyle = '#A5B4FC'; g.font = F(600, 30); g.fillText(x[1], bx + 32, 510); });
+    let y = 620;
+    if (s.grew.length) { g.fillStyle = '#86EFAC'; g.font = F(800, 34); g.fillText('Выросло', 80, y); y += 56;
+      g.font = F(600, 32); s.grew.slice(0, 4).forEach(t => { g.fillStyle = '#E5E7EB'; g.fillText('↑ ' + t.slice(0, 44), 80, y); y += 50; }); y += 20; }
+    if (text) { g.fillStyle = 'rgba(255,255,255,.06)'; const lines = wrap(g, text, W - 220, F(500, 34)); const bh = Math.min(8, lines.length) * 50 + 70; rr(80, y, W - 160, bh, 30); g.fill();
+      g.fillStyle = '#E0E7FF'; g.font = F(500, 34); lines.slice(0, 8).forEach((l, i) => g.fillText(l, 118, y + 64 + i * 50)); }
+    g.fillStyle = '#6F7C9E'; g.font = F(700, 30); g.fillText('YOU · приложение для тренировок', 80, H - 70);
+    return new Promise(r => cv.toBlob(r, 'image/png'));
+  }
+  function wrap(g, text, maxW, font) {
+    g.font = font; const out = [];
+    String(text).split(/\n/).forEach(par => { let line = ''; par.split(/\s+/).forEach(w => { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }); out.push(line); });
+    return out;
+  }
+
+  /* ═══ Шаблоны программ ═══ */
+  function templateFrom(plan, name) {
+    const weeks = toArr(plan.weeks).map(w => ({ days: toArr(w && w.days).map(d => { if (typeof trMigrateDayToSessions === 'function') trMigrateDayToSessions(d);
+      return { dow: d.dow, note: d.coachNote || null, sessions: toArr(d.sessions).filter(Boolean).map(s => ({ type: s.type, groups: toArr(s.groups), exercises: toArr(s.exercises).filter(Boolean).map(e => {
+        const x = { kind: e.kind || 'strength', name: e.name }; ['sets', 'reps', 'weight', 'distance', 'duration', 'steps'].forEach(k => { if (e[k] != null && e[k] !== '') x[k] = e[k]; }); return x; }) })) }; }) }));
+    /* обрезаем пустые недели в конце */
+    while (weeks.length && !weeks[weeks.length - 1].days.some(d => d.sessions.length)) weeks.pop();
+    const sess = weeks.reduce((s, w) => s + w.days.reduce((a, d) => a + d.sessions.filter(x => x.type !== 'Отдых').length, 0), 0);
+    return { name: String(name).slice(0, 60), weeks, weeksCount: weeks.length, sessions: sess, createdAt: Date.now() };
+  }
+  /* Веса клиента: последний рабочий вес по упражнению (ключ названия) */
+  function clientWeights(d) {
+    const out = {}; Object.values(d.an.ex).forEach(x => { const h = toArr(x.hist).filter(r => r.weight > 0); if (h.length) out[x.key] = h[h.length - 1].weight; }); return out;
+  }
+  /* «Жим штанга» и «Жим штанги лёжа» — одно упражнение: ищем единственный ключ, где есть все слова */
+  function weightFor(weights, k) {
+    if (weights[k]) return weights[k];
+    const t = k.split(' '); const sup = Object.keys(weights).filter(o => t.every(x => o.split(' ').includes(x)));
+    return sup.length === 1 ? weights[sup[0]] : null;
+  }
+  function applyTemplate(tpl, start, weights, keepTplWeights) {
+    const DOWS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+    const T = toArr(tpl.weeks);
+    /* первый вес каждого упражнения в шаблоне: база для пропорции */
+    const base = {}; T.forEach(w => toArr(w.days).forEach(d => toArr(d.sessions).forEach(s => toArr(s.exercises).forEach(e => { const k = A().exKey(e.name); if (e.weight > 0 && base[k] == null) base[k] = +e.weight; }))));
+    let fromClient = 0, empty = 0;
+    const nWeeks = Math.max(8, T.length), weeks = [];
+    for (let wi = 0; wi < nWeeks; wi++) {
+      const tw = T[wi], days = [];
+      for (let di = 0; di < 7; di++) {
+        const dt = new Date(start); dt.setDate(start.getDate() + wi * 7 + di);
+        const td = tw ? toArr(tw.days).find(x => String(x.dow || '').slice(0, 2) === DOWS[di]) || toArr(tw.days)[di] : null;
+        const day = { date: fmtD(dt), dow: DOWS[di], sessions: [] };
+        if (td) {
+          if (td.note) day.coachNote = td.note;
+          day.sessions = toArr(td.sessions).map(s => ({ type: s.type, groups: toArr(s.groups), byCoach: true, exercises: toArr(s.exercises).map(e => {
+            const x = JSON.parse(JSON.stringify(e)); if (!(x.kind === 'strength' || !x.kind) || !(+e.weight > 0)) return x;
+            const k = A().exKey(e.name), cw = weightFor(weights, k);
+            if (cw) { const step = A().stepFor(e.name), ratio = base[k] ? +e.weight / base[k] : 1; x.weight = Math.max(step, Math.round(cw * ratio / step) * step); fromClient++; }
+            else if (!keepTplWeights) { x.weight = 0; empty++; }
+            return x; }) }));
+        }
+        days.push(day);
+      }
+      const b = new Date(start); b.setDate(start.getDate() + wi * 7 + 6);
+      weeks.push({ weekNum: wi + 1, range: fmtD(new Date(+start + wi * WEEK)) + ' – ' + fmtD(b), days });
+    }
+    return { weeks, fromClient, empty };
+  }
+
+  return { analyze, feed, feedHtml, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
+})();

@@ -894,9 +894,11 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
   }).join('');
 
   const comment = day.comment || '';
-  const commentHtml = comment
+  const commentHtml = (comment
     ? `<div class="tr-day-comment"><i class="ti ti-message-circle" style="font-size:12px;"></i> ${comment}</div>`
-    : '';
+    : '') + (day.coachNote
+    ? `<div class="tr-day-coachnote"><i class="ti ti-user-star"></i><span><b>Тренер:</b> ${String(day.coachNote).replace(/[<>&]/g, '')}</span></div>`
+    : '');
 
   return `
     <div class="tr-day${isToday ? ' tr-day-today' : ''}">
@@ -904,7 +906,8 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
         <span class="tr-day-date">${day.date} ${day.dow}</span>
         ${isToday ? '<span class="tr-today-badge">Сегодня</span>' : ''}
         ${!hasAnySession ? `<span class="tr-day-tag">не задано</span>` : ''}
-        <span style="display:flex; gap:4px; margin-left:auto;">
+        <span style="display:flex; gap:4px; margin-left:auto; align-items:center;">
+          ${window.TrainerClient ? TrainerClient.doneBtn(day, plan, weekIndex, dayIdx) : ''}
           <button class="tr-day-comment-btn" data-week="${weekIndex}" data-day="${dayIdx}" title="${comment ? 'Изменить заметку' : 'Добавить заметку'}" style="background:none; border:none; cursor:pointer; color:${comment ? '#2E7FD4' : '#555'}; padding:2px 4px;"><i class="ti ti-message-circle"></i></button>
           <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
         </span>
@@ -2038,9 +2041,10 @@ window.Screens.training = function (mount) {
     }
 
     if (tab === 'plan') {
-      content.innerHTML = trRenderPlanTab(plan, collapsedWeeks);
+      content.innerHTML = (window.TrainerClient ? TrainerClient.weeklyHtml() : '') + trRenderPlanTab(plan, collapsedWeeks);
       trAnimateBars(content);
       bindPlanEvents(plan);
+      if (window.TrainerClient) TrainerClient.bind(content, plan, () => renderTab('plan'));
     } else if (tab === 'working-weight') {
       let _baseWkIdx = 0;
       const _renderWW = () => {

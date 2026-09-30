@@ -169,8 +169,7 @@ window.TrainingInsights = (function () {
       Store.set('training.aiPrefs', p2);
       const ai = A.load();
       if (ai && ai.planId === plan.id) {
-        const res = A.generate(A.chosenPlans(h.getPlans()).on.map(x => x.p), plan, { fromWeek: ai.fromWeek, prefs: p2 });
-        if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); A.save(res); }
+        A.regenKeep(A.chosenPlans(h.getPlans()).on.map(x => x.p), plan, p2);
       }
     };
     content.querySelectorAll('.in-alt').forEach(b => b.addEventListener('click', () => {

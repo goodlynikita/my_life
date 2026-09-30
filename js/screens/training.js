@@ -1526,7 +1526,7 @@ function get1RMZones(rm) {
 function trRender1RMCalc() {
   return `<div class="tr-1rm-wrap">
     <div class="tr-1rm-hero">
-      <div class="tr-1rm-title">Калькулятор 1RM</div>
+      <div class="tr-1rm-title">Калькулятор максимума</div>
       <div class="tr-1rm-sub tr-1rm-what">Максимальный вес, который ты поднимешь <b>один раз</b>. Введи вес и сколько раз его сделал, а я посчитаю твой максимум и рабочие веса под силу, массу и выносливость.</div><div class="tr-1rm-sub tr-1rm-formula">Формула Эпли: вес × (1 + повторы / 30)</div>
     </div>
     <div class="tr-1rm-inputs">
@@ -1577,7 +1577,6 @@ window.Screens.training = function (mount) {
       <div class="tr-tabs">
         <button class="tr-tab active" data-tab="plan">План</button>
         <button class="tr-tab" data-tab="working-weight"><span class="tt-lg">Рабочий вес</span><span class="tt-sm">Веса</span></button>
-        <button class="tr-tab" data-tab="one-rm">1RM</button>
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
         <button class="tr-tab tr-tab-ai" data-tab="ai"><i class="ti ti-sparkles"></i> AI</button>
@@ -2020,7 +2019,7 @@ window.Screens.training = function (mount) {
               <i class="ti ti-barbell" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
               <div>
                 <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Веса и рекорды</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Веса» рабочие веса по каждому упражнению, в «1RM» твои максимумы.</div>
+                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Веса» рабочие веса по каждому упражнению и калькулятор максимума.</div>
               </div>
             </div>
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -2064,6 +2063,11 @@ window.Screens.training = function (mount) {
       let _baseWkIdx = 0;
       const _renderWW = () => {
         content.innerHTML = trRenderWorkingWeight(plan, _baseWkIdx);
+        const eb = document.getElementById('tr-edit-exercises-ww');
+        const rmHtml = '<button class="tr-rm-open" id="tr-rm-open"><i class="ti ti-calculator"></i> Калькулятор максимума</button>';
+        if (eb && eb.parentElement) { eb.parentElement.style.justifyContent = 'space-between'; eb.parentElement.style.alignItems = 'center'; eb.insertAdjacentHTML('beforebegin', rmHtml); }
+        else content.insertAdjacentHTML('afterbegin', rmHtml);
+        document.getElementById('tr-rm-open').onclick = () => renderTab('one-rm');
         const sel = document.getElementById('tr-base-week-sel');
         if (sel) {
           sel.closest('div').style.display='none';
@@ -2079,6 +2083,8 @@ window.Screens.training = function (mount) {
       }
       const _saved1rm = window._last1rmState || {};
       content.innerHTML = trRender1RMCalc();
+      content.insertAdjacentHTML('afterbegin', '<button class="tr-rm-back" id="tr-rm-back"><i class="ti ti-arrow-left"></i> Веса</button>');
+      document.getElementById('tr-rm-back').onclick = () => renderTab('working-weight');
       const calcBtn = document.getElementById('rm-calc-btn');
       const wEl = document.getElementById('rm-weight');
       const rEl = document.getElementById('rm-reps');
@@ -2155,6 +2161,7 @@ window.Screens.training = function (mount) {
         /* план создаётся сам, если его ещё нет: одна кнопка в AI */
         createPlan: () => { currentPlanId = trCreateNextPlan(); collapsedWeeks = []; populatePlanSelect(); return trGetPlans().find(p => p && p.id === currentPlanId); },
         rerender: () => renderTab('ai'),
+        openPlan: () => { const b = document.querySelector('.tr-tab[data-tab="plan"]'); if (b) b.click(); },
       });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);

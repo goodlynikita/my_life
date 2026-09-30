@@ -1667,6 +1667,7 @@ function h() {
     getPlans: () => plansOf(c),
     savePlans: (plans) => savePlans(c, plans),
     afterTransfer: () => { toast('Добавлено в план клиента'); },
+    openPlan: () => { const b = document.querySelector('.ctabs button[data-t="plan"]'); if (b) b.click(); },
   };
 }
 async function savePlans(c, plans) {

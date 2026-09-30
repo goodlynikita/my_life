@@ -242,7 +242,7 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
   <div class="ca-hero">
     <div class="ca-brand"><img src="icon.png" alt=""><div><b>YOU</b><span>для тренеров</span></div></div>
     <h1>Все ученики<br><em>в одном кабинете</em></h1>
-    <p class="ca-lead">Ведите планы, следите за прогрессом и замерами клиентов. Онлайн или в зале, до 10 клиентов бесплатно.</p>
+    <p class="ca-lead">Ведите планы, следите за прогрессом и замерами клиентов. Онлайн или в зале, до 50 клиентов бесплатно.</p>
     <div class="ca-mock" aria-hidden="true">
       <div class="ca-m m1"><i class="ti ti-trophy"></i><span><b>Никита</b> рекорд: жим 85×8</span></div>
       <div class="ca-m m2"><i class="ti ti-chart-bar"></i><span><b>Мария</b> посещаемость 92%</span></div>
@@ -285,7 +285,7 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 <div class="auth hidden" id="become">
   <div class="auth-card">
     <div class="auth-logo"><img src="icon.png" alt=""><div><b>Кабинет тренера</b><span id="bc-email"></span></div></div>
-    <p class="muted" style="font-size:13.5px;line-height:1.55;margin:0 0 14px">У этого аккаунта ещё нет кабинета тренера. Создайте его: получите ссылку для клиентов и сможете вести до 10 человек бесплатно.</p>
+    <p class="muted" style="font-size:13.5px;line-height:1.55;margin:0 0 14px">У этого аккаунта ещё нет кабинета тренера. Создайте его: получите ссылку для клиентов и сможете вести до 50 человек бесплатно.</p>
     <input class="field" id="bc-name" type="text" placeholder="Имя, как вас увидят клиенты">
     <div class="err" id="bc-err"></div>
     <button class="btn btn-main w100" id="bc-btn">Создать кабинет</button>
@@ -403,7 +403,7 @@ function genCode() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; fo
 async function createTrainer(u, name) {
   let code = genCode();
   for (let i = 0; i < 5 && (await get(ref(db, 'invites/' + code))).exists(); i++) code = genCode();
-  const t = { name: name.slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 10, code };
+  const t = { name: name.slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 50, code };
   await set(ref(db, 'trainers/' + u.uid), t);
   await set(ref(db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
 }
@@ -439,7 +439,7 @@ async function loadClients() {
   }));
   clients.sort((a, b) => (b.stat.lastTs || 0) - (a.stat.lastTs || 0));
   /* лимит: когда мест нет, приглашение помечается как заполненное */
-  const full = clients.length >= (trainer.limit || 10);
+  const full = clients.length >= (trainer.limit || 50);
   try { await update(ref(db, 'invites/' + trainer.code), { full, count: clients.length }); } catch (e) {}
 }
 function plansOf(c) { return toArr(c.training && c.training.plans).filter(Boolean); }
@@ -475,7 +475,7 @@ function render() {
 }
 
 function renderList() {
-  const lim = trainer.limit || 10, n = clients.length;
+  const lim = trainer.limit || 50, n = clients.length;
   if (!view.tab) view.tab = n ? 'home' : 'add';
   const tabs = [['home', 'ti-layout-dashboard', 'Сводка'], ['feed', 'ti-activity', 'Лента'], ['tpl', 'ti-template', 'Шаблоны'], ['add', 'ti-user-plus', 'Добавить']];
   $('#main').innerHTML = `<div class="ctabs mtabs">${tabs.map(t => `<button data-t="${t[0]}" class="${view.tab === t[0] ? 'on' : ''}"><i class="ti ${t[1]}"></i>${t[2]}</button>`).join('')}</div><div id="mbody"></div>`;
@@ -562,7 +562,7 @@ function renderFeed(body) {
 }
 
 function renderAdd(body) {
-  const lim = trainer.limit || 10, n = clients.length;
+  const lim = trainer.limit || 50, n = clients.length;
   const link = APP_URL + 'index.html#/join/' + trainer.code;
   body.innerHTML = installHint() + `
     <div class="card">
@@ -579,7 +579,7 @@ function renderAdd(body) {
         <button class="btn btn-ghost btn-sm" id="i-copy"><i class="ti ti-copy"></i> Скопировать</button>
       </div>
       <div class="tier"><span>Клиенты</span><div class="tier-bar"><span style="width:${Math.min(100, n / lim * 100)}%"></span></div><b>${n} из ${lim}</b></div>
-      ${n >= lim ? `<div class="today" style="margin-top:10px"><div><i class="ti ti-crown w"></i><span>Бесплатные места заняты. Тариф «Про» до 20 клиентов и «Студия» до 50 скоро. <a href="${esc((window.APP_CONFIG || {}).supportUrl || '#')}" target="_blank" style="color:#8EA8FF">Написать нам</a></span></div></div>` : ''}
+      ${n >= lim ? `<div class="today" style="margin-top:10px"><div><i class="ti ti-crown w"></i><span>Все места раннего доступа заняты. Напишите нам, и мы расширим лимит. <a href="${esc((window.APP_CONFIG || {}).supportUrl || '#')}" target="_blank" style="color:#8EA8FF">Написать нам</a></span></div></div>` : ''}
     </div>
     <div class="card"><div class="card-h"><div><b>Как это работает</b></div></div>
       <div class="today">
@@ -617,7 +617,7 @@ const CT = {
   add: [
     { sel: '#k-in', t: 'Ключ от клиента', d: 'Клиент создаёт ключ в приложении YOU и присылает вам. Введите его здесь, и клиент появится в списке с фамилией и именем.' },
     { sel: '.inv', t: 'Или ссылка', d: 'Можно наоборот: отправьте клиенту ссылку, он откроет её и подключится сам.' },
-    { sel: '.tier', t: 'Лимит', d: 'Бесплатно до 10 клиентов.' },
+    { sel: '.tier', t: 'Лимит', d: 'Бесплатно до 50 клиентов.' },
   ],
   client: [
     { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с графиками, план, разбор прогресса, AI-помощник и ваши заметки о клиенте.' },
@@ -750,7 +750,7 @@ async function useKey(raw) {
   if (!k.expiresAt || k.expiresAt < Date.now()) throw { code: 'expired' };
   if (k.uid === trainer.uid) throw { code: 'self' };
   if (clients.some(c => c.k === k.key)) throw { code: 'dup' };
-  if (clients.length >= (trainer.limit || 10)) throw { code: 'full' };
+  if (clients.length >= (trainer.limit || 50)) throw { code: 'full' };
   const now = Date.now();
   const link = { trainerUid: trainer.uid, name: trainer.name, code: trainer.code, since: now, uid: k.uid, akey: code };
   if (k.prev && k.prev !== trainer.uid) link.prev = k.prev;

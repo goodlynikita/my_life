@@ -411,7 +411,7 @@ document.querySelectorAll('[data-uf]').forEach(b=>b.onclick=()=>{ uFilter=b.data
 
 /* ── Тренеры ── */
 let TRAINERS={}, TCL={}, trQuery='';
-const TIERS={ free:'Бесплатный', pro:'Про', studio:'Студия' };
+const TIERS={ free:'Ранний доступ', pro:'Про', studio:'Студия' };
 function renderTrainers(){
   const q=trQuery.toLowerCase();
   let list=Object.entries(TRAINERS).filter(([,t])=>t).map(([uid,t])=>({uid,...t,clients:Object.values(TCL[uid]||{}).filter(Boolean)}))
@@ -422,7 +422,7 @@ function renderTrainers(){
   if(q) list=list.filter(t=>(t.name||'').toLowerCase().includes(q)||(t.email||'').toLowerCase().includes(q));
   if(!list.length){ $('#tr-list').innerHTML=`<div class="empty"><i class="ti ti-user-star"></i>${Object.keys(TRAINERS).length?'Никого не нашлось':'Тренеров пока нет. Они появятся, когда кто-то создаст кабинет тренера'}</div>`; return; }
   $('#tr-list').innerHTML=list.map(t=>{
-    const lim=t.limit||10, n=t.clients.length, full=n>=lim;
+    const lim=t.limit||50, n=t.clients.length, full=n>=lim;
     const col=COLORS[[...t.uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
     return `<div class="trow${t.blocked?' blocked':''}">
       <div class="ava" style="background:${col}">${esc((t.name||t.email||'?').trim()[0].toUpperCase())}</div>
@@ -442,7 +442,7 @@ function renderTrainers(){
     try{ await set(ref(db,'trainers/'+i.dataset.uid+'/limit'),v); const code=(TRAINERS[i.dataset.uid]||{}).code; const n=Object.keys(TCL[i.dataset.uid]||{}).length;
       if(code) await update(ref(db,'invites/'+code),{full:n>=v}); toast('Лимит: '+v); }catch(e){ fail(e); } });
   $('#tr-list').querySelectorAll('.tr-tier').forEach(sl=>sl.onchange=async()=>{
-    const def={free:10,pro:20,studio:50}[sl.value];
+    const def={free:50,pro:100,studio:300}[sl.value];
     try{ await update(ref(db,'trainers/'+sl.dataset.uid),{tier:sl.value,limit:def}); toast('Тариф: '+TIERS[sl.value]+', лимит '+def); }catch(e){ fail(e); } });
   $('#tr-list').querySelectorAll('[data-tb]').forEach(b=>b.onclick=async()=>{ const block=b.dataset.tb==='1', t=TRAINERS[b.dataset.uid]||{};
     if(block&&!confirm(`Заблокировать кабинет ${t.name||t.email}? Клиенты останутся, но тренер не сможет войти в кабинет.`)) return;

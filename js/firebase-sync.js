@@ -434,7 +434,7 @@ const FirebaseSync = (() => {
     const ex = await get(ref(_db, 'trainers/' + u.uid)); if (ex.exists()) return ex.val();
     let code = genCode();
     for (let i = 0; i < 5 && (await get(ref(_db, 'invites/' + code))).exists(); i++) code = genCode();
-    const t = { name: String(name || u.displayName || u.email.split('@')[0]).slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 10, code };
+    const t = { name: String(name || u.displayName || u.email.split('@')[0]).slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 50, code };
     await set(ref(_db, 'trainers/' + u.uid), t);
     await set(ref(_db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
     return t;

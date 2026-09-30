@@ -88,9 +88,10 @@ window.WinterArc = (function () {
       <button class="wa-skip">Пропустить <i class="ti ti-player-skip-forward"></i></button>
       <button class="wa-sound hidden"><i class="ti ti-volume"></i> Включить звук</button>`;
     document.body.appendChild(ov);
-    const v = ov.querySelector('video'); v.src = SRC; v.muted = false; v.volume = 1;
-    let unlocked = false;
-    try { const p = v.play(); if (p && p.then) p.then(() => { if (!ov.classList.contains('playing')) { v.pause(); v.currentTime = 0; } unlocked = true; }).catch(() => {}); } catch (e) {}
+    /* запускаем прямо в нажатии, но без звука: так браузер потом разрешит включить звук,
+       а раньше времени ничего не слышно */
+    const v = ov.querySelector('video'); v.src = SRC; v.muted = true; v.volume = 1;
+    try { const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
 
     const els = targets();
     wind(1500);
@@ -100,21 +101,22 @@ window.WinterArc = (function () {
       setTimeout(play, 450);
     });
 
+    function noSound() {
+      /* звук запрещён: играем без него и предлагаем включить */
+      v.muted = true; v.play().catch(() => {});
+      const b = ov.querySelector('.wa-sound'); if (!b) return; b.classList.remove('hidden');
+      b.onclick = () => { v.muted = false; v.play().catch(() => {}); b.remove(); };
+    }
     function play() {
       ov.classList.add('playing');
-      v.currentTime = 0;
+      try { v.currentTime = 0; } catch (e) {}
       v.muted = false;
-      const p = v.play();
-      if (p && p.catch) p.catch(() => {
-        /* звук запрещён: играем без него и предлагаем включить */
-        v.muted = true; v.play().catch(() => {});
-        const b = ov.querySelector('.wa-sound'); b.classList.remove('hidden');
-        b.onclick = () => { v.muted = false; b.remove(); };
-      });
+      if (v.paused) { const p = v.play(); if (p && p.catch) p.catch(noSound); }
+      setTimeout(() => { if (!done && (v.paused || v.muted)) noSound(); }, 500);
     }
     v.addEventListener('playing', () => ov.classList.add('ready'));
     v.addEventListener('waiting', () => ov.classList.remove('ready'));
-    v.addEventListener('ended', finish);
+    v.addEventListener('ended', () => { if (ov.classList.contains('playing')) finish(); else { try { v.currentTime = 0; v.play(); } catch (e) {} } });
     /* видео не загрузилось: дожидаемся чёрного экрана и показываем плашку */
     v.addEventListener('error', () => { const w = () => ov.classList.contains('playing') ? setTimeout(finish, 900) : setTimeout(w, 200); w(); });
     ov.querySelector('.wa-skip').onclick = () => { v.pause(); finish(); };
@@ -126,9 +128,9 @@ window.WinterArc = (function () {
       const sb = ov.querySelector('.wa-sound'); if (sb) sb.remove();
       const card = document.createElement('div'); card.className = 'wa-card';
       card.innerHTML = `<div class="wa-card-i"><i class="ti ti-snowflake"></i></div>
-        <b>Winter Arc в разработке</b>
-        <span>Второй дизайн YOU: тёмный, холодный и без поблажек. Сейчас доделываем, скоро можно будет переключиться.</span>
-        <button class="wa-ok">Жду</button>`;
+        <b>Winter Arc</b>
+        <span>В разработке</span>
+        <button class="wa-ok">Ок</button>`;
       ov.appendChild(card);
       requestAnimationFrame(() => card.classList.add('in'));
       card.querySelector('.wa-ok').onclick = close;

@@ -210,6 +210,161 @@ html[data-theme="light"] .top{filter:invert(1) hue-rotate(180deg) contrast(.893)
 html[data-theme="light"] .top img,html[data-theme="light"] .top .tt-ico{filter:none}
 html[data-theme="light"]{--soft:#C9CFDF;--faint:#AEB6CB}
 html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
+/* v136: меню и настройки как в YOU */
+.pp-ov{position:fixed;inset:0;z-index:120;background:rgba(3,5,10,.66);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;animation:ppIn .2s ease}
+@keyframes ppIn{from{opacity:0}}
+.pm{width:100%;max-width:340px;background:#1C1E26;border-radius:16px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.pm-h{padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase}
+.pm>button,.pm>a{width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,.06);color:#E8E5DC;font-size:14px;font-family:inherit;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none}
+.pm i{font-size:18px;color:#9D9A92} .pm .acc{color:#C7D2FE} .pm .acc i{color:#8EA8FF} .pm .bad,.pm .bad i{color:#F87171}
+.pm>*:hover{background:rgba(255,255,255,.03)}
+.pp{width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;background:#13151A;border-radius:16px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.pp-h{flex-shrink:0;padding:18px 20px 14px;border-bottom:1px solid #1E2028;display:flex;align-items:center;justify-content:space-between}
+.pp-h b{font-size:17px;font-weight:800;color:#E8E5DC}
+.pp-x{background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px}
+.pp-b{padding:16px 20px 20px;overflow-y:auto}
+.pp-l{font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin:4px 0 10px}
+.pp-note{font-size:12px;color:#555;margin-bottom:12px}
+.rows{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1C1E24;border-radius:12px;border:1px solid #2A2D35}
+.row.off{opacity:.5} .row .nm{flex:1;font-size:14px;font-weight:600;color:#E8E5DC} .row .ic{font-size:19px;color:#9D9A92}
+.sw{width:34px;height:24px;border-radius:7px;flex-shrink:0}
+.mv{display:flex;flex-direction:column;gap:2px} .mv button{width:26px;height:18px;border:none;border-radius:5px;background:#2A2D35;color:#9D9A92;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0} .mv button:disabled{opacity:.3}
+.tg{flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:#2A2D35;position:relative;transition:background .25s}
+.tg i{position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tg.on{background:#4A7CFF} .tg.on i{left:24px}
+html[data-theme="light"] .tg i{background:#000} html[data-theme="light"] .pp-save{color:#000}
+.lay{display:flex;gap:8px;margin-bottom:18px}
+.lay button{flex:1;min-width:0;padding:10px 4px 8px;background:#1C1E24;border:2px solid #2A2D35;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
+.lay svg rect{fill:rgba(157,154,146,.18);stroke:#9D9A92;stroke-width:1.5} .lay span{font-size:10px;color:#9D9A92;font-weight:600;white-space:nowrap}
+.lay button.on{border-color:#4ADE80} .lay button.on svg rect{fill:rgba(74,222,128,.2);stroke:#4ADE80} .lay button.on span{color:#4ADE80}
+.chips2{display:flex;gap:6px;margin-bottom:16px} .chips2 button{flex:1;height:38px;border-radius:10px;border:1px solid #2A2D35;background:#1C1E24;color:#9D9A92;font-family:inherit;font-weight:700;cursor:pointer} .chips2 button.on{border-color:#4A7CFF;color:#fff;background:rgba(74,124,255,.18)}
+.pp-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#14532D,#16A34A);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+/* сетки плиток */
+.ht-grid.lay-row{grid-template-columns:1fr!important}
+.ht-grid.lay-row .ht{min-height:0;flex-direction:row;align-items:center;gap:12px;padding:14px 16px}
+.ht-grid.lay-row .ht .ht-top{width:auto} .ht-grid.lay-row .ht .ht-avas,.ht-grid.lay-row .ht .ht-sp,.ht-grid.lay-row .ht .ht-bar{display:none}
+.ht-grid.lay-row .ht b{margin:0;flex:1} .ht-grid.lay-row .ht small{margin:0}
+.ht-grid.lay-bigfirst .ht:first-child,.ht-grid.lay-bigfirst .ht:last-child:not(:nth-child(2)),.ht-grid.lay-biglast .ht:nth-child(3),.ht-grid.lay-biglast .ht:nth-child(4){grid-column:1/-1}
+@media (min-width:900px){.ht-grid.lay-bigfirst,.ht-grid.lay-biglast{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* v135: главная тренера: слайды и настройка */
+.hdr-brand b{font-size:17px;font-weight:800}
+.hs{position:relative;margin-bottom:12px}
+.hs-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:24px;gap:0}
+.hs-track::-webkit-scrollbar{display:none}
+.hs-s{flex:0 0 100%;scroll-snap-align:start;position:relative;overflow:hidden;isolation:isolate;min-height:150px;padding:18px 20px 30px;border-radius:24px;display:flex;flex-direction:column;justify-content:flex-start;color:#fff;cursor:default}
+.hs-s[data-go]{cursor:pointer}
+.hs-s::before{content:'';position:absolute;z-index:-1;width:220px;height:220px;right:-60px;top:-90px;border-radius:50%;filter:blur(30px);background:rgba(255,255,255,.22);animation:hhB 12s ease-in-out infinite alternate}
+@keyframes hhB{to{transform:translate(-60px,40px) scale(1.2)}}
+.hs-violet{background:linear-gradient(135deg,#2B1A6E,#4B2FB0 55%,#6D3FD6)}
+.hs-blue{background:linear-gradient(135deg,#14306E,#1E4FC2 55%,#2F6FEF)}
+.hs-teal{background:linear-gradient(135deg,#0B3B40,#0E7C74 55%,#14A38F)}
+.hs-gold{background:linear-gradient(135deg,#4A2A06,#A0620E 55%,#D08A1A)}
+.hs-red{background:linear-gradient(135deg,#4A0F1A,#A02338 55%,#D0405A)}
+.hs-green{background:linear-gradient(135deg,#0F3B20,#1D7A40 55%,#2FA85A)}
+.hs-l{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7)}
+.hs-v{font-size:46px;font-weight:900;line-height:1.05;margin-top:8px} .hs-v small{font-size:22px;color:rgba(255,255,255,.6)}
+.hs-sub{font-size:13px;color:rgba(255,255,255,.75);font-weight:600}
+.hs-avas{position:absolute;right:18px;bottom:30px;display:flex}
+.hs-avas span{width:34px;height:34px;margin-left:-8px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;border:2px solid rgba(255,255,255,.35)}
+.hs-dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.hs-dots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.35);transition:width .3s,background .3s} .hs-dots i.on{width:18px;background:#fff}
+.hub-attn b{flex:1;font-size:14px}
+.ht{min-height:128px} .ht-sp{flex:1} .ht-avas{margin:12px 0 auto}
+.he{display:flex;flex-direction:column;gap:6px}
+.he-r{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.he-r span{flex:1;font-size:14px;font-weight:700} .he-r.off span{color:var(--faint);text-decoration:line-through}
+.he-t,.he-m{width:34px;height:34px;border-radius:10px;border:none;background:rgba(255,255,255,.06);color:var(--txt);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.he-r.off .he-t{color:var(--faint)} .he-m:disabled{opacity:.25}
+html[data-theme="light"] .hs-s{filter:invert(1) hue-rotate(180deg) contrast(.893)}
+/* v134: шапка и главная как в приложении */
+.hdr{position:sticky;top:0;z-index:20;background:rgba(11,14,23,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.hdr-in{max-width:980px;margin:0 auto;padding:14px 16px;padding-top:max(14px,calc(env(safe-area-inset-top) + 8px));display:flex;align-items:center;gap:10px}
+.hb{width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.03));color:#F2F4F8;font-size:20px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.hb:active{transform:scale(.94)}
+.hdots{gap:4px} .hdots span{width:5px;height:5px;border-radius:50%;background:#F2F4F8;box-shadow:0 0 6px rgba(255,255,255,.45)}
+.hdr-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.hdr-brand img{width:40px;height:40px;border-radius:12px;box-shadow:0 6px 18px rgba(139,92,246,.35)}
+.hdr-brand b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .hdr-brand span{display:block;font-size:11.5px;color:var(--faint)}
+.hdr-brand.sub img{display:none}
+.hdr .sp{flex:1}
+.hdr .theme-toggle{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);width:76px;height:44px;border-radius:22px}
+.hdr .theme-toggle .tt-ico,.hdr .theme-toggle .tt-knob{top:5px;width:32px;height:32px} .hdr .theme-toggle[data-mode="dark"] .tt-knob{left:39px}
+@media (max-width:440px){.hdr .theme-toggle{width:68px;height:40px}.hdr .theme-toggle .tt-ico,.hdr .theme-toggle .tt-knob{top:3px;width:32px;height:32px}.hdr .theme-toggle[data-mode="dark"] .tt-knob{left:31px}.hb{width:40px;height:40px}.hdr-brand img{width:36px;height:36px}}
+.mn{display:flex;flex-direction:column;gap:6px}
+.mn>*{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--txt);text-decoration:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:left}
+.mn>* i:first-child{font-size:19px;color:#A5B4FC} .mn>* span{flex:1} .mn>* i:last-child{color:var(--faint)} .mn .bad,.mn .bad i:first-child{color:#FCA5A5}
+/* «Сегодня» */
+.hub-hero{position:relative;overflow:hidden;isolation:isolate;border-radius:26px;padding:20px;margin-bottom:12px;background:linear-gradient(135deg,#2B1A6E 0%,#3B2FB0 45%,#1E4FC2 100%);box-shadow:0 20px 50px rgba(40,30,120,.35)}
+.hub-hero::before,.hub-hero::after{content:'';position:absolute;z-index:-1;border-radius:50%;filter:blur(30px);pointer-events:none}
+.hub-hero::before{width:220px;height:220px;right:-60px;top:-80px;background:rgba(167,139,250,.55);animation:hhB 12s ease-in-out infinite alternate}
+.hub-hero::after{width:180px;height:180px;left:-50px;bottom:-90px;background:rgba(56,189,248,.35);animation:hhB 16s ease-in-out infinite alternate-reverse}
+@keyframes hhB{to{transform:translate(-60px,40px) scale(1.2)}}
+.hh-eye{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+.hh-big{font-size:26px;font-weight:900;margin:6px 0 12px;line-height:1.15}
+.hh-sub{font-size:13.5px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:14px;max-width:520px}
+.hh-list{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.hh-c{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;font-family:inherit;cursor:pointer;text-align:left}
+.hh-a{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px}
+.hh-c b{display:block;font-size:13px} .hh-c small{display:block;font-size:10.5px;color:rgba(255,255,255,.7)}
+.hh-more{align-self:center;font-size:12px;font-weight:800;color:rgba(255,255,255,.8)}
+.hh-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hh-stats div{background:rgba(10,10,40,.28);border-radius:14px;padding:10px 12px}
+.hh-stats b{display:block;font-size:22px;font-weight:900} .hh-stats b small{font-size:13px;color:rgba(255,255,255,.6)} .hh-stats span{font-size:11px;color:rgba(255,255,255,.7)}
+.hub-attn{width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;margin-bottom:12px;border-radius:18px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.08);color:var(--txt);font-family:inherit;cursor:pointer;text-align:left}
+.hub-attn>i:first-child{font-size:22px;color:#FBBF24} .hub-attn span{flex:1} .hub-attn b{display:block;font-size:14px} .hub-attn small{font-size:12px;color:var(--soft)} .hub-attn>i:last-child{color:var(--faint)}
+/* плитки разделов */
+.ht-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:900px){.ht-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.ht{--acc:96,165,250;position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:168px;padding:16px;border-radius:22px;cursor:pointer;font-family:inherit;color:#fff;
+  background:linear-gradient(160deg,rgba(var(--acc),.14),rgba(20,24,38,.9) 70%);border:1px solid rgba(var(--acc),.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,filter .3s}
+.ht-blue{--acc:96,165,250} .ht-green{--acc:74,222,128} .ht-violet{--acc:167,139,250} .ht-amber{--acc:242,169,59}
+.ht::before{content:'';position:absolute;z-index:-1;width:150px;height:150px;right:-50px;top:-60px;border-radius:50%;background:rgba(var(--acc),.3);filter:blur(22px);animation:ctB1 10s ease-in-out infinite alternate;pointer-events:none}
+.ht-green::before{animation-duration:8s} .ht-violet::before{animation-duration:14s} .ht-amber::before{animation-duration:11s}
+@keyframes ctB1{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,20px) scale(1.2)}100%{transform:translate(-80px,5px) scale(.9)}}
+.ht:hover{transform:translateY(-3px);border-color:rgba(var(--acc),.45);filter:saturate(1.2) brightness(1.05)}
+.ht:active{transform:scale(.97)}
+.ht-top{display:flex;justify-content:space-between;align-items:center;width:100%}
+.ht-i{font-size:26px;color:rgb(var(--acc));transition:transform .35s cubic-bezier(.34,1.56,.64,1)} .ht:hover .ht-i{transform:scale(1.15) rotate(-6deg)}
+.ht-badge{min-width:22px;height:22px;padding:0 6px;border-radius:11px;font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.ht-badge.live{background:rgb(var(--acc));color:#062012;animation:ctPulse 2s infinite} .ht-badge.bad{background:#F87171;color:#2A0A0A}
+@keyframes ctPulse{0%{box-shadow:0 0 0 0 rgba(var(--acc),.6)}70%{box-shadow:0 0 0 9px rgba(var(--acc),0)}100%{box-shadow:0 0 0 0 rgba(var(--acc),0)}}
+.ht-avas{display:flex;align-items:center;margin:14px 0 auto;padding-left:6px}
+.ht-avas span{position:relative;width:30px;height:30px;margin-left:-6px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;border:2px solid #141a2c}
+.ht-avas span i{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;border:2px solid #141a2c}
+.ht-avas em{font-style:normal;font-size:12px;color:rgba(255,255,255,.7);margin-left:6px;font-weight:700}
+.ht-snip{margin:12px 0 auto;font-size:12px;line-height:1.4;color:rgba(255,255,255,.72);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ht-bar{width:100%;height:8px;border-radius:5px;background:rgba(255,255,255,.08);margin:18px 0 auto;overflow:hidden} .ht-bar span{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,rgb(var(--acc)),#FDE68A)}
+.ht b{font-size:16px;font-weight:800;margin-top:12px} .ht small{font-size:11.5px;color:rgba(255,255,255,.6);font-weight:600;margin-top:2px}
+html[data-theme="light"] .hub-hero{filter:invert(1) hue-rotate(180deg) contrast(.893)}
+html[data-theme="light"] .hub-hero img{filter:none}
+html[data-theme="light"] .hdr{background:rgba(11,14,23,.9)}
+/* v133: разделы плитками, как на главной приложения */
+.ctiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media (max-width:640px){.ctiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ct{--acc:96,165,250;position:relative;overflow:hidden;isolation:isolate;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:14px 14px 12px;border-radius:20px;cursor:pointer;font-family:inherit;color:#fff;
+  background:linear-gradient(145deg,rgba(var(--acc),.16),rgba(var(--acc),.05) 60%,rgba(12,16,28,.6));border:1px solid rgba(var(--acc),.22);
+  transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s,filter .3s;animation:ctIn .55s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i)*70ms)}
+.ct-blue{--acc:96,165,250} .ct-green{--acc:74,222,128} .ct-violet{--acc:167,139,250} .ct-amber{--acc:242,169,59}
+/* живые пятна внутри, у каждой плитки своё движение */
+.ct::before,.ct::after{content:'';position:absolute;z-index:-1;border-radius:50%;filter:blur(18px);pointer-events:none}
+.ct::before{width:120px;height:120px;right:-40px;top:-50px;background:rgba(var(--acc),.35);animation:ctB1 9s ease-in-out infinite alternate}
+.ct::after{width:90px;height:90px;left:-30px;bottom:-45px;background:rgba(var(--acc),.2);animation:ctB2 12s ease-in-out infinite alternate}
+.ct-green::before{animation-duration:7s} .ct-violet::before{animation-duration:13s} .ct-amber::before{animation-duration:10s}
+@keyframes ctB1{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,20px) scale(1.2)}100%{transform:translate(-80px,5px) scale(.9)}}
+@keyframes ctB2{0%{transform:translate(0,0)}100%{transform:translate(60px,-20px) scale(1.25)}}
+@keyframes ctIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.ct-i{font-size:24px;color:rgb(var(--acc));margin-bottom:auto;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.ct b{font-size:15.5px;font-weight:800;margin-top:10px} .ct small{font-size:11.5px;color:rgba(255,255,255,.6);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ct:hover{transform:translateY(-3px);border-color:rgba(var(--acc),.45);filter:saturate(1.2) brightness(1.05)}
+.ct:hover .ct-i{transform:scale(1.15) rotate(-6deg)}
+.ct:active{transform:scale(.97)}
+.ct.on{border-color:rgba(var(--acc),.8);box-shadow:0 0 0 1px rgba(var(--acc),.45),0 12px 34px rgba(var(--acc),.28);background:linear-gradient(145deg,rgba(var(--acc),.32),rgba(var(--acc),.1) 60%,rgba(12,16,28,.55))}
+.ct.on small{color:rgba(255,255,255,.85)}
+.ct-dot{position:absolute;top:12px;right:12px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:rgb(var(--acc));color:#062012;font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 0 rgba(var(--acc),.6);animation:ctPulse 2s infinite}
+@keyframes ctPulse{70%{box-shadow:0 0 0 9px rgba(var(--acc),0)}100%{box-shadow:0 0 0 0 rgba(var(--acc),0)}}
+#mbody.fade{animation:mbIn .35s ease both} @keyframes mbIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+html[data-theme="light"] .ct small{color:rgba(255,255,255,.7)}
 /* v132: меньше шума в обзоре */
 details.more{padding:0}
 details.more>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:16px}
@@ -399,13 +554,13 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 
 <!-- Кабинет -->
 <div id="appv" class="hidden">
-  <div class="top"><div class="top-in">
-    <div class="brand" id="brand"><img src="icon.png" alt=""><div><b id="t-name">Кабинет тренера</b><span>Кабинет тренера YOU</span></div></div>
-    <button class="ib hidden" id="back" title="Назад"><i class="ti ti-arrow-left"></i></button>
+  <div class="hdr"><div class="hdr-in">
+    <button class="hb hidden" id="back" title="Назад"><i class="ti ti-arrow-left"></i></button>
+    <div class="hdr-brand" id="brand"><b id="t-name"></b></div>
+    <div class="sp"></div>
     <button id="c-theme" class="theme-toggle" aria-label="Светлая / тёмная тема" title="Светлая / тёмная тема"><span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span></button>
-    <button class="ib" id="help" title="Подсказки"><i class="ti ti-help"></i></button>
-    <a class="ib" href="index.html" title="Мои тренировки"><i class="ti ti-barbell"></i></a>
-    <button class="ib" id="out" title="Выйти"><i class="ti ti-logout"></i></button>
+    <button class="hb hdots" id="menu" aria-label="Меню"><span></span><span></span><span></span></button>
+    <button class="hidden" id="help"></button><button class="hidden" id="out"></button>
   </div></div>
   <div class="wrap" id="main"><div class="loading">Загрузка…</div></div>
 </div>
@@ -502,7 +657,38 @@ $('#bc-btn').onclick = async () => {
 };
 $('#bc-out').onclick = () => signOut(auth);
 $('#out').onclick = () => { if (confirm('Выйти из кабинета?')) signOut(auth); };
-$('#back').onclick = () => { view = { name: 'list', tab: view.back || 'home' }; render(); };
+/* Меню и окна настроек в стиле главной YOU */
+function pop(title, html, wide) {
+  const ov = document.createElement('div'); ov.className = 'pp-ov';
+  ov.innerHTML = `<div class="pp${wide ? ' wide' : ''}">${title ? `<div class="pp-h"><b>${title}</b><button class="pp-x" aria-label="Закрыть">×</button></div>` : ''}<div class="pp-b">${html}</div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  const x = ov.querySelector('.pp-x'); if (x) x.onclick = () => ov.remove();
+  return ov;
+}
+$('#menu').onclick = () => {
+  const ov = document.createElement('div'); ov.className = 'pp-ov';
+  ov.innerHTML = `<div class="pm"><div class="pm-h">Меню</div>
+    <button data-m="slides"><i class="ti ti-layout"></i>Редактор слайдов</button>
+    <button data-m="tiles"><i class="ti ti-layout-grid"></i>Настройка плиток</button>
+    <button data-m="slider"><i class="ti ti-adjustments-horizontal"></i>Настройки слайдера</button>
+    <a href="index.html" class="acc"><i class="ti ti-barbell"></i>Мои тренировки</a>
+    <button data-m="help"><i class="ti ti-help-circle"></i>Подсказки по кабинету</button>
+    <button data-m="out" class="bad"><i class="ti ti-logout"></i>Выйти</button></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  const go = (fn) => () => { ov.remove(); if (view.name !== 'list' || view.tab !== 'hub') { view = { name: 'list', tab: 'hub' }; render(); } fn(); };
+  ov.querySelector('[data-m="slides"]').onclick = go(openSlidesEditor);
+  ov.querySelector('[data-m="tiles"]').onclick = go(openTilesEditor);
+  ov.querySelector('[data-m="slider"]').onclick = go(openSliderSettings);
+  ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
+  ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
+};
+$('#back').onclick = () => {
+  if (view.name === 'client') view = { name: 'list', tab: view.back || 'hub' };
+  else view = { name: 'list', tab: 'hub' };
+  window.scrollTo(0, 0); render();
+};
 
 function genCode() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 6; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
 async function createTrainer(u, name) {
@@ -574,38 +760,159 @@ const cname = (c) => c.name || (c.email || '').split('@')[0] || 'Клиент';
 const ago = (d) => d == null ? 'ещё не тренировался' : d === 0 ? 'тренировка сегодня' : d === 1 ? 'вчера' : d + ' ' + pl(d, 'день', 'дня', 'дней') + ' назад';
 
 /* ═══ Отрисовка ═══ */
+const SECTIONS = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', add: 'Добавить клиента' };
 function render() {
-  $('#back').classList.toggle('hidden', view.name === 'list');
+  const atHub = view.name === 'list' && (!view.tab || view.tab === 'hub');
+  $('#back').classList.toggle('hidden', atHub);
+  $('#t-name').textContent = atHub || view.name === 'client' ? '' : (SECTIONS[view.tab] || '');
   if (view.name === 'client') return renderClient();
   renderList();
 }
 
 function renderList() {
-  const lim = trainer.limit || 50, n = clients.length;
-  if (!view.tab) view.tab = n ? 'home' : 'add';
-  const tabs = [['home', 'ti-layout-dashboard', 'Сводка'], ['feed', 'ti-activity', 'Лента'], ['tpl', 'ti-template', 'Шаблоны'], ['add', 'ti-user-plus', 'Добавить']];
-  $('#main').innerHTML = `<div class="ctabs mtabs">${tabs.map(t => `<button data-t="${t[0]}" class="${view.tab === t[0] ? 'on' : ''}"><i class="ti ${t[1]}"></i>${t[2]}</button>`).join('')}</div><div id="mbody"></div>`;
-  document.querySelectorAll('.mtabs button').forEach(b => b.onclick = () => { view.tab = b.dataset.t; renderList(); });
+  if (!view.tab || view.tab === 'home') view.tab = 'hub';
+  $('#main').innerHTML = '<div id="mbody"></div>';
   const body = $('#mbody');
+  if (view.tab === 'hub') return renderHub(body);
   if (view.tab === 'feed') return renderFeed(body);
   if (view.tab === 'tpl') return renderTemplates(body);
   if (view.tab === 'add') return renderAdd(body);
   renderHome(body);
 }
 
-/* Подсказка поставить кабинет на экран телефона (отдельной иконкой «YOU Тренер») */
-function installHint() {
-  const st = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  let off = false; try { off = !!localStorage.getItem('you_c_inst'); } catch (e) {}
-  if (st || off) return '';
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  return `<div class="card inst" id="inst"><i class="ti ti-device-mobile-plus"></i><div><b>Поставьте кабинет на экран</b><span>${ios ? 'Safari: «Поделиться» → «На экран Домой»' : 'Меню браузера → «Добавить на главный экран»'}. Появится отдельная иконка «YOU Тренер», рядом с приложением YOU.</span></div><button class="mini" id="inst-x" aria-label="Скрыть"><i class="ti ti-x"></i></button></div>`;
+/* ═══ Главная кабинета: «Сегодня» + плитки разделов (как на главной YOU) ═══ */
+const AVA_COL = ['#3B5BDB', '#7048E8', '#0CA678', '#E67700', '#C2255C', '#1098AD'];
+function avaCol(c) { return AVA_COL[[...String(c.k)].reduce((s, ch) => s + ch.charCodeAt(0), 0) % AVA_COL.length]; }
+/* Настройки главной: какие слайды и плитки показывать и в каком порядке */
+const HUB_SLIDES = { today: 'Сегодня', rhythm: 'В ритме', week: 'За неделю', records: 'Рекорды', attention: 'Внимание', attendance: 'Посещаемость' };
+const HUB_TILES = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', add: 'Добавить' };
+function hubUI() {
+  const def = { slides: ['today', 'rhythm', 'week', 'records'], hideSlides: ['attention', 'attendance'], tiles: ['clients', 'feed', 'tpl', 'add'], hideTiles: [], layout: '2x2', autoplay: true, interval: 4.5, sliderHidden: false };
+  let u = trainer.ui || null; try { u = u || JSON.parse(localStorage.getItem('you_hub_' + trainer.uid) || 'null'); } catch (e) {}
+  u = Object.assign({}, def, u || {});
+  const fill = (arr, all) => arr.filter(k => all[k]).concat(Object.keys(all).filter(k => !arr.includes(k)));
+  u.slides = fill(toArr(u.slides), HUB_SLIDES); u.tiles = fill(toArr(u.tiles), HUB_TILES);
+  u.hideSlides = toArr(u.hideSlides); u.hideTiles = toArr(u.hideTiles);
+  return u;
 }
-function bindInstall() { const x = $('#inst-x'); if (x) x.onclick = () => { try { localStorage.setItem('you_c_inst', '1'); } catch (e) {} $('#inst').remove(); }; }
+async function saveUI(u) {
+  trainer.ui = u; try { localStorage.setItem('you_hub_' + trainer.uid, JSON.stringify(u)); } catch (e) {}
+  try { await update(ref(db, 'trainers/' + trainer.uid), { ui: clean(u) }); } catch (e) {}
+}
+
+function renderHub(body) {
+  const lim = trainer.limit || 50, n = clients.length, live = clients.filter(c => c.ok), ui = hubUI();
+  const inR = live.filter(c => c.stat.st === 'ok').length, lost = live.filter(c => c.stat.st === 'bad').length;
+  const todayL = live.filter(c => c.stat.today);
+  const ev = window.CoachDash.feed(live, cname);
+  const fresh = ev.filter(e => e.t >= Date.now() - 864e5 * 1.5 && e.k !== 'miss').length;
+  const prs = ev.filter(e => e.k === 'pr' && Date.now() - e.t < 7 * DAY).length;
+  const wk = clients.reduce((s, c) => s + c.stat.wk, 0);
+  const attnN = live.filter(c => c.stat.st === 'bad' || c.stat.plat.length).length;
+  const atts = live.map(c => c.stat.att).filter(x => x != null), attAvg = atts.length ? Math.round(atts.reduce((a, b) => a + b, 0) / atts.length) : null;
+  const avas = (list) => `<div class="hs-avas">${list.slice(0, 5).map(c => `<span style="background:${avaCol(c)}">${esc(initials(c))}</span>`).join('')}</div>`;
+  const SL = {
+    today: { l: 'Сегодня', v: todayL.length, s: pl(todayL.length, 'тренировка', 'тренировки', 'тренировок'), x: todayL.length ? avas(todayL) : '', g: 'violet' },
+    rhythm: { l: 'В ритме', v: `${inR}<small>/${live.length}</small>`, s: 'клиентов', g: 'blue' },
+    week: { l: 'За неделю', v: wk, s: pl(wk, 'тренировка', 'тренировки', 'тренировок'), g: 'teal' },
+    records: { l: 'Рекорды', v: prs, s: 'за неделю', g: 'gold' },
+    attention: { l: 'Внимание', v: attnN, s: pl(attnN, 'клиент', 'клиента', 'клиентов'), g: 'red', go: 'clients' },
+    attendance: { l: 'Посещаемость', v: attAvg == null ? '–' : attAvg + '%', s: 'за 4 недели', g: 'green' },
+  };
+  const slides = ui.sliderHidden ? [] : ui.slides.filter(k => !ui.hideSlides.includes(k));
+  const TL = {
+    clients: { c: 'blue', i: 'ti-users', t: 'Клиенты', d: n ? `${inR} из ${n} в ритме` : 'пока нет', x: n ? `<div class="ht-avas">${live.slice(0, 4).map(c => `<span style="background:${avaCol(c)}">${esc(initials(c))}<i class="st-${c.stat.st}"></i></span>`).join('')}</div>` : '', b: lost ? `<span class="ht-badge bad">${lost}</span>` : '' },
+    feed: { c: 'green', i: 'ti-activity', t: 'Лента', d: fresh ? `${fresh} за сутки` : 'тихо', b: fresh ? `<span class="ht-badge live">${fresh > 9 ? '9+' : fresh}</span>` : '' },
+    tpl: { c: 'violet', i: 'ti-template', t: 'Шаблоны', d: templates.length ? `${templates.length} ${pl(templates.length, 'программа', 'программы', 'программ')}` : 'пока нет' },
+    add: { c: 'amber', i: 'ti-user-plus', t: 'Добавить', d: `${n} из ${lim}`, x: `<div class="ht-bar"><span style="width:${Math.min(100, n / lim * 100)}%"></span></div>` },
+  };
+  const tiles = ui.tiles.filter(k => !ui.hideTiles.includes(k));
+  body.innerHTML = `
+    ${slides.length ? `<div class="hs"><div class="hs-track" id="hs-track">${slides.map(k => { const x = SL[k];
+      return `<div class="hs-s hs-${x.g}"${x.go ? ` data-go="${x.go}"` : ''}><span class="hs-l">${x.l}</span><b class="hs-v">${x.v}</b><span class="hs-sub">${x.s}</span>${x.x || ''}</div>`; }).join('')}</div>
+      ${slides.length > 1 ? `<div class="hs-dots">${slides.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>` : ''}</div>` : ''}
+    ${attnN && !slides.includes('attention') ? `<button class="hub-attn" data-go="clients"><i class="ti ti-alert-triangle"></i><b>${attnN} ${pl(attnN, 'требует', 'требуют', 'требуют')} внимания</b><i class="ti ti-chevron-right"></i></button>` : ''}
+    <div class="ht-grid lay-${ui.layout || '2x2'}">${tiles.map(k => { const t = TL[k];
+      return `<button class="ht ht-${t.c}" data-go="${k}"><div class="ht-top"><i class="ti ${t.i} ht-i"></i>${t.b || ''}</div>${t.x || '<div class="ht-sp"></div>'}<b>${t.t}</b><small>${t.d}</small></button>`; }).join('')}</div>`;
+  body.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { view.tab = b.dataset.go; window.scrollTo(0, 0); render(); });
+  const tr = $('#hs-track'); clearInterval(window._hsTimer);
+  if (tr) {
+    tr.addEventListener('scroll', () => { const i = Math.round(tr.scrollLeft / tr.clientWidth); body.querySelectorAll('.hs-dots i').forEach((d, j) => d.classList.toggle('on', j === i)); }, { passive: true });
+    let hold = 0; ['touchstart', 'pointerdown'].forEach(ev => tr.addEventListener(ev, () => { hold = Date.now(); }, { passive: true }));
+    if (ui.autoplay !== false && slides.length > 1) window._hsTimer = setInterval(() => {
+      if (!document.body.contains(tr)) return clearInterval(window._hsTimer);
+      if (Date.now() - hold < 8000) return;
+      const i = Math.round(tr.scrollLeft / tr.clientWidth), n2 = (i + 1) % slides.length;
+      tr.scrollTo({ left: n2 * tr.clientWidth, behavior: 'smooth' });
+    }, (ui.interval || 4.5) * 1000);
+  }
+  coachTips('home');
+}
+
+/* ── Редакторы главной ── */
+const SL_SW = { violet: 'linear-gradient(135deg,#2B1A6E,#6D3FD6)', blue: 'linear-gradient(135deg,#14306E,#2F6FEF)', teal: 'linear-gradient(135deg,#0B3B40,#14A38F)', gold: 'linear-gradient(135deg,#4A2A06,#D08A1A)', red: 'linear-gradient(135deg,#4A0F1A,#D0405A)', green: 'linear-gradient(135deg,#0F3B20,#2FA85A)' };
+const SL_COL = { today: 'violet', rhythm: 'blue', week: 'teal', records: 'gold', attention: 'red', attendance: 'green' };
+const TL_ICO = { clients: 'ti-users', feed: 'ti-activity', tpl: 'ti-template', add: 'ti-user-plus' };
+const tgl = (on, attr) => `<button class="tg${on ? ' on' : ''}" ${attr || ''}><i></i></button>`;
+function mv(i, len, attr) { return `<div class="mv"><button ${attr} data-d="-1" data-i="${i}" ${i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-up"></i></button><button ${attr} data-d="1" data-i="${i}" ${i === len - 1 ? 'disabled' : ''}><i class="ti ti-chevron-down"></i></button></div>`; }
+async function applyUI(u, msg) { await saveUI(u); renderList(); toast(msg || 'Сохранено'); }
+
+function openSlidesEditor() {
+  const u = JSON.parse(JSON.stringify(hubUI()));
+  const ov = pop('Редактор слайдов', '');
+  const draw = () => {
+    ov.querySelector('.pp-b').innerHTML = `<div class="pp-note">Порядок стрелками, показ переключателем</div>
+      <div class="rows">${u.slides.map((k, i) => `<div class="row${u.hideSlides.includes(k) ? ' off' : ''}">${mv(i, u.slides.length, 'data-mv')}<span class="sw" style="background:${SL_SW[SL_COL[k]]}"></span><span class="nm">${HUB_SLIDES[k]}</span>${tgl(!u.hideSlides.includes(k), `data-k="${k}"`)}</div>`).join('')}</div>
+      <button class="pp-save">Сохранить</button>`;
+    ov.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + +b.dataset.d; [u.slides[i], u.slides[j]] = [u.slides[j], u.slides[i]]; draw(); });
+    ov.querySelectorAll('.tg').forEach(b => b.onclick = () => { const k = b.dataset.k, i = u.hideSlides.indexOf(k); if (i >= 0) u.hideSlides.splice(i, 1); else u.hideSlides.push(k); draw(); });
+    ov.querySelector('.pp-save').onclick = () => { ov.remove(); applyUI(u, 'Слайды обновлены'); };
+  };
+  draw();
+}
+const LAYOUTS = [
+  ['2x2', '2×2', '<rect x="1" y="1" width="23" height="17" rx="3"/><rect x="28" y="1" width="23" height="17" rx="3"/><rect x="1" y="22" width="23" height="17" rx="3"/><rect x="28" y="22" width="23" height="17" rx="3"/>'],
+  ['row', 'В строку', '<rect x="1" y="1" width="50" height="7" rx="3"/><rect x="1" y="12" width="50" height="7" rx="3"/><rect x="1" y="23" width="50" height="7" rx="3"/><rect x="1" y="34" width="50" height="5" rx="2.5"/>'],
+  ['bigfirst', 'Акцент 1', '<rect x="1" y="1" width="50" height="11" rx="3"/><rect x="1" y="16" width="23" height="10" rx="3"/><rect x="28" y="16" width="23" height="10" rx="3"/><rect x="1" y="30" width="50" height="9" rx="3"/>'],
+  ['biglast', 'Акцент 2', '<rect x="1" y="1" width="23" height="11" rx="3"/><rect x="28" y="1" width="23" height="11" rx="3"/><rect x="1" y="16" width="50" height="10" rx="3"/><rect x="1" y="30" width="50" height="9" rx="3"/>'],
+];
+function openTilesEditor() {
+  const u = JSON.parse(JSON.stringify(hubUI()));
+  const ov = pop('Настройка плиток', '');
+  const draw = () => {
+    ov.querySelector('.pp-b').innerHTML = `<div class="pp-l">Сетка</div>
+      <div class="lay">${LAYOUTS.map(l => `<button class="${u.layout === l[0] ? 'on' : ''}" data-l="${l[0]}"><svg width="52" height="40" viewBox="0 0 52 40">${l[2]}</svg><span>${l[1]}</span></button>`).join('')}</div>
+      <div class="pp-l">Порядок и показ</div>
+      <div class="rows">${u.tiles.map((k, i) => `<div class="row${u.hideTiles.includes(k) ? ' off' : ''}">${mv(i, u.tiles.length, 'data-mv')}<i class="ti ${TL_ICO[k]} ic"></i><span class="nm">${HUB_TILES[k]}</span>${tgl(!u.hideTiles.includes(k), `data-k="${k}"`)}</div>`).join('')}</div>
+      <button class="pp-save">Сохранить</button>`;
+    ov.querySelectorAll('.lay button').forEach(b => b.onclick = () => { u.layout = b.dataset.l; draw(); });
+    ov.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + +b.dataset.d; [u.tiles[i], u.tiles[j]] = [u.tiles[j], u.tiles[i]]; draw(); });
+    ov.querySelectorAll('.tg').forEach(b => b.onclick = () => { const k = b.dataset.k, i = u.hideTiles.indexOf(k); if (i >= 0) u.hideTiles.splice(i, 1); else u.hideTiles.push(k); draw(); });
+    ov.querySelector('.pp-save').onclick = () => { ov.remove(); applyUI(u, 'Плитки обновлены'); };
+  };
+  draw();
+}
+function openSliderSettings() {
+  const u = JSON.parse(JSON.stringify(hubUI()));
+  const ov = pop('Настройки слайдера', '');
+  const IV = [3, 4.5, 6, 8];
+  const draw = () => {
+    ov.querySelector('.pp-b').innerHTML = `<div class="rows">
+      <div class="row"><span class="nm">Показывать слайдер</span>${tgl(!u.sliderHidden, 'data-t="show"')}</div>
+      <div class="row"><span class="nm">Листать сам</span>${tgl(u.autoplay !== false, 'data-t="auto"')}</div></div>
+      ${u.autoplay !== false ? `<div class="pp-l">Интервал</div><div class="chips2">${IV.map(v => `<button class="${(u.interval || 4.5) === v ? 'on' : ''}" data-v="${v}">${String(v).replace('.', ',')} с</button>`).join('')}</div>` : ''}
+      <button class="pp-save">Сохранить</button>`;
+    ov.querySelectorAll('.tg').forEach(b => b.onclick = () => { if (b.dataset.t === 'show') u.sliderHidden = !u.sliderHidden; else u.autoplay = u.autoplay === false; draw(); });
+    ov.querySelectorAll('.chips2 button').forEach(b => b.onclick = () => { u.interval = +b.dataset.v; draw(); });
+    ov.querySelector('.pp-save').onclick = () => { ov.remove(); applyUI(u, 'Слайдер обновлён'); };
+  };
+  draw();
+}
+
 
 function renderHome(body) {
   const n = clients.length;
-  if (!n) { body.innerHTML = installHint() + `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br>Добавьте первого во вкладке «Добавить».</div>`; bindInstall(); return; }
+  if (!n) { body.innerHTML = `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br><button class="btn btn-main" style="margin-top:14px" onclick="document.querySelector('#back').click()">На главную</button></div>`; return; }
   const live = clients.filter(c => c.ok);
   const todayL = live.filter(c => c.stat.today);
   const lost = live.filter(c => c.stat.st === 'bad');
@@ -619,24 +926,11 @@ function renderHome(body) {
   lost.forEach(c => attn.push({ c, i: 'ti-alert-triangle b', t: `<b>${esc(cname(c))}</b> пропал: ${ago(c.stat.days)}` }));
   [...new Set(miss.map(e => e.c))].forEach(c => { const k = miss.filter(e => e.c === c).length; attn.push({ c, i: 'ti-clock-exclamation w', t: `<b>${esc(cname(c))}</b>: ${k} ${pl(k, 'тренировка не отмечена', 'тренировки не отмечены', 'тренировок не отмечено')} за неделю` }); });
   plat.forEach(c => attn.push({ c, i: 'ti-chart-line w', t: `<b>${esc(cname(c))}</b>: плато, ${c.stat.plat.slice(0, 2).map(p => esc(p.name)).join(', ')}` }));
-  body.innerHTML = installHint() + `
-    <div class="card">
-      <div class="card-h"><div><b>Сводка</b><span>${new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div></div>
-      <div class="kpis kpis4">
-        <div class="kpi"><b>${live.filter(c => c.stat.st === 'ok').length}<small>/${live.length}</small></b><span>в ритме</span></div>
-        <div class="kpi"><b>${clients.reduce((s, c) => s + c.stat.wk, 0)}</b><span>тренировок за 7 дн.</span></div>
-        <div class="kpi"><b>${attAvg == null ? '–' : attAvg + '%'}</b><span>посещаемость, 4 нед.</span></div>
-        <div class="kpi"><b>${prs.length}</b><span>рекордов за неделю</span></div>
-      </div>
-      <div class="today">
-        ${todayL.length ? `<div><i class="ti ti-calendar-event"></i><span><b>Сегодня:</b> ${todayL.map(c => esc(cname(c)) + ' (' + esc(c.stat.today) + ')').join(', ')}</span></div>` : '<div><i class="ti ti-calendar-event"></i><span>Сегодня тренировок по планам нет</span></div>'}
-        ${prs.slice(0, 3).map(e => `<div><i class="ti ti-trophy g"></i><span>${e.html}</span></div>`).join('')}
-      </div>
-    </div>
-    ${attn.length ? `<div class="card"><div class="card-h"><div><b>Нужно внимание</b><span>кому написать или что поменять</span></div></div>
+  body.innerHTML = `
+    ${attn.length ? `<div class="card"><div class="card-h"><div><b>Нужно внимание</b></div></div>
       <div class="attn">${attn.slice(0, 8).map(a => `<button class="attn-i" data-ck="${esc(a.c.k)}"><i class="ti ${a.i}"></i><span>${a.t}</span><i class="ti ti-chevron-right"></i></button>`).join('')}</div></div>` : ''}
     <div class="card">
-      <div class="card-h"><div><b>Клиенты</b><span>зелёный: тренируется, жёлтый: пауза 4–7 дней, красный: больше недели</span></div></div>
+      <div class="card-h"><div><b>Клиенты</b></div></div>
       <div class="cl-list">${clients.map((c, i) => `
         <div class="cl" data-i="${i}">
           <div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>
@@ -645,13 +939,10 @@ function renderHome(body) {
           <div class="cl-r"><b>${c.stat.wk}</b><span>за 7 дн.</span></div>
         </div>`).join('')}</div>
     </div>
-    <div class="card"><div class="card-h"><div><b>Последнее</b><span>из ленты</span></div><button class="btn btn-ghost btn-sm" id="to-feed">Вся лента</button></div>
-      <div class="feed">${window.CoachDash.feedHtml(ev, 6)}</div></div>`;
+    `;
   body.querySelectorAll('.cl').forEach(el => el.onclick = () => openClient(+el.dataset.i));
   body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
-  $('#to-feed').onclick = () => { view.tab = 'feed'; renderList(); };
-  bindInstall();
-  coachTips('home');
+  coachTips('clients');
 }
 
 let feedFilter = 'all';
@@ -660,7 +951,7 @@ function renderFeed(body) {
   const all = window.CoachDash.feed(live, cname);
   const F = [['all', 'Всё'], ['done', 'Тренировки'], ['pr', 'Рекорды'], ['miss', 'Не отмечены'], ['comment', 'Комментарии']];
   const list = feedFilter === 'all' ? all : all.filter(e => e.k === feedFilter);
-  body.innerHTML = `<div class="card"><div class="card-h"><div><b>Лента</b><span>последние 2 недели по всем клиентам</span></div></div>
+  body.innerHTML = `<div class="card"><div class="card-h"><div><b>Лента</b><span>2 недели</span></div></div>
     <div class="chips">${F.map(f => `<button class="chip${feedFilter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}${f[0] !== 'all' ? ' ' + all.filter(e => e.k === f[0]).length : ''}</button>`).join('')}</div>
     <div class="feed">${window.CoachDash.feedHtml(list, 80)}</div></div>`;
   body.querySelectorAll('.chip').forEach(b => b.onclick = () => { feedFilter = b.dataset.f; renderFeed(body); });
@@ -670,15 +961,15 @@ function renderFeed(body) {
 function renderAdd(body) {
   const lim = trainer.limit || 50, n = clients.length;
   const link = APP_URL + 'index.html#/join/' + trainer.code;
-  body.innerHTML = installHint() + `
+  body.innerHTML = `
     <div class="card">
-      <div class="card-h"><div><b>Добавить по ключу</b><span>Клиент создаёт ключ в приложении: Меню → Подключить тренера → Выдать ключ</span></div></div>
+      <div class="card-h"><div><b>По ключу клиента</b><span>Меню YOU → Подключить тренера → Выдать ключ</span></div></div>
       <div style="display:flex;gap:8px"><input class="field" id="k-in" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="margin:0;flex:1;letter-spacing:.1em;font-weight:800;text-transform:uppercase">
         <button class="btn btn-main" id="k-btn" ${n >= lim ? 'disabled' : ''}>Добавить</button></div>
       <div class="err" id="k-err" style="margin:6px 0 0"></div>
     </div>
     <div class="card">
-      <div class="card-h"><div><b>Или пригласить по ссылке</b><span>Отправьте ссылку или код. Клиент подключится за минуту</span></div></div>
+      <div class="card-h"><div><b>Или по ссылке</b></div></div>
       <div class="inv"><div><div class="inv-code">${esc(trainer.code)}</div><div class="inv-link">${esc(link)}</div></div></div>
       <div class="inv-btns">
         <button class="btn btn-main btn-sm" id="i-share"><i class="ti ti-share"></i> Отправить ссылку</button>
@@ -686,15 +977,8 @@ function renderAdd(body) {
       </div>
       <div class="tier"><span>Клиенты</span><div class="tier-bar"><span style="width:${Math.min(100, n / lim * 100)}%"></span></div><b>${n} из ${lim}</b></div>
       ${n >= lim ? `<div class="today" style="margin-top:10px"><div><i class="ti ti-crown w"></i><span>Все места раннего доступа заняты. Напишите нам, и мы расширим лимит. <a href="${esc((window.APP_CONFIG || {}).supportUrl || '#')}" target="_blank" style="color:#8EA8FF">Написать нам</a></span></div></div>` : ''}
-    </div>
-    <div class="card"><div class="card-h"><div><b>Как это работает</b></div></div>
-      <div class="today">
-        <div><i class="ti ti-key"></i><span>Клиент сам выдаёт ключ с фамилией и именем, поэтому вы сразу видите, кто это</span></div>
-        <div><i class="ti ti-eye"></i><span>Вам открыты только тренировки клиента. Финансы, привычки и цели закрыты</span></div>
-        <div><i class="ti ti-refresh"></i><span>Всё, что вы меняете в плане, у клиента обновляется само</span></div>
-        <div><i class="ti ti-building"></i><span>Тренируете в зале? Отмечайте проведённые тренировки галочкой в плане клиента</span></div>
-      </div></div>`;
-  coachTips('add'); bindInstall();
+    </div>`;
+  coachTips('add');
   $('#i-copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(link); toast('Ссылка скопирована'); };
   $('#i-share').onclick = () => {
     const text = `Веду тренировки в приложении YOU. Подключайся по ссылке: ${link} (код ${trainer.code})`;
@@ -705,7 +989,7 @@ function renderAdd(body) {
   ki.onkeydown = (e) => { if (e.key === 'Enter') kb.click(); };
   kb.onclick = async () => {
     $('#k-err').textContent = ''; kb.disabled = true;
-    try { const c = await useKey(ki.value); toast(c + ' добавлен'); await loadClients(); view.tab = 'home'; render(); }
+    try { const c = await useKey(ki.value); toast(c + ' добавлен'); await loadClients(); view.tab = 'clients'; render(); }
     catch (e) { $('#k-err').textContent = ({ bad: 'Ключ не найден. Проверьте символы', expired: 'Ключ истёк. Попросите клиента создать новый', full: 'Все бесплатные места заняты', self: 'Это ваш собственный ключ', dup: 'Этот клиент уже у вас' })[e && e.code] || 'Не получилось подключить. Попробуйте ещё раз'; kb.disabled = false; }
   };
 }
@@ -713,12 +997,13 @@ function renderAdd(body) {
 /* ═══ Подсказки: по одному разу на каждый экран ═══ */
 const CT = {
   home: [
-    { sel: '.mtabs', t: 'Четыре раздела', d: 'Сводка по всем клиентам, лента событий, шаблоны программ и добавление новых клиентов.' },
-    { sel: '.kpis4', t: 'Сводка дня', d: 'Сколько клиентов в ритме, сколько тренировок за неделю, средняя посещаемость и рекорды.' },
+    { sel: '.hs', t: 'Слайды', d: 'Главные цифры дня. Листайте пальцем.' },
+    { sel: '.ht-grid', t: 'Разделы', d: 'Клиенты, лента, шаблоны и добавление клиентов.' },
+    { sel: '#menu', t: 'Меню', d: 'Здесь можно настроить главную: какие слайды и плитки показывать и в каком порядке.' },
+  ],
+  clients: [
     { sel: '.attn', t: 'Нужно внимание', d: 'Кто пропал, у кого не отмечены тренировки, где плато. Нажмите, чтобы открыть клиента.' },
-    { sel: '.cl-list', t: 'Клиенты', d: 'Цвет точки: зелёный тренируется, жёлтый пауза 4–7 дней, красный больше недели. Нажмите на клиента, чтобы открыть его.' },
-    { sel: '.feed', t: 'Последнее', d: 'Свежие события: тренировки, рекорды, комментарии и замеры. Вся лента во вкладке «Лента».' },
-    { sel: '#help', t: 'Подсказки', d: 'Захотите пройти подсказки снова, нажмите сюда.' },
+    { sel: '.cl-list', t: 'Клиенты', d: 'Цвет точки: зелёный тренируется, жёлтый пауза 4–7 дней, красный больше недели.' },
   ],
   add: [
     { sel: '#k-in', t: 'Ключ от клиента', d: 'Клиент создаёт ключ в приложении YOU и присылает вам. Введите его здесь, и клиент появится в списке с фамилией и именем.' },
@@ -758,7 +1043,7 @@ function coachTips(k) {
   b.onclick = () => { const n = Theme.get() === 'light' ? 'dark' : 'light'; b.dataset.mode = n; setTimeout(() => Theme.set(n), 180); }; })();
 $('#help').onclick = () => {
   try { Object.keys(localStorage).filter(k => k.startsWith('you_ctips_' + trainer.uid)).forEach(k => localStorage.removeItem(k)); localStorage.removeItem('you_tour_anon'); } catch (e) {}
-  const k = view.name === 'client' ? (view.tab === 'plan' ? 'plan' : 'client') : (view.tab || 'home');
+  const k = view.name === 'client' ? (view.tab === 'plan' ? 'plan' : 'client') : (!view.tab || view.tab === 'hub' ? 'home' : view.tab);
   if (CT[k]) coachTips(k); else toast('Подсказки включены');
 };
 
@@ -769,7 +1054,7 @@ async function loadTemplates() {
 }
 function tplMeta(t) { return `${t.weeksCount || toArr(t.weeks).length} ${pl(t.weeksCount || 0, 'неделя', 'недели', 'недель')} · ${t.sessions || 0} ${pl(t.sessions || 0, 'тренировка', 'тренировки', 'тренировок')}`; }
 function renderTemplates(body) {
-  body.innerHTML = `<div class="card"><div class="card-h"><div><b>Шаблоны программ</b><span>Соберите программу один раз и назначайте её клиентам. Веса подставятся из истории каждого клиента</span></div></div>
+  body.innerHTML = `<div class="card"><div class="card-h"><div><b>Шаблоны</b></div></div>
     ${templates.length ? `<div class="cl-list">${templates.map(t => `<div class="tpl">
       <div class="tpl-i"><i class="ti ti-template"></i></div>
       <div class="cl-m"><b>${esc(t.name)}</b><span>${tplMeta(t)}${t.from ? ' · из плана ' + esc(t.from) : ''}</span></div>
@@ -879,7 +1164,7 @@ async function openClient(i, tab) {
     const m = path.match(/^training\.(ai|aiPrefs|aiSources)$/);
     if (m) { CoachStore.cur.tai[m[1]] = val; set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
   };
-  view = { name: 'client', i, tab: tab || (view.name === 'client' && view.i === i ? view.tab : 'dash'), open: null, back: view.name === 'list' ? view.tab : (view.back || 'home') };
+  view = { name: 'client', i, tab: tab || (view.name === 'client' && view.i === i ? view.tab : 'dash'), open: null, back: view.name === 'list' ? view.tab : (view.back || 'hub') };
   window._aiView = 'plan';
   window.scrollTo(0, 0);
   render();
@@ -980,7 +1265,7 @@ function measureModal(c, done) {
 /* ── Заметки тренера о клиенте (видит только тренер) ── */
 function renderNote(c, body) {
   body.innerHTML = `<div class="card">
-    <div class="card-h"><div><b>Заметки о клиенте</b><span>Цели, травмы, ограничения. Клиент их не видит</span></div></div>
+    <div class="card-h"><div><b>Заметки</b><span>видите только вы</span></div></div>
     <textarea class="field" id="note" placeholder="Например: цель минус 5 кг к лету, беречь левое колено, 3 тренировки в неделю">${esc(c.note || '')}</textarea>
     <div class="faint" id="note-s" style="font-size:12px">Сохраняется автоматически</div>
   </div>

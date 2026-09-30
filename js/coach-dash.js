@@ -245,12 +245,12 @@ window.CoachDash = (function () {
       <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : '';
     return `
     ${reportHtml(r)}
-    <div class="card"><div class="card-h"><div><b>Тренировки</b><span>закрашен кружок: сделано (внесены свои веса или галочка)</span></div></div>
+    <div class="card"><div class="card-h"><div><b>Тренировки</b></div></div>
       ${attHtml(d.weeks)}</div>
     ${lifts}
     <div class="card" id="bp-card">${window.BodyProgress ? BodyProgress.html(c.training.measurements, { hist: d.hist, coach: true, compact: true, period: c._bp, main: c._bpm }) : ''}
       <button class="add-ex" id="bp-add" style="margin-top:10px"><i class="ti ti-plus"></i> Добавить замер</button></div>
-    <details class="card more"><summary><b>Подробнее</b><span>объём по неделям, подходы на мышцы, комментарии</span><i class="ti ti-chevron-down"></i></summary>
+    <details class="card more"><summary><b>Подробнее</b><i class="ti ti-chevron-down"></i></summary>
       <div class="more-b"><div class="more-t">Сколько поднято за неделю <span>в тоннах</span></div>${tonsHtml(d.weeks)}</div>
       ${setsHtml(r.spw)}
       ${comments}

@@ -31,7 +31,8 @@ window.TrainingAI = (function () {
     [/подтягиван|верхнего блока|пуловер на верхнем/i, 'Спина', 'width', 'comp'],
     [/тяга (штанги|гантели|т-грифа|нижнего блока)|тяга т-/i, 'Спина', 'thickness', 'comp'],
     [/гиперэкстенз/i, 'Спина', 'lower', 'iso'],
-    [/румынск|сгибания ног|мостик|сумо/i, 'Ноги', 'hams', 'comp'],
+    [/сгибания ног/i, 'Ноги', 'hams', 'iso'],
+    [/румынск|мостик|сумо/i, 'Ноги', 'hams', 'comp'],
     [/становая/i, 'Спина', 'lower', 'comp'],
     [/носки/i, 'Ноги', 'calves', 'iso'],
     [/отведение ног|приведение ног/i, 'Ноги', 'glutes', 'iso'],
@@ -370,10 +371,13 @@ window.TrainingAI = (function () {
     let w = last && last.weight ? last.weight : 0;
     let r = last && last.reps ? last.reps : G.lo;
     let why = '', first = null;
-    /* прошлый вес, которого нет в твоём шаге, приводим к ближайшему доступному */
-    if (w && Math.abs(w / step - Math.round(w / step)) > 1e-6) { w = downTo(w, step); why = 'вес под шаг ' + String(step).replace('.', ',') + ' кг'; }
+    /* прошлый вес берём как есть: раз ты его поднимал, такой вес в зале есть.
+       Шаг нужен только чтобы понять, куда расти дальше */
+    const e1 = (ww, rr) => ww * (1 + rr / 30);
+    /* сколько повторов реально сделать с новым весом по оценке максимума, в пределах цели */
+    const repsAt = (nw, ow, orr) => Math.max(G.lo, Math.min(G.hi, Math.floor(30 * (e1(ow, orr) / nw - 1))));
     if (last) {
-      if (last.reps >= G.hi && w) { w = upTo(last.weight, step); r = G.lo; first = 'up'; why = `добрал ${last.reps} повт., вес вверх`; }
+      if (last.reps >= G.hi && w) { w = upTo(last.weight, step); r = repsAt(w, last.weight, last.reps); first = 'up'; why = `добрал ${last.reps} повт., вес вверх`; }
       else if (last.reps < G.lo && prev && prev.reps < G.lo && w && prev.weight >= w) { w = downTo(w * 0.925, step); r = G.lo; first = 'down'; why = 'два раза недобор, вес −7,5%'; }
       else if (last.reps < G.lo) { r = G.lo; first = 'hold'; why = 'недобор, держим вес'; }
       else { r = Math.min(G.hi, last.reps + 1); first = 'rep'; }
@@ -383,7 +387,7 @@ window.TrainingAI = (function () {
       if (deload) { out.push({ sets: Math.max(2, sets - 1), reps: G.lo + 2, weight: w ? downTo(w * 0.85, step) : 0, up: false, deload: true }); continue; }
       let up = false, down = false;
       if (k === 0) { up = first === 'up'; down = first === 'down'; }
-      else if (r >= G.hi) { if (w) { w = upTo(w, step); up = true; } r = G.lo; }
+      else if (r >= G.hi) { if (w) { const ow = w; w = upTo(w, step); up = true; r = repsAt(w, ow, G.hi); } else r = G.lo; }
       else r = Math.max(G.lo, r + 1);
       out.push({ sets, reps: r, weight: w, up, down });
     }
@@ -430,6 +434,108 @@ window.TrainingAI = (function () {
 
   /* ── Генерация ── */
   function prefsGet() { return (Store.get().training || {}).aiPrefs || {}; }
+  /* ══ Научная методика ══
+     Принципы из исследований и программ топовых тренеров:
+     • каждая мышца 2 раза в неделю (Schoenfeld, мета-анализ 2016);
+     • 10–20 рабочих подходов на мышцу в неделю, начинаем ближе к нижней границе
+       и добавляем к концу блока, потом разгрузка (Israetel, Renaissance Periodization);
+     • сплит под число дней: всё тело, верх/низ, тяни/толкай/ноги (Nippard, Helms);
+     • базовые движения первыми, затем изоляция; в разные дни разные вариации;
+     • двойная прогрессия и 1–3 повтора в запасе (RIR). */
+  const LIB = {
+    'Грудь|middle|comp': ['Жим штанги лёжа', 'Жим гантелей лёжа', 'Отжимания на брусьях'],
+    'Грудь|upper|comp': ['Жим штанги наклон', 'Жим гантелей наклон'],
+    'Грудь|middle|iso': ['Бабочка', 'Кроссовер', 'Разведения гантелей лёжа'],
+    'Грудь|upper|iso': ['Кроссовер снизу', 'Разведения на наклонной'],
+    'Спина|width|comp': ['Подтягивания широкий хват', 'Тяга верхнего блока широкий', 'Тяга верхнего блока узкий'],
+    'Спина|thickness|comp': ['Тяга штанги в наклоне', 'Тяга гантели одной рукой', 'Тяга нижнего блока', 'Тяга Т-грифа'],
+    'Ноги|quads|comp': ['Приседания со штангой', 'Жим ногами', 'Приседания гакк-машина', 'Болгарские сплит-приседания'],
+    'Ноги|quads|iso': ['Разгибания ног'],
+    'Ноги|hams|comp': ['Румынская тяга', 'Становая тяга сумо'],
+    'Ноги|hams|iso': ['Сгибания ног лёжа', 'Сгибания ног сидя'],
+    'Ноги|calves|iso': ['Подъём на носки стоя', 'Подъём на носки сидя'],
+    'Плечи|front|comp': ['Жим гантелей сидя', 'Армейский жим'],
+    'Плечи|side|iso': ['Махи гантелей в стороны', 'Махи на нижнем блоке'],
+    'Плечи|rear|iso': ['Разведения в наклоне', 'Обратная бабочка (задняя дельта)'],
+    'Руки|biceps|iso': ['Подъём штанги на бицепс', 'Молотки гантели', 'Подъём на скамье Скотта'],
+    'Руки|triceps|iso': ['Разгибания на верхнем блоке канат', 'Французский жим EZ-гриф', 'Разгибания из-за головы канат'],
+    'Кор|core|iso': ['Подъём ног в висе', 'Скручивания на верхнем блоке', 'Планка'],
+  };
+  const T = (g, r, k, v) => ({ g, r, k, v: v || 0 });
+  const DAYS = {
+    fbA: { t: 'Всё тело A', s: [T('Ноги', 'quads', 'comp'), T('Грудь', 'middle', 'comp'), T('Спина', 'width', 'comp'), T('Ноги', 'hams', 'iso'), T('Плечи', 'side', 'iso'), T('Руки', 'biceps', 'iso')] },
+    fbB: { t: 'Всё тело B', s: [T('Ноги', 'hams', 'comp'), T('Грудь', 'upper', 'comp'), T('Спина', 'thickness', 'comp'), T('Ноги', 'quads', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'triceps', 'iso')] },
+    fbC: { t: 'Всё тело C', s: [T('Ноги', 'quads', 'comp', 1), T('Грудь', 'middle', 'comp', 1), T('Спина', 'width', 'comp', 1), T('Плечи', 'front', 'comp'), T('Руки', 'biceps', 'iso', 1), T('Кор', 'core', 'iso')] },
+    upA: { t: 'Верх A', s: [T('Грудь', 'middle', 'comp'), T('Спина', 'thickness', 'comp'), T('Плечи', 'front', 'comp'), T('Спина', 'width', 'comp'), T('Плечи', 'side', 'iso'), T('Руки', 'triceps', 'iso'), T('Руки', 'biceps', 'iso')] },
+    upB: { t: 'Верх B', s: [T('Грудь', 'upper', 'comp'), T('Спина', 'width', 'comp', 1), T('Спина', 'thickness', 'comp', 1), T('Грудь', 'middle', 'iso'), T('Плечи', 'side', 'iso', 1), T('Руки', 'biceps', 'iso', 1), T('Руки', 'triceps', 'iso', 1)] },
+    loA: { t: 'Низ A', s: [T('Ноги', 'quads', 'comp'), T('Ноги', 'hams', 'comp'), T('Ноги', 'quads', 'iso'), T('Ноги', 'hams', 'iso'), T('Ноги', 'calves', 'iso'), T('Кор', 'core', 'iso')] },
+    loB: { t: 'Низ B', s: [T('Ноги', 'hams', 'comp', 1), T('Ноги', 'quads', 'comp', 1), T('Ноги', 'quads', 'comp', 2), T('Ноги', 'hams', 'iso', 1), T('Ноги', 'calves', 'iso', 1), T('Кор', 'core', 'iso', 1)] },
+    push: { t: 'Толкай', s: [T('Грудь', 'middle', 'comp'), T('Грудь', 'upper', 'comp'), T('Плечи', 'front', 'comp'), T('Плечи', 'side', 'iso'), T('Грудь', 'upper', 'iso'), T('Руки', 'triceps', 'iso')] },
+    pull: { t: 'Тяни', s: [T('Спина', 'width', 'comp'), T('Спина', 'thickness', 'comp'), T('Спина', 'thickness', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'biceps', 'iso'), T('Руки', 'biceps', 'iso', 1)] },
+    legs: { t: 'Ноги', s: [T('Ноги', 'quads', 'comp'), T('Ноги', 'hams', 'comp'), T('Ноги', 'quads', 'iso'), T('Ноги', 'hams', 'iso'), T('Ноги', 'calves', 'iso'), T('Кор', 'core', 'iso')] },
+    push2: { t: 'Толкай B', s: [T('Грудь', 'upper', 'comp'), T('Плечи', 'front', 'comp'), T('Грудь', 'middle', 'comp', 1), T('Плечи', 'side', 'iso', 1), T('Грудь', 'middle', 'iso'), T('Руки', 'triceps', 'iso', 1)] },
+    pull2: { t: 'Тяни B', s: [T('Спина', 'thickness', 'comp', 1), T('Спина', 'width', 'comp', 1), T('Спина', 'thickness', 'comp', 2), T('Плечи', 'rear', 'iso', 1), T('Руки', 'biceps', 'iso', 2), T('Руки', 'biceps', 'iso', 1)] },
+    legs2: { t: 'Ноги B', s: [T('Ноги', 'hams', 'comp', 1), T('Ноги', 'quads', 'comp', 1), T('Ноги', 'quads', 'comp', 2), T('Ноги', 'hams', 'iso', 1), T('Ноги', 'calves', 'iso', 1), T('Кор', 'core', 'iso', 1)] },
+  };
+  const SMART_SPLIT = {
+    1: { name: 'Всё тело', d: ['fbA'] },
+    2: { name: 'Всё тело A/B', d: ['fbA', 'fbB'] },
+    3: { name: 'Всё тело A/B/C', d: ['fbA', 'fbB', 'fbC'] },
+    4: { name: 'Верх / Низ ×2', d: ['upA', 'loA', 'upB', 'loB'] },
+    5: { name: 'Верх / Низ + Толкай / Тяни / Ноги', d: ['upA', 'loA', 'push', 'pull', 'legs'] },
+    6: { name: 'Толкай / Тяни / Ноги ×2', d: ['push', 'pull', 'legs', 'push2', 'pull2', 'legs2'] },
+    7: { name: 'Толкай / Тяни / Ноги ×2', d: ['push', 'pull', 'legs', 'push2', 'pull2', 'legs2'] },
+  };
+  /* подходов в неделю на зону: старт блока (ближе к нижней границе), к концу +20–30% */
+  const VOL = { middle: 7, upper: 5, width: 7, thickness: 7, quads: 9, hams: 7, calves: 6, front: 4, side: 8, rear: 6, biceps: 8, triceps: 8, core: 6 };
+  const VOL_K = { mass: 1, strength: 0.8, cut: 0.85 };
+  const GROUP_OF_REGION = { middle: 'Грудь', upper: 'Грудь', width: 'Спина', thickness: 'Спина', quads: 'Ноги', hams: 'Ноги', calves: 'Ноги', front: 'Плечи', side: 'Плечи', rear: 'Плечи', biceps: 'Руки', triceps: 'Руки', core: 'Кор' };
+
+  /* варианты упражнения на слот: сначала твои по частоте, потом база */
+  function poolFor(slot, an) {
+    const mine = Object.values(an.ex).filter(x => x.cls && x.cls.group === slot.g && x.cls.region === slot.r && (slot.k === 'iso' ? true : x.cls.kind === 'comp'))
+      .sort((a, b) => b.count - a.count).map(x => ({ key: x.key, name: x.name, isNew: false }));
+    const lib = (LIB[slot.g + '|' + slot.r + '|' + slot.k] || LIB[slot.g + '|' + slot.r + '|iso'] || []).map(n => ({ key: exKey(n), name: n, isNew: !an.ex[exKey(n)] }));
+    const out = []; mine.concat(lib).forEach(x => { if (!out.some(y => y.key === x.key)) out.push(x); });
+    return out;
+  }
+  function smartSessions(an, prefs) {
+    const n = Math.max(1, Math.min(7, an.trainDays.length));
+    const sp = SMART_SPLIT[n];
+    const keys = sp.d.slice(0, n);
+    const weekUsed = {}; /* зона → уже взятые упражнения, чтобы в разные дни были разные вариации */
+    const sessions = keys.map(k => {
+      const D = DAYS[k], dayUsed = new Set(), items = [];
+      D.s.forEach(slot => {
+        const pool = poolFor(slot, an).filter(p => !dayUsed.has(p.key)); if (!pool.length) return;
+        const zk = slot.g + '|' + slot.r, used = weekUsed[zk] || (weekUsed[zk] = []);
+        /* вариация v: v-я по счёту из ещё не взятых на неделе, иначе самое частое */
+        const fresh = pool.filter(p => !used.includes(p.key));
+        const pick = fresh[Math.min(slot.v, Math.max(0, fresh.length - 1))] || pool[0];
+        used.push(pick.key); dayUsed.add(pick.key);
+        items.push({ key: pick.key, name: pick.name, isNew: pick.isNew, group: slot.g, region: slot.r, kind: slot.k });
+      });
+      return { key: k, title: D.t, groups: [...new Set(items.map(i => i.group))], items };
+    });
+    /* подходы: главное базовое дня 4, остальное 3. Если на зону за неделю выходит
+       больше разумного потолка (верх диапазона 10–20 на мышцу), срезаем изоляцию до 2 */
+    const CAP = { middle: 12, upper: 10, width: 12, thickness: 12, quads: 16, hams: 12, calves: 8, front: 6, side: 14, rear: 10, biceps: 12, triceps: 12, core: 8 };
+    const K = VOL_K[prefs.goal] || 1;
+    sessions.forEach(s => { let main = true; s.items.forEach(it => {
+      if (it.kind === 'comp' && main) { it.sets = 4; main = false; } else it.sets = it.region === 'core' ? 3 : 3;
+      if (K < 1 && it.kind !== 'comp') it.sets = Math.max(2, it.sets - 1);
+    }); });
+    const tot = () => { const t = {}; sessions.forEach(s => s.items.forEach(it => { t[it.region] = (t[it.region] || 0) + it.sets; })); return t; };
+    for (let guard = 0; guard < 40; guard++) {
+      const t = tot(), over = Object.keys(t).find(r => t[r] > (CAP[r] || 12)); if (!over) break;
+      const it = sessions.flatMap(s => s.items).filter(x => x.region === over && x.sets > 2).sort((a, b) => (a.kind === 'comp') - (b.kind === 'comp') || b.sets - a.sets)[0];
+      if (!it) break; it.sets--;
+    }
+    const vol = {};
+    sessions.forEach(s => s.items.forEach(it => { vol[it.group] = (vol[it.group] || 0) + it.sets; }));
+    return { name: sp.name, sessions, vol };
+  }
+
   function generate(plans, plan, opts) {
     opts = opts || {};
     const prefs = opts.prefs || prefsGet();
@@ -442,8 +548,10 @@ window.TrainingAI = (function () {
     const weeksN = weeksList.length - fromWeek;
     if (weeksN <= 0) return { error: 'ended', an };
     const deloadLast = weeksN >= 4;
-    const split = buildSplit(an, prefs);
-    const sessions = split.map(c => sessionFor(c, an));
+    const smart = prefs.method !== 'history';
+    const sm = smart ? smartSessions(an, prefs) : null;
+    const split = smart ? sm.sessions.map(x => ({ key: x.key, groups: x.groups, sessions: [] })) : buildSplit(an, prefs);
+    const sessions = smart ? sm.sessions : split.map(c => sessionFor(c, an));
     /* замены упражнений при плато (выбраны в «Разборе») */
     const swaps = prefs.swaps || {};
     sessions.forEach(ss => ss.items.forEach(it => {
@@ -451,13 +559,25 @@ window.TrainingAI = (function () {
       const k2 = exKey(to); it.swappedFrom = it.name; it.name = to; it.key = k2; it.isNew = !an.ex[k2]; it.why = 'замена при плато: было «' + it.swappedFrom + '»';
     }));
 
+    /* разнообразие: одно и то же упражнение два раза за неделю меняем на другое твоё
+       на ту же зону мышц, если такое есть в истории */
+    if (!smart && sessions.length > 1) {
+      const seen = new Map();
+      sessions.forEach((ss, si) => ss.items.forEach((it, ii) => {
+        if (!seen.has(it.key)) { seen.set(it.key, si); return; }
+        const used = new Set(sessions.flatMap(x => x.items.map(y => y.key)));
+        const alt = Object.values(an.ex).filter(x => x.cls && x.cls.group === it.group && x.cls.region === it.region && !used.has(x.key) && x.count >= 2).sort((a, b) => b.count - a.count)[0];
+        if (alt) { ss.items[ii] = { ...it, key: alt.key, name: alt.name, isNew: false, why: 'для разнообразия, «' + it.name + '» уже есть на неделе' }; }
+      }));
+    }
     const prog = {};
     sessions.forEach(s => s.items.forEach(it => { if (!prog[it.key]) prog[it.key] = progression(it.key, it.name, an, weeksN, deloadLast); }));
 
     /* связку ставим в тот день, в который ты её обычно делаешь */
     const nd = an.trainDays.length;
     let dayPlan = null;
-    if (sessions.length <= nd) {
+    if (smart) dayPlan = an.trainDays.map((_, j) => j % sessions.length);
+    else if (sessions.length <= nd) {
       const score = (ss, dow) => (split.find(c => c.key === ss.key) || { sessions: [] }).sessions.filter(x => x.dow === dow).length;
       const pairs = [];
       sessions.forEach((ss, si) => an.trainDays.forEach((dow, di) => pairs.push({ si, di, v: score(ss, dow) })));
@@ -477,13 +597,16 @@ window.TrainingAI = (function () {
         const s = dayPlan ? sessions[dayPlan[j]] : sessions[seq++ % sessions.length];
         const idx = findDayIdx(wk, dow);
         const day = idx >= 0 ? toArr(wk.days)[idx] : {};
+        /* объём растёт к концу блока: во второй половине +1 подход на базовые */
+        const ramp = smart && !(deloadLast && k === weeksN - 1) && k >= Math.ceil((weeksN - (deloadLast ? 1 : 0)) / 2) ? 1 : 0;
         return {
-          di: idx >= 0 ? idx : dow, date: day.date || '', dow: day.dow || DOW[dow], groups: s.groups,
+          di: idx >= 0 ? idx : dow, date: day.date || '', dow: day.dow || DOW[dow], groups: s.groups, title: s.title || '',
           exercises: s.items.map(it => {
-            const x = an.ex[it.key], last = x && x.last;
+            const x = an.ex[it.key], last = x && x.last, row = { ...prog[it.key].rows[k] };
+            if (smart && it.sets) row.sets = row.deload ? Math.max(1, it.sets - 1) : Math.min(it.kind === 'comp' ? 5 : 4, it.sets + (it.kind === 'comp' && it.sets < 4 ? ramp : 0));
             return { name: it.name, group: it.group, region: it.region, isNew: it.isNew, why: it.why || (k === 0 ? prog[it.key].why : '') || '', step: prog[it.key].step,
               base: last && (last.weight || last.reps) ? (last.weight ? String(last.weight).replace('.', ',') + '×' : '') + last.reps + (last.planNum ? ' · план №' + last.planNum : '') : '',
-              ...prog[it.key].rows[k] };
+              ...row };
           }),
           transferred: false,
         };
@@ -495,19 +618,26 @@ window.TrainingAI = (function () {
     const pl = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
     const notes = [];
     const wc = Object.values(an.weekMap);
+    if (smart) {
+      notes.push(`Методика: сплит «${sm.name}» под ${an.trainDays.length} ${pl(an.trainDays.length, 'день', 'дня', 'дней')} в неделю. Каждая мышца получает нагрузку 2 раза в неделю, так растут лучше всего`);
+      notes.push('Подходов в неделю: ' + Object.entries(sm.vol).map(([g, v]) => g + ' ' + v).join(', ') + '. Старт ближе к нижней границе (10–20 на мышцу), во второй половине блока +1 подход на базовые');
+      notes.push('В разные дни разные вариации: жим лёжа в один день, на наклонной в другой. Одинаковых тяжёлых повторов за неделю нет');
+      notes.push('Упражнения сначала из твоих любимых на ту же зону мышц, новые только если твоих не хватает');
+      notes.push('Оставляй 1–3 повтора в запасе: в начале блока 3, к концу 1');
+    }
     notes.push(`Частота: обычно ${an.freq} ${pl(an.freq, 'тренировка', 'тренировки', 'тренировок')} в неделю (смотрел ${an.weeks} ${pl(an.weeks, 'неделю', 'недели', 'недель')}: ${wc.join(', ')})${toArr(prefs.days).length ? '. Дни выбраны вручную' : ''}`);
     notes.push('Дни: ' + an.trainDays.map(d => DOW[d] + (an.dowCnt[d] ? ` (${an.dowCnt[d]} раз)` : '')).join(', '));
-    notes.push('Связки: ' + sessions.map(s => s.groups.join(' + ') + (s.from ? ` (по ${s.from} ${pl(s.from, 'тренировке', 'тренировкам', 'тренировкам')})` : ' (шаблон)')).join(' · ') + (sessions.length > an.trainDays.length ? '. Чередуются по очереди' : ''));
-    notes.push('Упражнения и их порядок взяты из твоих тренировок с той же связкой, веса из последнего раза');
-    sessions.forEach(s => s.added.forEach(a => notes.push('Добавил, чтобы не отставало: ' + a)));
+    if (!smart) notes.push('Связки: ' + sessions.map(s => s.groups.join(' + ') + (s.from ? ` (по ${s.from} ${pl(s.from, 'тренировке', 'тренировкам', 'тренировкам')})` : ' (шаблон)')).join(' · ') + (sessions.length > an.trainDays.length ? '. Чередуются по очереди' : ''));
+    if (!smart) notes.push('Упражнения и их порядок взяты из твоих тренировок с той же связкой, веса из последнего раза');
+    if (!smart) sessions.forEach(s => s.added.forEach(a => notes.push('Добавил, чтобы не отставало: ' + a)));
     an.merges.slice(0, 6).forEach(m => notes.push(`Считаю одним упражнением: «${m[0]}» = «${m[1]}»`));
     notes.push(`Цель: ${GOAL.label.toLowerCase()}. Диапазон ${GOAL.lo}–${GOAL.hi} повторов, отдых ${GOAL.rest}`);
-    notes.push(`Прогрессия по факту: добрал ${GOAL.hi} повторов, вес вверх и снова с ${GOAL.lo}. Два раза подряд меньше ${GOAL.lo}, вес −7,5%. Один раз меньше, держим вес`);
+    notes.push(`Прогрессия по факту: добрал ${GOAL.hi} повторов, вес вверх, а повторы по оценке твоего максимума. Два раза подряд меньше ${GOAL.lo}, вес −7,5%. Один раз меньше, держим вес`);
     if (deloadLast) notes.push(`Неделя ${fromWeek + weeksN}: разгрузка, вес −15%, подходов меньше`);
 
     return {
       planId: plan.id, planNumber: plan.number, generatedAt: new Date().toISOString(),
-      fromWeek, goal: prefs.goal || 'mass', lastWorkout: history.length ? +history[history.length - 1].date : 0, sig: sigOf(history),
+      fromWeek, goal: prefs.goal || 'mass', method: smart ? 'smart' : 'history', split: smart ? sm.name : '', vol: smart ? sm.vol : null, lastWorkout: history.length ? +history[history.length - 1].date : 0, sig: sigOf(history),
       basedOn: { workouts: an.workouts, weeks: an.weeks, plans: [...new Set(history.map(x => x.planNum))].filter(Boolean) }, notes, weeks,
     };
   }
@@ -685,13 +815,18 @@ window.TrainingAI = (function () {
       </div>
       <div class="ai-pref">
         <div class="ai-pref-t"><i class="ti ti-weight"></i> Шаг веса <em>какие веса есть в твоём зале</em></div>
-        <div class="ai-steps">${Object.entries(EQUIP).map(([k, e]) => `<label class="ai-step"><span>${e.label}</span><select data-eq="${k}">${e.opts.map(o => `<option value="${o}"${(+(prefs.steps || {})[k] || e.def) === o ? ' selected' : ''}>+${String(o).replace('.', ',')} кг</option>`).join('')}</select></label>`).join('')}</div>
+        <div class="ai-steps">${Object.entries(EQUIP).map(([k, e]) => `<div class="ai-step"><span>${e.label}</span><div class="ai-stp"><button data-eq="${k}" data-d="-1" aria-label="Меньше">−</button><input data-eq="${k}" type="text" inputmode="decimal" value="${String(+(prefs.steps || {})[k] || e.def).replace('.', ',')}"><em>кг</em><button data-eq="${k}" data-d="1" aria-label="Больше">+</button></div></div>`).join('')}</div>
       </div>
       <div class="ai-pref">
         <div class="ai-pref-t"><i class="ti ti-calendar-week"></i> Дни тренировок <em>${prefDays.length ? 'выбраны тобой' : 'по истории, можно поменять'}</em></div>
         <div class="ai-days">${DOW.map((d, i) => `<button class="ai-day-chip${an.trainDays.includes(i) ? ' on' : ''}" data-d="${i}"><b>${d}</b><span>${an.dowCnt[i] || ''}</span></button>`).join('')}</div>
       </div>
       <div class="ai-pref">
+        <div class="ai-pref-t"><i class="ti ti-school"></i> Методика</div>
+        <div class="ai-goals ai-meth">${[['smart', 'По науке', 'сплит под дни'], ['history', 'Как у меня', 'мои связки']].map(([k, l, sub]) => `<button class="ai-goal ai-mth${(prefs.method || 'smart') === k ? ' on' : ''}" data-m="${k}"><b>${l}</b><span>${sub}</span></button>`).join('')}</div>
+        ${(prefs.method || 'smart') !== 'history' ? (() => { const sm = smartSessions(an, prefs); return `<div class="ai-split-info"><b>${esc(sm.name)}</b><span>${sm.sessions.map(x => esc(x.title)).join(' · ')}</span></div><div class="ai-vol">${Object.entries(sm.vol).map(([g, v]) => `<span>${esc(g)} <b>${v}</b></span>`).join('')}<em>подходов в неделю</em></div>`; })() : ''}
+      </div>
+      <div class="ai-pref"${(prefs.method || 'smart') !== 'history' ? ' style="display:none"' : ''}>
         <div class="ai-pref-t"><i class="ti ti-arrows-shuffle"></i> Связки мышц <em>${prefSplits.length ? 'выбраны тобой' : 'твои частые'}</em></div>
         <div class="ai-chips">${an.combos.slice(0, 8).map(c => `<button class="ai-chip ai-split${splitNow.includes(c.key) ? ' on' : ''}" data-k="${esc(c.key)}">${esc(c.groups.join(' + '))}<span>${c.c}</span></button>`).join('')}</div>
         ${prefDays.length || prefSplits.length ? '<button class="ai-pref-reset" id="ai-pref-reset"><i class="ti ti-refresh"></i> Вернуть как по истории</button>' : ''}
@@ -727,7 +862,7 @@ window.TrainingAI = (function () {
               <div class="ai-day${d.transferred ? ' is-done' : ''}">
                 <div class="ai-day-h">
                   <div class="ai-day-date"><b>${esc(d.dow)}</b><span>${esc(d.date)}</span></div>
-                  <div class="ai-day-groups">${d.groups.map(g => `<span>${esc(g)}</span>`).join('')}</div>
+                  <div class="ai-day-groups">${d.title ? `<span class="ai-day-title">${esc(d.title)}</span>` : d.groups.map(g => `<span>${esc(g)}</span>`).join('')}</div>
                   ${d.transferred ? '<span class="ai-done"><i class="ti ti-check"></i> в плане</span>'
                     : `<button class="ai-move" data-week="${wk}" data-day="${dk}"><i class="ti ti-arrow-bar-to-right"></i> В план</button>`}
                 </div>
@@ -786,13 +921,29 @@ window.TrainingAI = (function () {
       setPrefs({ ...prefs, splits: cur });
     }));
     const pr = content.querySelector('#ai-pref-reset'); if (pr) pr.addEventListener('click', () => setPrefs({ goal: prefs.goal, swaps: prefs.swaps }));
-    content.querySelectorAll('.ai-step select').forEach(sel => sel.addEventListener('change', () => {
-      const p2 = { ...prefs, steps: { ...(prefs.steps || {}), [sel.dataset.eq]: +sel.value } }; Store.set('training.aiPrefs', p2);
+    /* шаг веса: любое значение с клавиатуры или кнопками −/+ по привычным шагам */
+    const STEPS = [0.25, 0.5, 1, 1.25, 2, 2.5, 3, 4, 5, 7.5, 10, 15, 20];
+    const applyStep = (eq, val) => {
+      val = Math.round(Math.min(50, Math.max(0.25, +String(val).replace(',', '.') || 0)) * 100) / 100; if (!val) return;
+      const p2 = { ...prefs, steps: { ...(prefs.steps || {}), [eq]: val } }; Store.set('training.aiPrefs', p2);
       if (ai) { const res = generate(plans, plan, { fromWeek: ai.fromWeek, prefs: p2 });
         if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
       render(content, plan, h); toast(content, 'Шаг веса учтён' + (ai ? ', план пересчитан' : ''));
+    };
+    content.querySelectorAll('.ai-stp input').forEach(inp => inp.addEventListener('change', () => applyStep(inp.dataset.eq, inp.value)));
+    content.querySelectorAll('.ai-stp button').forEach(b => b.addEventListener('click', () => {
+      const cur = +String(content.querySelector(`.ai-stp input[data-eq="${b.dataset.eq}"]`).value).replace(',', '.') || 1, d = +b.dataset.d;
+      const next = d > 0 ? (STEPS.find(x => x > cur + 1e-9) || cur) : ([...STEPS].reverse().find(x => x < cur - 1e-9) || cur);
+      if (next !== cur) applyStep(b.dataset.eq, next);
     }));
-    content.querySelectorAll('.ai-goal').forEach(b => b.addEventListener('click', () => {
+    content.querySelectorAll('.ai-mth').forEach(b => b.addEventListener('click', (ev) => {
+      ev.stopImmediatePropagation();
+      const p2 = { ...prefs, method: b.dataset.m }; Store.set('training.aiPrefs', p2);
+      if (ai) { const res = generate(plans, plan, { fromWeek: ai.fromWeek, prefs: p2 });
+        if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
+      render(content, plan, h); toast(content, b.dataset.m === 'smart' ? 'Научная методика' + (ai ? ', план пересобран' : '') : 'По твоим связкам' + (ai ? ', план пересобран' : ''));
+    }));
+    content.querySelectorAll('.ai-goal:not(.ai-mth)').forEach(b => b.addEventListener('click', () => {
       const p2 = { ...prefs, goal: b.dataset.g }; Store.set('training.aiPrefs', p2);
       if (ai) { const fw = content.querySelector('#ai-from'); const res = generate(plans, plan, { fromWeek: fw ? +fw.value : ai.fromWeek, prefs: p2 });
         if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }

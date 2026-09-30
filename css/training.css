@@ -1754,3 +1754,20 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
   .tr-tab { flex: 1 1 0; min-width: 0; padding: 12px 4px; font-size: 12.5px; }
   .tr-tab .tt-lg { display: none; } .tr-tab .tt-sm { display: inline; }
 }
+/* v146: шаг веса любым значением */
+.ai-stp { display: flex; align-items: center; height: 36px; border-radius: 10px; border: 1px solid rgba(110,139,255,0.25); background: #151B2B; overflow: hidden; }
+.ai-stp button { width: 30px; height: 100%; border: none; background: rgba(110,139,255,0.1); color: #C7D2FE; font-size: 17px; font-weight: 700; cursor: pointer; flex-shrink: 0; font-family: inherit; }
+.ai-stp input { flex: 1; min-width: 0; width: 100%; height: 100%; border: none; background: none; color: #F2F4F8; font-family: inherit; font-size: 14px; font-weight: 800; text-align: center; padding: 0 2px; -moz-appearance: textfield; outline: none; }
+.ai-stp input::-webkit-outer-spin-button, .ai-stp input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ai-stp em { font-style: normal; font-size: 12px; color: #8F9BBE; padding: 0 6px 0 3px; }
+/* v146: AI и 1RM во всю ширину, как остальные вкладки */
+.ai-wrap { max-width: none; }
+.tr-1rm-wrap { max-width: none; }
+/* v148: научная методика */
+.ai-meth { grid-template-columns: repeat(2, 1fr) !important; }
+.ai-split-info { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(110,139,255,0.06); border: 1px solid rgba(110,139,255,0.15); }
+.ai-split-info b { font-size: 13.5px; color: #E6EAF7; } .ai-split-info span { font-size: 12px; color: #8F9BBE; }
+.ai-vol { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.ai-vol span { font-size: 12px; color: #A7B1CF; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
+.ai-vol span b { color: #E6EAF7; } .ai-vol em { font-style: normal; font-size: 11px; color: #6F7C9E; }
+.ai-day-groups .ai-day-title { background: rgba(110,139,255,0.18) !important; color: #C7D2FE !important; }

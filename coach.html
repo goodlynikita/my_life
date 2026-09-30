@@ -213,6 +213,33 @@ html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
 .theme-toggle .tt-knob{position:absolute;top:3px;left:3px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);box-shadow:0 2px 8px rgba(0,0,0,0.35);transition:left .28s cubic-bezier(.34,1.56,.64,1);z-index:0;box-sizing:border-box}
 .theme-toggle[data-mode="dark"] .tt-knob{left:39px}
 html[data-theme="light"] .theme-toggle{box-shadow:none}
+/* v146: расписание удобнее */
+.sc-rng{display:flex;flex-direction:column;align-items:center;min-width:0} .sc-rng span{font-size:12px;color:var(--faint);margin-top:2px}
+.sc .sc-d em{width:auto;height:auto;min-width:18px;padding:1px 5px;border-radius:9px;background:color-mix(in srgb,var(--acc) 25%,transparent);color:#FCD34D;font-style:normal;font-size:10.5px;font-weight:800;line-height:1.4}
+.sc .sc-d i{height:auto;min-height:17px;align-items:center;justify-content:center} .sc .sc-d.on em{background:rgba(26,18,0,.25);color:#1A1200}
+.sc-dh{align-items:center} .sc-today{height:30px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:none;color:var(--soft);font-family:inherit;font-weight:700;font-size:12px;cursor:pointer}
+.sc-it{cursor:pointer} .sc .sc-it.done{opacity:.55} .sc-it.done .sc-tx b{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
+.sc-it.next{border-color:color-mix(in srgb,var(--acc) 55%,transparent)} .sc-it.live{border-color:#4ADE80;box-shadow:0 0 0 1px rgba(74,222,128,.35)}
+.sc-chk{width:26px;height:26px;flex-shrink:0;border-radius:8px;border:2px solid var(--line2);background:none;color:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-size:16px}
+.sc-chk.on{background:#22C55E;border-color:#22C55E;color:#fff}
+.sc .sc-tm{width:58px;display:flex;flex-direction:column;line-height:1.15} .sc .sc-tm small{white-space:nowrap;font-size:10.5px;font-weight:600;color:var(--faint);text-transform:none;letter-spacing:0}
+.sc-badge{flex-shrink:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--acc) 22%,transparent);color:#FCD34D} .sc-badge.now{background:rgba(74,222,128,.18);color:#4ADE80}
+.sc-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:6px 2px 0}
+.sc-tq{margin-top:-2px} .sc-tq .chip{height:30px;padding:0 10px;font-size:12px}
+.sc-warn{font-size:12.5px;color:#FBBF24;min-height:0;margin:0 0 8px} .sc-warn:empty{display:none}
+/* v146: цвет раздела во всём экране, как зелёные «Привычки» в YOU */
+.chip.on{background:color-mix(in srgb,var(--acc) 22%,transparent)}
+.btn-main{box-shadow:0 8px 22px color-mix(in srgb,var(--acc) 35%,transparent)}
+.ctabs button.on{background:linear-gradient(135deg,var(--acc),var(--acc2))}
+body.sec-green{--acc:#22C55E;--acc2:#15803D;--line:rgba(74,222,128,.12);--line2:rgba(74,222,128,.22)}
+body.sec-violet{--acc:#8B5CF6;--acc2:#6D28D9;--line:rgba(167,139,250,.13);--line2:rgba(167,139,250,.24)}
+body.sec-amber{--acc:#F59E0B;--acc2:#C2410C;--line:rgba(242,169,59,.13);--line2:rgba(242,169,59,.24)}
+body.sec-green .card{background:linear-gradient(160deg,rgba(18,48,30,.8),rgba(12,20,16,.92))}
+body.sec-violet .card{background:linear-gradient(160deg,rgba(40,24,78,.8),rgba(16,12,30,.92))}
+body.sec-amber .card{background:linear-gradient(160deg,rgba(60,38,10,.8),rgba(22,16,8,.92))}
+body.sec-green{background:radial-gradient(1200px 600px at 50% -200px,rgba(34,197,94,.10),transparent),var(--bg)}
+body.sec-violet{background:radial-gradient(1200px 600px at 50% -200px,rgba(139,92,246,.12),transparent),var(--bg)}
+body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(245,158,11,.10),transparent),var(--bg)}
 /* v140: согласия */
 .lg-chk{display:flex;align-items:flex-start;gap:10px;margin:2px 0 10px;font-size:12.5px;line-height:1.45;color:var(--soft);cursor:pointer}
 .lg-chk input{width:18px;height:18px;flex-shrink:0;margin:1px 0 0;accent-color:#4A7CFF} .lg-chk a{color:#93C5FD}
@@ -226,7 +253,7 @@ html[data-theme="light"] .theme-toggle{box-shadow:none}
 .hdots{position:relative;width:48px;height:40px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0;flex-shrink:0;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 6px 18px rgba(0,0,0,.35)}
 .hdots span{width:5px;height:5px;border-radius:50%;background:#F2F4F8;box-shadow:0 0 6px rgba(255,255,255,.45)}
 html[data-theme="light"] .hdots,html[data-theme="light"] .hadd{box-shadow:none}
-@media (max-width:440px){#hdr-home .hdr-in{padding-left:16px;padding-right:16px;gap:8px}.hadd{padding:0 10px}}
+@media (max-width:440px){#hdr-home .hdr-in{gap:8px}.hadd{padding:0 10px}}
 .c-sh{position:sticky;top:0;z-index:30;padding-top:max(14px,calc(env(safe-area-inset-top) + 8px))!important}
 .c-sh>div:first-child{display:flex;align-items:center;gap:10px;min-width:0}
 .c-sh .tr-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -242,7 +269,7 @@ html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893
 .sc-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:14px}
 .sc-d{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;border-radius:14px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--soft);cursor:pointer;font-family:inherit}
 .sc-d span{font-size:11px;font-weight:700} .sc-d b{font-size:17px;color:var(--txt)} .sc-d i{display:flex;gap:3px;height:5px} .sc-d em{width:5px;height:5px;border-radius:50%;background:#F2A93B}
-.sc-d.today{border-color:rgba(242,169,59,.55)} .sc-d.on{background:linear-gradient(135deg,#B7791F,#F2A93B);border-color:transparent;color:#1A1200} .sc-d.on b{color:#1A1200} .sc-d.on em{background:#1A1200}
+.sc-d.is-today{border-color:rgba(242,169,59,.55)} .sc-d.on{background:linear-gradient(135deg,#B7791F,#F2A93B);border-color:transparent;color:#1A1200} .sc-d.on b{color:#1A1200} .sc-d.on em{background:#1A1200}
 .sc-dh{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 10px} .sc-dh b{font-size:16px} .sc-dh span{font-size:12px;color:var(--faint)}
 .sc-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .sc-it{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:16px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--txt);text-align:left;cursor:pointer;font-family:inherit;width:100%}
@@ -259,9 +286,11 @@ html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893
 .sc-msub{margin:-6px 0 12px;font-size:13px;color:var(--faint)}
 html[data-theme="light"] .sc-d.on,html[data-theme="light"] .sc-d.on b{color:#fff}
 /* v137: главная как в YOU */
-.c-home .hero-slider{margin:0 0 16px}
-.c-home .hub-attn{margin-bottom:12px}
-.c-home .home2-grid{gap:12px;padding:0!important;margin:0!important}
+/* главная кабинета во всю ширину с теми же отступами, что в YOU */
+#main{max-width:none;padding:16px 16px 60px} #main.hub-w{padding:0 0 40px}
+.c-home .hero-slider{margin:0 16px 16px}
+.c-home .hub-attn{width:auto;margin:0 16px 12px}
+.c-home .home2-grid{gap:12px;padding:0 16px!important;margin:0!important}
 .hero-slide-main .hero-big-text.num{font-size:44px;letter-spacing:-1.5px;line-height:1} .hero-slide-main .hero-big-text.num .hero-stat-of{font-size:24px}
 @media(max-width:480px){.hero-slide-main .hero-big-text.num{font-size:38px}}
 html[data-theme="light"] .theme-toggle .tt-knob{background:rgba(0,0,0,.92);border-color:rgba(0,0,0,.4);box-shadow:0 2px 6px rgba(255,255,255,.25)}
@@ -503,6 +532,36 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .cd-grew{display:flex;flex-direction:column;gap:4px;margin:12px 0 4px} .cd-grew div{display:flex;gap:7px;align-items:center;font-size:12.5px;color:#BBF7D0} .cd-grew i{color:var(--ok)}
 .cd-grew.lag div{color:#FDE68A} .cd-grew.lag i{color:var(--warn)}
 #cw-card textarea{margin-top:10px;min-height:90px}
+/* v147: демо */
+.demo-bar{display:flex;align-items:center;gap:10px;margin:0 16px 12px;padding:10px 12px 10px 14px;border-radius:16px;border:1px dashed rgba(160,170,210,.3);background:rgba(160,170,210,.06);font-size:13px;color:var(--soft)}
+.demo-bar.in{margin:0 0 12px}
+.demo-bar i{font-size:18px;color:#A5B4FC} .demo-bar span{flex:1;line-height:1.35} .demo-bar b{color:var(--txt)}
+.demo-bar button{height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(160,170,210,.3);background:none;color:var(--txt);font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;flex-shrink:0}
+/* v147: спокойные пастельные тона разделов, без кислотных сочетаний */
+.c-sh.c-sh-blue{background:linear-gradient(135deg,#2C4470 0%,#3A5690 100%)!important}
+.c-sh.c-sh-green{background:linear-gradient(135deg,#2B5247 0%,#386A5C 100%)!important}
+.c-sh.c-sh-violet{background:linear-gradient(135deg,#40386A 0%,#524987 100%)!important}
+.c-sh.c-sh-amber{background:linear-gradient(135deg,#5E4632 0%,#7A5B42 100%)!important}
+body.sec-blue{--acc:#6F8FD0;--acc2:#5873AE}
+body.sec-green{--acc:#62A48C;--acc2:#4B8573;--line:rgba(120,190,165,.12);--line2:rgba(120,190,165,.2)}
+body.sec-violet{--acc:#8F82C6;--acc2:#7266AA;--line:rgba(160,150,210,.12);--line2:rgba(160,150,210,.21)}
+body.sec-amber{--acc:#C29A73;--acc2:#A27D5A;--line:rgba(210,175,140,.12);--line2:rgba(210,175,140,.2)}
+body.sec-green .card{background:linear-gradient(160deg,rgba(30,48,43,.78),rgba(15,20,19,.92))}
+body.sec-violet .card{background:linear-gradient(160deg,rgba(38,34,62,.78),rgba(16,15,26,.92))}
+body.sec-amber .card{background:linear-gradient(160deg,rgba(48,38,30,.78),rgba(20,17,14,.92))}
+body.sec-green{background:radial-gradient(1200px 600px at 50% -200px,rgba(98,164,140,.07),transparent),var(--bg)}
+body.sec-violet{background:radial-gradient(1200px 600px at 50% -200px,rgba(143,130,198,.08),transparent),var(--bg)}
+body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,154,115,.07),transparent),var(--bg)}
+.btn-main{background:linear-gradient(135deg,var(--acc),var(--acc2))}
+/* расписание в тех же спокойных тонах: без ярко-оранжевого и зелёного */
+.sc .sc-d.on{background:linear-gradient(135deg,var(--acc2),var(--acc));color:#fff} .sc .sc-d.on b{color:#fff} .sc .sc-d.on em{background:rgba(255,255,255,.22);color:#fff}
+.sc .sc-d.is-today{border-color:color-mix(in srgb,var(--acc) 55%,transparent)}
+.sc .sc-d em{color:#E6CFB5;background:color-mix(in srgb,var(--acc) 22%,transparent)}
+.sc .sc-tm{color:#E6CFB5}
+.sc .sc-it.live{border-color:color-mix(in srgb,var(--acc) 70%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 30%,transparent)}
+.sc .sc-badge{color:#E6CFB5} .sc .sc-badge.now{background:color-mix(in srgb,var(--acc) 30%,transparent);color:#F2E4D3}
+.sc .sc-chk.on{background:var(--acc2);border-color:var(--acc2)}
+.sc .sc-warn{color:#D9B48C}
 </style>
 </head>
 <body>
@@ -749,8 +808,60 @@ async function boot(u) {
   }
   show('appv');
   await Promise.all([loadClients(), loadTemplates(), loadSchedule()]);
+  if (isDemo()) schedule = schedule.concat(demoSlots());
   render();
 }
+
+/* ═══ Демо для нового тренера: примеры клиентов, пока своих нет. Ничего не сохраняется в базу ═══ */
+function demoClients() {
+  const DW = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+  const fmt = (d) => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
+  const S = (n, s, r, w) => ({ kind: 'strength', name: n, sets: s, reps: r, weight: w });
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const mon = new Date(t0); mon.setDate(t0.getDate() - ((t0.getDay() + 6) % 7) - 5 * 7);
+  /* план на 8 недель: 5 прошедших, текущая и 2 вперёд */
+  const plan = (fill, doneFn) => { const weeks = [];
+    for (let wi = 0; wi < 8; wi++) { const days = [];
+      for (let di = 0; di < 7; di++) { const d = new Date(mon); d.setDate(mon.getDate() + wi * 7 + di);
+        const ss = fill(wi, di, d); const day = { date: fmt(d), dow: DW[di], sessions: ss };
+        if (ss.length && d < t0 && doneFn(wi, di, d)) day.done = { by: d < t0 ? 'client' : 'coach', at: +d };
+        days.push(day); }
+      weeks.push({ weekNum: wi + 1, days }); }
+    return { id: 'demo-plan', number: 1, name: 'План №1', status: 'active', startDate: mon.toISOString(), weeks }; };
+  const A = plan((wi, di) => {
+    if (di === 0) return [{ type: 'Тренажерный зал', groups: ['Грудь', 'Руки'], exercises: [S('Жим штанги лёжа', 4, 8 + wi % 3, 70 + Math.floor(wi / 2) * 2.5), S('Жим гантелей на наклонной', 3, 10, 24 + wi), S('Подъём штанги на бицепс', 3, 10, 30 + (wi > 3 ? 2.5 : 0))] }];
+    if (di === 2) return [{ type: 'Тренажерный зал', groups: ['Ноги'], exercises: [S('Приседания со штангой', 4, 8, 90 + wi * 2.5), S('Жим ногами', 4, 12, 160 + wi * 10), S('Сгибания ног', 3, 12, 35 + wi)] }];
+    if (di === 4) return [{ type: 'Тренажерный зал', groups: ['Спина', 'Плечи'], exercises: [S('Тяга верхнего блока', 4, 10, 55 + wi * 2.5), S('Тяга штанги в наклоне', 4, 8, 60 + wi * 2.5), S('Махи гантелей в стороны', 3, 12, 8 + (wi > 2 ? 2 : 0))] }];
+    return []; }, () => true);
+  const M = plan((wi, di) => {
+    if (di === 1) return [{ type: 'Тренажерный зал', groups: ['Ноги', 'Ягодицы'].filter(g => g !== 'Ягодицы'), exercises: [S('Приседания со штангой', 4, 10, 40 + wi * 2.5), S('Румынская тяга', 3, 10, 40 + wi * 2.5), S('Разгибания ног', 3, 12, 25)] }];
+    if (di === 3) return [{ type: 'Тренажерный зал', groups: ['Спина', 'Руки'], exercises: [S('Тяга верхнего блока', 3, 12, 30 + wi), S('Тяга гантели в наклоне', 3, 10, 10), S('Разгибания на блоке', 3, 12, 15)] }];
+    return []; }, (wi) => wi < 4);
+  /* Мария последние полторы недели не отмечает тренировки: план тренера без её данных */
+  M.weeks.forEach((w, wi) => { if (wi >= 4) w.days.forEach(d => (d.sessions || []).forEach(x => { x.byCoach = true; x.exercises.forEach(e => { e.pv = window.CoachDash.sig(e); }); })); });
+  const I = plan((wi, di) => wi >= 5 && (di === 1 || di === 4) ? [{ type: 'Тренажерный зал', groups: ['FULL BODY'], exercises: [S('Жим гантелей лёжа', 3, 12, 14), S('Тяга верхнего блока', 3, 12, 35), S('Гоблет-присед', 3, 12, 16)], byCoach: true }] : [], () => true);
+  const ms = (arr) => arr.map(([dAgo, v]) => { const d = new Date(t0); d.setDate(t0.getDate() - dAgo); return { date: fmt(d) + '.' + d.getFullYear(), values: v }; });
+  const mk = (k, name, pl, meas, note) => ({ k, name, email: '', root: 'demo/' + k, via: 'demo', since: +mon, uid: k, ok: true, demo: true, note: note || '', training: { plans: [pl], measurements: meas || [] } });
+  const list = [
+    mk('demo-a', 'Соколов Алексей', A, ms([[34, { 'Вес': '86,2', 'Талия': '89', 'Плечи': '121', 'Грудь': '103' }], [18, { 'Вес': '84,9', 'Талия': '87', 'Плечи': '121,5', 'Грудь': '104' }], [3, { 'Вес': '83,8', 'Талия': '85,5', 'Плечи': '122', 'Грудь': '104,5' }]]), 'Цель: минус 5 кг к лету'),
+    mk('demo-m', 'Петрова Мария', M, ms([[30, { 'Вес': '62', 'Талия': '70' }], [9, { 'Вес': '61,2', 'Талия': '68,5' }]]), 'Беречь колено'),
+    mk('demo-i', 'Кузнецов Иван', I, [], 'Новичок, занимаемся в зале'),
+  ];
+  list.forEach(c => { c.stat = stats(c); });
+  return list;
+}
+function demoSlots() {
+  const t0 = new Date(), d = ymd(t0), tm = new Date(t0); tm.setDate(t0.getDate() + 1);
+  return [{ id: 'demo-s1', d, tm: '18:00', dur: 60, ck: 'demo-a', nm: '', note: 'зал', rep: false, demo: true },
+    { id: 'demo-s2', d: ymd(tm), tm: '10:00', dur: 60, ck: 'demo-i', nm: '', note: 'зал, первая неделя', rep: true, demo: true }];
+}
+const isDemo = () => clients.some(c => c.demo);
+async function hideDemo() {
+  clients = clients.filter(c => !c.demo); schedule = schedule.filter(s => !s.demo && !String(s.ck || '').startsWith('demo-'));
+  trainer.demoOff = true; try { await update(ref(db, 'trainers/' + trainer.uid), { demoOff: true }); } catch (e) {}
+  view = { name: 'list', tab: 'hub' }; render(); toast('Демо убрано');
+}
+const demoBar = () => isDemo() ? `<div class="demo-bar"><i class="ti ti-sparkles"></i><span><b>Демо-клиенты</b> для примера. Исчезнут, когда добавите своих</span><button id="demo-off">Убрать</button></div>` : '';
 
 /* ═══ Данные клиентов ═══ */
 async function loadClients() {
@@ -765,6 +876,8 @@ async function loadClients() {
   /* лимит: когда мест нет, приглашение помечается как заполненное */
   const full = clients.length >= (trainer.limit || 50);
   try { await update(ref(db, 'invites/' + trainer.code), { full, count: clients.length }); } catch (e) {}
+  if (!clients.length && !trainer.demoOff) clients = demoClients();
+  if (!isDemo()) schedule = schedule.filter(x => !x.demo);
 }
 function plansOf(c) { return toArr(c.training && c.training.plans).filter(Boolean); }
 function activePlan(c) { const ps = plansOf(c); return ps.find(p => p.status === 'active') || ps[ps.length - 1] || null; }
@@ -796,16 +909,19 @@ const SECTIONS = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шабл
 /* цвета шапок разделов как у плиток */
 const SEC_COL = { clients: 'blue', add: 'blue', feed: 'green', tpl: 'violet', sched: 'amber' };
 const goAdd = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
-const SEC_ACT = { clients: ['ti-user-plus', 'Добавить клиента', goAdd], sched: ['ti-plus', 'Новая запись', () => { const b = $('#sc-add'); if (b) b.click(); }] };
+const SEC_ACT = { clients: ['ti-user-plus', 'Добавить клиента', goAdd], sched: ['ti-plus', 'Новая запись', () => { const b = $('#sc-add'); if (b) b.click(); else { schedSel = null; schedWeek = 0; render(); setTimeout(() => { const x = $('#sc-add'); if (x) x.click(); }, 50); } }] };
 function render() {
   const atHub = view.name === 'list' && (!view.tab || view.tab === 'hub');
+  $('#main').classList.toggle('hub-w', atHub);
+  document.body.classList.remove('sec-blue', 'sec-green', 'sec-violet', 'sec-amber');
+  if (!atHub) document.body.classList.add('sec-' + (SEC_COL[view.name === 'client' ? 'clients' : view.tab] || 'blue'));
   $('#hdr-home').classList.toggle('hidden', !atHub); $('#hdr-sec').classList.toggle('hidden', atHub);
   const sec = view.name === 'client' ? 'clients' : view.tab;
   $('#t-name').textContent = SECTIONS[sec] || '';
   $('#hdr-sec').className = 'tr-header c-sh c-sh-' + (SEC_COL[sec] || 'blue') + (atHub ? ' hidden' : '');
   const act = SEC_ACT[sec]; $('#sec-act').innerHTML = act ? `<button class="tr-back" id="sec-btn" title="${act[1]}"><i class="ti ${act[0]}"></i></button>` : '';
   if (act) $('#sec-btn').onclick = act[2];
-  const hn = $('#hadd-n'); if (hn && trainer) hn.textContent = `${clients.length}/${trainer.limit || 50}`;
+  const hn = $('#hadd-n'); if (hn && trainer) hn.textContent = `${clients.filter(c => !c.demo).length}/${trainer.limit || 50}`;
   if (view.name === 'client') return renderClient();
   renderList();
 }
@@ -814,6 +930,7 @@ function renderList() {
   if (!view.tab || view.tab === 'home') view.tab = 'hub';
   $('#main').innerHTML = '<div id="mbody"></div>';
   let body = $('#mbody');
+  $('#main').classList.toggle('hub-w', view.tab === 'hub');
   if (view.tab === 'hub') return renderHub(body);
   if (view.tab === 'feed') return renderFeed(body);
   if (view.tab === 'tpl') return renderTemplates(body);
@@ -935,7 +1052,7 @@ function renderHub(body) {
     sched: x.sched.all.length ? (x.sched.next ? `${x.sched.next.tm} ${firstNameS(x.sched.next.nm)}` : `Сегодня ${x.sched.all.length}`) : 'Сегодня свободно',
   };
   const tiles = ui.tiles.filter(k => !ui.hideTiles.includes(k)), wide = WIDE_BY_LAYOUT[ui.layout] || [];
-  body.innerHTML = `<div class="c-home">
+  body.innerHTML = `<div class="c-home">${demoBar()}
     ${n ? `<div class="hero-slider" id="hero-slider"><div class="hero-slides" id="hero-slides" style="width:${n * 100}%">${slides.map(s => slideHtml(s, x)).join('')}</div>
       ${n > 1 ? `<div class="hero-dots">${slides.map((_, i) => `<div class="hero-dot${i ? '' : ' active'}" data-idx="${i}"></div>`).join('')}</div>` : ''}</div>` : ''}
     ${x.attnN ? `<button class="hub-attn" data-go="clients"><i class="ti ti-alert-triangle"></i><b>${x.attnN} ${pl(x.attnN, 'требует', 'требуют', 'требуют')} внимания</b><i class="ti ti-chevron-right"></i></button>` : ''}
@@ -958,6 +1075,7 @@ function renderHub(body) {
     el.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); moved = false; } }, true);
     auto();
   }
+  const dof = $('#demo-off'); if (dof) dof.onclick = hideDemo;
   coachTips('home');
 }
 
@@ -1122,7 +1240,7 @@ function renderHome(body) {
   lost.forEach(c => attn.push({ c, i: 'ti-alert-triangle b', t: `<b>${esc(cname(c))}</b> пропал: ${ago(c.stat.days)}` }));
   [...new Set(miss.map(e => e.c))].forEach(c => { const k = miss.filter(e => e.c === c).length; attn.push({ c, i: 'ti-clock-exclamation w', t: `<b>${esc(cname(c))}</b>: ${k} ${pl(k, 'тренировка не отмечена', 'тренировки не отмечены', 'тренировок не отмечено')} за неделю` }); });
   plat.forEach(c => attn.push({ c, i: 'ti-chart-line w', t: `<b>${esc(cname(c))}</b>: плато, ${c.stat.plat.slice(0, 2).map(p => esc(p.name)).join(', ')}` }));
-  body.innerHTML = `
+  body.innerHTML = `${demoBar().replace('class="demo-bar"', 'class="demo-bar in"')}
     ${attn.length ? `<div class="card"><div class="card-h"><div><b>Нужно внимание</b></div></div>
       <div class="attn">${attn.slice(0, 8).map(a => `<button class="attn-i" data-ck="${esc(a.c.k)}"><i class="ti ${a.i}"></i><span>${a.t}</span><i class="ti ti-chevron-right"></i></button>`).join('')}</div></div>` : ''}
     <div class="card">
@@ -1138,6 +1256,7 @@ function renderHome(body) {
     `;
   body.querySelectorAll('.cl').forEach(el => el.onclick = () => openClient(+el.dataset.i));
   body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
+  { const dof = $('#demo-off'); if (dof) dof.onclick = hideDemo; }
   coachTips('clients');
 }
 
@@ -1157,6 +1276,7 @@ async function loadSchedule() {
 async function saveSlot(it) {
   const i = schedule.findIndex(x => x.id === it.id); if (i >= 0) schedule[i] = it; else schedule.push(it);
   try { localStorage.setItem('you_sched_' + trainer.uid, JSON.stringify(schedule)); } catch (e) {}
+  if (it.demo || String(it.ck || '').startsWith('demo-')) return;
   const { id, ...v } = it; try { await set(ref(db, 'trainerSchedule/' + trainer.uid + '/' + id), clean(v)); } catch (e) {}
 }
 async function removeSlot(id) {
@@ -1190,30 +1310,56 @@ function dayEntries(date) {
 }
 function schedToday() { const e = dayEntries(new Date()), now = new Date(), hm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'); return { all: e, next: e.find(x => x.tm && x.tm >= hm && !x.done) || null }; }
 
+const hm2m = (t) => { const [h, m] = String(t || '').split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+const m2hm = (m) => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
 function renderSched(body) {
   const t0 = new Date(); t0.setHours(0, 0, 0, 0);
   if (!schedSel) schedSel = ymd(t0);
   const mon = new Date(t0); mon.setDate(t0.getDate() - ((t0.getDay() + 6) % 7) + schedWeek * 7);
   const days = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
-  const sel = fromYmd(schedSel), list = dayEntries(sel);
+  const sel = fromYmd(schedSel), list = dayEntries(sel), isT = +sel === +t0, isPast = sel < t0;
+  const now = new Date(), nowM = now.getHours() * 60 + now.getMinutes();
+  const wk = days.map(d => dayEntries(d)), wkN = wk.reduce((a, x) => a + x.length, 0), wkD = wk.reduce((a, x) => a + x.filter(e => e.done).length, 0);
+  const timed = list.filter(e => e.tm), plan = list.filter(e => !e.tm);
+  const nextI = isT ? timed.findIndex(e => !e.done && hm2m(e.tm) + (+(e.it && e.it.dur) || 60) > nowM) : -1;
   const range = `${days[0].getDate()} ${MON[days[0].getMonth()]} – ${days[6].getDate()} ${MON[days[6].getMonth()]}`;
+  const row = (e, i, cls) => { const st = hm2m(e.tm), dur = +(e.it && e.it.dur) || 60, live = isT && e.tm && st <= nowM && nowM < st + dur;
+    return `<div class="sc-it${e.done ? ' done' : ''}${cls || ''}${live ? ' live' : ''}" data-i="${i}">
+      <button class="sc-chk${e.done ? ' on' : ''}" data-chk="${i}" aria-label="${e.done ? 'Снять отметку' : 'Отметить: провёл'}"><i class="ti ti-check"></i></button>
+      <span class="sc-tm">${e.tm ? `${esc(e.tm)}<small>до ${m2hm(st + dur)}</small>` : '<small>план</small>'}</span>
+      <span class="sc-av" style="background:${e.c ? avaCol(e.c) : '#475569'}">${esc((e.nm || '?').trim()[0] || '?').toUpperCase()}</span>
+      <span class="sc-tx"><b>${esc(e.nm)}</b>${e.sub ? `<small>${esc(e.sub)}</small>` : ''}</span>
+      ${live ? '<span class="sc-badge now">сейчас</span>' : cls === ' next' ? '<span class="sc-badge">далее</span>' : e.it && e.it.rep ? '<i class="ti ti-repeat sc-rep"></i>' : ''}</div>`; };
+  const all = timed.concat(plan);
   body.innerHTML = `<div class="card sc">
-    <div class="sc-top"><button class="hb sc-nav" data-wk="-1" aria-label="Прошлая неделя"><i class="ti ti-chevron-left"></i></button><b>${range}</b><button class="hb sc-nav" data-wk="1" aria-label="Следующая неделя"><i class="ti ti-chevron-right"></i></button></div>
-    <div class="sc-week">${days.map(d => { const n = dayEntries(d).length, k = ymd(d);
-      return `<button class="sc-d${k === schedSel ? ' on' : ''}${+d === +t0 ? ' today' : ''}" data-d="${k}"><span>${DOW[d.getDay()]}</span><b>${d.getDate()}</b><i>${'<em></em>'.repeat(Math.min(n, 3))}</i></button>`; }).join('')}</div>
-    <div class="sc-dh"><b>${+sel === +t0 ? 'Сегодня' : DOW[sel.getDay()] + ', ' + sel.getDate() + ' ' + MON[sel.getMonth()]}</b><span>${list.length ? list.length + ' ' + pl(list.length, 'тренировка', 'тренировки', 'тренировок') : ''}</span></div>
-    <div class="sc-list">${list.length ? list.map((e, i) => `<button class="sc-it${e.done ? ' done' : ''}" data-i="${i}">
-        <span class="sc-tm">${e.tm ? esc(e.tm) : '<small>план</small>'}</span>
-        <span class="sc-av" style="background:${e.c ? avaCol(e.c) : '#475569'}">${esc((e.nm || '?').trim()[0] || '?').toUpperCase()}</span>
-        <span class="sc-tx"><b>${esc(e.nm)}</b>${e.sub ? `<small>${esc(e.sub)}</small>` : ''}</span>
-        ${e.done ? '<i class="ti ti-circle-check-filled sc-ok"></i>' : e.it && e.it.rep ? '<i class="ti ti-repeat sc-rep"></i>' : ''}</button>`).join('')
-      : '<div class="sc-empty">Свободный день</div>'}</div>
-    <button class="btn btn-main sc-add" id="sc-add"><i class="ti ti-plus"></i> Запись</button></div>`;
+    <div class="sc-top"><button class="hb sc-nav" data-wk="-1" aria-label="Прошлая неделя"><i class="ti ti-chevron-left"></i></button><div class="sc-rng"><b>${range}</b><span>${wkN ? `${wkN} ${pl(wkN, 'тренировка', 'тренировки', 'тренировок')} · проведено ${wkD}` : 'Неделя свободна'}</span></div><button class="hb sc-nav" data-wk="1" aria-label="Следующая неделя"><i class="ti ti-chevron-right"></i></button></div>
+    <div class="sc-week">${days.map((d, j) => { const n = wk[j].length, dn = wk[j].filter(e => e.done).length, k = ymd(d);
+      return `<button class="sc-d${k === schedSel ? ' on' : ''}${+d === +t0 ? ' is-today' : ''}" data-d="${k}"><span>${DOW[d.getDay()]}</span><b>${d.getDate()}</b><i>${n ? `<em>${dn && dn === n ? '✓' : n}</em>` : ''}</i></button>`; }).join('')}</div>
+    <div class="sc-dh"><b>${isT ? 'Сегодня' : DOW[sel.getDay()] + ', ' + sel.getDate() + ' ' + MON[sel.getMonth()]}</b>${schedWeek || !isT ? '<button class="sc-today" id="sc-today">Сегодня</button>' : ''}</div>
+    <div class="sc-list">${all.length ? timed.map((e, i) => row(e, i, i === nextI && !(isT && hm2m(e.tm) <= nowM) ? ' next' : '')).join('')
+        + (plan.length ? `<div class="sc-sub">По плану, без времени</div>` + plan.map((e, i) => row(e, timed.length + i)).join('') : '')
+      : `<div class="sc-empty">${isPast ? 'Тренировок не было' : 'Свободный день'}</div>`}</div>
+    ${isPast ? '' : '<button class="btn btn-main sc-add" id="sc-add"><i class="ti ti-plus"></i> Запись</button>'}</div>`;
   body.querySelectorAll('.sc-nav').forEach(b => b.onclick = () => { schedWeek += +b.dataset.wk; const d = new Date(mon); d.setDate(mon.getDate() + 7 * +b.dataset.wk); schedSel = ymd(d); renderSched(body); });
   body.querySelectorAll('.sc-d').forEach(b => b.onclick = () => { schedSel = b.dataset.d; renderSched(body); });
-  body.querySelector('#sc-add').onclick = () => slotModal(null, schedSel, () => renderSched(body));
-  body.querySelectorAll('.sc-it').forEach(b => b.onclick = () => entryMenu(list[+b.dataset.i], sel, () => renderSched(body)));
+  const tb = body.querySelector('#sc-today'); if (tb) tb.onclick = () => { schedWeek = 0; schedSel = ymd(t0); renderSched(body); };
+  const ab = body.querySelector('#sc-add'); if (ab) ab.onclick = () => slotModal(null, schedSel, () => renderSched(body));
+  body.querySelectorAll('[data-chk]').forEach(b => b.onclick = async (ev) => { ev.stopPropagation(); const e = all[+b.dataset.chk]; if (!e.c && !e.it) return; await toggleDone(e, schedSel); renderSched(body); });
+  body.querySelectorAll('.sc-it').forEach(b => b.onclick = () => entryMenu(all[+b.dataset.i], sel, () => renderSched(body)));
   coachTips('sched');
+}
+
+async function toggleDone(e, k) {
+    const want = !e.done;
+    if (e.c && e.pd) {
+      const plans = plansOf(e.c), p = activePlan(e.c); const pi = plans.indexOf(p); plans[pi].weeks = toArr(plans[pi].weeks);
+      const w = plans[pi].weeks[e.pd.wi]; w.days = toArr(w.days); const dd = w.days[e.pd.di]; trMigrateDayToSessions(dd);
+      if (want && !toArr(dd.sessions).some(s => s && s.type !== 'Отдых' && s.type !== 'Шаги')) dd.sessions = [{ type: 'Тренажерный зал', groups: [], exercises: [], byCoach: true }];
+      if (want) dd.done = { by: 'coach', at: Date.now() }; else delete dd.done;
+      await savePlans(e.c, plans);
+    }
+    if (e.it) { const it = Object.assign({}, e.it, { done: Object.assign({}, e.it.done || {}) }); if (want) it.done[k] = true; else delete it.done[k]; await saveSlot(it); }
+    toast(want ? 'Отмечено' : 'Отметка снята');
 }
 
 function entryMenu(e, date, done) {
@@ -1227,18 +1373,7 @@ function entryMenu(e, date, done) {
       ${e.it && e.it.rep ? '<button data-m="delall" class="bad"><i class="ti ti-trash-x"></i>Удалить все повторы</button>' : ''}
     </div>`);
   const on = (m, fn) => { const b = ov.querySelector(`[data-m="${m}"]`); if (b) b.onclick = async () => { ov.remove(); await fn(); done(); }; };
-  on('done', async () => {
-    const want = !e.done;
-    if (e.c && e.pd) {
-      const plans = plansOf(e.c), p = activePlan(e.c); const pi = plans.indexOf(p); plans[pi].weeks = toArr(plans[pi].weeks);
-      const w = plans[pi].weeks[e.pd.wi]; w.days = toArr(w.days); const dd = w.days[e.pd.di]; trMigrateDayToSessions(dd);
-      if (want && !toArr(dd.sessions).some(s => s && s.type !== 'Отдых' && s.type !== 'Шаги')) dd.sessions = [{ type: 'Тренажерный зал', groups: [], exercises: [], byCoach: true }];
-      if (want) dd.done = { by: 'coach', at: Date.now() }; else delete dd.done;
-      await savePlans(e.c, plans);
-    }
-    if (e.it) { const it = Object.assign({}, e.it, { done: Object.assign({}, e.it.done || {}) }); if (want) it.done[k] = true; else delete it.done[k]; await saveSlot(it); }
-    toast(want ? 'Отмечено' : 'Отметка снята');
-  });
+  on('done', () => toggleDone(e, k));
   on('open', async () => { const i = clients.indexOf(e.c); if (i >= 0) { view.back = 'sched'; openClient(i); } });
   const ob = ov.querySelector('[data-m="open"]'); if (ob) ob.onclick = () => { ov.remove(); const i = clients.indexOf(e.c); if (i >= 0) openClient(i); };
   on('edit', async () => slotModal(e.it, k, done));
@@ -1248,7 +1383,13 @@ function entryMenu(e, date, done) {
 }
 
 function slotModal(it, dateK, done) {
-  it = Object.assign({ id: '', d: dateK, tm: '10:00', dur: 60, ck: '', nm: '', note: '', rep: false }, it || {});
+  /* время по умолчанию: сразу после последней записи дня, иначе ближайший час */
+  const dayT = dayEntries(fromYmd(dateK)).filter(e => e.tm && (!it || !it.id || !e.it || e.it.id !== it.id));
+  let defT = 10 * 60; const nw = new Date();
+  if (dateK === ymd(nw)) defT = Math.max(defT, (nw.getHours() + 1) * 60);
+  if (dayT.length) defT = Math.max(...dayT.map(e => hm2m(e.tm) + (+(e.it && e.it.dur) || 60)));
+  defT = Math.min(23 * 60, Math.ceil(defT / 30) * 30);
+  it = Object.assign({ id: '', d: dateK, tm: m2hm(defT), dur: 60, ck: '', nm: '', note: '', rep: false }, it || {});
   const live = clients.filter(c => c.ok);
   let ck = it.ck;
   const ov = sheet(`<h3>${it.id ? 'Запись' : 'Новая запись'}</h3>
@@ -1257,6 +1398,8 @@ function slotModal(it, dateK, done) {
     <input class="field${ck ? ' hidden' : ''}" id="sc-nm" placeholder="Имя, например пробная тренировка" value="${esc(it.nm || '')}">
     <div class="sc-row"><label><span class="sc-lbl">Дата</span><input class="field" type="date" id="sc-d" value="${esc(it.d)}"></label>
       <label><span class="sc-lbl">Время</span><input class="field" type="time" id="sc-tm" value="${esc(it.tm)}"></label></div>
+    <div class="chips sc-tq" id="sc-tq">${['07:00', '09:00', '12:00', '17:00', '18:00', '19:00', '20:00'].map(t => `<button class="chip" data-t="${t}">${t}</button>`).join('')}</div>
+    <div class="sc-warn" id="sc-warn"></div>
     <div class="chips" id="sc-dur">${[45, 60, 90, 120].map(m => `<button class="chip${+it.dur === m ? ' on' : ''}" data-m="${m}">${m} мин</button>`).join('')}</div>
     <input class="field" id="sc-note" placeholder="Заметка: зал, онлайн, что делаем" value="${esc(it.note || '')}">
     <label class="sc-chk"><input type="checkbox" id="sc-rep" ${it.rep ? 'checked' : ''}><span>Повторять каждую неделю</span></label>
@@ -1264,7 +1407,15 @@ function slotModal(it, dateK, done) {
     <button class="btn btn-main" id="sc-save" style="width:100%;margin-top:6px">Сохранить</button>`);
   let dur = +it.dur || 60;
   ov.querySelectorAll('#sc-cl .chip').forEach(b => b.onclick = () => { ck = b.dataset.k; ov.querySelectorAll('#sc-cl .chip').forEach(x => x.classList.toggle('on', x === b)); ov.querySelector('#sc-nm').classList.toggle('hidden', !!ck); ov.querySelector('#sc-tell-w').classList.toggle('hidden', !ck); });
-  ov.querySelectorAll('#sc-dur .chip').forEach(b => b.onclick = () => { dur = +b.dataset.m; ov.querySelectorAll('#sc-dur .chip').forEach(x => x.classList.toggle('on', x === b)); });
+  /* пересечения по времени с другими записями этого дня */
+  const check = () => { const d = ov.querySelector('#sc-d').value, t = hm2m(ov.querySelector('#sc-tm').value);
+    const hit = d ? dayEntries(fromYmd(d)).filter(e => e.tm && (!e.it || e.it.id !== it.id)).find(e => { const a = hm2m(e.tm), b = a + (+(e.it && e.it.dur) || 60); return t < b && t + dur > a; }) : null;
+    ov.querySelector('#sc-warn').innerHTML = hit ? `<i class="ti ti-alert-triangle"></i> В это время уже ${esc(hit.nm)}, ${esc(hit.tm)}` : '';
+    ov.querySelectorAll('#sc-tq .chip').forEach(x => x.classList.toggle('on', x.dataset.t === ov.querySelector('#sc-tm').value)); };
+  ov.querySelectorAll('#sc-tq .chip').forEach(b => b.onclick = () => { ov.querySelector('#sc-tm').value = b.dataset.t; check(); });
+  ['#sc-d', '#sc-tm'].forEach(q => ov.querySelector(q).addEventListener('input', check));
+  ov.querySelectorAll('#sc-dur .chip').forEach(b => b.onclick = () => { dur = +b.dataset.m; ov.querySelectorAll('#sc-dur .chip').forEach(x => x.classList.toggle('on', x === b)); check(); });
+  check();
   ov.querySelector('#sc-save').onclick = async () => {
     const d = ov.querySelector('#sc-d').value, tm = ov.querySelector('#sc-tm').value, nm = ov.querySelector('#sc-nm').value.trim();
     if (!d) return toast('Выберите дату'); if (!ck && !nm) return toast('Выберите клиента или впишите имя');
@@ -1499,11 +1650,11 @@ async function useKey(raw) {
 async function openClient(i, tab) {
   const c = clients[i];
   let tai = {};
-  try { const s = await get(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k)); tai = s.exists() ? s.val() : {}; } catch (e) {}
+  if (!c.demo) try { const s = await get(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k)); tai = s.exists() ? s.val() : {}; } catch (e) {}
   CoachStore.cur = { k: c.k, training: c.training, tai };
   CoachStore.onSet = (path, val) => {
     const m = path.match(/^training\.(ai|aiPrefs|aiSources)$/);
-    if (m) { CoachStore.cur.tai[m[1]] = val; set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
+    if (m) { CoachStore.cur.tai[m[1]] = val; if (!c.demo) set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
   };
   view = { name: 'client', i, tab: tab || (view.name === 'client' && view.i === i ? view.tab : 'dash'), open: null, back: view.name === 'list' ? view.tab : (view.back || 'hub') };
   window._aiView = 'plan';
@@ -1526,6 +1677,7 @@ async function savePlans(c, plans) {
     /* снимок плана тренера: если клиент потом поменяет веса или повторы, тренировка засчитается как сделанная */
     if (dt && dt >= t0) toArr(d.sessions).forEach(s => { if (!s) return; if (!s.byCoach) s.byCoach = true; toArr(s.exercises).forEach(e => { if (e) e.pv = window.CoachDash.sig(e); }); }); })); });
   c.training.plans = clean(plans); c.training.coachRev = rev;
+  if (c.demo) { c.stat = stats(c); return; }
   try { await update(ref(db, c.root + '/training'), { plans: clean(plans), coachRev: rev }); c.stat = stats(c); }
   catch (e) { alert('Не получилось сохранить. Возможно, клиент отключился от вас.'); }
 }
@@ -1573,6 +1725,7 @@ function renderDash(c, body) {
   $('#cw-send').onclick = async () => {
     const text = $('#cw-text').value.trim().slice(0, 1000);
     const cw = clean({ ...sum, lag: null, text, trainer: trainer.name, at: Date.now() });
+    if (c.demo) { c.training.coachWeekly = cw; toast('Это демо: клиенту ничего не отправилось'); renderDash(c, body); return; }
     try { await update(ref(db, c.root + '/training'), { coachWeekly: cw, coachRev: Date.now() }); c.training.coachWeekly = cw; toast('Итоги отправлены клиенту'); renderDash(c, body); }
     catch (e) { alert('Не получилось отправить.'); }
   };
@@ -1598,6 +1751,7 @@ function measureModal(c, done) {
     const r = window.BodyProgress.readForm(ov);
     if (!Object.keys(r.values).length) { toast('Заполните хотя бы одно поле'); return; }
     const list = ms.concat([{ date: r.date || def, values: r.values, byCoach: true }]);
+    if (c.demo) { c.training.measurements = list; c.stat = stats(c); ov.remove(); toast('Замер сохранён в демо'); done && done(); return; }
     try { await update(ref(db, c.root + '/training'), { measurements: clean(list), coachRev: Date.now() }); c.training.measurements = list; c.stat = stats(c); ov.remove(); toast('Замер сохранён'); done && done(); }
     catch (e) { alert('Не получилось сохранить.'); }
   };
@@ -1616,9 +1770,10 @@ function renderNote(c, body) {
   </div>`;
   let t = null;
   $('#note').oninput = (e) => { clearTimeout(t); $('#note-s').textContent = 'Сохраняю…'; t = setTimeout(async () => {
-    c.note = e.target.value; await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k + '/note'), c.note).catch(() => {}); $('#note-s').textContent = 'Сохранено'; }, 600); };
+    c.note = e.target.value; if (!c.demo) await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k + '/note'), c.note).catch(() => {}); $('#note-s').textContent = 'Сохранено'; }, 600); };
   $('#drop').onclick = async () => {
     if (!confirm('Отключить ' + cname(c) + '? Вы потеряете доступ к его тренировкам. Его план и записи останутся у него.')) return;
+    if (c.demo) { clients.splice(view.i, 1); view = { name: 'list', tab: 'clients' }; if (!isDemo()) return hideDemo(); render(); return; }
     try { await set(ref(db, 'clientTrainer/' + c.k), null); } catch (e) {}
     await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k), null);
     await set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k), null).catch(() => {});

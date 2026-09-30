@@ -1714,3 +1714,4 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .bp-m-v { display: flex; align-items: baseline; gap: 6px; margin-top: 3px; } .bp-m-v b { font-size: 17px; font-weight: 800; } .bp-m-v small { font-size: 11px; color: #8B93AD; font-weight: 600; }
 .bp-m-v em { font-style: normal; font-size: 12px; font-weight: 800; color: #A5B4FC; } .bp-m-v em.good { color: #4ADE80; } .bp-m-v em.bad { color: #F87171; }
 .bp-m-p { font-size: 10.5px; color: #6F7C9E; margin-top: 1px; }
+.tr-header:has(.tl-chip) #tr-trainer { display: none; }

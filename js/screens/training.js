@@ -1567,7 +1567,7 @@ window.Screens.training = function (mount) {
           <button class="tr-back" id="tr-plan-menu-btn" title="Планы"><i class="ti ti-layout-list"></i></button>
           ${role === 'coach'
             ? `<button class="tr-coach-chip" id="tr-coach-me" title="Кабинет тренера"><i class="ti ti-user-shield"></i><span>Тренер</span><i class="ti ti-chevron-down tr-coach-chip-arr"></i></button>`
-            : `<button class="tr-back tr-coach-btn" id="tr-coach" title="Доступ для тренера"><i class="ti ti-user-shield"></i></button><button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
+            : `<button class="tr-back tr-coach-btn" id="tr-trainer" title="Тренер"><i class="ti ti-user-star"></i></button><button class="tr-back" id="tr-logout"><i class="ti ti-logout"></i></button>`}
         </div>
       </div>
       <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
@@ -1589,8 +1589,8 @@ window.Screens.training = function (mount) {
   const content = document.getElementById('tr-content');
   /* Тренеру некуда уходить с тренировок — кнопку «назад» прячем */
   if (role === 'coach') { const bk = document.getElementById('tr-back'); if (bk) bk.style.visibility = 'hidden'; }
-  const coachBtn = document.getElementById('tr-coach');
-  if (coachBtn) coachBtn.addEventListener('click', trOpenCoachModal);
+  const trainerBtn = document.getElementById('tr-trainer');
+  if (trainerBtn) trainerBtn.addEventListener('click', () => { if (!window.TrainerLink) return; if (FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached()) TrainerLink.info(); else TrainerLink.connect(); });
   const coachMe = document.getElementById('tr-coach-me');
   if (coachMe) coachMe.addEventListener('click', trOpenCoachMeSheet);
   const planSelect = document.getElementById('tr-plan-select');

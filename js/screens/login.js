@@ -59,12 +59,8 @@ window.Screens.login = function(mount, opts) {
           <button class="reg-closed-btn" id="reg-invite"><i class="ti ti-brand-telegram"></i> Получить инвайт</button>
         </div>
         <div id="form-reg" style="display:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;">
-          <div class="reg-role" id="reg-role">
-            <button type="button" class="reg-role-b on" data-role="user"><i class="ti ti-barbell"></i><b>Занимаюсь сам</b><span>Тренировки, привычки, деньги</span></button>
-            <button type="button" class="reg-role-b" data-role="trainer"><i class="ti ti-users"></i><b>Я тренер</b><span>Веду клиентов, до 10 бесплатно</span></button>
-          </div>
           <div id="reg-hint" style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.5;">Создай аккаунт. Твои данные хранятся отдельно и недоступны другим.</div>
-          <input id="reg-name" type="text" placeholder="Имя (необязательно)" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
+          <input id="reg-name" type="text" placeholder="Имя (необязательно)" autocomplete="given-name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-email" type="email" inputmode="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-pwd2" type="password" placeholder="Повтори пароль" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:10px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
@@ -74,6 +70,7 @@ window.Screens.login = function(mount, opts) {
       </div>
 
       <div style="margin-top:20px;font-size:11px;color:rgba(242,244,248,0.2);text-align:center;">На каждом устройстве нужно войти один раз</div>
+      <a href="coach.html" class="login-coach-link"><i class="ti ti-user-star"></i><span><b>Вы тренер?</b> Откройте кабинет тренера</span><i class="ti ti-chevron-right"></i></a>
       <a href="start.html" style="margin-top:10px;font-size:12px;font-weight:700;color:rgba(142,168,255,0.75);text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-sparkles"></i> Что умеет YOU</a>
     </div>`;
 
@@ -204,8 +201,6 @@ window.Screens.login = function(mount, opts) {
     try {
       await Auth.attemptLogin(email, pwd);
       /* onAuthStateChanged в app.js подхватит и переключит роутер */
-      let pendJoin = null; try { pendJoin = localStorage.getItem('you_join'); } catch (x) {}
-      if (!pendJoin && FirebaseSync.isTrainer && await FirebaseSync.isTrainer()) { location.href = 'coach.html'; return; }
       await FirebaseSync.pullIntoStore();
       Router.go('/home');
       if (window.FirebaseSync.myTrainer) FirebaseSync.myTrainer().catch(() => {});
@@ -215,18 +210,6 @@ window.Screens.login = function(mount, opts) {
       btn.textContent = 'Войти'; btn.disabled = false;
     }
   }
-
-  /* Роль при регистрации */
-  var regRole = 'user';
-  document.querySelectorAll('.reg-role-b').forEach(function(b){ b.addEventListener('click', function(){
-    regRole = b.dataset.role;
-    document.querySelectorAll('.reg-role-b').forEach(function(x){ x.classList.toggle('on', x === b); });
-    document.getElementById('reg-hint').textContent = regRole === 'trainer'
-      ? 'После регистрации откроется кабинет тренера: клиенты, их тренировки, прогресс и приглашения. Первые 10 клиентов бесплатно.'
-      : 'Создай аккаунт. Твои данные хранятся отдельно и недоступны другим.';
-    document.getElementById('reg-name').placeholder = regRole === 'trainer' ? 'Имя, как тебя увидят клиенты' : 'Имя (необязательно)';
-    document.getElementById('reg-btn').textContent = regRole === 'trainer' ? 'Создать кабинет тренера' : 'Создать аккаунт';
-  }); });
 
   /* Register */
   async function tryRegister() {
@@ -244,11 +227,6 @@ window.Screens.login = function(mount, opts) {
     btn.textContent = '...'; btn.disabled = true; err.textContent = '';
     try {
       await Auth.register(email, pwd, name || null);
-      if (regRole === 'trainer') {
-        await FirebaseSync.becomeTrainer(name || email.split('@')[0]);
-        location.href = 'coach.html';
-        return;
-      }
       await FirebaseSync.pullIntoStore();
       Router.go('/home');
     } catch(e) {

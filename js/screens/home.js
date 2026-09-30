@@ -56,6 +56,7 @@ window.Screens.home = function(mount) {
   mount.innerHTML = '<div class="home2-screen">'
     + '<div class="home2-header">'
     + (window.Feedback ? Feedback.buttonHtml('fb-envelope-home') : '')
+    + (window.WinterArc ? WinterArc.html() : '')
     + '<button id="home-theme-btn" class="theme-toggle" data-mode="'+(isLight?'light':'dark')+'" aria-label="Тема: светлая / тёмная" title="Светлая / тёмная тема">'
     +   '<span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span>'
     + '</button>'
@@ -87,6 +88,8 @@ window.Screens.home = function(mount) {
   mount.querySelectorAll('[data-route]').forEach(function(el){
     el.addEventListener('click', function(){ Router.go(el.dataset.route); });
   });
+
+  if (window.WinterArc) WinterArc.bind(mount);
 
   // Переключатель темы
   var themeBtn = document.getElementById('home-theme-btn');

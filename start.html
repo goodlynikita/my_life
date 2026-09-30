@@ -184,6 +184,51 @@ h2{font-size:clamp(30px,4.2vw,52px);line-height:1.08;letter-spacing:-.03em;margi
 @media (max-width:980px){.coach-sec .ai-grid>div:last-child{order:-1}}
 @media (max-width:560px){.coach-sec .ai-feats{grid-template-columns:1fr 1fr;gap:8px}.coach-sec .ai-feat{padding:12px}.coach-sec .ai-feat b{font-size:13px}.coach-sec .ai-feat span{font-size:11.5px;line-height:1.4}}
 
+
+/* ── v118: режимы «для себя» / «для тренеров» ── */
+.nav-in{gap:18px}.nav-links{gap:18px;white-space:nowrap;font-size:13.5px}
+@media (max-width:1180px){.nav-links{display:none!important}}
+body.for-coach [data-for="me"]{display:none!important}
+body:not(.for-coach) [data-for="coach"]{display:none!important}
+.modesw{display:inline-flex;gap:3px;padding:4px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line2);flex-shrink:0}
+.modesw button{height:34px;padding:0 14px;border:none;border-radius:10px;background:none;color:var(--soft);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background .25s,color .25s;white-space:nowrap}
+.modesw button.on{background:var(--grad);background-size:160% 160%;color:#fff;box-shadow:0 6px 18px rgba(99,102,241,.35)}
+.modesw-m{display:none}
+.c-hero-ph{position:relative}
+.c-hero .ai-phones{height:600px}
+.c-hero .chip.cc1{left:-10px;bottom:120px} .c-hero .chip.cc2{right:-6px;top:60px}
+.c-pains{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px}
+.c-pain{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.c-was{padding:20px 22px 16px;display:grid;grid-template-columns:auto 1fr;column-gap:12px}
+.c-was i{grid-row:span 2;font-size:24px;color:#F87171;opacity:.8} .c-was b{font-size:16px} .c-was span{font-size:13px;color:var(--soft);line-height:1.5}
+.c-now{display:flex;gap:10px;align-items:flex-start;padding:14px 22px;background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(139,92,246,.12));border-top:1px solid rgba(139,92,246,.25);font-size:13.5px;color:#E0E7FF;line-height:1.5}
+.c-now i{font-size:19px;color:#A5B4FC;margin-top:1px}
+.c-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.c-step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px 22px}
+.c-step>span{position:absolute;top:18px;right:20px;font-size:44px;font-weight:900;color:rgba(255,255,255,.05)}
+.c-step i{font-size:28px;color:#A78BFA} .c-step b{display:block;font-size:17px;margin:12px 0 8px} .c-step p{margin:0;font-size:13.5px;color:var(--soft);line-height:1.6}
+.c-client-sec{padding-top:40px}
+.c-prices{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px;align-items:stretch}
+.c-price{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;display:flex;flex-direction:column}
+.c-price.on{border-color:rgba(139,92,246,.5);background:linear-gradient(160deg,rgba(74,124,255,.12),rgba(139,92,246,.1));box-shadow:0 20px 60px rgba(99,102,241,.2)}
+.c-price>b{font-size:15px;color:#C7D2FE} .c-p{font-size:38px;font-weight:900;margin:8px 0 2px} .c-price>span{font-size:13px;color:var(--soft)}
+.c-price ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:8px;flex:1}
+.c-price li{font-size:13.5px;color:#D5DAEA;padding-left:24px;position:relative} .c-price li::before{content:'✓';position:absolute;left:0;color:#4ADE80;font-weight:800}
+.c-teaser-sec{padding:20px 0 40px}
+.c-teaser{display:flex;align-items:center;gap:18px;padding:22px 26px;border-radius:24px;background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(139,92,246,.14));border:1px solid rgba(139,92,246,.35)}
+.c-teaser>i{font-size:34px;color:#C4B5FD} .c-teaser div{flex:1} .c-teaser b{display:block;font-size:18px;margin-bottom:4px} .c-teaser span{font-size:14px;color:var(--soft);line-height:1.5}
+@media (max-width:980px){
+  .c-pains,.c-steps,.c-prices{grid-template-columns:1fr}
+  .c-hero .ai-phones{height:520px} .c-hero-ph{margin-top:10px}
+}
+@media (max-width:760px){
+  .modesw-m{display:flex;justify-content:center;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0;position:relative;z-index:5}
+  .modesw-m .modesw{width:100%;max-width:360px} .modesw-m .modesw button{flex:1}
+  body .hero{padding-top:24px}
+  .c-teaser{flex-direction:column;align-items:flex-start;padding:20px}
+  .c-hero .ai-phones{height:440px} .c-hero .chip{display:none}
+}
+
 /* Карточки-фичи */
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:56px}
 .bx{grid-column:span 2;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;position:relative;overflow:hidden;min-height:250px;transition:transform .4s var(--ease),border-color .4s}
@@ -363,7 +408,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 .sh-list i{font-size:18px;color:#EBEBF5}
 .sh-list .hot{background:rgba(10,132,255,.22);animation:hotbg 1.2s ease-in-out infinite}
 @keyframes hotbg{50%{background:rgba(10,132,255,.4)}}
-.add-top{position:absolute;top:44px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-size:13px;background:#1C1C1E;border-bottom:1px solid #2C2C2E}
+.add-top{position:absolute;top:44px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:4px;padding:12px 10px;font-size:11px;background:#1C1C1E;border-bottom:1px solid #2C2C2E}
+.add-top>*{white-space:nowrap;flex-shrink:0;font-size:11px}.add-top b{flex:1;min-width:0;text-align:center;font-size:11px;overflow:hidden;text-overflow:ellipsis}
 .add-top span{color:#0A84FF}
 .add-top b{font-size:13px}
 .hot-t{font-weight:800;padding:4px 8px;margin:-4px -8px;border-radius:8px;animation:hotbg2 1.2s ease-in-out infinite}
@@ -525,16 +571,25 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 <!-- Навигация -->
 <nav class="nav" id="nav"><div class="wrap nav-in">
   <a class="logo" href="#top"><img src="icon.png" alt="">YOU</a>
-  <div class="nav-links">
-    <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#coach">Тренерам</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
+  <div class="modesw" role="tablist" aria-label="Для кого"><button data-mode="me" class="on">Для себя</button><button data-mode="coach">Для тренеров</button></div>
+  <div class="nav-links" data-for="me">
+    <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
+  </div>
+  <div class="nav-links" data-for="coach">
+    <a href="#c-pain">Зачем</a><a href="#c-feat">Возможности</a><a href="#c-how">Как начать</a><a href="#c-price">Тарифы</a><a href="#c-faq">Вопросы</a>
   </div>
   <div class="sp"></div>
-  <a class="btn btn-ghost btn-sm nav-login" href="./#/login">Войти</a>
-  <a class="btn btn-main btn-sm" href="./#/register">Получить приложение</a>
+  <a class="btn btn-ghost btn-sm nav-login" href="./#/login" data-for="me">Войти</a>
+  <a class="btn btn-main btn-sm" href="./#/register" data-for="me">Получить приложение</a>
+  <a class="btn btn-ghost btn-sm nav-login" href="coach.html" data-for="coach">Войти</a>
+  <a class="btn btn-main btn-sm" href="coach.html" data-for="coach">Открыть кабинет</a>
 </div></nav>
 
+<!-- Переключатель для телефона -->
+<div class="modesw-m"><div class="modesw" role="tablist"><button data-mode="me" class="on">Для себя</button><button data-mode="coach">Для тренеров</button></div></div>
+
 <!-- Hero -->
-<header class="hero" id="top"><div class="wrap hero-in">
+<header class="hero" id="top" data-for="me"><div class="wrap hero-in">
   <div>
     <span class="pill"><span class="dot"></span><span id="pill-txt">Бесплатно для первых 1 000 пользователей</span></span>
     <h1><span class="line"><span>Тренировки,</span></span><span class="line"><span>привычки, деньги</span></span><span class="line"><span class="grad-t">в одном месте.</span></span></h1>
@@ -558,8 +613,42 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 <div class="marquee"><div class="mq-track" id="mq"></div></div>
 </header>
 
+
+
+<!-- ═══ ТРЕНЕРАМ ═══ -->
+<header class="hero c-hero" id="c-top" data-for="coach"><div class="wrap hero-in">
+  <div>
+    <span class="pill"><span class="dot"></span>Кабинет тренера · до 10 клиентов бесплатно</span>
+    <h1><span class="line"><span>Ведите учеников,</span></span><span class="line"><span class="grad-t">а не таблицы.</span></span></h1>
+    <p class="lead">Планы, прогресс, посещаемость и замеры всех клиентов в одном кабинете. Клиент тренируется по вашему плану в своём приложении YOU, а вы утром за минуту видите, кто молодец, кто пропал и кому что поменять.</p>
+    <div class="hero-cta">
+      <a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a>
+      <a class="btn btn-ghost" href="#c-how"><i class="ti ti-player-play"></i> Как это работает</a>
+    </div>
+    <div class="hero-note"><span><i class="ti ti-circle-check"></i> Онлайн и в зале</span><span><i class="ti ti-circle-check"></i> Отдельная иконка на телефоне</span><span><i class="ti ti-circle-check"></i> Клиенту бесплатно</span></div>
+  </div>
+  <div class="c-hero-ph">
+    <div class="ai-phones coach-phones">
+      <div class="phone pa float"><div class="scr"><img src="img/landing/coach_client.webp" alt="Карточка клиента" loading="lazy"></div></div>
+      <div class="phone pb float"><div class="scr"><img src="img/landing/coach_home.webp" alt="Сводка по клиентам" loading="lazy"></div></div>
+    </div>
+    <div class="chip cc1"><i class="ti ti-trophy"></i><div>Рекорд: жим 85×8<small>Алексей, вчера</small></div></div>
+    <div class="chip cc2"><i class="ti ti-flame"></i><div>Талия −3 см<small>Мария за месяц</small></div></div>
+  </div>
+</div></header>
+
+<section id="c-pain" data-for="coach"><div class="wrap">
+  <div class="center"><span class="eyebrow">Знакомо?</span><h2 class="rv">Клиентов много, а картины нет</h2></div>
+  <div class="c-pains">
+    <div class="c-pain rv"><div class="c-was"><i class="ti ti-table"></i><b>Таблицы на каждого</b><span>Копируете программу, правите веса вручную, ищете, где что</span></div><div class="c-now"><i class="ti ti-template"></i>Шаблон программы назначается в два клика, веса подставятся из истории клиента</div></div>
+    <div class="c-pain rv"><div class="c-was"><i class="ti ti-messages"></i><b>Отчёты в мессенджерах</b><span>Скриншоты, голосовые, «я сделал, но не помню сколько»</span></div><div class="c-now"><i class="ti ti-activity"></i>Лента: кто потренировался, какие веса, рекорды и комментарии</div></div>
+    <div class="c-pain rv"><div class="c-was"><i class="ti ti-ghost"></i><b>Клиент тихо пропал</b><span>Замечаете через две недели, когда он уже ушёл</span></div><div class="c-now"><i class="ti ti-alert-triangle"></i>«Нужно внимание»: пропуски, плато и паузы видны в тот же день</div></div>
+    <div class="c-pain rv"><div class="c-was"><i class="ti ti-chart-line"></i><b>Прогресс на глаз</b><span>Сложно показать клиенту, за что он платит</span></div><div class="c-now"><i class="ti ti-send"></i>Итоги недели с цифрами и графики веса, объёмов и силы</div></div>
+  </div>
+</div></section>
+
 <!-- Проблема: пять приложений сливаются в одно (скролл) -->
-<section class="merge" id="merge">
+<section class="merge" id="merge" data-for="me">
   <div class="merge-stage">
     <div class="wrap center merge-head">
       <span class="eyebrow">Знакомо?</span>
@@ -588,7 +677,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </section>
 
 <!-- 4 раздела -->
-<section id="features"><div class="wrap">
+<section id="features" data-for="me"><div class="wrap">
   <div class="center"><span class="eyebrow">Четыре опоры</span><h2 class="rv">Всё, что двигает тебя вперёд</h2><p class="sec-lead rv desk-only">Прокручивай: экран справа меняется вместе с текстом</p></div>
   <div class="sticky-wrap">
     <div class="steps" id="steps">
@@ -633,7 +722,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div></section>
 
 <!-- AI-тренер -->
-<section class="ai" id="ai"><div class="wrap ai-grid">
+<section class="ai" id="ai" data-for="me"><div class="wrap ai-grid">
   <div>
     <span class="eyebrow">AI-тренер</span>
     <h2 class="rv">Две недели записей,<br>и план <span class="grad-t">составлен сам</span></h2>
@@ -676,7 +765,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div></section>
 
 <!-- Сторис -->
-<section class="story-sec"><div class="wrap story-grid">
+<section class="story-sec" data-for="me"><div class="wrap story-grid">
   <div class="story-txt">
     <span class="eyebrow">Разбор и сторис</span>
     <h2 class="rv">Каждый понедельник <span class="grad-t">итоги недели</span></h2>
@@ -692,13 +781,13 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 
 
 <!-- Для тренеров -->
-<section class="coach-sec" id="coach"><div class="wrap ai-grid">
+<section class="coach-sec" id="c-feat" data-for="coach"><div class="wrap ai-grid">
   <div class="ai-phones coach-phones rv">
     <div class="phone pa float"><div class="scr"><img src="img/landing/coach_client.webp" alt="Карточка клиента в кабинете тренера" loading="lazy"></div></div>
     <div class="phone pb float"><div class="scr"><img src="img/landing/coach_home.webp" alt="Сводка по клиентам" loading="lazy"></div></div>
   </div>
   <div>
-    <span class="eyebrow">Для тренеров</span>
+    <span class="eyebrow">Возможности</span>
     <h2 class="rv">Все ученики<br>в <span class="grad-t">одном кабинете</span></h2>
     <p class="sec-lead rv">Онлайн или в зале: вы ведёте план, клиент тренируется по нему в своём YOU. Утром открыли сводку и за минуту поняли, кто молодец, кто пропал и кому что поменять.</p>
     <div class="ai-feats rv">
@@ -716,8 +805,60 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   </div>
 </div></section>
 
+
+<section id="c-how" data-for="coach"><div class="wrap">
+  <div class="center"><span class="eyebrow">Как начать</span><h2 class="rv">Три шага, и клиент у вас</h2></div>
+  <div class="c-steps">
+    <div class="c-step rv"><span>1</span><i class="ti ti-user-star"></i><b>Создайте кабинет</b><p>Откройте кабинет тренера и зарегистрируйтесь. Поставьте его на экран телефона: будет отдельная иконка «YOU Тренер».</p></div>
+    <div class="c-step rv"><span>2</span><i class="ti ti-key"></i><b>Клиент выдаёт ключ</b><p>Клиент ставит YOU и в меню создаёт ключ доступа со своей фамилией и именем. Вводите ключ, и он в списке. Или отправьте ему свою ссылку.</p></div>
+    <div class="c-step rv"><span>3</span><i class="ti ti-chart-dots"></i><b>Ведите и смотрите</b><p>Составляете план сами, из шаблона или с AI. Клиент тренируется и отмечает, а вы видите посещаемость, силу и замеры.</p></div>
+  </div>
+</div></section>
+
+<section class="c-client-sec" data-for="coach"><div class="wrap story-grid">
+  <div class="story-txt">
+    <span class="eyebrow">Что получает клиент</span>
+    <h2 class="rv">Не просто план, а <span class="grad-t">личное приложение</span></h2>
+    <p class="sec-lead rv">Клиент бесплатно пользуется YOU целиком: тренировки по вашему плану, привычки, деньги и цели. Вам он открывает только тренировки, остальное остаётся личным.</p>
+    <ul class="story-list rv">
+      <li><i class="ti ti-refresh"></i>Ваши правки появляются у него сами, без пересылок</li>
+      <li><i class="ti ti-message-2"></i>Заметки к дням: техника, на что обратить внимание</li>
+      <li><i class="ti ti-circle-check"></i>Отмечает тренировку одной галочкой, вы сразу видите</li>
+      <li><i class="ti ti-plug-connected-x"></i>Может отключить тренера в любой момент</li>
+    </ul>
+  </div>
+  <div class="story-pic rv rv-r"><div class="story-glow"></div><img src="img/landing/training_plan.webp" alt="План клиента в приложении" loading="lazy" style="border-radius:34px"></div>
+</div></section>
+
+<section id="c-price" data-for="coach"><div class="wrap">
+  <div class="center"><span class="eyebrow">Тарифы</span><h2 class="rv">Начните бесплатно</h2></div>
+  <div class="c-prices">
+    <div class="c-price on rv"><b>Старт</b><div class="c-p">0 ₽</div><span>до 10 клиентов</span><ul><li>Все функции кабинета</li><li>Шаблоны и AI-помощник</li><li>Итоги недели и замеры</li></ul><a class="btn btn-main" href="coach.html">Открыть кабинет</a></div>
+    <div class="c-price rv"><b>Про</b><div class="c-p">скоро</div><span>до 20 клиентов</span><ul><li>Всё из «Старта»</li><li>Больше клиентов</li><li>Приоритетная поддержка</li></ul><a class="btn btn-ghost" href="https://t.me/help_youvsyou" target="_blank" rel="noopener">Узнать первым</a></div>
+    <div class="c-price rv"><b>Студия</b><div class="c-p">скоро</div><span>до 50 клиентов</span><ul><li>Для залов и команд</li><li>Несколько тренеров</li><li>Общие шаблоны</li></ul><a class="btn btn-ghost" href="https://t.me/help_youvsyou" target="_blank" rel="noopener">Обсудить</a></div>
+  </div>
+</div></section>
+
+<section id="c-faq" style="padding-top:0" data-for="coach"><div class="wrap">
+  <div class="center"><span class="eyebrow">Вопросы тренеров</span><h2 class="rv">Коротко о главном</h2></div>
+  <div class="faq">
+    <details class="qa rv"><summary>Это отдельное приложение?<i class="ti ti-plus"></i></summary><p>Кабинет тренера открывается по своей ссылке и ставится на экран отдельной иконкой «YOU Тренер». Если вы и сами тренируетесь в YOU, войдите в оба тем же email.</p></details>
+    <details class="qa rv"><summary>Что видит тренер у клиента?<i class="ti ti-plus"></i></summary><p>Только тренировки: план, веса, повторы, отметки, комментарии и замеры тела. Финансы, привычки и цели клиента закрыты правилами базы.</p></details>
+    <details class="qa rv"><summary>Я тренирую в зале, это подойдёт?<i class="ti ti-plus"></i></summary><p>Да. Отмечайте проведённые тренировки галочкой в плане клиента, вносите веса и замеры сами. Посещаемость и прогресс посчитаются так же, как у онлайн-клиентов.</p></details>
+    <details class="qa rv"><summary>AI не заменит меня для клиента?<i class="ti ti-plus"></i></summary><p>Нет. Когда у клиента есть тренер, его собственный AI-план выключается, чтобы не было двух разных планов. AI работает на вас: подсказывает прогрессию и плато, а решение принимаете вы.</p></details>
+    <details class="qa rv"><summary>Как подключить клиента?<i class="ti ti-plus"></i></summary><p>Клиент регистрируется в YOU, в меню выбирает «Подключить тренера» и создаёт ключ с фамилией и именем. Вы вводите ключ во вкладке «Добавить». Ключ одноразовый и действует сутки. Второй способ: ваша ссылка-приглашение.</p></details>
+    <details class="qa rv"><summary>Сколько это стоит?<i class="ti ti-plus"></i></summary><p>До 10 клиентов бесплатно со всеми функциями. Для клиента приложение тоже бесплатное.</p></details>
+  </div>
+  <div class="center" style="margin-top:40px"><a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
+</div></section>
+
+<!-- Тизер для тренеров в режиме «для себя» -->
+<section class="c-teaser-sec" data-for="me"><div class="wrap">
+  <div class="c-teaser rv"><i class="ti ti-user-star"></i><div><b>Вы тренер?</b><span>Ведите учеников в YOU: планы, посещаемость, замеры и итоги недели в одном кабинете. До 10 клиентов бесплатно.</span></div><button class="btn btn-ghost" data-mode="coach">Для тренеров <i class="ti ti-arrow-right"></i></button></div>
+</div></section>
+
 <!-- Бенто: фишки -->
-<section id="money"><div class="wrap">
+<section id="money" data-for="me"><div class="wrap">
   <div class="center"><span class="eyebrow">Детали, которые решают</span><h2 class="rv">Продумано до мелочей</h2></div>
   <div class="bento" id="bento">
     <div class="bx w4 has-shot rv" style="--c:#34D399">
@@ -755,7 +896,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div></section>
 
 <!-- Темы -->
-<section><div class="wrap center">
+<section data-for="me"><div class="wrap center">
   <span class="eyebrow">Тёмная и светлая</span>
   <h2 class="rv">Потяни и сравни</h2>
   <p class="sec-lead rv">Одно касание переключает тему. Выбор сохраняется на всех устройствах.</p>
@@ -768,7 +909,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div></section>
 
 <!-- Установка: наглядно -->
-<section id="start"><div class="wrap">
+<section id="start" data-for="me"><div class="wrap">
   <div class="center">
     <span class="eyebrow">Установка</span>
     <h2 class="rv">На экран телефона за минуту</h2>
@@ -847,7 +988,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div></section>
 
 <!-- CTA -->
-<section class="cta" id="get"><div class="wrap">
+<section class="cta" id="get" data-for="me"><div class="wrap">
   <div class="cta-box rv rv-s">
     <span class="eyebrow">Ранний доступ</span>
     <h2>Бесплатно для первых <span id="lim">1 000</span></h2>
@@ -865,14 +1006,14 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div></section>
 
 <!-- FAQ -->
-<section id="faq" style="padding-top:0"><div class="wrap">
+<section id="faq" style="padding-top:0" data-for="me"><div class="wrap">
   <div class="center"><span class="eyebrow">Вопросы</span><h2 class="rv">Коротко о главном</h2></div>
   <div class="faq">
     <details class="qa rv"><summary>Это правда бесплатно?<i class="ti ti-plus"></i></summary><p>Да. Первые 1 000 пользователей получают полный доступ бесплатно. Карта не нужна.</p></details>
     <details class="qa rv"><summary>Где скачать? В App Store нет.<i class="ti ti-plus"></i></summary><p>Скачивать ничего не нужно. YOU открывается в браузере и ставится на экран телефона как обычное приложение: на iPhone через «Поделиться» → «На экран Домой», на Android через меню браузера.</p></details>
     <details class="qa rv"><summary>Кто видит мои данные?<i class="ti ti-plus"></i></summary><p>Только ты. Данные каждого пользователя хранятся отдельно, доступ к ним закрыт правилами базы на сервере. Тренер, если ты его подключишь, видит только тренировки.</p></details>
     <details class="qa rv"><summary>Как работает AI-тренер?<i class="ti ti-plus"></i></summary><p>Он анализирует твои записанные тренировки: дни, связки мышц, веса и повторы, даже если в разных планах упражнения назывались по-разному. По выбранной цели (масса, сила или рельеф) расписывает план до конца блока и после каждой тренировки сам подстраивает веса: добрал повторы, вес вверх, недобрал, держим или снижаем. Учитывает шаг блинов и гантелей в твоём зале, ловит плато и предлагает замены. Скоро добавим чат, где тренеру можно задать вопрос.</p></details>
-    <details class="qa rv"><summary>Я тренер. Как вести клиентов?<i class="ti ti-plus"></i></summary><p>Зарегистрируйтесь и выберите «Я тренер», или откройте кабинет тренера по ссылке выше. Клиент ставит YOU, создаёт в меню ключ доступа и присылает вам, либо переходит по вашей ссылке. Вы видите только его тренировки, ведёте план, отмечаете тренировки в зале и отправляете итоги недели. До 10 клиентов бесплатно.</p></details>
+    <details class="qa rv"><summary>Я тренер. Как вести клиентов?<i class="ti ti-plus"></i></summary><p>Для тренеров есть отдельный кабинет: переключите сайт вверху на «Для тренеров» или откройте его сразу по ссылке coach.html. Клиент ставит YOU, создаёт в меню ключ доступа и присылает вам, либо переходит по вашей ссылке. Вы видите только его тренировки, ведёте план, отмечаете тренировки в зале и отправляете итоги недели. До 10 клиентов бесплатно.</p></details>
     <details class="qa rv"><summary>Можно пользоваться на нескольких устройствах?<i class="ti ti-plus"></i></summary><p>Да. Войди под своим email на телефоне и на компьютере, данные синхронизируются автоматически.</p></details>
     <details class="qa rv"><summary>Что будет, когда места закончатся?<i class="ti ti-plus"></i></summary><p>Регистрация закроется, а новые пользователи смогут получить личный инвайт через поддержку. Те, кто уже внутри, продолжают пользоваться как раньше.</p></details>
   </div>
@@ -884,7 +1025,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   <span>© <span id="yr"></span> YOU</span>
 </div></footer>
 
-<div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a></div>
+<div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Получить приложение</a><a class="btn btn-main" href="coach.html" data-for="coach"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
 
 <script>
 (function(){
@@ -1077,6 +1218,27 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       document.querySelectorAll('a[href="./#/register"]').forEach(function(a){ a.href = 'https://t.me/help_youvsyou'; a.target = '_blank'; a.innerHTML = '<i class="ti ti-ticket"></i> Получить инвайт'; });
     }
   }).catch(function(){});
+})();
+</script>
+
+<script>
+/* Режим сайта: «для себя» или «для тренеров» (?for=coach или #coach) */
+(function(){
+  var KEY='you_site_mode';
+  function set(m, scroll){
+    document.body.classList.toggle('for-coach', m==='coach');
+    document.querySelectorAll('.modesw button').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===m); });
+    try{ localStorage.setItem(KEY,m); }catch(e){}
+    var u=new URL(location.href); if(m==='coach') u.searchParams.set('for','coach'); else u.searchParams.delete('for'); history.replaceState(null,'',u.pathname+u.search+(location.hash&&location.hash!=='#coach'?location.hash:''));
+    document.title = m==='coach' ? 'YOU для тренеров: все ученики в одном кабинете' : document.documentElement.dataset.title;
+    if(scroll) window.scrollTo({top:0,behavior:'instant' in document.documentElement.style?'instant':'auto'});
+    setTimeout(function(){ window.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('scroll')); }, 50);
+  }
+  document.documentElement.dataset.title=document.title;
+  var q=new URLSearchParams(location.search).get('for'), saved=null; try{ saved=localStorage.getItem(KEY); }catch(e){}
+  var m = q==='coach'||location.hash==='#coach' ? 'coach' : q==='me' ? 'me' : (saved==='coach'?'coach':'me');
+  set(m,false);
+  document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-mode]'); if(!b) return; e.preventDefault(); set(b.dataset.mode,true); });
 })();
 </script>
 </body>

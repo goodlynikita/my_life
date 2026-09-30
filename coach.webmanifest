@@ -1,0 +1,16 @@
+{
+  "name": "YOU Тренер",
+  "short_name": "YOU Тренер",
+  "description": "Кабинет тренера: клиенты, планы, прогресс и замеры",
+  "id": "/my_life/coach.html",
+  "start_url": "/my_life/coach.html",
+  "scope": "/my_life/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0E17",
+  "theme_color": "#0B0E17",
+  "icons": [
+    { "src": "icon.png", "sizes": "any", "type": "image/png", "purpose": "any" },
+    { "src": "icon2.png", "sizes": "any", "type": "image/png", "purpose": "maskable" }
+  ]
+}

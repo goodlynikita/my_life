@@ -7,6 +7,10 @@
 <title>YOU · Кабинет тренера</title>
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="coach.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="YOU Тренер">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -132,7 +136,43 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 .coach-ai .ai-views{display:none!important}
 .loading{text-align:center;padding:40px;color:var(--soft)}
 
+
+/* v118: вход тренера */
+.auth{padding:0;display:block}
+.ca{min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr;max-width:1180px;margin:0 auto;padding:40px 32px;gap:48px;align-items:center}
+.ca-brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}
+.ca-brand img{width:48px;height:48px;border-radius:14px;box-shadow:0 10px 30px rgba(139,92,246,.45)}
+.ca-brand b{display:block;font-size:22px;font-weight:900;letter-spacing:.02em}
+.ca-brand span{display:inline-block;margin-top:2px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:3px 9px;border-radius:999px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(74,124,255,.3));color:#DDD6FE;border:1px solid rgba(167,139,250,.4)}
+.ca h1{font-size:52px;line-height:1.05;font-weight:900;margin:0 0 18px;letter-spacing:-.02em}
+.ca h1 em{font-style:normal;background:linear-gradient(90deg,#6E97FF,#A78BFA 55%,#F0ABFC);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ca-lead{font-size:16px;line-height:1.6;color:var(--soft);max-width:480px;margin:0 0 26px}
+.ca-feats{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px}
+.ca-feats li{display:flex;gap:10px;align-items:center;font-size:13.5px;color:#D5DAEA;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+.ca-feats i{font-size:19px;color:#A78BFA}
+.ca-mock{position:relative;height:150px;max-width:520px}
+.ca-m{position:absolute;display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:16px;background:rgba(22,29,46,.92);border:1px solid var(--line2);box-shadow:0 18px 40px rgba(0,0,0,.4);font-size:13px;color:#D5DAEA;white-space:nowrap;animation:caf 6s ease-in-out infinite}
+.ca-m b{color:#fff} .ca-m i{font-size:18px}
+.ca-m.m1{left:0;top:0} .ca-m.m1 i{color:#FCD34D}
+.ca-m.m2{left:46%;top:30px;animation-delay:-1.5s} .ca-m.m2 i{color:#8EA8FF}
+.ca-m.m3{left:6%;top:78px;animation-delay:-3s} .ca-m.m3 i{color:#4ADE80}
+.ca-m.m4{left:48%;top:104px;animation-delay:-4.5s} .ca-m.m4 i{color:#F0ABFC}
+@keyframes caf{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.ca-side{display:flex;flex-direction:column;gap:12px}
+.ca .auth-card{max-width:none;padding:28px 24px;background:linear-gradient(160deg,rgba(27,35,64,.92),rgba(16,20,31,.96));box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 1px rgba(139,92,246,.15)}
+.auth-h{margin-bottom:16px} .auth-h b{display:block;font-size:21px;font-weight:800} .auth-h span{font-size:13px;color:var(--soft)}
+.lnk{display:block;margin:12px auto 0;background:none;border:none;color:#A5B4FC;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.ca-app{display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--soft);text-decoration:none;font-size:13px}
+.ca-app>i:first-child{font-size:19px;color:#6EE7B7} .ca-app span{flex:1} .ca-app b{color:#fff} .ca-app>i:last-child{color:var(--faint)}
+@media (max-width:900px){
+  .ca{grid-template-columns:1fr;padding:22px 16px 30px;gap:22px;align-items:start}
+  .ca-brand{margin-bottom:18px} .ca h1{font-size:34px} .ca-lead{font-size:14.5px;margin-bottom:14px}
+  .ca-feats{display:none} .ca-mock{height:118px;transform:scale(.88);transform-origin:left top;margin-bottom:-12px}
+  .ca-mock{height:128px} .ca-m.m2{left:auto;right:-12%;top:42px} .ca-m.m4{left:0;top:88px} .ca-m.m3{display:none}
+}
 /* v116: сводки, лента, шаблоны */
+.inst{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,rgba(139,92,246,.16),rgba(74,124,255,.12))!important;border-color:rgba(167,139,250,.35)!important}
+.inst>i{font-size:24px;color:#C4B5FD} .inst div{flex:1} .inst b{display:block;font-size:14px;margin-bottom:3px} .inst span{font-size:12.5px;color:var(--soft);line-height:1.45}
 .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px} .mgrid label span{display:block;font-size:11px;color:var(--soft);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mgrid .field{height:42px;margin:0;font-size:14px;padding:0 10px}
 .cd-grew.body div{color:#CFFAFE} .cd-grew.body i{color:#67E8F9}
 #bp-card .add-ex{display:flex;align-items:center;justify-content:center;gap:6px}
@@ -198,24 +238,47 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 
 <!-- Вход -->
 <div class="auth hidden" id="auth">
+ <div class="ca">
+  <div class="ca-hero">
+    <div class="ca-brand"><img src="icon.png" alt=""><div><b>YOU</b><span>для тренеров</span></div></div>
+    <h1>Все ученики<br><em>в одном кабинете</em></h1>
+    <p class="ca-lead">Ведите планы, следите за прогрессом и замерами клиентов. Онлайн или в зале, до 10 клиентов бесплатно.</p>
+    <div class="ca-mock" aria-hidden="true">
+      <div class="ca-m m1"><i class="ti ti-trophy"></i><span><b>Никита</b> рекорд: жим 85×8</span></div>
+      <div class="ca-m m2"><i class="ti ti-chart-bar"></i><span><b>Мария</b> посещаемость 92%</span></div>
+      <div class="ca-m m3"><i class="ti ti-flame"></i><span><b>Олег</b> талия −3 см за месяц</span></div>
+      <div class="ca-m m4"><i class="ti ti-send"></i><span>Итоги недели отправлены</span></div>
+    </div>
+    <ul class="ca-feats">
+      <li><i class="ti ti-layout-dashboard"></i>Сводка и лента по всем клиентам</li>
+      <li><i class="ti ti-template"></i>Шаблоны программ в два клика</li>
+      <li><i class="ti ti-ruler-measure"></i>Вес, замеры и сила на графиках</li>
+      <li><i class="ti ti-lock"></i>Клиент открывает только тренировки</li>
+    </ul>
+  </div>
+  <div class="ca-side">
   <div class="auth-card">
-    <div class="auth-logo"><img src="icon.png" alt=""><div><b>Кабинет тренера</b><span>Ведите клиентов в YOU</span></div></div>
-    <div class="seg" id="auth-seg"><button class="on" data-m="login">Войти</button><button data-m="reg">Регистрация</button></div>
+    <div class="auth-h"><b id="auth-title">Вход в кабинет</b><span id="auth-sub">Рады видеть снова</span></div>
+    <div class="seg" id="auth-seg"><button class="on" data-m="login">Войти</button><button data-m="reg">Создать кабинет</button></div>
     <div id="f-login">
       <input class="field" id="l-email" type="email" inputmode="email" placeholder="Email" autocomplete="email">
       <input class="field" id="l-pwd" type="password" placeholder="Пароль" autocomplete="current-password">
       <div class="err" id="l-err"></div>
       <button class="btn btn-main w100" id="l-btn">Войти</button>
+      <button class="lnk" id="l-forgot">Забыли пароль?</button>
     </div>
     <div id="f-reg" class="hidden">
-      <input class="field" id="r-name" type="text" placeholder="Имя, как вас увидят клиенты">
+      <input class="field" id="r-name" type="text" placeholder="Имя и фамилия, как увидят клиенты" autocomplete="name">
       <input class="field" id="r-email" type="email" inputmode="email" placeholder="Email" autocomplete="email">
       <input class="field" id="r-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password">
       <div class="err" id="r-err"></div>
       <button class="btn btn-main w100" id="r-btn">Создать кабинет тренера</button>
-      <p class="faint" style="font-size:12px;line-height:1.5;margin:12px 0 0">Первые 10 клиентов бесплатно. Клиенты подключаются по вашей ссылке и видят только тренировки.</p>
+      <p class="faint" style="font-size:12px;line-height:1.5;margin:12px 0 0">Уже пользуетесь YOU? Просто войдите тем же email, и кабинет создастся для вашего аккаунта.</p>
     </div>
   </div>
+  <a class="ca-app" href="index.html"><i class="ti ti-barbell"></i><span><b>Занимаетесь сами?</b> Откройте приложение YOU</span><i class="ti ti-chevron-right"></i></a>
+  </div>
+ </div>
 </div>
 
 <!-- Стать тренером (есть аккаунт YOU, но нет кабинета) -->
@@ -274,7 +337,7 @@ window.Store = {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp(window.FIREBASE_CONFIG);
 const db = getDatabase(app);
@@ -293,6 +356,9 @@ let me = null, trainer = null, clients = [], templates = [], view = { name: 'lis
 
 /* ═══ Вход и регистрация ═══ */
 document.querySelectorAll('#auth-seg button').forEach(b => b.onclick = () => {
+  const reg = b.dataset.m === 'reg';
+  $('#auth-title').textContent = reg ? 'Новый кабинет' : 'Вход в кабинет';
+  $('#auth-sub').textContent = reg ? 'Минута, и можно звать клиентов' : 'Рады видеть снова';
   document.querySelectorAll('#auth-seg button').forEach(x => x.classList.toggle('on', x === b));
   $('#f-login').classList.toggle('hidden', b.dataset.m !== 'login'); $('#f-reg').classList.toggle('hidden', b.dataset.m !== 'reg');
 });
@@ -302,6 +368,11 @@ $('#l-btn').onclick = async () => {
   $('#l-btn').disabled = true;
   try { await signInWithEmailAndPassword(auth, e, p); } catch (x) { $('#l-err').textContent = 'Неверный email или пароль'; }
   $('#l-btn').disabled = false;
+};
+$('#l-forgot').onclick = async () => {
+  const e = $('#l-email').value.trim(); if (!e) { $('#l-err').textContent = 'Введите email, пришлём ссылку'; return; }
+  try { await sendPasswordResetEmail(auth, e); $('#l-err').style.color = '#86EFAC'; $('#l-err').textContent = 'Ссылка для нового пароля отправлена на почту'; }
+  catch (x) { $('#l-err').style.color = ''; $('#l-err').textContent = 'Не получилось отправить. Проверьте email'; }
 };
 $('#r-btn').onclick = async () => {
   const n = $('#r-name').value.trim(), e = $('#r-email').value.trim(), p = $('#r-pwd').value; $('#r-err').textContent = '';
@@ -343,6 +414,14 @@ async function boot(u) {
   const ts = await get(ref(db, 'trainers/' + u.uid));
   if (!ts.exists()) { $('#bc-email').textContent = u.email; $('#bc-name').value = u.displayName || ''; show('become'); return; }
   trainer = ts.val(); trainer.uid = u.uid;
+  if (trainer.blocked) {
+    $('#bc-email').textContent = u.email; show('become');
+    document.querySelector('#become .auth-card').innerHTML = `<div class="auth-logo"><img src="icon.png" alt=""><div><b>Кабинет недоступен</b><span>${esc(u.email)}</span></div></div>
+      <p class="muted" style="font-size:13.5px;line-height:1.55;margin:0 0 14px">Доступ к кабинету тренера ограничен. Напишите в поддержку, разберёмся.</p>
+      <a class="btn btn-main w100" href="${esc((window.APP_CONFIG || {}).supportUrl || '#')}" target="_blank">Написать в поддержку</a>
+      <button class="btn btn-ghost w100" style="margin-top:8px" onclick="document.getElementById('out').click()">Выйти</button>`;
+    return;
+  }
   $('#t-name').textContent = trainer.name;
   show('appv');
   await Promise.all([loadClients(), loadTemplates()]);
@@ -408,9 +487,19 @@ function renderList() {
   renderHome(body);
 }
 
+/* Подсказка поставить кабинет на экран телефона (отдельной иконкой «YOU Тренер») */
+function installHint() {
+  const st = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  let off = false; try { off = !!localStorage.getItem('you_c_inst'); } catch (e) {}
+  if (st || off) return '';
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  return `<div class="card inst" id="inst"><i class="ti ti-device-mobile-plus"></i><div><b>Поставьте кабинет на экран</b><span>${ios ? 'Safari: «Поделиться» → «На экран Домой»' : 'Меню браузера → «Добавить на главный экран»'}. Появится отдельная иконка «YOU Тренер», рядом с приложением YOU.</span></div><button class="mini" id="inst-x" aria-label="Скрыть"><i class="ti ti-x"></i></button></div>`;
+}
+function bindInstall() { const x = $('#inst-x'); if (x) x.onclick = () => { try { localStorage.setItem('you_c_inst', '1'); } catch (e) {} $('#inst').remove(); }; }
+
 function renderHome(body) {
   const n = clients.length;
-  if (!n) { body.innerHTML = `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br>Добавьте первого во вкладке «Добавить».</div>`; return; }
+  if (!n) { body.innerHTML = installHint() + `<div class="empty"><i class="ti ti-users"></i>Пока нет клиентов.<br>Добавьте первого во вкладке «Добавить».</div>`; bindInstall(); return; }
   const live = clients.filter(c => c.ok);
   const todayL = live.filter(c => c.stat.today);
   const lost = live.filter(c => c.stat.st === 'bad');
@@ -424,7 +513,7 @@ function renderHome(body) {
   lost.forEach(c => attn.push({ c, i: 'ti-alert-triangle b', t: `<b>${esc(cname(c))}</b> пропал: ${ago(c.stat.days)}` }));
   [...new Set(miss.map(e => e.c))].forEach(c => { const k = miss.filter(e => e.c === c).length; attn.push({ c, i: 'ti-clock-exclamation w', t: `<b>${esc(cname(c))}</b>: ${k} ${pl(k, 'тренировка не отмечена', 'тренировки не отмечены', 'тренировок не отмечено')} за неделю` }); });
   plat.forEach(c => attn.push({ c, i: 'ti-chart-line w', t: `<b>${esc(cname(c))}</b>: плато, ${c.stat.plat.slice(0, 2).map(p => esc(p.name)).join(', ')}` }));
-  body.innerHTML = `
+  body.innerHTML = installHint() + `
     <div class="card">
       <div class="card-h"><div><b>Сводка</b><span>${new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div></div>
       <div class="kpis kpis4">
@@ -455,6 +544,7 @@ function renderHome(body) {
   body.querySelectorAll('.cl').forEach(el => el.onclick = () => openClient(+el.dataset.i));
   body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
   $('#to-feed').onclick = () => { view.tab = 'feed'; renderList(); };
+  bindInstall();
   coachTips('home');
 }
 
@@ -474,7 +564,7 @@ function renderFeed(body) {
 function renderAdd(body) {
   const lim = trainer.limit || 10, n = clients.length;
   const link = APP_URL + 'index.html#/join/' + trainer.code;
-  body.innerHTML = `
+  body.innerHTML = installHint() + `
     <div class="card">
       <div class="card-h"><div><b>Добавить по ключу</b><span>Клиент создаёт ключ в приложении: Меню → Подключить тренера → Выдать ключ</span></div></div>
       <div style="display:flex;gap:8px"><input class="field" id="k-in" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters" style="margin:0;flex:1;letter-spacing:.1em;font-weight:800;text-transform:uppercase">
@@ -498,7 +588,7 @@ function renderAdd(body) {
         <div><i class="ti ti-refresh"></i><span>Всё, что вы меняете в плане, у клиента обновляется само</span></div>
         <div><i class="ti ti-building"></i><span>Тренируете в зале? Отмечайте проведённые тренировки галочкой в плане клиента</span></div>
       </div></div>`;
-  coachTips('add');
+  coachTips('add'); bindInstall();
   $('#i-copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(link); toast('Ссылка скопирована'); };
   $('#i-share').onclick = () => {
     const text = `Веду тренировки в приложении YOU. Подключайся по ссылке: ${link} (код ${trainer.code})`;
@@ -900,5 +990,6 @@ function exModal(c, plans, s, ei, done) {
   };
 }
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

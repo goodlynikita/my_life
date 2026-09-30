@@ -108,6 +108,11 @@ button,input,select,textarea{font-family:inherit}
 /* Карточка пользователя */
 .urow{cursor:pointer;transition:background .15s} .urow:hover{background:rgba(255,255,255,.025)}
 .tag-t{background:rgba(251,191,36,.14);color:#FBBF24}
+.trow{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.trow.blocked .u-name,.trow.blocked .u-mail{opacity:.5}
+.tr-cl{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px} .tr-cl span{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--soft)}
+.tr-act{display:flex;gap:6px;align-items:center} .tr-act .set-in{width:auto;height:36px;font-size:13px} .tr-act .tr-lim{width:70px}
+@media (max-width:700px){.trow{grid-template-columns:auto 1fr;row-gap:8px}.trow .u-col{text-align:left}.tr-act{grid-column:1/-1}}
 .dr-ov{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;justify-content:flex-end;animation:fade .2s}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .dr{width:100%;max-width:480px;height:100%;overflow-y:auto;background:var(--panel);border-left:1px solid var(--line2);animation:slidein .28s cubic-bezier(.22,1,.36,1);padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
@@ -189,6 +194,7 @@ button,input,select,textarea{font-family:inherit}
     <div class="tabs">
       <button class="tab on" data-tab="msgs"><i class="ti ti-inbox"></i> Сообщения <span class="cnt hidden" id="t-cnt"></span></button>
       <button class="tab" data-tab="users"><i class="ti ti-users"></i> Пользователи</button>
+      <button class="tab" data-tab="trainers"><i class="ti ti-user-star"></i> Тренеры <span class="cnt hidden" id="t-tr"></span></button>
       <button class="tab" data-tab="settings"><i class="ti ti-settings"></i> Настройки</button>
     </div>
 
@@ -207,6 +213,15 @@ button,input,select,textarea{font-family:inherit}
         <button class="chip" data-uf="blocked">Заблокированные</button>
       </div>
       <div id="u-list"></div>
+    </div>
+
+    <!-- Тренеры -->
+    <div class="panel hidden" id="p-trainers">
+      <div class="toolbar">
+        <input class="search" id="tr-search" placeholder="Поиск по имени или email">
+        <span style="font-size:12px;color:var(--soft)" id="tr-sum"></span>
+      </div>
+      <div id="tr-list"></div>
     </div>
 
     <!-- Настройки -->
@@ -307,6 +322,8 @@ function start(){
   sub('userIndex', v=>{ USERS=v||{}; renderUsers(); renderKpi(); if(openUid) openUser(openUid,true); });
   sub('settings', v=>{ SETTINGS=v||{}; fillSettings(); renderKpi(); });
   sub('stats/usersCount', v=>{ COUNT=Number(v)||0; fillSettings(); renderKpi(); });
+  sub('trainers', v=>{ TRAINERS=v||{}; renderTrainers(); });
+  sub('trainerClients', v=>{ TCL=v||{}; renderTrainers(); });
 }
 
 function limit(){ return Number(SETTINGS.freeUsersLimit) || (window.APP_CONFIG&&APP_CONFIG.freeUsersLimit) || 1000; }
@@ -391,6 +408,47 @@ function renderUsers(){
 }
 $('#u-search').addEventListener('input',e=>{ uQuery=e.target.value; renderUsers(); });
 document.querySelectorAll('[data-uf]').forEach(b=>b.onclick=()=>{ uFilter=b.dataset.uf; document.querySelectorAll('[data-uf]').forEach(x=>x.classList.toggle('on',x===b)); renderUsers(); });
+
+/* ── Тренеры ── */
+let TRAINERS={}, TCL={}, trQuery='';
+const TIERS={ free:'Бесплатный', pro:'Про', studio:'Студия' };
+function renderTrainers(){
+  const q=trQuery.toLowerCase();
+  let list=Object.entries(TRAINERS).filter(([,t])=>t).map(([uid,t])=>({uid,...t,clients:Object.values(TCL[uid]||{}).filter(Boolean)}))
+    .sort((a,b)=>b.clients.length-a.clients.length||(b.createdAt||0)-(a.createdAt||0));
+  const c=$('#t-tr'); c.textContent=list.length; c.classList.toggle('hidden',!list.length);
+  const total=list.reduce((s,t)=>s+t.clients.length,0);
+  $('#tr-sum').textContent=list.length?`${list.length} тренеров · ${total} клиентов`:'';
+  if(q) list=list.filter(t=>(t.name||'').toLowerCase().includes(q)||(t.email||'').toLowerCase().includes(q));
+  if(!list.length){ $('#tr-list').innerHTML=`<div class="empty"><i class="ti ti-user-star"></i>${Object.keys(TRAINERS).length?'Никого не нашлось':'Тренеров пока нет. Они появятся, когда кто-то создаст кабинет тренера'}</div>`; return; }
+  $('#tr-list').innerHTML=list.map(t=>{
+    const lim=t.limit||10, n=t.clients.length, full=n>=lim;
+    const col=COLORS[[...t.uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
+    return `<div class="trow${t.blocked?' blocked':''}">
+      <div class="ava" style="background:${col}">${esc((t.name||t.email||'?').trim()[0].toUpperCase())}</div>
+      <div style="min-width:0"><div class="u-name">${esc(t.name||'Без имени')}<span class="tag tag-t">${esc(TIERS[t.tier]||t.tier||'Бесплатный')}</span>${t.blocked?'<span class="tag tag-bl">заблокирован</span>':''}</div>
+        <div class="u-mail">${esc(t.email||t.uid)} · код ${esc(t.code||'')} · с ${t.createdAt?new Date(t.createdAt).toLocaleDateString('ru-RU'):'?'}</div>
+        ${n?`<div class="tr-cl">${t.clients.slice(0,6).map(x=>`<span>${esc(x.name||x.email||'клиент')}</span>`).join('')}${n>6?`<span>+${n-6}</span>`:''}</div>`:''}</div>
+      <div class="u-col"><b style="color:${full?'var(--warn)':'var(--txt)'}">${n} / ${lim}</b>клиентов</div>
+      <div class="tr-act">
+        <select class="set-in tr-tier" data-uid="${t.uid}">${Object.entries(TIERS).map(([k,l])=>`<option value="${k}" ${(t.tier||'free')===k?'selected':''}>${l}</option>`).join('')}</select>
+        <input class="set-in tr-lim" data-uid="${t.uid}" type="number" inputmode="numeric" value="${lim}" title="Лимит клиентов">
+        <button class="btn btn-${t.blocked?'okc':'bad'} btn-sm" data-tb="${t.blocked?0:1}" data-uid="${t.uid}" title="${t.blocked?'Разблокировать':'Заблокировать кабинет'}"><i class="ti ti-${t.blocked?'lock-open':'lock'}"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+  const fail=(e)=>{ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось'); };
+  $('#tr-list').querySelectorAll('.tr-lim').forEach(i=>i.onchange=async()=>{ const v=Math.max(0,Math.min(1000,parseInt(i.value,10)||0));
+    try{ await set(ref(db,'trainers/'+i.dataset.uid+'/limit'),v); const code=(TRAINERS[i.dataset.uid]||{}).code; const n=Object.keys(TCL[i.dataset.uid]||{}).length;
+      if(code) await update(ref(db,'invites/'+code),{full:n>=v}); toast('Лимит: '+v); }catch(e){ fail(e); } });
+  $('#tr-list').querySelectorAll('.tr-tier').forEach(sl=>sl.onchange=async()=>{
+    const def={free:10,pro:20,studio:50}[sl.value];
+    try{ await update(ref(db,'trainers/'+sl.dataset.uid),{tier:sl.value,limit:def}); toast('Тариф: '+TIERS[sl.value]+', лимит '+def); }catch(e){ fail(e); } });
+  $('#tr-list').querySelectorAll('[data-tb]').forEach(b=>b.onclick=async()=>{ const block=b.dataset.tb==='1', t=TRAINERS[b.dataset.uid]||{};
+    if(block&&!confirm(`Заблокировать кабинет ${t.name||t.email}? Клиенты останутся, но тренер не сможет войти в кабинет.`)) return;
+    try{ await set(ref(db,'trainers/'+b.dataset.uid+'/blocked'),block?true:null); toast(block?'Кабинет заблокирован':'Разблокирован'); }catch(e){ fail(e); } });
+}
+$('#tr-search').addEventListener('input',e=>{ trQuery=e.target.value; renderTrainers(); });
 
 /* ── Настройки ── */
 let dirty=false;
@@ -530,7 +588,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUser(); });
 /* ── Вкладки ── */
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
-  ['msgs','users','settings'].forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==t.dataset.tab));
+  ['msgs','users','trainers','settings'].forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==t.dataset.tab));
 });
 </script>
 </body>

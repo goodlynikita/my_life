@@ -50,29 +50,35 @@ window.WinterArc = (function () {
     })(t0);
   }
 
+  /* храним только свои анимации: CSS-анимации плиток не трогаем */
+  const MINE = new WeakMap();
   function blowAway(els) {
     return Promise.all(els.map((el, i) => {
       const r = el.getBoundingClientRect();
       const dx = innerWidth - r.left + 80 + Math.random() * 120, dy = -60 - Math.random() * 160;
       const rot = 25 + Math.random() * 50;
-      el.dataset.waT = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(.7)`;
       const a = el.animate([
         { transform: 'none', opacity: 1, filter: 'blur(0)' },
         { transform: `translate(${dx * 0.12}px, ${dy * 0.1}px) rotate(${rot * 0.15}deg)`, opacity: 1, filter: 'blur(0)', offset: 0.25 },
-        { transform: el.dataset.waT, opacity: 0, filter: 'blur(6px)' },
+        { transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(.7)`, opacity: 0, filter: 'blur(6px)' },
       ], { duration: 850, delay: i * 70, easing: 'cubic-bezier(.55,0,.8,.3)', fill: 'forwards' });
-      return a.finished;
+      MINE.set(el, [a]);
+      return a.finished.catch(() => {});
     }));
   }
   function comeBack(els) {
     return Promise.all(els.map((el, i) => {
-      el.getAnimations().forEach(a => a.cancel());
+      (MINE.get(el) || []).forEach(a => { try { a.cancel(); } catch (e) {} });
       const from = `translate(${-innerWidth}px, -40px) rotate(-20deg) scale(.8)`;
       const a = el.animate([
         { transform: from, opacity: 0, filter: 'blur(6px)' },
         { transform: 'none', opacity: 1, filter: 'blur(0)' },
-      ], { duration: 700, delay: i * 60, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
-      return a.finished.catch(() => {});
+      ], { duration: 700, delay: i * 60, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'none' });
+      MINE.set(el, [a]);
+      /* до старта держим спрятанным, после конца полностью убираем анимацию */
+      el.style.opacity = '0';
+      setTimeout(() => { el.style.opacity = ''; }, i * 60 + 16);
+      return a.finished.catch(() => {}).then(() => { try { a.cancel(); } catch (e) {} el.style.opacity = ''; el.style.transform = ''; el.style.filter = ''; });
     }));
   }
 

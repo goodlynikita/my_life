@@ -40,6 +40,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/coach-home.css">
 <link rel="stylesheet" href="css/training.css">
 <link rel="stylesheet" href="css/light.css">
 <link rel="stylesheet" href="css/tour.css">
@@ -94,9 +95,9 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .kpi{background:rgba(110,148,255,.08);border:1px solid rgba(110,148,255,.16);border-radius:15px;padding:12px}
 .kpi b{display:block;font-size:22px} .kpi span{font-size:11.5px;color:var(--soft)}
-.today{margin-top:10px;display:flex;flex-direction:column;gap:6px}
-.today div{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#D5DAEA;line-height:1.45}
-.today i{font-size:17px;color:#8EA8FF;margin-top:1px} .today .w{color:var(--warn)} .today .b{color:var(--bad)} .today .g{color:var(--ok)}
+.today:not(.dy){margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.today:not(.dy) div{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#D5DAEA;line-height:1.45}
+.today:not(.dy) i{font-size:17px;color:#8EA8FF;margin-top:1px} .today:not(.dy) .w{color:var(--warn)} .today:not(.dy) .b{color:var(--bad)} .today:not(.dy) .g{color:var(--ok)}
 /* Клиенты */
 .cl-list{display:flex;flex-direction:column;gap:8px}
 .cl{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:13px 14px;border-radius:18px;background:var(--card);border:1px solid var(--line);cursor:pointer;transition:border-color .2s,transform .15s}
@@ -199,54 +200,28 @@ textarea.field{height:auto;min-height:110px;padding:12px 14px;resize:vertical;li
 /* v126: шапка как в приложении и переключатель темы */
 .top{background:linear-gradient(135deg,#34198a 0%,#4f3bd1 50%,#2563eb 100%);border-bottom:none;box-shadow:0 8px 30px rgba(20,16,60,.35)}
 .top .brand span{color:rgba(255,255,255,.7)} .top .ib{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22)}
-.theme-toggle{position:relative;width:68px;height:38px;border-radius:19px;cursor:pointer;padding:0;flex-shrink:0;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);-webkit-tap-highlight-color:transparent}
-.theme-toggle .tt-ico{position:absolute;top:3px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;pointer-events:none;z-index:1}
-.theme-toggle .tt-sun{left:3px} .theme-toggle .tt-moon{right:3px}
-.theme-toggle .tt-knob{position:absolute;top:3px;left:3px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.3);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:left .28s cubic-bezier(.34,1.56,.64,1);box-sizing:border-box}
-.theme-toggle[data-mode="dark"] .tt-knob{left:33px}
-@media (max-width:440px){.top .brand div{display:none}.top-in{gap:6px}.theme-toggle{width:60px;height:36px}.theme-toggle .tt-ico,.theme-toggle .tt-knob{width:28px;height:28px}.theme-toggle[data-mode="dark"] .tt-knob{left:27px}}
+@media (max-width:440px){.top .brand div{display:none}.top-in{gap:6px}}
 /* светлая тема: шапку возвращаем к оригиналу, как в разделах приложения */
 html[data-theme="light"] .top{filter:invert(1) hue-rotate(180deg) contrast(.893)}
 html[data-theme="light"] .top img,html[data-theme="light"] .top .tt-ico{filter:none}
 html[data-theme="light"]{--soft:#C9CFDF;--faint:#AEB6CB}
 html[data-theme="light"] .card,html[data-theme="light"] .rp{box-shadow:none}
-/* v136: меню и настройки как в YOU */
-.pp-ov{position:fixed;inset:0;z-index:120;background:rgba(3,5,10,.66);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;animation:ppIn .2s ease}
-@keyframes ppIn{from{opacity:0}}
-.pm{width:100%;max-width:340px;background:#1C1E26;border-radius:16px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5)}
-.pm-h{padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase}
-.pm>button,.pm>a{width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,.06);color:#E8E5DC;font-size:14px;font-family:inherit;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none}
-.pm i{font-size:18px;color:#9D9A92} .pm .acc{color:#C7D2FE} .pm .acc i{color:#8EA8FF} .pm .bad,.pm .bad i{color:#F87171}
-.pm>*:hover{background:rgba(255,255,255,.03)}
-.pp{width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;background:#13151A;border-radius:16px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5)}
-.pp-h{flex-shrink:0;padding:18px 20px 14px;border-bottom:1px solid #1E2028;display:flex;align-items:center;justify-content:space-between}
-.pp-h b{font-size:17px;font-weight:800;color:#E8E5DC}
-.pp-x{background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px}
-.pp-b{padding:16px 20px 20px;overflow-y:auto}
-.pp-l{font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin:4px 0 10px}
-.pp-note{font-size:12px;color:#555;margin-bottom:12px}
-.rows{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1C1E24;border-radius:12px;border:1px solid #2A2D35}
-.row.off{opacity:.5} .row .nm{flex:1;font-size:14px;font-weight:600;color:#E8E5DC} .row .ic{font-size:19px;color:#9D9A92}
-.sw{width:34px;height:24px;border-radius:7px;flex-shrink:0}
-.mv{display:flex;flex-direction:column;gap:2px} .mv button{width:26px;height:18px;border:none;border-radius:5px;background:#2A2D35;color:#9D9A92;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0} .mv button:disabled{opacity:.3}
-.tg{flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:#2A2D35;position:relative;transition:background .25s}
-.tg i{position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.tg.on{background:#4A7CFF} .tg.on i{left:24px}
-html[data-theme="light"] .tg i{background:#000} html[data-theme="light"] .pp-save{color:#000}
-.lay{display:flex;gap:8px;margin-bottom:18px}
-.lay button{flex:1;min-width:0;padding:10px 4px 8px;background:#1C1E24;border:2px solid #2A2D35;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
-.lay svg rect{fill:rgba(157,154,146,.18);stroke:#9D9A92;stroke-width:1.5} .lay span{font-size:10px;color:#9D9A92;font-weight:600;white-space:nowrap}
-.lay button.on{border-color:#4ADE80} .lay button.on svg rect{fill:rgba(74,222,128,.2);stroke:#4ADE80} .lay button.on span{color:#4ADE80}
-.chips2{display:flex;gap:6px;margin-bottom:16px} .chips2 button{flex:1;height:38px;border-radius:10px;border:1px solid #2A2D35;background:#1C1E24;color:#9D9A92;font-family:inherit;font-weight:700;cursor:pointer} .chips2 button.on{border-color:#4A7CFF;color:#fff;background:rgba(74,124,255,.18)}
-.pp-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#14532D,#16A34A);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
-/* сетки плиток */
-.ht-grid.lay-row{grid-template-columns:1fr!important}
-.ht-grid.lay-row .ht{min-height:0;flex-direction:row;align-items:center;gap:12px;padding:14px 16px}
-.ht-grid.lay-row .ht .ht-top{width:auto} .ht-grid.lay-row .ht .ht-avas,.ht-grid.lay-row .ht .ht-sp,.ht-grid.lay-row .ht .ht-bar{display:none}
-.ht-grid.lay-row .ht b{margin:0;flex:1} .ht-grid.lay-row .ht small{margin:0}
-.ht-grid.lay-bigfirst .ht:first-child,.ht-grid.lay-bigfirst .ht:last-child:not(:nth-child(2)),.ht-grid.lay-biglast .ht:nth-child(3),.ht-grid.lay-biglast .ht:nth-child(4){grid-column:1/-1}
-@media (min-width:900px){.ht-grid.lay-bigfirst,.ht-grid.lay-biglast{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* переключатель темы 1:1 как в YOU */
+.theme-toggle{position:relative;width:76px;height:40px;border-radius:20px;cursor:pointer;padding:0;flex-shrink:0;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);-webkit-tap-highlight-color:transparent}
+.theme-toggle .tt-ico{position:absolute;top:3px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1;pointer-events:none;z-index:1}
+.theme-toggle .tt-sun{left:3px} .theme-toggle .tt-moon{right:3px}
+.theme-toggle .tt-knob{position:absolute;top:3px;left:3px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);box-shadow:0 2px 8px rgba(0,0,0,0.35);transition:left .28s cubic-bezier(.34,1.56,.64,1);z-index:0;box-sizing:border-box}
+.theme-toggle[data-mode="dark"] .tt-knob{left:39px}
+html[data-theme="light"] .theme-toggle{box-shadow:none}
+/* v137: главная как в YOU */
+.c-home .hero-slider{margin:0 0 16px}
+.c-home .hub-attn{margin-bottom:12px}
+.c-home .home2-grid{gap:12px;padding:0!important;margin:0!important}
+.hero-slide-main .hero-big-text.num{font-size:44px;letter-spacing:-1.5px;line-height:1} .hero-slide-main .hero-big-text.num .hero-stat-of{font-size:24px}
+@media(max-width:480px){.hero-slide-main .hero-big-text.num{font-size:38px}}
+html[data-theme="light"] .theme-toggle .tt-knob{background:rgba(0,0,0,.92);border-color:rgba(0,0,0,.4);box-shadow:0 2px 6px rgba(255,255,255,.25)}
+.hero-slide-main .hero-sub-text{font-size:12px;margin-top:4px}
+.se-overlay .se-panel{text-align:left}
 /* v135: главная тренера: слайды и настройка */
 .hdr-brand b{font-size:17px;font-weight:800}
 .hs{position:relative;margin-bottom:12px}
@@ -288,9 +263,7 @@ html[data-theme="light"] .hs-s{filter:invert(1) hue-rotate(180deg) contrast(.893
 .hdr-brand b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .hdr-brand span{display:block;font-size:11.5px;color:var(--faint)}
 .hdr-brand.sub img{display:none}
 .hdr .sp{flex:1}
-.hdr .theme-toggle{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);width:76px;height:44px;border-radius:22px}
-.hdr .theme-toggle .tt-ico,.hdr .theme-toggle .tt-knob{top:5px;width:32px;height:32px} .hdr .theme-toggle[data-mode="dark"] .tt-knob{left:39px}
-@media (max-width:440px){.hdr .theme-toggle{width:68px;height:40px}.hdr .theme-toggle .tt-ico,.hdr .theme-toggle .tt-knob{top:3px;width:32px;height:32px}.hdr .theme-toggle[data-mode="dark"] .tt-knob{left:31px}.hb{width:40px;height:40px}.hdr-brand img{width:36px;height:36px}}
+@media (max-width:440px){.hb{width:40px;height:40px}.hdr-brand img{width:36px;height:36px}}
 .mn{display:flex;flex-direction:column;gap:6px}
 .mn>*{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--txt);text-decoration:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:left}
 .mn>* i:first-child{font-size:19px;color:#A5B4FC} .mn>* span{flex:1} .mn>* i:last-child{color:var(--faint)} .mn .bad,.mn .bad i:first-child{color:#FCA5A5}
@@ -438,7 +411,7 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .attn{display:flex;flex-direction:column;gap:6px}
 .attn-i{display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#D5DAEA;font-size:13px;line-height:1.4;cursor:pointer;font-family:inherit}
 .attn-i span{flex:1} .attn-i b{color:#fff} .attn-i>i:first-child{font-size:18px} .attn-i>i:last-child{color:var(--faint)}
-.attn-i .b,.today .b{color:var(--bad)} .attn-i .w{color:var(--warn)}
+.attn-i .b,.today:not(.dy) .b{color:var(--bad)} .attn-i .w{color:var(--warn)}
 .feed{display:flex;flex-direction:column}
 .fd-day{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:12px 0 4px}
 .fd-day:first-child{margin-top:0}
@@ -657,24 +630,18 @@ $('#bc-btn').onclick = async () => {
 };
 $('#bc-out').onclick = () => signOut(auth);
 $('#out').onclick = () => { if (confirm('Выйти из кабинета?')) signOut(auth); };
-/* Меню и окна настроек в стиле главной YOU */
-function pop(title, html, wide) {
-  const ov = document.createElement('div'); ov.className = 'pp-ov';
-  ov.innerHTML = `<div class="pp${wide ? ' wide' : ''}">${title ? `<div class="pp-h"><b>${title}</b><button class="pp-x" aria-label="Закрыть">×</button></div>` : ''}<div class="pp-b">${html}</div></div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-  const x = ov.querySelector('.pp-x'); if (x) x.onclick = () => ov.remove();
-  return ov;
-}
+/* Меню 1:1 как на главной YOU */
 $('#menu').onclick = () => {
-  const ov = document.createElement('div'); ov.className = 'pp-ov';
-  ov.innerHTML = `<div class="pm"><div class="pm-h">Меню</div>
-    <button data-m="slides"><i class="ti ti-layout"></i>Редактор слайдов</button>
-    <button data-m="tiles"><i class="ti ti-layout-grid"></i>Настройка плиток</button>
-    <button data-m="slider"><i class="ti ti-adjustments-horizontal"></i>Настройки слайдера</button>
-    <a href="index.html" class="acc"><i class="ti ti-barbell"></i>Мои тренировки</a>
-    <button data-m="help"><i class="ti ti-help-circle"></i>Подсказки по кабинету</button>
-    <button data-m="out" class="bad"><i class="ti ti-logout"></i>Выйти</button></div>`;
+  const R = 'style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none;box-sizing:border-box;"', I = 'style="font-size:18px;color:#9D9A92;"';
+  const ov = document.createElement('div'); ov.className = 'tr-modal-overlay';
+  ov.innerHTML = `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:340px;overflow:hidden;">
+    <div style="padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase;">Меню</div>
+    <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Редактор слайдов</button>
+    <button data-m="tiles" ${R}><i class="ti ti-layout-grid" ${I}></i>Настройка плиток</button>
+    <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
+    <a href="index.html" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-apps" style="font-size:18px;color:#8EA8FF;"></i>Приложение YOU</a>
+    <button data-m="help" ${R}><i class="ti ti-help-circle" ${I}></i>Подсказки по кабинету</button>
+    <button data-m="out" ${R.replace('color:#E8E5DC', 'color:#F87171')}><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button></div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
   const go = (fn) => () => { ov.remove(); if (view.name !== 'list' || view.tab !== 'hub') { view = { name: 'list', tab: 'hub' }; render(); } fn(); };
@@ -783,130 +750,279 @@ function renderList() {
 /* ═══ Главная кабинета: «Сегодня» + плитки разделов (как на главной YOU) ═══ */
 const AVA_COL = ['#3B5BDB', '#7048E8', '#0CA678', '#E67700', '#C2255C', '#1098AD'];
 function avaCol(c) { return AVA_COL[[...String(c.k)].reduce((s, ch) => s + ch.charCodeAt(0), 0) % AVA_COL.length]; }
-/* Настройки главной: какие слайды и плитки показывать и в каком порядке */
-const HUB_SLIDES = { today: 'Сегодня', rhythm: 'В ритме', week: 'За неделю', records: 'Рекорды', attention: 'Внимание', attendance: 'Посещаемость' };
+/* ═══ Главная кабинета: слайдер и плитки 1:1 как на главной YOU ═══ */
 const HUB_TILES = { clients: 'Клиенты', feed: 'Лента', tpl: 'Шаблоны', add: 'Добавить' };
+const TILE_DEF = {
+  clients: { cls: 'home2-tile-training', icon: 'ti-users' },
+  feed: { cls: 'home2-tile-habits', icon: 'ti-activity' },
+  tpl: { cls: 'home2-tile-finance', icon: 'ti-template' },
+  add: { cls: 'home2-tile-goals', icon: 'ti-user-plus' },
+};
+const firstName = (c) => { const p = cname(c).trim().split(/\s+/); return p.length > 1 ? p[1] : p[0]; };
+/* Блоки данных для слайдов. main = блок стоит первым, рисуем крупно */
+const numB = (v, l, main, color) => main
+  ? `<div class="hero-big-text num"${color ? ` style="color:${color}"` : ''}>${v}</div><div class="hero-sub-text">${l}</div>`
+  : `<div class="hero-stat-num"${color ? ` style="color:${color}"` : ''}>${v}</div><div class="hero-stat-lbl">${l}</div>`;
+const CB = [
+  { id: 'today_who', sec: 'Тренировки', name: 'Кто тренируется сегодня', desc: 'Имена клиентов с тренировкой по плану',
+    r: (x) => x.todayL.length ? `<div class="hero-big-text">${x.todayL.slice(0, 3).map(c => esc(firstName(c))).join(', ')}${x.todayL.length > 3 ? ' +' + (x.todayL.length - 3) : ''}</div>` : '<div class="hero-big-text hero-dim">Сегодня без тренировок</div>' },
+  { id: 'today_n', sec: 'Тренировки', name: 'Тренировок сегодня', desc: 'Сколько клиентов тренируется сегодня', r: (x, m) => numB(x.todayL.length, 'сегодня', m) },
+  { id: 'week_n', sec: 'Тренировки', name: 'Тренировок за неделю', desc: 'Сделано за последние 7 дней', r: (x, m) => numB(x.wk, 'за неделю', m) },
+  { id: 'week_tons', sec: 'Тренировки', name: 'Тоннаж за неделю', desc: 'Сколько подняли все клиенты', r: (x, m) => numB(String(x.tons).replace('.', ',') + ' т', 'поднято', m) },
+  { id: 'prs', sec: 'Тренировки', name: 'Рекорды за неделю', desc: 'Новые максимумы клиентов', r: (x, m) => numB(x.prs, pl(x.prs, 'рекорд', 'рекорда', 'рекордов'), m, x.prs ? '#FCD34D' : '') },
+  { id: 'rhythm', sec: 'Клиенты', name: 'В ритме', desc: 'Тренировались за последние 3 дня', r: (x, m) => numB(`${x.inR}<span class="hero-stat-of">/${x.live.length}</span>`, 'в ритме', m) },
+  { id: 'attn', sec: 'Клиенты', name: 'Требуют внимания', desc: 'Пропадают или стоят на плато', r: (x, m) => numB(x.attnN, 'внимание', m, x.attnN ? '#FCA5A5' : '') },
+  { id: 'att', sec: 'Клиенты', name: 'Посещаемость', desc: 'Средняя за 4 недели', r: (x, m) => numB(x.attAvg == null ? '–' : x.attAvg + '%', 'посещаемость', m, x.attAvg == null ? '' : x.attAvg >= 80 ? '#86EFAC' : x.attAvg < 50 ? '#FCA5A5' : '') },
+  { id: 'total', sec: 'Клиенты', name: 'Клиентов', desc: 'Сколько подключено из лимита', r: (x, m) => numB(`${x.n}<span class="hero-stat-of">/${x.lim}</span>`, 'клиентов', m) },
+  { id: 'last_event', sec: 'Лента', name: 'Последнее событие', desc: 'Свежая запись из ленты',
+    r: (x) => { const e = x.ev.find(e => e.k !== 'miss'); return e ? `<div class="hero-big-text" style="font-size:clamp(16px,2.4vw,22px);font-weight:700;letter-spacing:-.2px;line-height:1.3">${e.html.replace(/<\/?b>/g, '')}</div>` : '<div class="hero-big-text hero-dim">Пока тихо</div>'; } },
+  { id: 'fresh', sec: 'Лента', name: 'События за сутки', desc: 'Тренировки, рекорды, замеры', r: (x, m) => numB(x.fresh, 'за сутки', m) },
+  { id: 'date', sec: 'Общее', name: 'Дата', desc: 'Текущая дата', r: (x, m) => numB(new Date().getDate(), ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'][new Date().getMonth()], m) },
+  { id: 'custom_text', sec: 'Кастом', name: 'Свой текст', desc: 'Любой заголовок и подпись', r: (x, m, cfg) => `<div class="hero-big-text">${esc((cfg && cfg.text) || 'Твой текст')}</div>${cfg && cfg.sub ? `<div class="hero-sub-text">${esc(cfg.sub)}</div>` : ''}` },
+];
+const SLIDE_COLORS = [
+  { name: 'Синий', cssClass: 'slide-focus', glowClass: 'slide-glow-blue', bg: 'linear-gradient(135deg,#080e1e 0%,#0c2654 40%,#1a3f8a 70%,#0d1f4a 100%)' },
+  { name: 'Зелёный', cssClass: 'slide-finance', glowClass: 'slide-glow-green', bg: 'linear-gradient(135deg,#010c05 0%,#092e14 40%,#14522c 70%,#071a0c 100%)' },
+  { name: 'Фиолетовый', cssClass: 'slide-goals', glowClass: 'slide-glow-purple', bg: 'linear-gradient(135deg,#09051a 0%,#1e0a4a 40%,#3d1580 70%,#1a0840 100%)' },
+  { name: 'Янтарный', cssClass: 'slide-amber', glow: '#F59E0B', bg: 'linear-gradient(135deg,#1a0f00 0%,#3d2200 40%,#5a3300 70%,#2a1500 100%)' },
+  { name: 'Красный', cssClass: 'slide-crimson', glow: '#F87171', bg: 'linear-gradient(135deg,#1f0808 0%,#450a0a 40%,#6b1010 70%,#2d0606 100%)' },
+  { name: 'Розовый', cssClass: 'slide-pink', glow: '#F472B6', bg: 'linear-gradient(135deg,#1a0612 0%,#3d0a2a 40%,#5c1040 70%,#2a0620 100%)' },
+  { name: 'Бирюза', cssClass: 'slide-teal', glow: '#2DD4BF', bg: 'linear-gradient(135deg,#001a1a 0%,#003d3d 40%,#005c5c 70%,#002626 100%)' },
+  { name: 'Индиго', cssClass: 'slide-indigo', glow: '#818CF8', bg: 'linear-gradient(135deg,#080d24 0%,#151e50 40%,#1e2d6e 70%,#0d1540 100%)' },
+  { name: 'Оранжевый', cssClass: 'slide-orange', glow: '#FB923C', bg: 'linear-gradient(135deg,#1a0a00 0%,#3d1a00 40%,#5c2800 70%,#2a1000 100%)' },
+  { name: 'Лайм', cssClass: 'slide-lime', glow: '#A3E635', bg: 'linear-gradient(135deg,#0a1a00 0%,#1a3d00 40%,#285c00 70%,#102a00 100%)' },
+  { name: 'Сланец', cssClass: 'slide-slate', glow: '#64748B', bg: 'linear-gradient(135deg,#0d1117 0%,#1c2230 40%,#243044 70%,#141d2a 100%)' },
+  { name: 'Полночь', cssClass: 'slide-midnight', glow: '#60A5FA', bg: 'linear-gradient(135deg,#050810 0%,#0d1225 40%,#141c38 70%,#0a1020 100%)' },
+  { name: 'Нефрит', cssClass: 'slide-jade', glow: '#34D399', bg: 'linear-gradient(135deg,#001a0d 0%,#00401f 40%,#005c2b 70%,#002a14 100%)' },
+];
+const DEFAULT_SLIDES = [
+  { id: 's_today', label: 'СЕГОДНЯ', cssClass: 'slide-focus', glowClass: 'slide-glow-blue', enabled: true, route: 'clients', blocks: ['today_who', 'today_n', 'rhythm', 'fresh'] },
+  { id: 's_week', label: 'НЕДЕЛЯ', cssClass: 'slide-finance', glowClass: 'slide-glow-green', enabled: true, route: 'feed', blocks: ['week_n', 'week_tons', 'prs', 'att'] },
+  { id: 's_clients', label: 'КЛИЕНТЫ', cssClass: 'slide-goals', glowClass: 'slide-glow-purple', enabled: true, route: 'clients', blocks: ['rhythm', 'attn', 'att', 'total'] },
+];
+const ROUTES = [['', 'Никуда'], ['clients', 'Клиенты'], ['feed', 'Лента'], ['tpl', 'Шаблоны'], ['add', 'Добавить']];
 function hubUI() {
-  const def = { slides: ['today', 'rhythm', 'week', 'records'], hideSlides: ['attention', 'attendance'], tiles: ['clients', 'feed', 'tpl', 'add'], hideTiles: [], layout: '2x2', autoplay: true, interval: 4.5, sliderHidden: false };
+  const def = { tiles: ['clients', 'feed', 'tpl', 'add'], hideTiles: [], layout: '2x2', autoplay: true, interval: 5, sliderHidden: false };
   let u = trainer.ui || null; try { u = u || JSON.parse(localStorage.getItem('you_hub_' + trainer.uid) || 'null'); } catch (e) {}
   u = Object.assign({}, def, u || {});
   const fill = (arr, all) => arr.filter(k => all[k]).concat(Object.keys(all).filter(k => !arr.includes(k)));
-  u.slides = fill(toArr(u.slides), HUB_SLIDES); u.tiles = fill(toArr(u.tiles), HUB_TILES);
-  u.hideSlides = toArr(u.hideSlides); u.hideTiles = toArr(u.hideTiles);
+  u.tiles = fill(toArr(u.tiles), HUB_TILES); u.hideTiles = toArr(u.hideTiles);
+  u.slides2 = toArr(u.slides2).filter(Boolean).map(s => Object.assign({}, s, { blocks: toArr(s.blocks) }));
+  if (!u.slides2.length) u.slides2 = JSON.parse(JSON.stringify(DEFAULT_SLIDES));
+  if (u.interval < 2) u.interval = 5;
+  delete u.slides; delete u.hideSlides;
   return u;
 }
 async function saveUI(u) {
   trainer.ui = u; try { localStorage.setItem('you_hub_' + trainer.uid, JSON.stringify(u)); } catch (e) {}
   try { await update(ref(db, 'trainers/' + trainer.uid), { ui: clean(u) }); } catch (e) {}
 }
+function hubCtx() {
+  const lim = trainer.limit || 50, n = clients.length, live = clients.filter(c => c.ok);
+  const ev = window.CoachDash.feed(live, cname);
+  const atts = live.map(c => c.stat.att).filter(x => x != null);
+  const tons = Math.round(live.reduce((s, c) => { const w = c.d && c.d.weeks; return s + (w && w.length ? w[w.length - 1].tons || 0 : 0); }, 0) * 10) / 10;
+  return { lim, n, live, ev, tons,
+    inR: live.filter(c => c.stat.st === 'ok').length, lost: live.filter(c => c.stat.st === 'bad').length,
+    todayL: live.filter(c => c.stat.today),
+    fresh: ev.filter(e => e.t >= Date.now() - 864e5 * 1.5 && e.k !== 'miss').length,
+    prs: ev.filter(e => e.k === 'pr' && Date.now() - e.t < 7 * DAY).length,
+    wk: clients.reduce((s, c) => s + c.stat.wk, 0),
+    attnN: live.filter(c => c.stat.st === 'bad' || c.stat.plat.length).length,
+    attAvg: atts.length ? Math.round(atts.reduce((a, b) => a + b, 0) / atts.length) : null };
+}
+function slideHtml(s, x) {
+  const sc = SLIDE_COLORS.find(c => c.cssClass === s.cssClass) || SLIDE_COLORS[0];
+  const out = toArr(s.blocks).map((bid, i) => { const b = CB.find(q => q.id === bid); if (!b) return null; try { return b.r(x, i === 0, (s.blockCfgs || {})[bid]); } catch (e) { return null; } }).filter(Boolean);
+  const stats = out.slice(1);
+  const glow = sc.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${sc.glow}44 0%,transparent 70%);"`;
+  return `<div class="hero-slide ${sc.cssClass}"${s.route ? ` data-go="${s.route}"` : ''}>
+    <div class="slide-ray-1"></div><div class="slide-ray-2"></div>
+    <div class="hero-slide-label">${esc(s.label || '')}</div>
+    ${out[0] ? `<div class="hero-slide-main">${out[0]}</div>` : ''}
+    ${stats.length ? `<div class="hero-slide-sub"><div class="hero-stat-row stats-${Math.min(stats.length, 4)}${stats.length >= 4 ? ' stats-grid' : ''}">${stats.map(h => `<div class="sb-block">${h}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : ''}
+    <div class="hero-slide-glow ${sc.glowClass || ''}"${glow}></div></div>`;
+}
+const WIDE_BY_LAYOUT = { '2x2': [], row: [0, 1, 2, 3], bigfirst: [0, 3], biglast: [2, 3] };
 
 function renderHub(body) {
-  const lim = trainer.limit || 50, n = clients.length, live = clients.filter(c => c.ok), ui = hubUI();
-  const inR = live.filter(c => c.stat.st === 'ok').length, lost = live.filter(c => c.stat.st === 'bad').length;
-  const todayL = live.filter(c => c.stat.today);
-  const ev = window.CoachDash.feed(live, cname);
-  const fresh = ev.filter(e => e.t >= Date.now() - 864e5 * 1.5 && e.k !== 'miss').length;
-  const prs = ev.filter(e => e.k === 'pr' && Date.now() - e.t < 7 * DAY).length;
-  const wk = clients.reduce((s, c) => s + c.stat.wk, 0);
-  const attnN = live.filter(c => c.stat.st === 'bad' || c.stat.plat.length).length;
-  const atts = live.map(c => c.stat.att).filter(x => x != null), attAvg = atts.length ? Math.round(atts.reduce((a, b) => a + b, 0) / atts.length) : null;
-  const avas = (list) => `<div class="hs-avas">${list.slice(0, 5).map(c => `<span style="background:${avaCol(c)}">${esc(initials(c))}</span>`).join('')}</div>`;
-  const SL = {
-    today: { l: 'Сегодня', v: todayL.length, s: pl(todayL.length, 'тренировка', 'тренировки', 'тренировок'), x: todayL.length ? avas(todayL) : '', g: 'violet' },
-    rhythm: { l: 'В ритме', v: `${inR}<small>/${live.length}</small>`, s: 'клиентов', g: 'blue' },
-    week: { l: 'За неделю', v: wk, s: pl(wk, 'тренировка', 'тренировки', 'тренировок'), g: 'teal' },
-    records: { l: 'Рекорды', v: prs, s: 'за неделю', g: 'gold' },
-    attention: { l: 'Внимание', v: attnN, s: pl(attnN, 'клиент', 'клиента', 'клиентов'), g: 'red', go: 'clients' },
-    attendance: { l: 'Посещаемость', v: attAvg == null ? '–' : attAvg + '%', s: 'за 4 недели', g: 'green' },
+  const ui = hubUI(), x = hubCtx();
+  const slides = ui.sliderHidden ? [] : ui.slides2.filter(s => s.enabled !== false), n = slides.length;
+  const TD = {
+    clients: x.n ? `${x.inR} из ${x.n} в ритме` : 'Пока нет',
+    feed: x.fresh ? `${x.fresh} за сутки` : 'Тихо',
+    tpl: templates.length ? `${templates.length} ${pl(templates.length, 'программа', 'программы', 'программ')}` : 'Пока нет',
+    add: `${x.n} из ${x.lim}`,
   };
-  const slides = ui.sliderHidden ? [] : ui.slides.filter(k => !ui.hideSlides.includes(k));
-  const TL = {
-    clients: { c: 'blue', i: 'ti-users', t: 'Клиенты', d: n ? `${inR} из ${n} в ритме` : 'пока нет', x: n ? `<div class="ht-avas">${live.slice(0, 4).map(c => `<span style="background:${avaCol(c)}">${esc(initials(c))}<i class="st-${c.stat.st}"></i></span>`).join('')}</div>` : '', b: lost ? `<span class="ht-badge bad">${lost}</span>` : '' },
-    feed: { c: 'green', i: 'ti-activity', t: 'Лента', d: fresh ? `${fresh} за сутки` : 'тихо', b: fresh ? `<span class="ht-badge live">${fresh > 9 ? '9+' : fresh}</span>` : '' },
-    tpl: { c: 'violet', i: 'ti-template', t: 'Шаблоны', d: templates.length ? `${templates.length} ${pl(templates.length, 'программа', 'программы', 'программ')}` : 'пока нет' },
-    add: { c: 'amber', i: 'ti-user-plus', t: 'Добавить', d: `${n} из ${lim}`, x: `<div class="ht-bar"><span style="width:${Math.min(100, n / lim * 100)}%"></span></div>` },
-  };
-  const tiles = ui.tiles.filter(k => !ui.hideTiles.includes(k));
-  body.innerHTML = `
-    ${slides.length ? `<div class="hs"><div class="hs-track" id="hs-track">${slides.map(k => { const x = SL[k];
-      return `<div class="hs-s hs-${x.g}"${x.go ? ` data-go="${x.go}"` : ''}><span class="hs-l">${x.l}</span><b class="hs-v">${x.v}</b><span class="hs-sub">${x.s}</span>${x.x || ''}</div>`; }).join('')}</div>
-      ${slides.length > 1 ? `<div class="hs-dots">${slides.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>` : ''}</div>` : ''}
-    ${attnN && !slides.includes('attention') ? `<button class="hub-attn" data-go="clients"><i class="ti ti-alert-triangle"></i><b>${attnN} ${pl(attnN, 'требует', 'требуют', 'требуют')} внимания</b><i class="ti ti-chevron-right"></i></button>` : ''}
-    <div class="ht-grid lay-${ui.layout || '2x2'}">${tiles.map(k => { const t = TL[k];
-      return `<button class="ht ht-${t.c}" data-go="${k}"><div class="ht-top"><i class="ti ${t.i} ht-i"></i>${t.b || ''}</div>${t.x || '<div class="ht-sp"></div>'}<b>${t.t}</b><small>${t.d}</small></button>`; }).join('')}</div>`;
+  const tiles = ui.tiles.filter(k => !ui.hideTiles.includes(k)), wide = WIDE_BY_LAYOUT[ui.layout] || [];
+  body.innerHTML = `<div class="c-home">
+    ${n ? `<div class="hero-slider" id="hero-slider"><div class="hero-slides" id="hero-slides" style="width:${n * 100}%">${slides.map(s => slideHtml(s, x)).join('')}</div>
+      ${n > 1 ? `<div class="hero-dots">${slides.map((_, i) => `<div class="hero-dot${i ? '' : ' active'}" data-idx="${i}"></div>`).join('')}</div>` : ''}</div>` : ''}
+    ${x.attnN ? `<button class="hub-attn" data-go="clients"><i class="ti ti-alert-triangle"></i><b>${x.attnN} ${pl(x.attnN, 'требует', 'требуют', 'требуют')} внимания</b><i class="ti ti-chevron-right"></i></button>` : ''}
+    <div class="home2-grid tiles-v88 layout-${ui.layout || '2x2'}">${tiles.map((k, i) => { const t = TILE_DEF[k];
+      const w = wide.includes(i) || (ui.layout === '2x2' && tiles.length % 2 === 1 && i === tiles.length - 1);
+      return `<button class="home2-tile ${t.cls}${w ? ' tile-wide' : ''}" data-go="${k}" style="--i:${i}"><div class="home2-tile-content"><i class="ti ${t.icon} home2-tile-icon"></i><div class="home2-tile-name">${HUB_TILES[k]}</div><div class="home2-tile-desc">${TD[k]}</div></div></button>`; }).join('')}</div></div>`;
+  body.querySelectorAll('.hero-slide').forEach(s => { s.style.width = (100 / n) + '%'; s.style.flex = '0 0 ' + (100 / n) + '%'; s.style.minWidth = (100 / n) + '%'; });
   body.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { view.tab = b.dataset.go; window.scrollTo(0, 0); render(); });
-  const tr = $('#hs-track'); clearInterval(window._hsTimer);
-  if (tr) {
-    tr.addEventListener('scroll', () => { const i = Math.round(tr.scrollLeft / tr.clientWidth); body.querySelectorAll('.hs-dots i').forEach((d, j) => d.classList.toggle('on', j === i)); }, { passive: true });
-    let hold = 0; ['touchstart', 'pointerdown'].forEach(ev => tr.addEventListener(ev, () => { hold = Date.now(); }, { passive: true }));
-    if (ui.autoplay !== false && slides.length > 1) window._hsTimer = setInterval(() => {
-      if (!document.body.contains(tr)) return clearInterval(window._hsTimer);
-      if (Date.now() - hold < 8000) return;
-      const i = Math.round(tr.scrollLeft / tr.clientWidth), n2 = (i + 1) % slides.length;
-      tr.scrollTo({ left: n2 * tr.clientWidth, behavior: 'smooth' });
-    }, (ui.interval || 4.5) * 1000);
+  /* слайдер как в YOU: сдвиг, точки, свайп, автолистание */
+  clearInterval(window._hsTimer);
+  const el = $('#hero-slides');
+  if (el && n > 1) {
+    let cur = 0; const dots = body.querySelectorAll('.hero-dot');
+    const goTo = (i) => { cur = ((i % n) + n) % n; el.style.transform = `translateX(-${cur * (100 / n)}%)`; dots.forEach((d, j) => d.classList.toggle('active', j === cur)); };
+    const auto = () => { clearInterval(window._hsTimer); if (ui.autoplay !== false) window._hsTimer = setInterval(() => { if (!document.body.contains(el)) return clearInterval(window._hsTimer); goTo(cur + 1); }, Math.max(2, ui.interval || 5) * 1000); };
+    dots.forEach(d => d.addEventListener('click', (e) => { e.stopPropagation(); goTo(+d.dataset.idx); auto(); }));
+    let sx = 0, moved = false;
+    el.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; moved = false; }, { passive: true });
+    el.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) { moved = true; goTo(dx < 0 ? cur + 1 : cur - 1); auto(); } });
+    el.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); moved = false; } }, true);
+    auto();
   }
   coachTips('home');
 }
 
-/* ── Редакторы главной ── */
-const SL_SW = { violet: 'linear-gradient(135deg,#2B1A6E,#6D3FD6)', blue: 'linear-gradient(135deg,#14306E,#2F6FEF)', teal: 'linear-gradient(135deg,#0B3B40,#14A38F)', gold: 'linear-gradient(135deg,#4A2A06,#D08A1A)', red: 'linear-gradient(135deg,#4A0F1A,#D0405A)', green: 'linear-gradient(135deg,#0F3B20,#2FA85A)' };
-const SL_COL = { today: 'violet', rhythm: 'blue', week: 'teal', records: 'gold', attention: 'red', attendance: 'green' };
-const TL_ICO = { clients: 'ti-users', feed: 'ti-activity', tpl: 'ti-template', add: 'ti-user-plus' };
-const tgl = (on, attr) => `<button class="tg${on ? ' on' : ''}" ${attr || ''}><i></i></button>`;
-function mv(i, len, attr) { return `<div class="mv"><button ${attr} data-d="-1" data-i="${i}" ${i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-up"></i></button><button ${attr} data-d="1" data-i="${i}" ${i === len - 1 ? 'disabled' : ''}><i class="ti ti-chevron-down"></i></button></div>`; }
-async function applyUI(u, msg) { await saveUI(u); renderList(); toast(msg || 'Сохранено'); }
+/* ── Окна настроек: разметка и стили как в YOU ── */
+const tglHtml = (id, on, extra) => `<button ${id ? `id="${id}" ` : ''}${extra || ''} data-on="${on ? 1 : 0}" class="sl-tgl" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:${on ? '#4A7CFF' : '#2A2D35'};position:relative;transition:background .25s;"><div style="position:absolute;top:4px;left:${on ? '23px' : '4px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div></button>`;
+const flip = (b) => { const on = b.dataset.on !== '1'; b.dataset.on = on ? '1' : '0'; b.style.background = on ? '#4A7CFF' : '#2A2D35'; b.querySelector('div').style.left = on ? '23px' : '4px'; return on; };
+const LBL = 'font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;';
+const INP = 'width:100%;box-sizing:border-box;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;font-family:inherit;';
+function overlay() { const ov = document.createElement('div'); ov.className = 'tr-modal-overlay'; document.body.appendChild(ov); ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); }); return ov; }
+async function applyUI(u) { await saveUI(u); if (view.name === 'list' && view.tab === 'hub') renderList(); }
 
 function openSlidesEditor() {
-  const u = JSON.parse(JSON.stringify(hubUI()));
-  const ov = pop('Редактор слайдов', '');
-  const draw = () => {
-    ov.querySelector('.pp-b').innerHTML = `<div class="pp-note">Порядок стрелками, показ переключателем</div>
-      <div class="rows">${u.slides.map((k, i) => `<div class="row${u.hideSlides.includes(k) ? ' off' : ''}">${mv(i, u.slides.length, 'data-mv')}<span class="sw" style="background:${SL_SW[SL_COL[k]]}"></span><span class="nm">${HUB_SLIDES[k]}</span>${tgl(!u.hideSlides.includes(k), `data-k="${k}"`)}</div>`).join('')}</div>
-      <button class="pp-save">Сохранить</button>`;
-    ov.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + +b.dataset.d; [u.slides[i], u.slides[j]] = [u.slides[j], u.slides[i]]; draw(); });
-    ov.querySelectorAll('.tg').forEach(b => b.onclick = () => { const k = b.dataset.k, i = u.hideSlides.indexOf(k); if (i >= 0) u.hideSlides.splice(i, 1); else u.hideSlides.push(k); draw(); });
-    ov.querySelector('.pp-save').onclick = () => { ov.remove(); applyUI(u, 'Слайды обновлены'); };
+  const u = hubUI(), ov = overlay();
+  ov.classList.add('se-overlay');
+  const bgOf = (s) => (SLIDE_COLORS.find(c => c.cssClass === s.cssClass) || SLIDE_COLORS[0]).bg;
+  const card = (s, i, len) => `<div class="se-slide-card${s.enabled === false ? ' is-off' : ''}" style="background:${bgOf(s)};">
+      <div class="se-card-top">
+        <div class="se-move"><button class="se-up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button><button class="se-down" data-i="${i}" ${i === len - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button></div>
+        <span class="se-card-title">${esc(s.label || 'Без названия')}</span>
+        <button class="se-toggle-slide${s.enabled !== false ? ' on' : ''}" data-i="${i}">${s.enabled !== false ? 'Вкл' : 'Выкл'}</button>
+        <button class="se-edit-slide" data-i="${i}" aria-label="Изменить"><i class="ti ti-edit"></i></button>
+        ${len > 1 ? `<button class="se-del-slide" data-i="${i}" aria-label="Удалить"><i class="ti ti-trash"></i></button>` : ''}
+      </div>
+      <div class="se-chips">${toArr(s.blocks).map(b => { const d = CB.find(q => q.id === b); return d ? `<span class="se-chip">${d.name}</span>` : ''; }).join('') || '<span class="se-empty">Нет блоков, нажми «Изменить»</span>'}</div></div>`;
+  const list = () => {
+    ov.innerHTML = `<div id="se-panel" class="se-panel"><div class="se-head"><span class="se-head-title">Слайды</span>
+      <div style="display:flex;gap:8px;align-items:center;"><button id="se-add" class="se-add-btn">+ Новый</button><button id="se-close" class="se-close-btn">×</button></div></div>
+      <div id="se-body" class="se-body"><div class="se-hint">Стрелками меняй порядок, «Вкл/Выкл» показывает или прячет слайд.</div>${u.slides2.map((s, i) => card(s, i, u.slides2.length)).join('')}</div></div>`;
+    const save = () => { applyUI(u); list(); };
+    ov.querySelector('#se-close').onclick = () => ov.remove();
+    ov.querySelector('#se-add').onclick = () => { u.slides2.push({ id: 's_' + Date.now(), label: 'НОВЫЙ СЛАЙД', cssClass: 'slide-slate', enabled: true, blocks: [] }); save(); };
+    ov.querySelectorAll('.se-up,.se-down').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + (b.classList.contains('se-up') ? -1 : 1); [u.slides2[i], u.slides2[j]] = [u.slides2[j], u.slides2[i]]; save(); });
+    ov.querySelectorAll('.se-toggle-slide').forEach(b => b.onclick = () => { const s = u.slides2[+b.dataset.i]; s.enabled = s.enabled === false; save(); });
+    ov.querySelectorAll('.se-del-slide').forEach(b => b.onclick = () => { if (!confirm('Удалить слайд?')) return; u.slides2.splice(+b.dataset.i, 1); save(); });
+    ov.querySelectorAll('.se-edit-slide').forEach(b => b.onclick = () => edit(+b.dataset.i));
   };
-  draw();
+  const edit = (idx) => {
+    const s = u.slides2[idx]; let css = s.cssClass || 'slide-focus';
+    const secs = [...new Set(CB.map(b => b.sec))], cfg = (s.blockCfgs || {}).custom_text || {};
+    const blocks = toArr(s.blocks).slice();
+    ov.querySelector('.se-head-title').textContent = 'Редактировать слайд';
+    ov.querySelector('#se-add').style.display = 'none';
+    const body = ov.querySelector('#se-body'); body.scrollTop = 0;
+    body.innerHTML = `<div style="padding:0 4px 4px;">
+      <div style="${LBL}margin-bottom:8px;">Название слайда</div>
+      <input type="text" id="se-label" value="${esc(s.label || '')}" placeholder="СЕГОДНЯ" style="${INP}font-weight:700;letter-spacing:.06em;margin-bottom:14px;">
+      <div style="${LBL}margin-bottom:8px;">Цвет фона</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">${SLIDE_COLORS.map(c => `<button class="se-color-btn" data-c="${c.cssClass}" title="${c.name}" style="width:36px;height:36px;border-radius:8px;background:${c.bg};border:2px solid ${c.cssClass === css ? 'rgba(255,255,255,0.9)' : 'transparent'};cursor:pointer;"></button>`).join('')}</div>
+      <div style="${LBL}margin-bottom:8px;">При нажатии открывать</div>
+      <select id="se-route" style="${INP}margin-bottom:16px;">${ROUTES.map(r => `<option value="${r[0]}"${(s.route || '') === r[0] ? ' selected' : ''}>${r[1]}</option>`).join('')}</select>
+      <div style="${LBL}margin-bottom:4px;">Блоки данных</div>
+      <div style="font-size:11px;color:#555;margin-bottom:4px;">Первый отмеченный показывается крупно</div>
+      ${secs.map(sec => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin:10px 0 4px;">${sec}</div>` + CB.filter(b => b.sec === sec).map(b => `<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;">
+          <input type="checkbox" class="se-block-cb" data-bid="${b.id}" ${blocks.includes(b.id) ? 'checked' : ''} style="width:auto;margin-top:2px;accent-color:#4A7CFF;">
+          <div><div style="font-size:13px;font-weight:600;color:#E8E5DC;">${b.name}</div><div style="font-size:11px;color:#555;">${b.desc}</div></div></label>
+          ${b.id === 'custom_text' ? `<div id="cfg-ct" style="margin:4px 0 0 22px;display:${blocks.includes(b.id) ? 'block' : 'none'};"><input id="ct-t" placeholder="Заголовок" value="${esc(cfg.text || '')}" style="${INP}padding:6px 8px;font-size:12px;margin-bottom:4px;"><input id="ct-s" placeholder="Подпись" value="${esc(cfg.sub || '')}" style="${INP}padding:6px 8px;font-size:12px;"></div>` : ''}`).join('')).join('')}
+      <button id="se-save-slide" style="width:100%;margin-top:16px;margin-bottom:8px;padding:14px;background:#4A7CFF;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Сохранить слайд</button></div>`;
+    body.querySelectorAll('.se-color-btn').forEach(b => b.onclick = () => { css = b.dataset.c; body.querySelectorAll('.se-color-btn').forEach(q => q.style.border = '2px solid ' + (q === b ? 'rgba(255,255,255,0.9)' : 'transparent')); });
+    /* порядок блоков = порядок нажатия, чтобы можно было выбрать главный */
+    body.querySelectorAll('.se-block-cb').forEach(cb => cb.onchange = () => { const k = cb.dataset.bid, i = blocks.indexOf(k); if (cb.checked && i < 0) blocks.push(k); if (!cb.checked && i >= 0) blocks.splice(i, 1); if (k === 'custom_text') body.querySelector('#cfg-ct').style.display = cb.checked ? 'block' : 'none'; });
+    body.querySelector('#se-save-slide').onclick = () => {
+      const sc = SLIDE_COLORS.find(c => c.cssClass === css);
+      Object.assign(s, { label: body.querySelector('#se-label').value.toUpperCase().slice(0, 40), cssClass: css, glowClass: sc.glowClass || '', route: body.querySelector('#se-route').value, blocks: blocks.slice(0, 5),
+        blockCfgs: blocks.includes('custom_text') ? { custom_text: { text: body.querySelector('#ct-t').value.slice(0, 60), sub: body.querySelector('#ct-s').value.slice(0, 80) } } : {} });
+      applyUI(u); list();
+    };
+  };
+  list();
 }
-const LAYOUTS = [
-  ['2x2', '2×2', '<rect x="1" y="1" width="23" height="17" rx="3"/><rect x="28" y="1" width="23" height="17" rx="3"/><rect x="1" y="22" width="23" height="17" rx="3"/><rect x="28" y="22" width="23" height="17" rx="3"/>'],
-  ['row', 'В строку', '<rect x="1" y="1" width="50" height="7" rx="3"/><rect x="1" y="12" width="50" height="7" rx="3"/><rect x="1" y="23" width="50" height="7" rx="3"/><rect x="1" y="34" width="50" height="5" rx="2.5"/>'],
-  ['bigfirst', 'Акцент 1', '<rect x="1" y="1" width="50" height="11" rx="3"/><rect x="1" y="16" width="23" height="10" rx="3"/><rect x="28" y="16" width="23" height="10" rx="3"/><rect x="1" y="30" width="50" height="9" rx="3"/>'],
-  ['biglast', 'Акцент 2', '<rect x="1" y="1" width="23" height="11" rx="3"/><rect x="28" y="1" width="23" height="11" rx="3"/><rect x="1" y="16" width="50" height="10" rx="3"/><rect x="1" y="30" width="50" height="9" rx="3"/>'],
+
+const TEMPLATES = [
+  { id: '2x2', label: '2×2', c: '#4ADE80', r: [[1, 1, 23, 17], [28, 1, 23, 17], [1, 22, 23, 17], [28, 22, 23, 17]] },
+  { id: 'row', label: 'В строку', c: '#60A5FA', r: [[1, 1, 50, 7], [1, 12, 50, 7], [1, 23, 50, 7], [1, 34, 50, 7]] },
+  { id: 'bigfirst', label: 'Акцент 1', c: '#F59E0B', r: [[1, 1, 50, 11], [1, 16, 23, 10], [28, 16, 23, 10], [1, 30, 50, 9]] },
+  { id: 'biglast', label: 'Акцент 2', c: '#C084FC', r: [[1, 1, 23, 11], [28, 1, 23, 11], [1, 16, 50, 10], [1, 30, 50, 9]] },
 ];
 function openTilesEditor() {
-  const u = JSON.parse(JSON.stringify(hubUI()));
-  const ov = pop('Настройка плиток', '');
+  const u = hubUI(), ov = overlay();
+  let layout = u.layout || '2x2', order = u.tiles.slice(), hidden = u.hideTiles.slice();
   const draw = () => {
-    ov.querySelector('.pp-b').innerHTML = `<div class="pp-l">Сетка</div>
-      <div class="lay">${LAYOUTS.map(l => `<button class="${u.layout === l[0] ? 'on' : ''}" data-l="${l[0]}"><svg width="52" height="40" viewBox="0 0 52 40">${l[2]}</svg><span>${l[1]}</span></button>`).join('')}</div>
-      <div class="pp-l">Порядок и показ</div>
-      <div class="rows">${u.tiles.map((k, i) => `<div class="row${u.hideTiles.includes(k) ? ' off' : ''}">${mv(i, u.tiles.length, 'data-mv')}<i class="ti ${TL_ICO[k]} ic"></i><span class="nm">${HUB_TILES[k]}</span>${tgl(!u.hideTiles.includes(k), `data-k="${k}"`)}</div>`).join('')}</div>
-      <button class="pp-save">Сохранить</button>`;
-    ov.querySelectorAll('.lay button').forEach(b => b.onclick = () => { u.layout = b.dataset.l; draw(); });
-    ov.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + +b.dataset.d; [u.tiles[i], u.tiles[j]] = [u.tiles[j], u.tiles[i]]; draw(); });
-    ov.querySelectorAll('.tg').forEach(b => b.onclick = () => { const k = b.dataset.k, i = u.hideTiles.indexOf(k); if (i >= 0) u.hideTiles.splice(i, 1); else u.hideTiles.push(k); draw(); });
-    ov.querySelector('.pp-save').onclick = () => { ov.remove(); applyUI(u, 'Плитки обновлены'); };
+    ov.innerHTML = `<div style="background:#13151A;border-radius:16px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <div style="position:sticky;top:0;z-index:2;background:#13151A;padding:18px 20px 14px;border-bottom:1px solid #1E2028;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:17px;font-weight:800;color:#E8E5DC;">Настройка плиток</span>
+        <button id="tso-close" style="background:#1E2028;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button></div>
+      <div style="padding:16px 20px;">
+        <div style="${LBL}margin-bottom:10px;">Сетка</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;">${TEMPLATES.map(t => { const on = layout === t.id; return `<button class="tso-tmpl" data-t="${t.id}" style="flex:1;min-width:0;padding:10px 4px 8px;background:#1C1E24;border:2px solid ${on ? '#4ADE80' : '#2A2D35'};border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;"><svg width="52" height="40" viewBox="0 0 52 40">${t.r.map(r => `<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" rx="3" fill="${t.c}33" stroke="${t.c}" stroke-width="1.5"/>`).join('')}</svg><div style="font-size:10px;color:${on ? '#4ADE80' : '#9D9A92'};font-weight:600;white-space:nowrap;">${t.label}</div></button>`; }).join('')}</div>
+        <div style="${LBL}margin-bottom:10px;">Порядок</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">${order.map((k, i) => `<div class="tile-sort-item" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#1C1E24;border-radius:10px;border:1px solid #2A2D35;">
+          <div class="se-move"><button class="tso-up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button><button class="tso-down" data-i="${i}" ${i === order.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button></div>
+          <span style="font-size:20px;color:#E8E5DC;"><i class="ti ${TILE_DEF[k].icon}"></i></span><span style="flex:1;font-size:14px;font-weight:600;color:#E8E5DC;">${HUB_TILES[k]}</span><span style="color:#555;font-size:12px;">#${i + 1}</span></div>`).join('')}</div>
+        <div style="margin-top:16px;"><div style="${LBL}margin-bottom:8px;">Показывать</div>
+          ${Object.keys(HUB_TILES).map(k => `<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;"><input type="checkbox" class="tile-vis-cb" data-k="${k}" ${hidden.includes(k) ? '' : 'checked'} style="width:16px;height:16px;accent-color:#4ADE80;cursor:pointer;"><i class="ti ${TILE_DEF[k].icon}" style="font-size:16px;color:#9D9A92;"></i><span style="font-size:14px;color:#E8E5DC;">${HUB_TILES[k]}</span></label>`).join('')}</div>
+        <button id="tso-save" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#14532D,#16A34A);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Сохранить</button></div></div>`;
+    ov.querySelector('#tso-close').onclick = () => ov.remove();
+    ov.querySelectorAll('.tso-tmpl').forEach(b => b.onclick = () => { layout = b.dataset.t; draw(); });
+    ov.querySelectorAll('.tso-up,.tso-down').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + (b.classList.contains('tso-up') ? -1 : 1); [order[i], order[j]] = [order[j], order[i]]; draw(); });
+    ov.querySelectorAll('.tile-vis-cb').forEach(cb => cb.onchange = () => { const k = cb.dataset.k; hidden = hidden.filter(h => h !== k); if (!cb.checked) hidden.push(k); });
+    ov.querySelector('#tso-save').onclick = () => { Object.assign(u, { layout, tiles: order, hideTiles: hidden }); ov.remove(); applyUI(u); };
   };
   draw();
 }
+
 function openSliderSettings() {
-  const u = JSON.parse(JSON.stringify(hubUI()));
-  const ov = pop('Настройки слайдера', '');
-  const IV = [3, 4.5, 6, 8];
-  const draw = () => {
-    ov.querySelector('.pp-b').innerHTML = `<div class="rows">
-      <div class="row"><span class="nm">Показывать слайдер</span>${tgl(!u.sliderHidden, 'data-t="show"')}</div>
-      <div class="row"><span class="nm">Листать сам</span>${tgl(u.autoplay !== false, 'data-t="auto"')}</div></div>
-      ${u.autoplay !== false ? `<div class="pp-l">Интервал</div><div class="chips2">${IV.map(v => `<button class="${(u.interval || 4.5) === v ? 'on' : ''}" data-v="${v}">${String(v).replace('.', ',')} с</button>`).join('')}</div>` : ''}
-      <button class="pp-save">Сохранить</button>`;
-    ov.querySelectorAll('.tg').forEach(b => b.onclick = () => { if (b.dataset.t === 'show') u.sliderHidden = !u.sliderHidden; else u.autoplay = u.autoplay === false; draw(); });
-    ov.querySelectorAll('.chips2 button').forEach(b => b.onclick = () => { u.interval = +b.dataset.v; draw(); });
-    ov.querySelector('.pp-save').onclick = () => { ov.remove(); applyUI(u, 'Слайдер обновлён'); };
+  const u = hubUI(), ov = overlay();
+  let iv = Math.round(u.interval || 5);
+  const bgOf = (s) => (SLIDE_COLORS.find(c => c.cssClass === s.cssClass) || SLIDE_COLORS[0]).bg;
+  const rows = () => u.slides2.map((s, i) => `<div class="sl-row${s.enabled === false ? ' is-off' : ''}">
+      <div class="se-move"><button class="sl-up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button><button class="sl-down" data-i="${i}" ${i === u.slides2.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button></div>
+      <span class="sl-swatch" style="background:${bgOf(s)}"></span><span class="sl-name">${esc(s.label || 'Без названия')}</span>${tglHtml('', s.enabled !== false, `data-s="${i}"`)}</div>`).join('');
+  const shown = !u.sliderHidden;
+  ov.innerHTML = `<div style="background:#1A1C22;border-radius:16px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="flex-shrink:0;padding:18px 20px 14px;border-bottom:1px solid #2A2D35;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:17px;font-weight:800;color:#E8E5DC;">Слайдер</span>
+      <button id="sl-close-x" style="background:#2A2D35;border:none;border-radius:50%;width:30px;height:30px;color:#9D9A92;cursor:pointer;font-size:18px;">×</button></div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:14px 18px;margin-bottom:16px;">
+        <div><div style="font-size:14px;font-weight:700;color:#E8E5DC;">Показывать слайдер</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: на главной только плитки</div></div>${tglHtml('sl-show', shown)}</div>
+      <div id="sl-more" style="${shown ? '' : 'opacity:.4;pointer-events:none;'}">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Интервал переключения</div>
+        <div style="display:flex;align-items:center;gap:16px;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:8px;">
+          <button id="sl-minus" style="width:36px;height:36px;border-radius:50%;border:1px solid #2A2D35;background:#2A2D35;color:#E8E5DC;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+          <span id="sl-val" style="flex:1;text-align:center;font-size:26px;font-weight:900;color:#E8E5DC;"></span>
+          <button id="sl-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:18px;">
+          <div><div style="font-size:14px;font-weight:600;color:#E8E5DC;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: листать вручную</div></div>${tglHtml('sl-auto', u.autoplay !== false)}</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Слайды и порядок</div>
+        <div id="sl-list"></div></div>
+      <button id="sl-save" style="width:100%;margin-top:10px;padding:15px;background:#4A7CFF;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(74,124,255,.35);">Сохранить</button></div></div>`;
+  const showIv = () => { ov.querySelector('#sl-val').innerHTML = iv + '<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>'; };
+  const bindList = () => {
+    ov.querySelector('#sl-list').innerHTML = rows();
+    ov.querySelectorAll('#sl-list [data-s]').forEach(b => b.onclick = () => { const s = u.slides2[+b.dataset.s]; s.enabled = flip(b); b.closest('.sl-row').classList.toggle('is-off', !s.enabled); });
+    ov.querySelectorAll('.sl-up,.sl-down').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + (b.classList.contains('sl-up') ? -1 : 1); [u.slides2[i], u.slides2[j]] = [u.slides2[j], u.slides2[i]]; bindList(); });
   };
-  draw();
+  showIv(); bindList();
+  ov.querySelector('#sl-close-x').onclick = () => ov.remove();
+  ov.querySelector('#sl-show').onclick = function () { const on = flip(this), m = ov.querySelector('#sl-more'); m.style.opacity = on ? '' : '.4'; m.style.pointerEvents = on ? '' : 'none'; };
+  ov.querySelector('#sl-auto').onclick = function () { flip(this); };
+  ov.querySelector('#sl-minus').onclick = () => { iv = Math.max(2, iv - 1); showIv(); };
+  ov.querySelector('#sl-plus').onclick = () => { iv = Math.min(60, iv + 1); showIv(); };
+  ov.querySelector('#sl-save').onclick = () => {
+    Object.assign(u, { interval: iv, autoplay: ov.querySelector('#sl-auto').dataset.on === '1', sliderHidden: ov.querySelector('#sl-show').dataset.on !== '1' });
+    ov.remove(); applyUI(u);
+  };
 }
 
 
@@ -997,9 +1113,9 @@ function renderAdd(body) {
 /* ═══ Подсказки: по одному разу на каждый экран ═══ */
 const CT = {
   home: [
-    { sel: '.hs', t: 'Слайды', d: 'Главные цифры дня. Листайте пальцем.' },
-    { sel: '.ht-grid', t: 'Разделы', d: 'Клиенты, лента, шаблоны и добавление клиентов.' },
-    { sel: '#menu', t: 'Меню', d: 'Здесь можно настроить главную: какие слайды и плитки показывать и в каком порядке.' },
+    { sel: '.hero-slider', t: 'Слайды', d: 'Главные цифры дня. Листайте пальцем, а что на них показывать, настраивается в меню.' },
+    { sel: '.home2-grid', t: 'Разделы', d: 'Клиенты, лента, шаблоны и добавление клиентов.' },
+    { sel: '#menu', t: 'Меню', d: 'Редактор слайдов, плитки и слайдер: всё как в приложении YOU.' },
   ],
   clients: [
     { sel: '.attn', t: 'Нужно внимание', d: 'Кто пропал, у кого не отмечены тренировки, где плато. Нажмите, чтобы открыть клиента.' },
@@ -1014,7 +1130,7 @@ const CT = {
     { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с оценкой прогресса, план, AI-помощник и ваши заметки о клиенте.' },
     { sel: '.rp', t: 'Оценка за 4 недели', d: 'Четыре опоры прогресса: регулярность, сила, нагрузка и тело. Цвет сразу показывает, где всё хорошо, а где просело.' },
     { sel: '.todo', t: 'Что сделать', d: 'Конкретные шаги по данным клиента: кому написать, где плато, каких подходов мало.' },
-    { sel: '.att', t: 'Тренировки', d: 'Кружок: тренировка в плане. Закрашен: сделана. Остальные графики спрятаны в «Подробнее».' },
+    { sel: '.att', t: 'Тренировки', d: 'Кружок: тренировка в плане. Закрашен: сделана. Остальные графики в «Подробнее».' },
     { sel: '#bp-card', t: 'Прогресс тела', d: 'Вес, объёмы, процент жира и выводы по ним. Замерили клиента в зале? Внесите замер сами кнопкой ниже.' },
     { sel: '#cw-card', t: 'Итоги недели', d: 'Цифры считаются сами. Допишите пару слов и отправьте: клиент увидит карточку в приложении. Или сохраните картинкой для мессенджера.' },
   ],

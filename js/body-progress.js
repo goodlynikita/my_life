@@ -148,26 +148,25 @@ window.BodyProgress = (function () {
     if (opts.compact) ins = ins.filter(x => x.k === 'warn').concat(ins.filter(x => x.k === 'good')).slice(0, 2);
     const keys = ORDER.filter(k => by[k] && by[k].length).concat(Object.keys(by).filter(k => !FIELDS[k]));
     return `<div class="bp">
-      <div class="bp-h"><div><b>Прогресс тела</b><span>${inP.length} ${pl(inP.length, 'замер', 'замера', 'замеров')} · ${fmtD(inP[0] ? inP[0].d : from)} – ${fmtD(last)}</span></div>
+      <div class="bp-h"><div><b>Прогресс тела</b><span>${inP.length} ${pl(inP.length, 'замер', 'замера', 'замеров')} · ${inP.length > 1 ? fmtD(inP[0].d) + ' – ' : ''}${fmtD(last)}</span></div>
         ${list.length > 2 ? `<div class="bp-per">${PERIODS.map(p => `<button data-bp="${p[0]}" class="${period === p[0] ? 'on' : ''}">${p[1]}</button>`).join('')}</div>` : ''}</div>
       ${since > 21 ? `<div class="bp-remind"><i class="ti ti-calendar-time"></i><span>Последний замер ${since} ${pl(since, 'день', 'дня', 'дней')} назад. ${opts.coach ? 'Попросите клиента обновить или внесите сами.' : 'Пора обновить: лучше раз в 2–4 недели, утром натощак.'}</span></div>` : ''}
-      ${mw.length ? `<div class="bp-w">
-        ${mains.length > 1 ? `<div class="bp-mm">${mains.slice(0, 6).map(k => `<button data-bpm="${esc(k)}" class="${k === main ? 'on' : ''}">${esc(k === PROP ? PROP_TOP + ' ÷ талия' : (SHORT[k] || k))}</button>`).join('')}</div>` : ''}
+      ${mw.length >= 2 ? `<div class="bp-w">
         <div class="bp-w-top"><div><span>${esc(main === PROP ? PROP_TOP + ' ÷ талия' : main)}</span><b>${main === PROP ? String(mw[mw.length - 1].v).replace('.', ',') : f1(mw[mw.length - 1].v)}<small> ${mu}</small></b></div>
           ${md != null ? `<div class="bp-w-d"><b class="${Math.abs(md) < (main === PROP ? 0.01 : 0.3) || !mdir ? (main === 'Вес' && Math.abs(md) >= 0.3 ? (md < 0 ? 'wdown' : 'wup') : '') : md * mdir > 0 ? 'wdown' : 'wbad'}">${main === PROP ? (md > 0 ? '+' : '') + String(Math.round(md * 100) / 100).replace('.', ',') : sg(md) + ' ' + mu}</b><span>за период</span></div>` : ''}
           ${md != null && mdays >= 7 && main !== PROP ? `<div class="bp-w-d"><b>${sg(md / mdays * 7)} ${mu}</b><span>в неделю</span></div>` : ''}</div>
         ${mw.length >= 2 ? weightChart(mw, mu, main === PROP ? 2 : 1) : ''}
         ${main === PROP ? '<div class="bp-note">Во сколько раз верх шире талии. Растёт, значит фигура становится атлетичнее, даже если вес стоит на месте.</div>' : ''}</div>` : ''}
       ${ins.length ? `<div class="bp-ins">${ins.map(x => `<div class="bp-in ${x.k}"><i class="ti ${x.i}"></i><div><b>${esc(x.t)}</b><span>${esc(x.s)}</span></div></div>`).join('')}</div>` : ''}
-      ${opts.compact ? `<details class="bp-all"><summary>Все замеры <span>${keys.length - 1}</span><i class="ti ti-chevron-down"></i></summary>` : ''}<div class="bp-grid-l">${keys.filter(k => k !== main).map(k => {
+      <div class="bp-grid-l">${keys.map(k => {
         const s = win(by[k], from), all = by[k], cur = all[all.length - 1];
         const d = s.length >= 2 ? s[s.length - 1].v - s[0].v : null, prev = all.length >= 2 ? cur.v - all[all.length - 2].v : null;
         const dir = (FIELDS[k] || {}).dir || 0, u = (FIELDS[k] || {}).u || '';
         const cls = d == null || Math.abs(d) < 0.2 || !dir ? '' : d * dir > 0 ? 'good' : 'bad';
         const isP = k === PROP, fv = (v) => isP ? String(v).replace('.', ',') : f1(v), fd = (v) => isP ? (v > 0 ? '+' : v < 0 ? '−' : '') + String(Math.abs(Math.round(v * 100) / 100)).replace('.', ',') : sg(v);
-        return `<div class="bp-m" data-bpm="${esc(k)}" title="Показать на графике"><div class="bp-m-t"><span>${esc(isP ? PROP_TOP + ' ÷ талия' : (SHORT[k] || k))}</span>${spark(s)}</div>
+        return `<div class="bp-m${k === main && mw.length >= 2 ? ' on' : ''}"${by[k].length >= 2 ? ` data-bpm="${esc(k)}" title="Показать на графике"` : ''}><div class="bp-m-t"><span>${esc(isP ? PROP_TOP + ' ÷ талия' : (SHORT[k] || k))}</span>${spark(s)}</div>
           <div class="bp-m-v"><b>${fv(cur.v)}<small> ${u}</small></b>${d != null ? `<em class="${isP ? (Math.abs(d) < 0.01 ? '' : d > 0 ? 'good' : 'bad') : cls}">${fd(d)}</em>` : ''}</div>
-          ${prev != null && all.length > 2 ? `<div class="bp-m-p">с прошлого ${fd(prev)}</div>` : ''}</div>`; }).join('')}</div>${opts.compact ? '</details>' : ''}
+          ${prev != null && all.length > 2 ? `<div class="bp-m-p">с прошлого ${fd(prev)}</div>` : ''}</div>`; }).join('')}</div>
     </div>`;
   }
   function bind(root, rerender) {

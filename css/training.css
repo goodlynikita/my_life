@@ -1771,3 +1771,12 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .ai-vol span { font-size: 12px; color: #A7B1CF; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
 .ai-vol span b { color: #E6EAF7; } .ai-vol em { font-style: normal; font-size: 11px; color: #6F7C9E; }
 .ai-day-groups .ai-day-title { background: rgba(110,139,255,0.18) !important; color: #C7D2FE !important; }
+/* v149: анкета AI и тонкие настройки */
+.ai-seg.two { grid-template-columns: repeat(2, 1fr) !important; }
+.ai-seg .ai-goal { min-height: 44px; }
+.ai-more { margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px; }
+.ai-more > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 2px; font-size: 13px; font-weight: 700; color: #A7B1CF; }
+.ai-more > summary::-webkit-details-marker { display: none; }
+.ai-more > summary i:last-child { margin-left: auto; transition: transform .2s; } .ai-more[open] > summary i:last-child { transform: rotate(180deg); }
+.ai-more-s { border: none; text-align: center; } .ai-more-s > summary { justify-content: center; font-size: 12px; color: #6F7C9E; } .ai-more-s > summary i:last-child { margin-left: 0; }
+.ai-all { background: linear-gradient(135deg, #1F7A55, #2FA06F) !important; margin-bottom: 4px; }

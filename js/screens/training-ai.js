@@ -32,7 +32,9 @@ window.TrainingAI = (function () {
     [/тяга (штанги|гантели|т-грифа|нижнего блока)|тяга т-/i, 'Спина', 'thickness', 'comp'],
     [/гиперэкстенз/i, 'Спина', 'lower', 'iso'],
     [/сгибания ног/i, 'Ноги', 'hams', 'iso'],
-    [/румынск|мостик|сумо/i, 'Ноги', 'hams', 'comp'],
+    [/ягодичн.*мост|хип-?траст|мостик/i, 'Ноги', 'glutes', 'comp'],
+    [/разгибание бедра|отведение ноги|ягодиц/i, 'Ноги', 'glutes', 'iso'],
+    [/румынск|сумо/i, 'Ноги', 'hams', 'comp'],
     [/становая/i, 'Спина', 'lower', 'comp'],
     [/носки/i, 'Ноги', 'calves', 'iso'],
     [/отведение ног|приведение ног/i, 'Ноги', 'glutes', 'iso'],
@@ -460,6 +462,18 @@ window.TrainingAI = (function () {
     'Руки|biceps|iso': ['Подъём штанги на бицепс', 'Молотки гантели', 'Подъём на скамье Скотта'],
     'Руки|triceps|iso': ['Разгибания на верхнем блоке канат', 'Французский жим EZ-гриф', 'Разгибания из-за головы канат'],
     'Кор|core|iso': ['Подъём ног в висе', 'Скручивания на верхнем блоке', 'Планка'],
+    'Ноги|glutes|comp': ['Ягодичный мост со штангой', 'Хип-траст в тренажёре', 'Ягодичный мост в Смите'],
+    'Ноги|glutes|iso': ['Отведение ног в тренажёре', 'Отведение ноги в кроссовере', 'Разгибание бедра в кроссовере'],
+  };
+  /* для новичков и девушек сначала тренажёры и гантели: проще освоить технику */
+  const LIB_EASY = {
+    'Грудь|middle|comp': ['Жим гантелей лёжа', 'Жим от груди в тренажёре', 'Жим штанги лёжа'],
+    'Грудь|upper|comp': ['Жим гантелей наклон', 'Жим штанги наклон'],
+    'Спина|width|comp': ['Тяга верхнего блока широкий', 'Тяга верхнего блока узкий', 'Подтягивания в гравитроне'],
+    'Спина|thickness|comp': ['Тяга нижнего блока', 'Тяга гантели одной рукой', 'Тяга штанги в наклоне'],
+    'Ноги|quads|comp': ['Жим ногами', 'Гоблет-присед', 'Выпады с гантелями', 'Приседания со штангой'],
+    'Ноги|hams|comp': ['Румынская тяга с гантелями', 'Румынская тяга'],
+    'Плечи|front|comp': ['Жим гантелей сидя', 'Жим сидя в тренажёре'],
   };
   const T = (g, r, k, v) => ({ g, r, k, v: v || 0 });
   const DAYS = {
@@ -477,6 +491,27 @@ window.TrainingAI = (function () {
     pull2: { t: 'Тяни B', s: [T('Спина', 'thickness', 'comp', 1), T('Спина', 'width', 'comp', 1), T('Спина', 'thickness', 'comp', 2), T('Плечи', 'rear', 'iso', 1), T('Руки', 'biceps', 'iso', 2), T('Руки', 'biceps', 'iso', 1)] },
     legs2: { t: 'Ноги B', s: [T('Ноги', 'hams', 'comp', 1), T('Ноги', 'quads', 'comp', 1), T('Ноги', 'quads', 'comp', 2), T('Ноги', 'hams', 'iso', 1), T('Ноги', 'calves', 'iso', 1), T('Кор', 'core', 'iso', 1)] },
   };
+  /* девушкам: больше ног и ягодиц (2–3 раза в неделю), верх поддерживающим объёмом */
+  const FDAYS = {
+    ffA: { t: 'Всё тело A', s: [T('Ноги', 'glutes', 'comp'), T('Ноги', 'quads', 'comp'), T('Спина', 'width', 'comp'), T('Грудь', 'middle', 'comp'), T('Ноги', 'glutes', 'iso'), T('Плечи', 'side', 'iso')] },
+    ffB: { t: 'Всё тело B', s: [T('Ноги', 'hams', 'comp'), T('Ноги', 'quads', 'comp', 1), T('Спина', 'thickness', 'comp'), T('Плечи', 'front', 'comp'), T('Ноги', 'glutes', 'iso', 1), T('Кор', 'core', 'iso')] },
+    ffC: { t: 'Всё тело C', s: [T('Ноги', 'glutes', 'comp', 1), T('Ноги', 'hams', 'iso'), T('Спина', 'width', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'triceps', 'iso'), T('Руки', 'biceps', 'iso')] },
+    flA: { t: 'Ноги и ягодицы A', s: [T('Ноги', 'glutes', 'comp'), T('Ноги', 'quads', 'comp'), T('Ноги', 'hams', 'comp'), T('Ноги', 'glutes', 'iso'), T('Ноги', 'quads', 'iso'), T('Кор', 'core', 'iso')] },
+    flB: { t: 'Ноги и ягодицы B', s: [T('Ноги', 'hams', 'comp', 1), T('Ноги', 'glutes', 'comp', 1), T('Ноги', 'quads', 'comp', 1), T('Ноги', 'hams', 'iso'), T('Ноги', 'glutes', 'iso', 1), T('Ноги', 'calves', 'iso')] },
+    fuA: { t: 'Верх A', s: [T('Спина', 'width', 'comp'), T('Грудь', 'middle', 'comp'), T('Спина', 'thickness', 'comp'), T('Плечи', 'side', 'iso'), T('Руки', 'triceps', 'iso'), T('Кор', 'core', 'iso')] },
+    fuB: { t: 'Верх B', s: [T('Плечи', 'front', 'comp'), T('Спина', 'width', 'comp', 1), T('Грудь', 'upper', 'comp'), T('Плечи', 'rear', 'iso'), T('Руки', 'biceps', 'iso'), T('Плечи', 'side', 'iso', 1)] },
+    fgl: { t: 'Ягодицы', s: [T('Ноги', 'glutes', 'comp', 2), T('Ноги', 'hams', 'comp'), T('Ноги', 'glutes', 'iso', 2), T('Ноги', 'quads', 'comp', 2), T('Кор', 'core', 'iso', 1)] },
+  };
+  Object.assign(DAYS, FDAYS);
+  const SMART_SPLIT_F = {
+    1: { name: 'Всё тело', d: ['ffA'] },
+    2: { name: 'Всё тело A/B', d: ['ffA', 'ffB'] },
+    3: { name: 'Всё тело A/B/C', d: ['ffA', 'ffB', 'ffC'] },
+    4: { name: 'Низ / Верх ×2', d: ['flA', 'fuA', 'flB', 'fuB'] },
+    5: { name: 'Низ / Верх ×2 + Ягодицы', d: ['flA', 'fuA', 'flB', 'fuB', 'fgl'] },
+    6: { name: 'Низ / Верх ×2 + Ягодицы + Верх', d: ['flA', 'fuA', 'flB', 'fuB', 'fgl', 'fuA'] },
+    7: { name: 'Низ / Верх ×2 + Ягодицы + Верх', d: ['flA', 'fuA', 'flB', 'fuB', 'fgl', 'fuA'] },
+  };
   const SMART_SPLIT = {
     1: { name: 'Всё тело', d: ['fbA'] },
     2: { name: 'Всё тело A/B', d: ['fbA', 'fbB'] },
@@ -487,26 +522,32 @@ window.TrainingAI = (function () {
     7: { name: 'Толкай / Тяни / Ноги ×2', d: ['push', 'pull', 'legs', 'push2', 'pull2', 'legs2'] },
   };
   /* подходов в неделю на зону: старт блока (ближе к нижней границе), к концу +20–30% */
-  const VOL = { middle: 7, upper: 5, width: 7, thickness: 7, quads: 9, hams: 7, calves: 6, front: 4, side: 8, rear: 6, biceps: 8, triceps: 8, core: 6 };
+  const VOL = { glutes: 8, middle: 7, upper: 5, width: 7, thickness: 7, quads: 9, hams: 7, calves: 6, front: 4, side: 8, rear: 6, biceps: 8, triceps: 8, core: 6 };
   const VOL_K = { mass: 1, strength: 0.8, cut: 0.85 };
-  const GROUP_OF_REGION = { middle: 'Грудь', upper: 'Грудь', width: 'Спина', thickness: 'Спина', quads: 'Ноги', hams: 'Ноги', calves: 'Ноги', front: 'Плечи', side: 'Плечи', rear: 'Плечи', biceps: 'Руки', triceps: 'Руки', core: 'Кор' };
+  const GROUP_OF_REGION = { glutes: 'Ноги', middle: 'Грудь', upper: 'Грудь', width: 'Спина', thickness: 'Спина', quads: 'Ноги', hams: 'Ноги', calves: 'Ноги', front: 'Плечи', side: 'Плечи', rear: 'Плечи', biceps: 'Руки', triceps: 'Руки', core: 'Кор' };
 
   /* варианты упражнения на слот: сначала твои по частоте, потом база */
   function poolFor(slot, an) {
     const mine = Object.values(an.ex).filter(x => x.cls && x.cls.group === slot.g && x.cls.region === slot.r && (slot.k === 'iso' ? true : x.cls.kind === 'comp'))
       .sort((a, b) => b.count - a.count).map(x => ({ key: x.key, name: x.name, isNew: false }));
-    const lib = (LIB[slot.g + '|' + slot.r + '|' + slot.k] || LIB[slot.g + '|' + slot.r + '|iso'] || []).map(n => ({ key: exKey(n), name: n, isNew: !an.ex[exKey(n)] }));
+    const lk = slot.g + '|' + slot.r + '|' + slot.k, easy = poolFor.easy && LIB_EASY[lk];
+    const lib = (easy || LIB[lk] || LIB[slot.g + '|' + slot.r + '|iso'] || []).map(n => ({ key: exKey(n), name: n, isNew: !an.ex[exKey(n)] }));
     const out = []; mine.concat(lib).forEach(x => { if (!out.some(y => y.key === x.key)) out.push(x); });
     return out;
   }
+  /* опыт: выбран вручную или по истории (меньше 8 недель записей — новичок) */
+  function levelOf(an, prefs) { return prefs.level === 'new' || prefs.level === 'exp' ? prefs.level : (an.weeks >= 4 || an.workouts >= 12 ? 'exp' : 'new'); }
   function smartSessions(an, prefs) {
     const n = Math.max(1, Math.min(7, an.trainDays.length));
-    const sp = SMART_SPLIT[n];
+    const fem = prefs.sex === 'f', lvl = levelOf(an, prefs);
+    poolFor.easy = fem || lvl === 'new';
+    const sp = (fem ? SMART_SPLIT_F : SMART_SPLIT)[n];
     const keys = sp.d.slice(0, n);
     const weekUsed = {}; /* зона → уже взятые упражнения, чтобы в разные дни были разные вариации */
     const sessions = keys.map(k => {
       const D = DAYS[k], dayUsed = new Set(), items = [];
-      D.s.forEach(slot => {
+      /* новичку 5 упражнений за тренировку, чтобы освоить технику и не выдохнуться */
+      (lvl === 'new' ? D.s.slice(0, 5) : D.s).forEach(slot => {
         const pool = poolFor(slot, an).filter(p => !dayUsed.has(p.key)); if (!pool.length) return;
         const zk = slot.g + '|' + slot.r, used = weekUsed[zk] || (weekUsed[zk] = []);
         /* вариация v: v-я по счёту из ещё не взятых на неделе, иначе самое частое */
@@ -519,10 +560,10 @@ window.TrainingAI = (function () {
     });
     /* подходы: главное базовое дня 4, остальное 3. Если на зону за неделю выходит
        больше разумного потолка (верх диапазона 10–20 на мышцу), срезаем изоляцию до 2 */
-    const CAP = { middle: 12, upper: 10, width: 12, thickness: 12, quads: 16, hams: 12, calves: 8, front: 6, side: 14, rear: 10, biceps: 12, triceps: 12, core: 8 };
+    const CAP = fem ? { glutes: 16, quads: 12, hams: 12, calves: 6, middle: 6, upper: 4, width: 10, thickness: 8, front: 4, side: 10, rear: 6, biceps: 6, triceps: 6, core: 8 } : { glutes: 8, middle: 12, upper: 10, width: 12, thickness: 12, quads: 16, hams: 12, calves: 8, front: 6, side: 14, rear: 10, biceps: 12, triceps: 12, core: 8 };
     const K = VOL_K[prefs.goal] || 1;
     sessions.forEach(s => { let main = true; s.items.forEach(it => {
-      if (it.kind === 'comp' && main) { it.sets = 4; main = false; } else it.sets = it.region === 'core' ? 3 : 3;
+      if (it.kind === 'comp' && main) { it.sets = lvl === 'new' ? 3 : 4; main = false; } else it.sets = 3;
       if (K < 1 && it.kind !== 'comp') it.sets = Math.max(2, it.sets - 1);
     }); });
     const tot = () => { const t = {}; sessions.forEach(s => s.items.forEach(it => { t[it.region] = (t[it.region] || 0) + it.sets; })); return t; };
@@ -542,7 +583,7 @@ window.TrainingAI = (function () {
     GOAL = GOALS[prefs.goal] || GOALS.mass;
     const history = collect(plans);
     const an = analyze(history, prefs);
-    if (!an.enough) return { error: 'data', an };
+    if (!an.enough && prefs.method === 'history') return { error: 'data', an };
     const weeksList = toArr(plan.weeks);
     const fromWeek = Math.min(weeksList.length, opts.fromWeek != null ? opts.fromWeek : autoFromWeek(plan));
     const weeksN = weeksList.length - fromWeek;
@@ -611,7 +652,10 @@ window.TrainingAI = (function () {
           transferred: false,
         };
       });
-      weeks.push({ wi, deload: deloadLast && k === weeksN - 1, days });
+      /* прошедшие дни недели не заполняем */
+      const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+      const fut = days.filter(d => { const dt = d.date ? planDayDate(plan, d.date) : null; return !dt || dt >= t0; });
+      if (fut.length) weeks.push({ wi, deload: deloadLast && k === weeksN - 1, days: fut });
     }
 
     /* как считал — простым языком */
@@ -624,6 +668,8 @@ window.TrainingAI = (function () {
       notes.push('В разные дни разные вариации: жим лёжа в один день, на наклонной в другой. Одинаковых тяжёлых повторов за неделю нет');
       notes.push('Упражнения сначала из твоих любимых на ту же зону мышц, новые только если твоих не хватает');
       notes.push('Оставляй 1–3 повтора в запасе: в начале блока 3, к концу 1');
+      if (prefs.sex === 'f') notes.push('Для девушек: ноги и ягодицы 2–3 раза в неделю, верх поддерживающим объёмом');
+      if (levelOf(an, prefs) === 'new') notes.push('Новичку: 5 упражнений за тренировку, сначала тренажёры и гантели. Где написано «подбери вес», возьми такой, чтобы последние 2–3 повтора давались тяжело, но техника не ломалась');
     }
     notes.push(`Частота: обычно ${an.freq} ${pl(an.freq, 'тренировка', 'тренировки', 'тренировок')} в неделю (смотрел ${an.weeks} ${pl(an.weeks, 'неделю', 'недели', 'недель')}: ${wc.join(', ')})${toArr(prefs.days).length ? '. Дни выбраны вручную' : ''}`);
     notes.push('Дни: ' + an.trainDays.map(d => DOW[d] + (an.dowCnt[d] ? ` (${an.dowCnt[d]} раз)` : '')).join(', '));
@@ -747,6 +793,35 @@ window.TrainingAI = (function () {
   function bindViews(content, plan, h) {
     content.querySelectorAll('.ai-view').forEach(b => b.addEventListener('click', () => { window._aiView = b.dataset.v; render(content, plan, h); }));
   }
+  /* ── Анкета: всё, что нужно тренеру, в четыре нажатия ── */
+  const GOAL_LBL = (k, fem) => fem && k === 'mass' ? 'Форма' : (GOALS[k] || GOALS.mass).label;
+  function anketaHtml(an, prefs) {
+    const fem = prefs.sex === 'f', lvl = levelOf(an, prefs), g = GOALS[prefs.goal] || GOALS.mass;
+    const row = (icon, t, em, inner) => `<div class="ai-pref"><div class="ai-pref-t"><i class="ti ${icon}"></i> ${t}${em ? ` <em>${em}</em>` : ''}</div>${inner}</div>`;
+    const seg = (cls, items, cur) => `<div class="ai-goals ai-seg${items.length === 2 ? ' two' : ''}">${items.map(([k, l, sub]) => `<button class="ai-goal ${cls}${cur === k ? ' on' : ''}" data-v="${k}"><b>${l}</b>${sub ? `<span>${sub}</span>` : ''}</button>`).join('')}</div>`;
+    return row('ti-user', 'Для кого', '', seg('ai-sex', [['m', 'Мужчина'], ['f', 'Девушка']], fem ? 'f' : 'm'))
+      + row('ti-stairs-up', 'Опыт', prefs.level || !an.workouts ? '' : 'определил по истории', seg('ai-lvl', [['new', 'Новичок', 'до года'], ['exp', 'Опытный', 'больше года']], lvl))
+      + row('ti-target', 'Цель', `${g.lo}–${g.hi} повторов · отдых ${g.rest}`, seg('ai-gl', Object.keys(GOALS).map(k => [k, GOAL_LBL(k, fem), GOALS[k].lo + '–' + GOALS[k].hi]), prefs.goal || 'mass'))
+      + row('ti-calendar-week', 'Дни тренировок', toArr(prefs.days).length ? 'выбраны тобой' : (an.workouts ? 'по истории' : 'можно поменять'), `<div class="ai-days">${DOW.map((d, i) => `<button class="ai-day-chip${an.trainDays.includes(i) ? ' on' : ''}" data-d="${i}"><b>${d}</b><span>${an.dowCnt[i] || ''}</span></button>`).join('')}</div>`);
+  }
+  function bindAnketa(content, an, prefs, apply) {
+    const set = (k, v) => apply({ ...prefs, [k]: v });
+    content.querySelectorAll('.ai-sex').forEach(b => b.onclick = () => set('sex', b.dataset.v));
+    content.querySelectorAll('.ai-lvl').forEach(b => b.onclick = () => set('level', b.dataset.v));
+    content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => set('goal', b.dataset.v));
+    content.querySelectorAll('.ai-day-chip').forEach(b => b.onclick = () => {
+      const cur = new Set(an.trainDays), d = +b.dataset.d;
+      if (cur.has(d)) { if (cur.size === 1) return; cur.delete(d); } else cur.add(d);
+      set('days', [...cur].sort((x, y) => x - y));
+    });
+  }
+  /* перенос всего плана в основной план одним нажатием */
+  function transferAll(content, plan, h) {
+    const a = load(); if (!a) return;
+    let n = 0; a.weeks.forEach(w => w.days.forEach(d => { if (!d.transferred) { if (transfer(plan, h, w.wi, d.di, d)) n++; d.transferred = true; } }));
+    save(a); h.afterTransfer && h.afterTransfer(); render(content, plan, h); toast(content, n ? `В план добавлено тренировок: ${n}` : 'Всё уже в плане');
+  }
+
   function render(content, plan, h) {
     if (window._aiView === 'chat' && window.TrainingChat) {
       TrainingChat.render(content, plan, h, viewTabs(), () => bindViews(content, plan, h));
@@ -771,6 +846,23 @@ window.TrainingAI = (function () {
       const gi = content.querySelector('#ai-go-ins'); if (gi) gi.onclick = () => { window._aiView = 'insights'; render(content, plan, h); };
       return;
     }
+    /* плана ещё нет: анкета и одна кнопка, план создастся сам */
+    if (!plan || !plan.weeks) {
+      const pr0 = prefsGet(), an0 = analyze(collect(toArr(h.getPlans())), pr0);
+      content.innerHTML = `<div class="ai-wrap">${viewTabs()}
+        <div class="ai-card"><div class="ai-card-h"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div><div class="ai-hero-t">AI-тренер</div><div class="ai-hero-d">Ответь на 4 вопроса, и я составлю план на 8 недель</div></div></div>
+          ${anketaHtml(an0, pr0)}</div>
+        <button class="ai-gen" id="ai-start"><i class="ti ti-sparkles"></i> Составить план</button></div>`;
+      bindViews(content, plan, h);
+      bindAnketa(content, an0, pr0, (p2) => { Store.set('training.aiPrefs', p2); render(content, plan, h); });
+      content.querySelector('#ai-start').onclick = () => {
+        const np = h.createPlan ? h.createPlan() : null; if (!np) return;
+        const res = generate(toArr(h.getPlans()), np, { fromWeek: 0 });
+        if (res.error) { alert('Не получилось составить план'); return; }
+        save(res); h.rerender ? h.rerender() : render(content, np, h);
+      };
+      return;
+    }
     const cp = chosenPlans(h.getPlans());
     const plans = cp.on.map(x => x.p);
     const history = collect(plans);
@@ -781,7 +873,7 @@ window.TrainingAI = (function () {
     let ai = load();
     if (ai && ai.planId !== plan.id) ai = null; /* план для другого 8-недельного блока */
 
-    if (!an.enough) {
+    if (!an.enough && prefs.method === 'history') {
       const wPct = Math.min(100, Math.round(an.weeks / MIN_WEEKS * 100));
       const tPct = Math.min(100, Math.round(an.workouts / MIN_WORKOUTS * 100));
       content.innerHTML = `<div class="ai-wrap">${viewTabs()}
@@ -804,22 +896,16 @@ window.TrainingAI = (function () {
     const prefDays = toArr(prefs.days), prefSplits = toArr(prefs.splits);
     const splitNow = buildSplit(an, prefs).map(c => c.key);
     const statsHtml = `
-      <div class="ai-stats">
+      <div class="ai-stats"${an.workouts ? '' : ' style="display:none"'}>
         <div><b>${an.workouts}</b><span>тренировок</span></div>
         <div><b>${an.freq}×</b><span>в неделю</span></div>
         <div><b>${an.weeks}</b><span>недель</span></div>
       </div>
-      <div class="ai-pref">
-        <div class="ai-pref-t"><i class="ti ti-target"></i> Цель <em>${(GOALS[prefs.goal] || GOALS.mass).lo}–${(GOALS[prefs.goal] || GOALS.mass).hi} повторов · отдых ${(GOALS[prefs.goal] || GOALS.mass).rest}</em></div>
-        <div class="ai-goals">${Object.entries(GOALS).map(([k, g]) => `<button class="ai-goal${(prefs.goal || 'mass') === k ? ' on' : ''}" data-g="${k}"><b>${g.label}</b><span>${g.lo}–${g.hi}</span></button>`).join('')}</div>
-      </div>
+      ${anketaHtml(an, prefs)}
+      <details class="ai-more"${window._aiMoreOpen ? ' open' : ''}><summary><i class="ti ti-adjustments-horizontal"></i> Тонкие настройки <i class="ti ti-chevron-down"></i></summary>
       <div class="ai-pref">
         <div class="ai-pref-t"><i class="ti ti-weight"></i> Шаг веса <em>какие веса есть в твоём зале</em></div>
         <div class="ai-steps">${Object.entries(EQUIP).map(([k, e]) => `<div class="ai-step"><span>${e.label}</span><div class="ai-stp"><button data-eq="${k}" data-d="-1" aria-label="Меньше">−</button><input data-eq="${k}" type="text" inputmode="decimal" value="${String(+(prefs.steps || {})[k] || e.def).replace('.', ',')}"><em>кг</em><button data-eq="${k}" data-d="1" aria-label="Больше">+</button></div></div>`).join('')}</div>
-      </div>
-      <div class="ai-pref">
-        <div class="ai-pref-t"><i class="ti ti-calendar-week"></i> Дни тренировок <em>${prefDays.length ? 'выбраны тобой' : 'по истории, можно поменять'}</em></div>
-        <div class="ai-days">${DOW.map((d, i) => `<button class="ai-day-chip${an.trainDays.includes(i) ? ' on' : ''}" data-d="${i}"><b>${d}</b><span>${an.dowCnt[i] || ''}</span></button>`).join('')}</div>
       </div>
       <div class="ai-pref">
         <div class="ai-pref-t"><i class="ti ti-school"></i> Методика</div>
@@ -834,14 +920,16 @@ window.TrainingAI = (function () {
       ${favEx.length ? `<div class="ai-fav"><div class="ai-pref-t"><i class="ti ti-trending-up"></i> Частые упражнения</div>${favEx.map(x => {
         const d = x.first && x.last && x.first.weight && x.last.weight ? Math.round((x.last.weight - x.first.weight) * 10) / 10 : 0;
         return `<div class="ai-fav-row"><span>${esc(x.name)}<small>${x.count} раз</small></span><b>${x.last && x.last.weight ? String(x.last.weight).replace('.', ',') + ' кг' : 'без веса'}${d > 0 ? ` <em>+${String(d).replace('.', ',')}</em>` : ''}</b></div>`;
-      }).join('')}</div>` : ''}`;
+      }).join('')}</div>` : ''}
+      </details>`;
 
     let body;
     const weeksAll = toArr(plan.weeks).length, autoW = autoFromWeek(plan);
     const weekSel = `<label class="ai-from">Заполнить с недели <select id="ai-from">${Array.from({ length: weeksAll }, (_, i) => `<option value="${i}"${i === Math.min(ai && ai.fromWeek != null ? ai.fromWeek : autoW, weeksAll - 1) ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>`;
     if (!ai) {
-      body = `${weekSel}<button class="ai-gen" id="ai-gen"><i class="ti ti-sparkles"></i> Создать план до конца плана №${plan.number || ''}</button>
-        <div class="ai-hint" style="text-align:center">Учту твои дни, связки групп, рабочие веса и все зоны мышц</div>`;
+      body = `<button class="ai-gen" id="ai-gen"><i class="ti ti-sparkles"></i> Составить план</button>
+        <div class="ai-hint" style="text-align:center">До конца плана №${plan.number || ''}, с твоими весами и прогрессией</div>
+        <details class="ai-more ai-more-s"><summary>С какой недели <i class="ti ti-chevron-down"></i></summary>${weekSel}</details>`;
     } else {
       const doneDays = ai.weeks.reduce((s, w) => s + w.days.filter(d => d.transferred).length, 0);
       const allDays = ai.weeks.reduce((s, w) => s + w.days.length, 0);
@@ -850,6 +938,7 @@ window.TrainingAI = (function () {
           <div class="ai-meta-t">Составлен ${new Date(ai.generatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} · ${ai.basedOn.workouts} трен.${toArr(ai.basedOn.plans).length ? ' из плана №' + toArr(ai.basedOn.plans).join(', №') : ''} · в плане ${doneDays} из ${allDays}</div>
           <div class="ai-meta-r">${weekSel}<button class="ai-regen" id="ai-gen"><i class="ti ti-refresh"></i> Пересобрать</button><button class="ai-reset" id="ai-reset" title="Сбросить"><i class="ti ti-trash"></i></button></div>
         </div>
+        ${doneDays < allDays ? `<button class="ai-gen ai-all" id="ai-all"><i class="ti ti-calendar-plus"></i> Перенести всё в мой план · ${allDays - doneDays} ${(n => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? 'тренировка' : x >= 2 && x <= 4 && (y < 12 || y > 14) ? 'тренировки' : 'тренировок'; })(allDays - doneDays)}</button>` : ''}
         ${ai.adjusted && Date.now() - ai.adjusted.at < 3 * 864e5 ? `<div class="ai-adjusted"><i class="ti ti-wand"></i><div><b>План подстроен под последнюю тренировку</b>${toArr(ai.adjusted.changes).length ? '<span>' + toArr(ai.adjusted.changes).slice(0, 4).map(esc).join('<br>') + '</span>' : '<span>Веса и повторы пересчитаны по твоим результатам</span>'}</div></div>` : ''}
         <details class="ai-notes"><summary><i class="ti ti-bulb"></i> Как я считал</summary><ul>${ai.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>
         ${ai.weeks.map((w, wk) => `
@@ -910,11 +999,13 @@ window.TrainingAI = (function () {
     bindSources(content, plan, h, cp.src, cp.on);
     bindViews(content, plan, h);
     const setPrefs = (p2) => { Store.set('training.aiPrefs', p2); render(content, plan, h); };
-    content.querySelectorAll('.ai-day-chip').forEach(b => b.addEventListener('click', () => {
-      const cur = new Set(an.trainDays); const d = +b.dataset.d;
-      if (cur.has(d)) { if (cur.size === 1) return; cur.delete(d); } else cur.add(d);
-      setPrefs({ ...prefs, days: [...cur].sort((x, y) => x - y) });
-    }));
+    /* анкета: поменял ответ, план сразу пересобирается, уже перенесённые дни не трогаем */
+    bindAnketa(content, an, prefs, (p2) => {
+      Store.set('training.aiPrefs', p2);
+      if (ai) { const res = generate(plans, plan, { fromWeek: ai.fromWeek, prefs: p2 });
+        if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
+      render(content, plan, h);
+    });
     content.querySelectorAll('.ai-split').forEach(b => b.addEventListener('click', () => {
       const cur = splitNow.slice(); const k = b.dataset.k; const i = cur.indexOf(k);
       if (i >= 0) { if (cur.length === 1) return; cur.splice(i, 1); } else cur.push(k);
@@ -943,12 +1034,6 @@ window.TrainingAI = (function () {
         if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
       render(content, plan, h); toast(content, b.dataset.m === 'smart' ? 'Научная методика' + (ai ? ', план пересобран' : '') : 'По твоим связкам' + (ai ? ', план пересобран' : ''));
     }));
-    content.querySelectorAll('.ai-goal:not(.ai-mth)').forEach(b => b.addEventListener('click', () => {
-      const p2 = { ...prefs, goal: b.dataset.g }; Store.set('training.aiPrefs', p2);
-      if (ai) { const fw = content.querySelector('#ai-from'); const res = generate(plans, plan, { fromWeek: fw ? +fw.value : ai.fromWeek, prefs: p2 });
-        if (!res.error) { const done = new Set(); ai.weeks.forEach(w => w.days.forEach(d => { if (d.transferred) done.add(w.wi + ':' + d.di); })); res.weeks.forEach(w => w.days.forEach(d => { if (done.has(w.wi + ':' + d.di)) d.transferred = true; })); save(res); } }
-      render(content, plan, h); toast(content, 'Цель: ' + GOALS[b.dataset.g].label.toLowerCase() + (ai ? ', план пересчитан' : ''));
-    }));
     const exb = content.querySelector('#ai-export'); if (exb) exb.addEventListener('click', () => {
       const data = { exportedAt: new Date().toISOString(), plans: h.getPlans() };
       const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
@@ -956,6 +1041,8 @@ window.TrainingAI = (function () {
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       toast(content, 'Файл с историей скачан');
     });
+    const more = content.querySelector('details.ai-more:not(.ai-more-s)'); if (more) more.addEventListener('toggle', () => { window._aiMoreOpen = more.open; });
+    const allb = content.querySelector('#ai-all'); if (allb) allb.onclick = () => { if (confirm('Перенести все тренировки AI-плана в твой план по дням?')) transferAll(content, plan, h); };
     content.querySelectorAll('.ai-move').forEach(b => b.addEventListener('click', () => openMove(content, plan, h, +b.dataset.week, +b.dataset.day)));
     content.querySelectorAll('.ai-week-btn').forEach(b => b.addEventListener('click', () => {
       const a = load(); const w = a.weeks[+b.dataset.week];

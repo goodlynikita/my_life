@@ -1987,6 +1987,13 @@ window.Screens.training = function (mount) {
 
     if (!plan || !plan.weeks) {
       const hasAnyPlan = trGetPlans().length > 0;
+      /* во вкладке AI без плана показываем анкету AI-тренера: план создастся по кнопке */
+      if (!hasAnyPlan && tab === 'ai' && window.TrainingAI) {
+        TrainingAI.render(content, null, { getPlans: trGetPlans, savePlans: trSavePlans, afterTransfer: () => { refreshUndoState(); },
+          createPlan: () => { currentPlanId = trCreateNextPlan(); collapsedWeeks = []; populatePlanSelect(); return trGetPlans().find(p => p && p.id === currentPlanId); },
+          rerender: () => renderTab('ai') });
+        return;
+      }
       if (!hasAnyPlan) {
         content.innerHTML = `<div style="padding:32px 20px 60px;max-width:480px;margin:0 auto;">
           <div style="text-align:center;margin-bottom:28px;">
@@ -2031,7 +2038,8 @@ window.Screens.training = function (mount) {
               </div>
             </div>
           </div>
-          <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1a3a8f,#2563eb);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;">+ Создать первый план</button>
+          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
+          <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:13px;background:none;border:1px solid rgba(96,165,250,0.35);border-radius:12px;color:#93C5FD;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Заполню сам</button>
         </div>`;
         return;
       }
@@ -2144,6 +2152,9 @@ window.Screens.training = function (mount) {
         getPlans: trGetPlans,
         savePlans: trSavePlans,
         afterTransfer: () => { refreshUndoState(); },
+        /* план создаётся сам, если его ещё нет: одна кнопка в AI */
+        createPlan: () => { currentPlanId = trCreateNextPlan(); collapsedWeeks = []; populatePlanSelect(); return trGetPlans().find(p => p && p.id === currentPlanId); },
+        rerender: () => renderTab('ai'),
       });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);

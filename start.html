@@ -888,7 +888,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 <section class="coach-sec" id="c-feat" data-for="coach"><div class="wrap ai-grid">
   <div class="ai-phones coach-phones rv">
     <div class="phone pa float"><div class="scr"><img src="img/landing/coach_client.webp" alt="Карточка клиента в кабинете тренера" loading="lazy"></div></div>
-    <div class="phone pb float"><div class="scr"><img src="img/landing/coach_home.webp" alt="Главная кабинета тренера" loading="lazy"></div></div>
+    <div class="phone pb float"><div class="scr"><img src="img/landing/coach_sched.webp" alt="Расписание тренера" loading="lazy"></div></div>
   </div>
   <div>
     <span class="eyebrow">Возможности</span>
@@ -897,6 +897,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <div class="ai-feats rv">
       <div class="ai-feat"><i class="ti ti-layout-dashboard"></i><b>Главная и лента</b><span>Кто тренируется сегодня, рекорды, пропуски и комментарии. Слайды и плитки настраиваете под себя</span></div>
       <div class="ai-feat"><i class="ti ti-chart-bar"></i><b>Обзор клиента</b><span>Оценка по четырём опорам: регулярность, сила, нагрузка и тело. Плюс что сделать дальше</span></div>
+      <div class="ai-feat"><i class="ti ti-calendar-event"></i><b>Расписание</b><span>Записи с временем и повтором каждую неделю. Тренировки клиентов по плану подтягиваются сами</span></div>
+      <div class="ai-feat"><i class="ti ti-ruler-measure"></i><b>Замеры тела</b><span>Вес, обхваты и пропорции с выводами. Замерили в зале, внесли сами</span></div>
       <div class="ai-feat"><i class="ti ti-template"></i><b>Шаблоны программ</b><span>Собрали раз, назначаете в два клика. Веса подставятся из истории клиента</span></div>
       <div class="ai-feat"><i class="ti ti-send"></i><b>Итоги недели</b><span>Цифры считаются сами, вы добавляете комментарий, клиент видит в приложении</span></div>
       <div class="ai-feat"><i class="ti ti-sparkles"></i><b>AI в помощь</b><span>Подскажет прогрессию и плато, а решение за вами. Клиента он у вас не заберёт</span></div>
@@ -920,6 +922,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       <li><i class="ti ti-bell-ringing"></i>Пропуски и паузы видны в тот же день</li>
       <li><i class="ti ti-trophy"></i>Рекорды клиентов, чтобы вовремя похвалить</li>
       <li><i class="ti ti-chart-line"></i>Плато с готовыми заменами упражнений</li>
+      <li><i class="ti ti-calendar-event"></i>Расписание дня: кто и во сколько</li>
     </ul>
   </div>
   <div class="c-dash" id="c-dash" aria-hidden="true">
@@ -1009,7 +1012,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <details class="qa rv"><summary>Что видит тренер у клиента?<i class="ti ti-plus"></i></summary><p>Только тренировки: план, веса, повторы, отметки, комментарии и замеры тела. Финансы, привычки и цели клиента закрыты правилами базы.</p></details>
     <details class="qa rv"><summary>Я тренирую в зале, это подойдёт?<i class="ti ti-plus"></i></summary><p>Да. Отмечайте проведённые тренировки галочкой в плане клиента, вносите веса и замеры сами. Посещаемость и прогресс посчитаются так же, как у онлайн-клиентов.</p></details>
     <details class="qa rv"><summary>AI не заменит меня для клиента?<i class="ti ti-plus"></i></summary><p>Нет. Когда у клиента есть тренер, его собственный AI-план выключается, чтобы не было двух разных планов. AI работает на вас: подсказывает прогрессию и плато, а решение принимаете вы.</p></details>
-    <details class="qa rv"><summary>Как подключить клиента?<i class="ti ti-plus"></i></summary><p>Клиент регистрируется в YOU, в меню выбирает «Подключить тренера» и создаёт ключ с фамилией и именем. Вы вводите ключ во вкладке «Добавить». Ключ одноразовый и действует сутки. Второй способ: ваша ссылка-приглашение.</p></details>
+    <details class="qa rv"><summary>Как подключить клиента?<i class="ti ti-plus"></i></summary><p>Клиент регистрируется в YOU, в меню выбирает «Подключить тренера» и создаёт ключ с фамилией и именем. Вы нажимаете «Добавить» в шапке кабинета и вводите ключ. Ключ одноразовый и действует сутки. Второй способ: ваша ссылка-приглашение.</p></details>
+    <details class="qa rv"><summary>Есть расписание занятий?<i class="ti ti-plus"></i></summary><p>Да, плитка «Расписание»: неделя, записи с временем, повтор каждую неделю и отметка «Провёл». Время можно сразу написать клиенту в план, он увидит его над тренировкой.</p></details>
     <details class="qa rv"><summary>Сколько это стоит?<i class="ti ti-plus"></i></summary><p>Сейчас идёт ранний доступ: кабинет бесплатный, до 50 клиентов и все функции. Для клиента приложение тоже бесплатное.</p></details>
   </div>
   <div class="center" style="margin-top:40px"><a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
@@ -1189,7 +1193,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 </div>
 <div class="wrap foot-legal">
   <nav><a href="legal/terms.html">Пользовательское соглашение</a><a href="legal/privacy.html">Политика обработки персональных данных</a><a href="legal/consent.html">Согласие на обработку данных</a><a href="legal/requisites.html">Реквизиты</a></nav>
-  <p>ИП Недомолкин Никита <span class="req-otch">[ОТЧЕСТВО]</span> · ИНН 366231388645 · ОГРНИП <span class="req-ogrnip">[ОГРНИП]</span> · г. Воронеж</p>
+  <p>ИП Недомолкин Никита Андреевич · ИНН 366231388645 · ОГРНИП 321366800115530 · г. Воронеж</p>
 </div></footer>
 
 <div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Получить приложение</a><a class="btn btn-main" href="coach.html" data-for="coach"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>

@@ -128,9 +128,9 @@ window.WinterArc = (function () {
       const sb = ov.querySelector('.wa-sound'); if (sb) sb.remove();
       const card = document.createElement('div'); card.className = 'wa-card';
       card.innerHTML = `<div class="wa-card-i"><i class="ti ti-snowflake"></i></div>
-        <b>Winter Arc</b>
-        <span>В разработке</span>
-        <button class="wa-ok">Ок</button>`;
+        <b>Winter Arc в разработке</b>
+        <span>Второй дизайн вот-вот доделываем. Скоро можно будет переключиться.</span>
+        <button class="wa-ok">Жду</button>`;
       ov.appendChild(card);
       requestAnimationFrame(() => card.classList.add('in'));
       card.querySelector('.wa-ok').onclick = close;

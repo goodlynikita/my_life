@@ -682,6 +682,7 @@ window.Store = {
 <script src="js/coach-dash.js"></script>
 <script src="js/tour.js"></script>
 <script src="js/feedback.js"></script>
+<script src="js/celebrate.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -876,8 +877,24 @@ async function loadClients() {
   /* лимит: когда мест нет, приглашение помечается как заполненное */
   const full = clients.length >= (trainer.limit || 50);
   try { await update(ref(db, 'invites/' + trainer.code), { full, count: clients.length }); } catch (e) {}
+  celebrateNew();
   if (!clients.length && !trainer.demoOff) clients = demoClients();
   if (!isDemo()) schedule = schedule.filter(x => !x.demo);
+}
+/* один раз: видео-плашка, когда клиент дал доступ */
+function celebrateNew() {
+  if (!window.Celebrate) return;
+  const real = clients.filter(c => !c.demo);
+  const initK = 'you_cel_init_' + trainer.uid;
+  let inited = false; try { inited = !!localStorage.getItem(initK); localStorage.setItem(initK, '1'); } catch (e) {}
+  const seen = Celebrate.seen();
+  const fresh = real.filter(c => !seen['co_' + trainer.uid + '_' + c.k]);
+  fresh.forEach(c => Celebrate.mark('co_' + trainer.uid + '_' + c.k));
+  if (!inited || !fresh.length) return; /* старые клиенты при первом запуске без плашки */
+  const c = fresh[0], more = fresh.length - 1;
+  const nm = String(c.name || c.email || 'Клиент').replace(/[&<>"]/g, '');
+  Celebrate.show({ kicker: 'Новый подопечный', title: nm + ' в команде',
+    sub: 'Клиент дал доступ к тренировкам' + (more > 0 ? ` и ещё ${more} вместе с ним` : '') + '. Составь план, <b>AI подскажет, с чего начать</b>', btn: 'К работе' });
 }
 function plansOf(c) { return toArr(c.training && c.training.plans).filter(Boolean); }
 function activePlan(c) { const ps = plansOf(c); return ps.find(p => p.status === 'active') || ps[ps.length - 1] || null; }

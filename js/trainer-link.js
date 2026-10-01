@@ -49,6 +49,7 @@ window.TrainerLink = (function () {
       try {
         await FirebaseSync.connectTrainer(code, fn);
         ov.remove(); toast('Тренер ' + (inv.name || '') + ' подключён');
+        celebrate({ trainerUid: inv.trainerUid, name: inv.name });
         if (window.Router) Router.render({ keepScroll: true });
       } catch (e) {
         b.disabled = false; b.textContent = 'Подключить';
@@ -221,8 +222,19 @@ window.TrainerLink = (function () {
     const t = e.detail && e.detail.trainer;
     if (t && keyOv) { keyOv.remove(); keyOv = null; }
     if (t && t.akey) { try { const u = FirebaseSync.currentUser && FirebaseSync.currentUser(); if (u) localStorage.removeItem('you_akey_' + u.uid); } catch (x) {} toast('Тренер ' + (t.name || '') + ' подключён'); }
+    if (t) celebrate(t);
     if (window.Router && !document.querySelector('.tr-modal-overlay')) Router.render({ keepScroll: true });
   });
 
+  /* один раз: видео-плашка «союз заключён» */
+  function celebrate(t) {
+    if (!window.Celebrate || !t || !t.trainerUid) return;
+    const u = FirebaseSync.currentUser && FirebaseSync.currentUser();
+    Celebrate.once('cl_' + (u ? u.uid : 'me') + '_' + t.trainerUid, {
+      kicker: 'Тренер в команде', title: (t.name || 'Тренер') + ' с тобой',
+      sub: 'Теперь тренер видит твои тренировки и ведёт план. Ты тренируешься, <b>прогресс под контролем</b>',
+      btn: 'Погнали',
+    });
+  }
   return { offer, askCode, connect, keyModal, decorate, info, PENDING };
 })();

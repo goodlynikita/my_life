@@ -1787,3 +1787,11 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 .wh-x { border: none; background: none; color: rgba(232,245,236,.5); font-size: 16px; cursor: pointer; padding: 4px; flex-shrink: 0; }
 .hab-tab.hab-tab-dot { position: relative; }
 .hab-tab.hab-tab-dot::after { content: ''; position: absolute; top: 9px; right: calc(50% - 34px); width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 8px #4ADE80; }
+
+/* ── Колесо: ползунок ровно по центру трека, зелёная заливка до значения ── */
+.modal-habits input.wheel-slider, input.wheel-slider{-webkit-appearance:none!important;appearance:none!important;display:block;width:100%!important;height:28px!important;margin:4px 0 0!important;padding:0!important;border:none!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none;cursor:pointer}
+input.wheel-slider::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#16A34A 0,#22C55E var(--p,50%),#2A2D35 var(--p,50%),#2A2D35 100%)}
+input.wheel-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45);cursor:pointer}
+input.wheel-slider::-moz-range-track{height:6px;border-radius:3px;background:#2A2D35}
+input.wheel-slider::-moz-range-progress{height:6px;border-radius:3px;background:#16A34A}
+input.wheel-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45)}

@@ -2398,7 +2398,39 @@ function trExerciseCanonicalGroups(exName) {
   for (const [group, list] of Object.entries(MUSCLE_BLOCK_EXERCISES)) {
     if (list.includes(exName)) return [group];
   }
-  return null; /* кастомное — определится по сессии */
+  /* нет в справочнике: распознаём по названию, как AI-тренер (гакк, румынская тяга → ноги) */
+  try {
+    const c = window.TrainingAI && TrainingAI.classify ? TrainingAI.classify(exName) : null;
+    if (c && c.group) {
+      const g = /Бицепс|Трицепс|Руки/.test(c.group) ? 'Руки' : c.group;
+      if (WORKING_WEIGHT_CATEGORIES.includes(g)) return [g];
+    }
+  } catch (e) {}
+  return null; /* совсем незнакомое — определится по сессии */
+}
+
+/* Тренировка уже сделана: день не в будущем, и это не AI-тренировка, которую только поставили
+   в План и ещё не подтвердили (правило как в AI-тренере). Итоги считаем только по сделанному */
+const TR_BODYW = /подтяг|отжим|брусь|планк|скруч|подъём ног|подъем ног|гиперэкст|пресс|вакуум/i;
+function trSessionDone(plan, day, s) {
+  const d = trDayDateOf(plan, day && day.date);
+  const end = new Date(); end.setHours(23, 59, 59, 0);
+  if (!d || d > end) return false;
+  if (s && s.ai && s.aiSig && !s.aiOk) {
+    const sig = (s.exercises || []).map(e => e ? (e.name + '|' + (+e.weight || 0) + '|' + e.reps + '|' + e.sets) : '').join(';');
+    const fresh = d >= new Date(end.getFullYear(), end.getMonth(), end.getDate() - 7);
+    if (fresh && s.aiSig === sig) return false;
+  }
+  return true;
+}
+/* упражнение реально записано: есть вес или повторы (подход-заготовка «0×0» не считается) */
+function trExLogged(ex) {
+  if (!ex) return false;
+  if (ex.kind === 'strength') return (+ex.weight || 0) > 0 || (+ex.reps || 0) > 0;
+  if (ex.kind === 'cardio') return (+ex.distance || 0) > 0 || (+ex.duration || 0) > 0;
+  if (ex.kind === 'time_calorie') return (+ex.calories || 0) > 0 || (+ex.duration || 0) > 0;
+  if (ex.kind === 'steps') return (+ex.steps || 0) > 0;
+  return true;
 }
 
 /* дата дня плана (dd.mm) с учётом перехода года */
@@ -2937,19 +2969,20 @@ const MEASURE_FIELDS = [
 ];
 
 function trCollectExerciseHistory(plan, exerciseName) {
-  // returns { first: {ex, weekIndex}, last: {ex, weekIndex} } across the whole plan
+  // returns { first: {ex, weekIndex}, last: {ex, weekIndex}, count } по сделанным тренировкам плана
   let first = null;
   let last = null;
+  let count = 0;
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach(day => {
-      const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
+      const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName && trExLogged(e.ex) && trSessionDone(plan, day, day.sessions[e.sessionIdx]));
       if (found) {
         if (!first) first = { ex: found.ex, weekIndex };
-        last = { ex: found.ex, weekIndex };
+        last = { ex: found.ex, weekIndex }; count++;
       }
     });
   });
-  return { first, last };
+  return { first, last, count };
 }
 
 function trWasNowLabel(ex, metricLabelFn) {
@@ -2964,8 +2997,8 @@ function trSumMetricAcrossPlan(plan, exerciseName, kind) {
   let count = 0;
   plan.weeks.forEach(week => {
     week.days.forEach(day => {
-      trDayAllExercises(day).forEach(({ ex }) => {
-        if (ex.name !== exerciseName) return;
+      trDayAllExercises(day).forEach(({ ex, sessionIdx }) => {
+        if (ex.name !== exerciseName || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
         if (kind === 'time_calorie') sum += ex.calories || 0;
         if (kind === 'steps') sum += ex.steps || 0;
         count++;
@@ -2976,7 +3009,7 @@ function trSumMetricAcrossPlan(plan, exerciseName, kind) {
 }
 
 function trRenderWasNowRow(exerciseName, plan) {
-  const { first, last } = trCollectExerciseHistory(plan, exerciseName);
+  const { first, last, count: nRec } = trCollectExerciseHistory(plan, exerciseName);
   if (!first || !last) return '';
 
   // Calories and steps are summed across the whole plan, not "was -> now"
@@ -2994,7 +3027,7 @@ function trRenderWasNowRow(exerciseName, plan) {
       </div>`;
   }
 
-  const sameRecord = first.weekIndex === last.weekIndex;
+  const sameRecord = nRec < 2;
   const wasVal = trMetricFor(first.ex);
   const nowVal = trMetricFor(last.ex);
   let pct = 0;
@@ -3029,52 +3062,55 @@ function trRenderWasNowRow(exerciseName, plan) {
 }
 
 function trRenderWasNowWeightRow(exerciseName, plan) {
-  /* Показываем прогрессию рабочего веса: неделя 1 → текущая */
-  let first = null, last = null;
+  /* Прогрессия по сделанным тренировкам: первая запись в плане → последняя */
+  let first = null, last = null, n = 0;
   plan.weeks.forEach((week, wi) => {
     week.days.forEach(day => {
       trMigrateDayToSessions(day);
       day.sessions.forEach(session => {
-        if (!trIsGymType(session.type)) return;
+        if (!trIsGymType(session.type) || !trSessionDone(plan, day, session)) return;
         session.exercises.forEach(ex => {
-          if (ex.name !== exerciseName || ex.kind !== 'strength') return;
+          if (ex.name !== exerciseName || ex.kind !== 'strength' || !trExLogged(ex)) return;
           if (!first) first = { ex, wi };
-          last = { ex, wi };
+          last = { ex, wi }; n++;
         });
       });
     });
   });
-
   if (!first) return '';
 
-  const w1 = first.ex.weight;
-  const wN = last.ex.weight;
-  const diff = (window.Features && window.Features.isOn('training_rounding')) ? Math.round((wN - w1) * 10) / 10 : (wN - w1);
-  const pct = w1 > 0 ? Math.round((diff / w1) * 100) : 0;
-  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
+  const fw = (v) => String(Math.round((+v || 0) * 10) / 10).replace('.', ',');
+  const lbl = (e) => (+e.weight || 0) > 0 ? `${e.sets}×${e.reps}×${fw(e.weight)} кг` : `${e.sets}×${e.reps}`;
+  const w1 = +first.ex.weight || 0, wN = +last.ex.weight || 0;
+  const r1 = (+first.ex.sets || 0) * (+first.ex.reps || 0), rN = (+last.ex.sets || 0) * (+last.ex.reps || 0);
+  /* со своим весом (0 кг) сравниваем повторы, а не килограммы */
+  /* со своим весом или тот же вес, но выросли повторы: показываем повторы */
+  const byReps = (w1 === 0 && wN === 0) || (Math.abs(wN - w1) < 0.05 && rN !== r1);
+  const diff = byReps ? rN - r1 : Math.round((wN - w1) * 10) / 10;
+  const pct = byReps ? (r1 > 0 ? Math.round(diff / r1 * 100) : 0) : (w1 > 0 ? Math.round(diff / w1 * 100) : 0);
   const color = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#9D9A92';
-  const sign = diff > 0 ? '+' : '';
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
+  const sign = diff > 0 ? '+' : diff < 0 ? '−' : '';
+  const head = n < 2
+    ? `<span class="tr-ex-weight num" style="color:#9D9A92;">одна запись</span>`
+    : byReps
+      ? `<span class="tr-ex-weight num" style="color:${color};">${sign}${Math.abs(diff)} ${diff === 0 ? 'повторов' : 'повт.'} ${arrow}${pct ? ' ' + sign + Math.abs(pct) + '%' : ''}</span>`
+      : `<span class="tr-ex-weight num" style="color:${color};">${sign}${fw(Math.abs(diff))} кг ${arrow}${w1 > 0 && pct ? ' ' + sign + Math.abs(pct) + '%' : ''}</span>`;
 
-  /* Прогресс-бар */
   const clamp = Math.min(50, Math.abs(pct) / 2);
   const barColor = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#3A3D45';
-  const barLeft = diff < 0 ? (50 - clamp) + '%' : '50%';
-  const barWidth = clamp > 0 ? clamp + '%' : '0%';
-  const bar = `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${barLeft}; width:${barWidth}; background:${barColor};"></div></div>`;
+  const bar = n < 2 ? '' : `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${diff < 0 ? (50 - clamp) + '%' : '50%'}; width:${clamp > 0 ? clamp + '%' : '0%'}; background:${barColor};"></div></div>`;
 
   return `
     <div class="tr-exercise" style="cursor:default;">
       <div class="tr-ex-top">
         <div class="tr-ex-name">${exerciseName}</div>
-        <div class="tr-ex-stats">
-          <span class="tr-ex-weight num" style="color:${color};">${sign}${diff} кг ${arrow} ${sign}${pct}%</span>
-        </div>
+        <div class="tr-ex-stats">${head}</div>
       </div>
       <div class="tr-ex-bottom">
-        <div class="tr-ex-meta num" style="display:flex; gap:8px; align-items:center;">
-          <span style="color:#9D9A92;">Нед.${first.wi+1}: ${first.ex.sets}×${first.ex.reps}×${w1}кг</span>
-          <span style="color:#555;">→</span>
-          <span style="color:#E8E5DC;">Нед.${last.wi+1}: ${last.ex.sets}×${last.ex.reps}×${wN}кг</span>
+        <div class="tr-ex-meta num" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          ${n < 2 ? `<span style="color:#E8E5DC;">Нед.${last.wi + 1}: ${lbl(last.ex)}</span>`
+            : `<span style="color:#9D9A92;">Нед.${first.wi + 1}: ${lbl(first.ex)}</span><span style="color:#555;">→</span><span style="color:#E8E5DC;">Нед.${last.wi + 1}: ${lbl(last.ex)}</span>`}
         </div>
       </div>
       ${bar}
@@ -3090,9 +3126,9 @@ function trRenderSummary(plan) {
     week.days.forEach(day => {
       trMigrateDayToSessions(day);
       day.sessions.forEach(session => {
-        if (!trIsGymType(session.type)) return;
+        if (!trIsGymType(session.type) || !trSessionDone(plan, day, session)) return;
         session.exercises.forEach(ex => {
-          if (!ex.name || ex.kind !== 'strength') return;
+          if (!ex.name || ex.kind !== 'strength' || !trExLogged(ex)) return;
           const canonical = trExerciseCanonicalGroups(ex.name);
           const groups = canonical || (session.groups && session.groups.length ? session.groups : ['FULL BODY']);
           const expanded = groups.includes('FULL BODY') ? GYM_ORDER : groups;
@@ -3126,9 +3162,9 @@ function trRenderSummary(plan) {
     week.days.forEach(day => {
       trMigrateDayToSessions(day);
       day.sessions.forEach(session => {
-        if (trIsGymType(session.type) || session.type === 'Отдых') return;
+        if (trIsGymType(session.type) || session.type === 'Отдых' || !trSessionDone(plan, day, session)) return;
         if (!otherByType[session.type]) otherByType[session.type] = new Set();
-        session.exercises.forEach(ex => { if (ex.name) otherByType[session.type].add(ex.name); });
+        session.exercises.forEach(ex => { if (ex.name && trExLogged(ex)) otherByType[session.type].add(ex.name); });
       });
     });
   });

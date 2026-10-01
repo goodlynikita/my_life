@@ -830,7 +830,7 @@ window.Screens.habits = function(mount) {
             <span>${name}</span>
             <span class="wheel-slider-val" id="wsv-${i}">${scores[i]}</span>
           </div>
-          <input type="range" style="accent-color:#16A34A;" class="wheel-slider" data-i="${i}" min="1" max="10" value="${scores[i]}">
+          <input type="range" class="wheel-slider" style="--p:${(scores[i] - 1) / 9 * 100}%" data-i="${i}" min="1" max="10" value="${scores[i]}">
         </div>`).join('');
 
     const now = new Date();
@@ -872,6 +872,7 @@ window.Screens.habits = function(mount) {
         sl.addEventListener('input', () => {
           const i = parseInt(sl.dataset.i);
           scores[i] = parseInt(sl.value);
+          sl.style.setProperty('--p', (scores[i] - 1) / 9 * 100 + '%');
           overlay.querySelector('#wsv-'+i).textContent = scores[i];
           overlay.querySelector('#wheel-preview').innerHTML = wheelDrawSVG(scores, 220, false);
         });

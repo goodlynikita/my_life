@@ -1904,3 +1904,14 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-dd-o:hover{background:rgba(255,255,255,.05)}
 .tr-dd-o.on{background:var(--tr-accent-wash,#16264F)}
 .tr-dd-o>.ti-check{color:var(--tr-accent-bright,#6E94FF);font-size:18px}
+
+/* AI в тренировках: спокойные цвета раздела, без яркого градиента и свечения */
+.ai-gen{background:linear-gradient(135deg,#2C4FA8,#3A62C9)!important;box-shadow:none!important}
+.ai-gen:active{filter:brightness(1.1)}
+.ai-view.on{background:#24376B!important;color:#E3EBFF!important;box-shadow:inset 0 0 0 1px rgba(110,148,255,.35)!important}
+.ai-hero-ico{background:rgba(74,124,255,.16)!important;color:#8EB0FF!important;box-shadow:inset 0 0 0 1px rgba(110,148,255,.25)!important}
+.in-share{background:linear-gradient(135deg,#2C4FA8,#3A62C9)!important;box-shadow:none!important}
+.in-sb.main,.ch-input button,.ch-msg.me{background:#2C4FA8!important}
+.tr-cweek-h>i{background:rgba(74,124,255,.16)!important;color:#8EB0FF!important}
+.q-act.main{background:#2C4FA8;border-color:#2C4FA8}
+.ai-bar span{background:#3A62C9!important}

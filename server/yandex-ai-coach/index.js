@@ -15,12 +15,16 @@
    Функции нужен сервисный аккаунт с ролью ai.languageModels.user.
    ============================================================ */
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
+/* отвечаем только своим сайтам: чужой клон не сможет звать функцию из браузера */
+const ORIGINS = ['https://you-app.ru', 'https://www.you-app.ru', 'https://goodlynikita.github.io', 'http://you-app.ru.website.yandexcloud.net'];
+let CORS = {};
+const setCors = (origin) => { CORS = {
+  'Access-Control-Allow-Origin': ORIGINS.includes(origin) ? origin : ORIGINS[0],
+  'Vary': 'Origin',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Content-Type': 'application/json; charset=utf-8',
-};
+}; };
 const reply = (code, obj) => ({ statusCode: code, headers: CORS, body: JSON.stringify(obj) });
 
 const SYSTEM = `Ты персональный тренер в приложении YOU. Отвечай по-русски, дружелюбно и по делу, на «ты».
@@ -40,6 +44,8 @@ async function j(url, opts) {
 }
 
 module.exports.handler = async function (event, context) {
+  const hd = event.headers || {};
+  setCors(hd.Origin || hd.origin || '');
   const method = (event.httpMethod || '').toUpperCase();
   if (method === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (method !== 'POST') return reply(405, { error: 'method' });

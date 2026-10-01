@@ -1140,7 +1140,9 @@ window.TrainingAI = (function () {
   function viewTabs() {
     const v = window._aiView || 'plan';
     const fresh = new Date().getDay() === 1 ? '<i class="ai-view-dot"></i>' : '';
-    return `<div class="ai-views"><button class="ai-view${v === 'plan' ? ' on' : ''}" data-v="plan"><i class="ti ti-calendar-stats"></i> Программа</button><button class="ai-view${v === 'insights' ? ' on' : ''}" data-v="insights"><i class="ti ti-chart-dots"></i> Разбор${fresh}</button></div>`;
+    /* вкладка чата появляется, когда подключена облачная функция (адрес в config.js) */
+    const chatOn = !!(window.APP_CONFIG && APP_CONFIG.aiChatUrl);
+    return `<div class="ai-views"><button class="ai-view${v === 'plan' ? ' on' : ''}" data-v="plan"><i class="ti ti-calendar-stats"></i> Программа</button><button class="ai-view${v === 'insights' ? ' on' : ''}" data-v="insights"><i class="ti ti-chart-dots"></i> Разбор${fresh}</button>${chatOn ? `<button class="ai-view${v === 'chat' ? ' on' : ''}" data-v="chat"><i class="ti ti-message-chatbot"></i> Чат</button>` : ''}</div>`;
   }
   function bindViews(content, plan, h) {
     content.querySelectorAll('.ai-view').forEach(b => b.addEventListener('click', () => { window._aiView = b.dataset.v; render(content, plan, h); }));
@@ -1267,6 +1269,10 @@ window.TrainingAI = (function () {
     const placed = futureIdx.slice().sort((a, b) => Q[a].date < Q[b].date ? -1 : 1);
     const showN = window._aiShowAll ? freeIdx.length : 6;
 
+    /* AI-тренировки в будущих днях Плана без живого AI-плана (план удалили, а тренировки остались) */
+    const orphans = () => { const out = []; const p = toArr(h.getPlans()).find(x => x && x.id === plan.id); if (!p) return out;
+      toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => { if (!d) return; const dt = planDayDate(p, d.date); if (!dt || dt < today) return;
+        toArr(d.sessions).forEach((x, si) => { if (x && x.ai && !x.aiOk && (!x.aiSig || x.aiSig === aiSigOf(x))) out.push({ wi, di, si }); }); })); return out; };
     content.innerHTML = `<div class="ai-wrap">${viewTabs()}
       <div class="ai-card">
         <div class="ai-card-h"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div><div class="ai-hero-t">AI-тренер</div>
@@ -1277,6 +1283,7 @@ window.TrainingAI = (function () {
           ${an.workouts < 3 ? focusHtml(prefs) : ''}${qSettingsHtml(prefs, L.N, L.manual)}${sourcesHtml(cp.src, cp.on, plan)}</details>
       </div>
       ${!ai && legacy ? '<div class="q-tip"><i class="ti ti-info-circle"></i> AI-план стал проще: тренировки идут по очереди, без привязки к дням недели. Нажми «Составить план». То, что ты уже добавил во вкладку План, останется</div>' : ''}
+      ${!ai && orphans().length ? `<div class="q-tip"><i class="ti ti-info-circle"></i><span>В Плане остались будущие тренировки от прошлого AI-плана: ${orphans().length}. <button class="q-back" id="q-orph">Убрать их</button></span></div>` : ''}
       ${!ai ? `<button class="ai-gen" id="q-gen"><i class="ti ti-sparkles"></i> Составить план</button><div class="ai-hint" style="text-align:center">Подставлю упражнения и веса до конца плана №${plan.number || ''} и буду прибавлять вес сам</div>`
       : `${askIdx >= 0 ? `<div class="q-ask"><div class="q-ask-t">${esc(fmtDayL(fromYmdQ(Q[askIdx].date)))} стояла ${esc(nameT(Q[askIdx]))}. Получилось сходить?</div>
           <div class="q-btns"><button class="ai-gen" id="q-yes">Да</button><button class="ai-regen" id="q-no">Нет, был пропуск</button></div>
@@ -1286,7 +1293,7 @@ window.TrainingAI = (function () {
           <div class="q-next-h"><span>Сегодня</span><b>${esc(nameT(Q[todayIdx]))}</b></div>
           ${exListHtml(Q[todayIdx])}
           <div class="q-btns"><button class="ai-gen" id="q-open"><i class="ti ti-calendar-event"></i> Открыть во вкладке План</button></div></div>` : ''}
-        ${placed.length ? `<div class="q-sec"><div class="q-sec-h"><div class="ai-pref-t"><i class="ti ti-calendar-event"></i> Уже в плане</div></div>
+        ${placed.length ? `<div class="q-sec"><div class="q-sec-h"><div class="ai-pref-t"><i class="ti ti-calendar-event"></i> Уже в плане</div><button class="q-all bad" id="q-unall"><i class="ti ti-calendar-minus"></i> Убрать все</button></div>
           ${placed.map(i => `<details class="q-up q-in"><summary><span class="q-date">${esc(fmtDay(fromYmdQ(Q[i].date)))}</span><span>${esc(nameT(Q[i]))}</span><i class="ti ti-chevron-down"></i></summary>${exListHtml(Q[i])}
             <div class="q-acts"><button class="q-act" data-mv="${i}"><i class="ti ti-calendar"></i> Другой день</button><button class="q-act bad" data-un="${i}"><i class="ti ti-calendar-minus"></i> Убрать из плана</button></div></details>`).join('')}</div>` : ''}
         ${freeIdx.length ? `<div class="q-sec"><div class="q-sec-h"><div class="ai-pref-t"><i class="ti ti-sparkles"></i> План от AI <em>${freeIdx.length}</em></div>
@@ -1339,9 +1346,21 @@ window.TrainingAI = (function () {
     });
 
     /* составить, пересобрать, удалить */
+    if ($('#q-orph')) $('#q-orph').onclick = () => { const list = orphans(); if (!confirm(`Убрать из Плана ${list.length} ${pl(list.length, 'тренировку', 'тренировки', 'тренировок')} от прошлого AI-плана? Сделанные и изменённые тобой останутся.`)) return;
+      const plans = h.getPlans(); const p = plans.find(x => x && x.id === plan.id);
+      list.slice().reverse().forEach(o => { const d = toArr(p.weeks)[o.wi].days[o.di]; const ss = toArr(d.sessions); ss.splice(o.si, 1); d.sessions = ss; });
+      h.savePlans(plans); h.afterTransfer && h.afterTransfer(); render(content, plan, h); qToast('Убрал ' + list.length); };
     if ($('#q-gen')) $('#q-gen').onclick = () => { window.Analytics && Analytics.ev('ai'); const res = generate(plans, plan, {}); if (res.error) { alert('Не получилось составить план'); return; } save(res); render(content, plan, h); qToast('План готов'); };
     if ($('#q-regen')) $('#q-regen').onclick = () => { if (!confirm('Пересобрать с учётом последних тренировок? То, что уже стоит в плане, не тронется.')) return; regenKeep(plans, plan, prefs); render(content, plan, h); qToast('План пересобран'); };
-    if ($('#q-reset')) $('#q-reset').onclick = () => { if (!confirm('Удалить AI-план? Тренировки, которые уже стоят во вкладке План, останутся.')) return; Store.set('training.ai', null); render(content, plan, h); };
+    /* будущие AI-тренировки, которые ты ещё не менял: их можно снять из Плана */
+    const removable = () => { const a = load(); const tk = todayK; return a ? a.queue.map((q, i) => i).filter(i => { const q = a.queue[i]; return q.transferred && q.date && q.date >= tk && !q.ok && !qEdited(plan, h, q); }) : []; };
+    const unplace = (idxs) => { const a = load(); idxs.forEach(i => { const q = a.queue[i]; untransfer(plan, h, q); Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); }); save(a); h.afterTransfer && h.afterTransfer(); return idxs.length; };
+    if ($('#q-unall')) $('#q-unall').onclick = () => { const ids = removable(); if (!ids.length) { qToast('Убирать нечего: в будущих днях AI-тренировок нет'); return; }
+      if (!confirm(`Убрать из Плана ${ids.length} ${pl(ids.length, 'тренировку', 'тренировки', 'тренировок')} от AI? Сделанные и те, где ты менял веса, останутся.`)) return;
+      const n = unplace(ids); render(content, plan, h); qToast(`Убрал ${n} ${pl(n, 'тренировку', 'тренировки', 'тренировок')}, они снова в списке AI`); };
+    if ($('#q-reset')) $('#q-reset').onclick = () => { const ids = removable();
+      if (!confirm('Удалить AI-план?' + (ids.length ? ` Будущие AI-тренировки (${ids.length}) уберу из Плана.` : '') + ' Сделанные тренировки останутся.')) return;
+      if (ids.length) unplace(ids); Store.set('training.ai', null); render(content, plan, h); qToast('AI-план удалён'); };
     if ($('#q-open')) $('#q-open').onclick = () => { if (h.openPlan) h.openPlan(); };
 
     /* поставить тренировку очереди на дату */
@@ -1433,7 +1452,7 @@ window.TrainingAI = (function () {
   }
 
   function render(content, plan, h) {
-    if (window._aiView === 'chat') window._aiView = 'plan'; /* чат пока не готов, вкладка скрыта */
+    if (window._aiView === 'chat' && !(window.APP_CONFIG && APP_CONFIG.aiChatUrl)) window._aiView = 'plan';
     if (window._aiView === 'chat' && window.TrainingChat) {
       TrainingChat.render(content, plan, h, viewTabs(), () => bindViews(content, plan, h));
       return;

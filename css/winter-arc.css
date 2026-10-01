@@ -4,7 +4,7 @@
 .ds-b i { font-size: 15px; }
 .ds-b.on { background: rgba(255,255,255,0.14); color: #fff; }
 .ds-b[data-ds="wa"].on { background: linear-gradient(135deg, #0B1220, #1E293B); color: #E0F2FE; box-shadow: 0 0 0 1px rgba(186,230,253,0.35), 0 0 16px rgba(125,211,252,0.35); }
-@media (max-width: 440px) { .ds-b[data-ds="min"] span { display: none; } .ds-b { padding: 0 9px; } .ds-sw { margin-left: 8px; } }
+@media (max-width: 440px) { .ds-b span { display: none; } .ds-b { padding: 0 9px; } .ds-sw { margin-left: 8px; } }
 body.wa-busy { overflow: hidden; }
 body.wa-busy .home2-screen { pointer-events: none; }
 .wa-wind { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9990; pointer-events: none; }
@@ -31,5 +31,8 @@ body.wa-busy .home2-screen { pointer-events: none; }
 html[data-theme="light"] .wa-ov video { filter: none; }
 html[data-theme="light"] .wa-wind { filter: invert(1) hue-rotate(180deg); }
 .hdr .ds-sw{margin-left:4px}
-.hdr-in>*{flex-shrink:0}
 @media (max-width:440px){.hdr .ds-b span{display:none}.hdr .ds-b{padding:0 9px}}
+/* кабинет на узком телефоне: шапка не должна быть шире экрана, Winter Arc уходит в меню */
+.hdr-in>.fb-envelope,.hdr-in>.hadd,.hdr-in>.theme-toggle,.hdr-in>.hdots{flex-shrink:0}
+@media (max-width:440px){.hdr .ds-sw{display:none}}
+.home2-header>*{flex-shrink:0}

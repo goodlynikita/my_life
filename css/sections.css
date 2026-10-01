@@ -833,7 +833,8 @@
 .habit-table th { min-width: 28px !important; }
 
 @media (max-width: 480px) {
-  .hab-cell { width: 26px !important; height: 26px !important; }
+  
+.hab-cell { width: 26px !important; height: 26px !important; }
 }
 
 /* ── Habits modal style ──────────────────────────── */
@@ -863,8 +864,7 @@
 .hab-modal .hab-icon-btn { background: #2A2D35 !important; border-color: #3A3D45 !important; color: #E8E5DC !important; }
 
 /* ── Habits readability fix ──────────────────────── */
-.hab-dark .habit-table th,
-.hab-dark .habit-table td { color: #B0ACA4 !important; }
+.hab-dark .habit-table th, .hab-dark .habit-table td { color: #B0ACA4 !important; }
 .hab-dark .habit-row-label span { color: #D8D5CC !important; font-size: 13px !important; }
 .hab-dark .sec-metric-value { color: #F0EDE5 !important; font-size: 18px !important; }
 .hab-dark .sec-metric-label { color: #777 !important; }
@@ -895,9 +895,7 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-.sec-card, .fin2-card, .fin2-hero, .tochka-list,
-.goals-cat-v3, .goals-hero-all, .goals-hero-season,
-.bal-hero, .bal-reserve-card, .wheel-current-card {
+.sec-card, .fin2-card, .fin2-hero, .tochka-list, .goals-cat-v3, .goals-hero-all, .goals-hero-season, .bal-hero, .bal-reserve-card, .wheel-current-card {
   animation: fadeIn 0.3s ease both;
 }
 
@@ -1179,8 +1177,7 @@
 .hab-body .sec-metric { padding: 8px 6px !important; text-align: center; }
 
 /* ── Привычки: первая колонка прилипает ── */
-.hab-dark td:first-child,
-.hab-dark th:first-child {
+.hab-dark td:first-child, .hab-dark th:first-child {
   position: sticky !important;
   left: 0 !important;
   z-index: 4 !important;
@@ -1334,23 +1331,12 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
 }
 
 /* ── Кнопки адаптивные (п.8) ── */
-.goals-modal-cancel,
-.goals-modal-save,
-.tr-modal-btn-primary,
-.tr-modal-btn-secondary,
-.hab-add-btn {
+.goals-modal-cancel, .goals-modal-save, .hab-add-btn {
   min-width: 0 !important;
   box-sizing: border-box !important;
 }
-.tr-modal-actions {
-  display: flex !important;
-  gap: 10px !important;
-}
-.tr-modal-btn-primary,
-.tr-modal-btn-secondary {
-  flex: 1 !important;
-  width: 100% !important;
-}
+
+
 
 /* п.3 — Финансы вкладки на всю ширину */
 .tochka-tabs {
@@ -1376,11 +1362,7 @@ input, textarea, select { -webkit-user-select: text !important; user-select: tex
 
 
 /* ── Safe area для PWA на iOS ── */
-.hab-header,
-.hab-header,
-.goals-header,
-.tr-header,
-.tochka-header {
+.hab-header, .hab-header, .goals-header, .tochka-header {
   padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
 }
 body {
@@ -1411,20 +1393,11 @@ body {
    ═══════════════════════════════════════════ */
 
 /* БАЗОВАЯ МОДАЛКА */
-.tr-modal {
-  background: #1E2028 !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  color: #F0EDE5 !important;
-}
-.tr-modal-title { color: #F0EDE5 !important; }
-.tr-modal-row label { color: rgba(255,255,255,0.5) !important; font-size: 11px !important; }
-.tr-modal-row input, .tr-modal select {
-  background: #2A2D35 !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  color: #F0EDE5 !important;
-  border-radius: 10px !important;
-}
-.tr-modal-row input:focus { border-color: rgba(255,255,255,0.3) !important; outline: none !important; }
+
+
+
+
+
 
 
 /* ПРИВЫЧКИ — зелёный акцент, серый фон, белый текст */
@@ -1434,23 +1407,20 @@ body {
 }
 .modal-habits .tr-modal-title { color: #fff !important; }
 .modal-habits .tr-modal-row label { color: rgba(255,255,255,0.6) !important; }
-.modal-habits .tr-modal-row input,
-.modal-habits .tr-modal-row select,
-.modal-habits select {
+.modal-habits .tr-modal-row input, .modal-habits .tr-modal-row select, .modal-habits select {
   background: #2A2D35 !important;
   border-color: rgba(22,163,74,0.25) !important;
   color: #fff !important;
 }
-.modal-habits .tr-modal-row input:focus,
-.modal-habits .tr-modal-row select:focus { border-color: #16A34A !important; box-shadow: 0 0 0 2px rgba(22,163,74,0.2) !important; }
+.modal-habits .tr-modal-row input:focus, .modal-habits .tr-modal-row select:focus { border-color: #16A34A !important; box-shadow: 0 0 0 2px rgba(22,163,74,0.2) !important; }
 .modal-habits .tr-modal-btn-primary { background: linear-gradient(135deg,#14532D,#16A34A) !important; color:#fff !important; border:none !important; }
 .modal-habits .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(22,163,74,0.3) !important; color:#4ADE80 !important; }
 /* Иконки внутри модалки привычек */
 .modal-habits .hab-icon-btn { background: #2A2D35 !important; border-color: #3A3D45 !important; color: #E8E5DC !important; }
 
 /* ТРЕНИРОВКИ — синий акцент только в тренировочных модалках */
-.theme-dark .tr-modal-btn-primary { background: linear-gradient(135deg,#1E3A8A,#3B82F6) !important; color:#fff !important; border:none !important; }
-.theme-dark .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+
+
 
 /* ЦЕЛИ — модалка в стиле раздела */
 .goals-modal {
@@ -1537,8 +1507,7 @@ button.hab-hist-edit, .hab-hist-btn {
   font-weight: 600 !important;
 }
 /* Оценки колеса */
-.wheel-score, .wheel-avg, .wheel-score-val, .wheel-avg-val,
-[class*="wheel"][class*="score"], [class*="wheel"][class*="avg"] {
+.wheel-score, .wheel-avg, .wheel-score-val, .wheel-avg-val, [class*="wheel"][class*="score"], [class*="wheel"][class*="avg"] {
   color: #4ADE80 !important;
 }
 /* Кнопки в колесе */
@@ -1605,8 +1574,7 @@ button.hab-hist-edit, .hab-hist-btn {
 /* check colors set via inline style in JS */
 
 /* ── Цели: FAB кнопка + нижний фон янтарные ── */
-.goals-fab, .goals-new-v3,
-button.goals-fab, button.goals-new-v3 {
+.goals-fab, .goals-new-v3, button.goals-fab, button.goals-new-v3 {
   background: #F2A93B !important;
   color: #1a0f00 !important;
   box-shadow: 0 4px 16px rgba(242,169,59,0.4) !important;
@@ -1703,19 +1671,14 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 
 
 /* ═══ Единый размер вкладок везде ═══════════════════ */
-.tochka-tab,
-.hab-tab,
-.goals-season-tab,
-.tr-tab {
+.tochka-tab, .hab-tab, .goals-season-tab {
   font-size: 13px !important;
   font-weight: 600 !important;
   padding: 12px 4px !important;
 }
 
 /* ═══ Шапки sticky везде ════════════════════════════ */
-.goals-header,
-.hab-header,
-.tochka-header {
+.goals-header, .hab-header, .tochka-header {
   position: sticky !important;
   top: 0 !important;
   z-index: 100 !important;
@@ -1724,13 +1687,13 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 /* ═══ Шапки разделов: один размер везде (как в Тренировках) ═══
    Высота была разной из-за стандартных отступов <p> у заголовка */
 :root { --hdr-h: calc(60px + env(safe-area-inset-top, 0px)); }
-.goals-header, .hab-header, .tochka-header, .tr-header {
+.goals-header, .hab-header, .tochka-header {
   min-height: var(--hdr-h) !important;
   padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
   padding-bottom: 14px !important;
   box-sizing: border-box !important;
 }
-.goals-screen-title, .hab-screen-title, .tochka-screen-title, .tr-title {
+.goals-screen-title, .hab-screen-title, .tochka-screen-title {
   margin: 0 !important;
   font-size: 20px !important;
   line-height: 32px !important;
@@ -1772,9 +1735,9 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
   border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 8px 10px; margin: 6px 0 0;
 }
 
-/* Шапка Целей — прежний тёмно-янтарный градиент (как был до v78) */
+/* Шапка Целей: янтарный градиент той же яркости, что у Привычек и Финансов */
 .goals-header {
-  background: linear-gradient(135deg, #140A02 0%, #1F1202 35%, #2E1A02 60%, #4A2C00 100%) !important;
+  background: linear-gradient(135deg, #78350F 0%, #92400E 60%, #B45309 100%) !important;
 }
 .tochka-header { border-bottom: none !important; }
 /* v164: напоминание оценить прошлый месяц */
@@ -1789,9 +1752,9 @@ input[type=range].wheel-slider::-moz-range-progress { background: transparent; }
 .hab-tab.hab-tab-dot::after { content: ''; position: absolute; top: 9px; right: calc(50% - 34px); width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 8px #4ADE80; }
 
 /* ── Колесо: ползунок ровно по центру трека, зелёная заливка до значения ── */
-.modal-habits input.wheel-slider, input.wheel-slider{-webkit-appearance:none!important;appearance:none!important;display:block;width:100%!important;height:28px!important;margin:4px 0 0!important;padding:0!important;border:none!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none;cursor:pointer}
-input.wheel-slider::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#16A34A 0,#22C55E var(--p,50%),#2A2D35 var(--p,50%),#2A2D35 100%)}
-input.wheel-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45);cursor:pointer}
-input.wheel-slider::-moz-range-track{height:6px;border-radius:3px;background:#2A2D35}
-input.wheel-slider::-moz-range-progress{height:6px;border-radius:3px;background:#16A34A}
-input.wheel-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45)}
+.modal-habits input.wheel-slider, input.wheel-slider {-webkit-appearance:none!important;appearance:none!important;display:block;width:100%!important;height:28px!important;margin:4px 0 0!important;padding:0!important;border:none!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none;cursor:pointer}
+input.wheel-slider::-webkit-slider-runnable-track {height:6px;border-radius:3px;background:linear-gradient(90deg,#16A34A 0,#22C55E var(--p,50%),#2A2D35 var(--p,50%),#2A2D35 100%)}
+input.wheel-slider::-webkit-slider-thumb {-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45);cursor:pointer}
+input.wheel-slider::-moz-range-track {height:6px;border-radius:3px;background:#2A2D35}
+input.wheel-slider::-moz-range-progress {height:6px;border-radius:3px;background:#16A34A}
+input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45)}

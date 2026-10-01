@@ -8,7 +8,8 @@
 window.TrainerClient = (function () {
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const DAY = 864e5;
-  const on = () => !!(window.FirebaseSync && FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached()) && !window.__coachMode;
+  const coach = () => !!window.__coachMode;
+  const on = () => coach() || !!(window.FirebaseSync && FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached());
 
   /* ── Галочка «Сделал» ── */
   function doneBtn(day, plan, w, d) {
@@ -16,12 +17,12 @@ window.TrainerClient = (function () {
     const dt = window.TrainingAI ? TrainingAI.planDayDate(plan, day.date) : null; if (!dt) return '';
     const t0 = new Date(); t0.setHours(0, 0, 0, 0); if (dt > t0) return '';
     const dn = day.done;
-    return `<button class="tr-day-done${dn ? ' on' : ''}" data-done="${w}:${d}" title="${dn ? (dn.by === 'coach' ? 'Отметил тренер' : 'Сделано') + '. Нажми, чтобы снять' : 'Отметить: тренировка сделана'}"><i class="ti ti-${dn ? 'circle-check-filled' : 'circle-check'}"></i>${dn ? '<span>' + (dn.by === 'coach' ? 'тренер' : 'сделал') + '</span>' : ''}</button>`;
+    return `<button class="tr-day-done${dn ? ' on' : ''}" data-done="${w}:${d}" title="${dn ? (dn.by === 'coach' ? 'Отметил тренер' : 'Сделано') + '. Нажми, чтобы снять' : 'Отметить: тренировка сделана'}"><i class="ti ti-${dn ? 'circle-check-filled' : 'circle-check'}"></i>${dn ? '<span>' + (dn.by === 'coach' ? (coach() ? 'провёл' : 'тренер') : 'сделал') + '</span>' : ''}</button>`;
   }
 
   /* ── Итоги недели от тренера ── */
   function weeklyHtml() {
-    if (!on()) return '';
+    if (!on() || coach()) return '';
     const cw = (Store.get().training || {}).coachWeekly;
     if (!cw || !cw.at || Date.now() - cw.at > 10 * DAY) return '';
     let seen = null; try { seen = localStorage.getItem('you_cw_seen'); } catch (e) {}
@@ -42,7 +43,7 @@ window.TrainerClient = (function () {
       e.stopPropagation();
       const [w, d] = b.dataset.done.split(':').map(Number);
       const day = plan.weeks[w].days[d], idx = trGetPlans().findIndex(p => p.id === plan.id);
-      const v = day.done ? null : { by: 'client', at: Date.now() };
+      const v = day.done ? null : { by: coach() ? 'coach' : 'client', at: Date.now() };
       if (v) day.done = v; else delete day.done;
       Store.set('training.plans.' + idx + '.weeks.' + w + '.days.' + d + '.done', v);
       rerender && rerender();

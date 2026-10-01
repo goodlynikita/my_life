@@ -901,9 +901,12 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
       </div>`;
   }).join('');
 
+  /* в кабинете тренера кнопка заметки пишет заметку тренера, а заметка клиента подписана */
+  const coachMode = !!window.__coachMode;
   const comment = day.comment || '';
+  const myNote = coachMode ? (day.coachNote || '') : comment;
   const commentHtml = (comment
-    ? `<div class="tr-day-comment"><i class="ti ti-message-circle" style="font-size:12px;"></i> ${comment}</div>`
+    ? `<div class="tr-day-comment"><i class="ti ti-message-circle" style="font-size:12px;"></i> ${coachMode ? '<b>Клиент:</b> ' + String(comment).replace(/[<>&]/g, '') : comment}</div>`
     : '') + (day.coachNote
     ? `<div class="tr-day-coachnote"><i class="ti ti-user-star"></i><span><b>Тренер:</b> ${String(day.coachNote).replace(/[<>&]/g, '')}</span></div>`
     : '');
@@ -916,7 +919,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
         ${!hasAnySession ? `<span class="tr-day-tag">не задано</span>` : ''}
         <span style="display:flex; gap:4px; margin-left:auto; align-items:center;">
           ${window.TrainerClient ? TrainerClient.doneBtn(day, plan, weekIndex, dayIdx) : ''}
-          <button class="tr-day-comment-btn" data-week="${weekIndex}" data-day="${dayIdx}" title="${comment ? 'Изменить заметку' : 'Добавить заметку'}" style="background:none; border:none; cursor:pointer; color:${comment ? '#2E7FD4' : '#555'}; padding:2px 4px;"><i class="ti ti-message-circle"></i></button>
+          <button class="tr-day-comment-btn" data-week="${weekIndex}" data-day="${dayIdx}" title="${myNote ? 'Изменить заметку' : (coachMode ? 'Заметка тренера (клиент её увидит)' : 'Добавить заметку')}" style="background:none; border:none; cursor:pointer; color:${myNote ? '#2E7FD4' : '#555'}; padding:2px 4px;"><i class="ti ti-message-circle"></i></button>
           <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
         </span>
       </div>
@@ -1128,7 +1131,7 @@ function trDropdown(sel) {
 }
 (function trChipWatch() {
   if (window.__trChipObs) return;
-  const ok = (ov) => /training/.test(location.hash) && !/modal-(finance|habits|goals)|fin-/.test(ov.className || '');
+  const ok = (ov) => (/training/.test(location.hash) || (window.__coachMode && document.querySelector('.coach-tr'))) && !/modal-(finance|habits|goals)|fin-/.test(ov.className || '');
   window.__trChipObs = new MutationObserver((muts) => {
     for (const m of muts) for (const n of m.addedNodes) {
       if (n.nodeType !== 1) continue;
@@ -1144,7 +1147,7 @@ function trBuildExerciseSelect(selectedGroups) {
   const list = trExercisesForGroups(selectedGroups);
   const customOption = `<option value="__custom__">Своё название…</option>`;
   if (list.length === 0) {
-    return `<select id="m-name"><option value="">Выбери группу мышц</option>${customOption}</select>`;
+    return `<select id="m-name" class="tr-color-select"><option value="">Выбери группу мышц</option>${customOption}</select>`;
   }
   const options = list.map(name => `<option value="${name}">${name}</option>`).join('');
   return `<select id="m-name" class="tr-color-select">${options}${customOption}</select>`;
@@ -1683,6 +1686,8 @@ window.Screens.training = function (mount) {
       weekStart.setHours(0, 0, 0, 0);
       if (today >= weekStart && today <= weekEnd) return i;
     }
+    /* у недели нет диапазона дат: считаем по дате начала плана */
+    try { if (window.TrainingAI && TrainingAI.currentWeekIdx) { const k = TrainingAI.currentWeekIdx(plan); if (k >= 0 && k < plan.weeks.length) return k; } } catch (e) {}
     return -1; /* не найдена */
   }
 
@@ -1769,6 +1774,15 @@ window.Screens.training = function (mount) {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10), d = parseInt(btn.dataset.day, 10);
         const day = plan.weeks[w].days[d];
+        if (window.__coachMode) {
+          const v = prompt('Заметка тренера на этот день (клиент её увидит):', day.coachNote || '');
+          if (v === null) return;
+          day.coachNote = v.trim() || null;
+          const pi = trGetPlans().findIndex(p => p.id === plan.id);
+          Store.set('training.plans.' + pi + '.weeks.' + w + '.days.' + d + '.coachNote', day.coachNote);
+          renderTab('plan');
+          return;
+        }
         const current = day.comment || '';
         const newComment = prompt('Заметка к дню (оставь пустым чтобы удалить):', current);
         if (newComment === null) return;
@@ -2052,7 +2066,7 @@ window.Screens.training = function (mount) {
             <div style="font-size:18px;font-weight:800;color:#E8E5DC;margin-bottom:8px;">Начни свой первый план</div>
             <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Появится сетка на 8 недель. Заполни её сам или попроси AI.</div>
           </div>
-          <div style="margin-bottom:22px;">          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
+          <div style="margin-bottom:22px;">          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#2C4FA8,#3A62C9);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
           <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:13px;background:none;border:1px solid rgba(96,165,250,0.35);border-radius:12px;color:#93C5FD;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Заполнить вручную</button></div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -2485,7 +2499,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
   if (names.length === 0) {
     return `<div>
       <div style="padding:8px 16px 4px;display:flex;justify-content:flex-end;">
-        <button id="tr-edit-exercises-ww" style="font-size:11px;color:#9D9A92;background:none;border:1px solid #2A2D35;border-radius:6px;padding:4px 10px;cursor:pointer;">⚙ Редактор упражнений</button>
+        <button id="tr-edit-exercises-ww" class="tr-rm-open"><i class="ti ti-adjustments-horizontal"></i> Упражнения</button>
       </div>
       <div class="tr-empty-state"><i class="ti ti-weight"></i>Рабочий вес появится здесь после первой записи в зале.</div>
     </div>`;
@@ -2539,7 +2553,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
 
   return baseSelector + `<div>
     <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-      <button id="tr-edit-exercises-ww" style="font-size:11px; color:#9D9A92; background:none; border:1px solid #2A2D35; border-radius:6px; padding:4px 10px; cursor:pointer;">⚙ Редактор упражнений</button>
+      <button id="tr-edit-exercises-ww" class="tr-rm-open"><i class="ti ti-adjustments-horizontal"></i> Упражнения</button>
     </div>
     <div class="tr-ww-wrap">${rows || '<div class="tr-empty-state">Нет данных</div>'}</div>
   </div>`;

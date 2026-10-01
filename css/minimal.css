@@ -11,33 +11,34 @@
 }
 
 /* ── Вкладки на всю ширину с подсветкой ── */
-.hab-tabs, .goals-season-tabs, .tr-tabs {
+.hab-tabs, .goals-season-tabs {
   display: flex !important; padding: 0 !important; gap: 0 !important;
   border-bottom: 1px solid rgba(255,255,255,0.07) !important;
 }
-.hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tr-tabs .tr-tab {
+.hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab {
   flex: 1 1 0 !important; position: relative; padding: 14px 6px !important; min-height: 48px;
   background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important;
   font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0; white-space: nowrap;
   color: rgba(255,255,255,0.45) !important; transition: color .2s, background .25s;
 }
-.hab-screen .hab-tabs .hab-tab:hover, .goals-season-tabs .goals-season-tab:hover, .tr-tabs .tr-tab:hover { color: rgba(255,255,255,0.75) !important; }
-.hab-screen .hab-tabs .hab-tab::after, .goals-season-tabs .goals-season-tab::after, .tr-tabs .tr-tab::after {
+.hab-screen .hab-tabs .hab-tab:hover, .goals-season-tabs .goals-season-tab:hover { color: rgba(255,255,255,0.75) !important; }
+.hab-screen .hab-tabs .hab-tab::after, .goals-season-tabs .goals-season-tab::after {
   content: '' !important; display: block !important; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
   border-radius: 3px 3px 0 0; background: var(--tab-c); transform: scaleX(0); transition: transform .3s cubic-bezier(.22,1,.36,1);
 }
-.hab-screen .hab-tabs .hab-tab.active, .goals-season-tabs .goals-season-tab.active, .tr-tabs .tr-tab.active {
+.hab-screen .hab-tabs .hab-tab.active, .goals-season-tabs .goals-season-tab.active {
   color: var(--tab-c) !important; font-weight: 800 !important; border-bottom: none !important;
   background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--tab-c) 12%, transparent) 100%) !important;
 }
-.hab-screen .hab-tabs .hab-tab.active::after, .goals-season-tabs .goals-season-tab.active::after, .tr-tabs .tr-tab.active::after { transform: scaleX(1); }
+.hab-screen .hab-tabs .hab-tab.active::after, .goals-season-tabs .goals-season-tab.active::after { transform: scaleX(1); }
 .hab-screen .hab-tabs { --tab-c: #8FD17F; background: #121B15 !important; }
-.tr-tabs { --tab-c: #6E94FF; }
-.tr-tabs .tr-tab.tr-tab-ai { color: #A5B4FF !important; }
-.tr-tabs .tr-tab.tr-tab-ai.active { --tab-c: #A5B4FF; }
+
+
+
 .goals-season-tabs .goals-season-tab { --tab-c: var(--season-color, #F2A93B); }
 @media (max-width: 480px) {
-  .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tr-tabs .tr-tab { font-size: 12.5px !important; padding: 13px 2px !important; }
+  
+.hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab { font-size: 12.5px !important; padding: 13px 2px !important; }
 }
 
 /* ════════════════ ПРИВЫЧКИ ════════════════ */
@@ -69,8 +70,10 @@
   white-space: normal !important; word-break: normal !important; overflow-wrap: normal !important; hyphens: auto; line-height: 1.2 !important; }
 .hab-dark .sec-metric-value.accent { font-size: clamp(22px, 6vw, 30px) !important; color: #8FD17F !important; text-shadow: 0 0 24px rgba(143,209,127,0.35); }
 @media (max-width: 440px) {
-  .hab-dark .sec-metric { padding: 12px 8px !important; }
-  .hab-dark .sec-metric-value:not(.accent) { font-size: 12px !important; }
+  
+.hab-dark .sec-metric { padding: 12px 8px !important; }
+  
+.hab-dark .sec-metric-value:not(.accent) { font-size: 12px !important; }
 }
 
 /* Таблица месяца */
@@ -103,7 +106,9 @@
 .hh-bar span { display: block; height: 100%; border-radius: 6px; }
 .hh-pct { font-size: 13px; font-weight: 700; }
 .hh-done { font-size: 13px; color: var(--mn-soft); }
-@media (max-width: 480px) { .hh-row { grid-template-columns: minmax(110px, 1.3fr) minmax(50px, 1fr) 44px 28px; gap: 10px; } .hh-name { font-size: 12.5px; } }
+@media (max-width: 480px) { 
+.hh-row { grid-template-columns: minmax(110px, 1.3fr) minmax(50px, 1fr) 44px 28px; gap: 10px; } 
+.hh-name { font-size: 12.5px; } }
 
 /* Колесо */
 .hab-dark .wheel-current-card, .hab-dark .wheel-history { background: rgba(22,33,26,0.94) !important; border: 1px solid rgba(255,255,255,0.06) !important; border-radius: 22px !important; }
@@ -112,8 +117,7 @@
 .hab-dark .wheel-fill-btn { border: none !important; background: rgba(124,196,110,0.16) !important; color: #8FD17F !important; }
 
 /* Светлая тема: выполненные дни и отметки остаются светло-зелёными */
-html[data-theme="light"] .hab-dark .hab-cell.done,
-html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180deg); }
+html[data-theme="light"] .hab-dark .hab-cell.done, html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180deg); }
 
 /* ════════════════ ЦЕЛИ: фон в цвет выбранного сезона, спокойно и ненавязчиво ════════════════ */
 .goals-screen { --sc: #E8C15A; }
@@ -134,39 +138,37 @@ html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180
 #goals-new { background: var(--sc) !important; box-shadow: 0 8px 22px color-mix(in srgb, var(--sc) 35%, transparent) !important; }
 
 /* ════════════════ ТРЕНИРОВКИ: синий графит (родной), чуть насыщеннее ════════════════ */
-.tr-tabs { background: #0F1524 !important; }
+
 
 /* ════════════════ ТРЕНИРОВКИ v102: мягкие карточки, синий графит вместо серого ════════════════ */
-.theme-dark:has(> .tr-header) { background: #0E1320 !important; }
-.tr-tabs { background: #111829 !important; }
-.tr-body { padding-top: 10px !important; }
-.theme-dark .tr-week-head { padding: 12px 6px !important; }
-.theme-dark .tr-week-label { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -.01em !important; text-transform: none !important; color: #fff !important; }
-.theme-dark .tr-week-range { font-size: 13px !important; color: #6F7C9E !important; }
-.theme-dark .tr-day { background: #161D2E !important; border: 1px solid rgba(110,139,255,0.08) !important; border-radius: 22px !important; box-shadow: none !important; padding: 16px 18px !important; margin-bottom: 10px !important; }
-.theme-dark .tr-day.tr-day-today { border-color: rgba(74,124,255,0.75) !important; box-shadow: 0 0 0 1px rgba(74,124,255,0.35), 0 10px 30px rgba(74,124,255,0.12) !important;
-  background: linear-gradient(180deg, rgba(74,124,255,0.10), transparent 140px), #161D2E !important; }
-.theme-dark .tr-day-head { border: none !important; }
-.theme-dark .tr-day-date { font-size: 15px !important; font-weight: 700 !important; }
-.theme-dark .tr-today-badge { border: none !important; background: #4A7CFF !important; color: #fff !important; }
-.theme-dark .tr-session { border: none !important; border-top: 1px solid rgba(110,139,255,0.10) !important; }
-.theme-dark .tr-day-head + .tr-session, .theme-dark .tr-day > .tr-session:first-of-type { border-top-color: rgba(110,139,255,0.10) !important; }
-.theme-dark .tr-day-tag { border: none !important; border-radius: 999px !important; padding: 4px 10px !important; font-size: 12px !important; font-weight: 600 !important; }
-.theme-dark .tr-day-tag:not(.has-session) { background: #1F2840 !important; color: #8F9BBE !important; }
-.theme-dark .tr-day-add, .theme-dark .tr-day-comment-btn { border: none !important; background: #1F2840 !important; border-radius: 50% !important; width: 32px !important; height: 32px !important; color: #9AA6C8 !important;
-  display: inline-flex !important; align-items: center; justify-content: center; }
-.theme-dark .tr-day-add:hover, .theme-dark .tr-day-comment-btn:hover { background: #2A3656 !important; color: #fff !important; }
-.theme-dark .tr-session-move { color: #9AA6C8 !important; }
-.theme-dark .tr-ex-name { font-size: 15px !important; font-weight: 600 !important; }
-.theme-dark .tr-ex-meta { color: #6F7C9E !important; font-weight: 500 !important; }
-.theme-dark .tr-progress-bar-track { background: #1F2840 !important; height: 4px !important; border-radius: 4px !important; }
-.theme-dark .tr-drag-handle { color: #34405E !important; }
-.theme-dark .tr-exercise-wrap { border-radius: 14px; }
-.theme-dark .tr-exercise-wrap:hover { background: rgba(110,139,255,0.04); }
-.theme-dark .tr-ww-table { border-radius: 18px !important; overflow: hidden; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Вкладка «Питание» пока скрыта */
-.tr-tabs .tr-tab[data-tab="nutrition"] { display: none !important; }
+
 
 
 /* ═══ v109: аккуратные блоки внутри карточек (пастельно, в цвет раздела) ═══ */
@@ -182,8 +184,10 @@ html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180
 .goals-screen 
 .goals-screen .goals-sstat-val { font-size: 16px !important; font-weight: 800 !important; line-height: 1.15; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 440px) {
-  .goals-screen .goals-season-stat { padding: 9px 10px !important; }
-  .goals-screen .goals-sstat-val { font-size: 14px !important; }
+  
+.goals-screen .goals-season-stat { padding: 9px 10px !important; }
+  
+.goals-screen .goals-sstat-val { font-size: 14px !important; }
 }
 /* Привычки: блоки итога месяца — пастельно-зелёные */
 .hab-dark .sec-metric { background: rgba(143,209,127,0.08) !important; border: 1px solid rgba(143,209,127,0.14) !important; }
@@ -196,9 +200,9 @@ html[data-theme="light"] .goals-check-v3.done { filter: invert(1) hue-rotate(180
 
 /* ═══ v110 ═══ */
 /* 1ПМ: понятное описание */
-.tr-1rm-what { font-family: inherit !important; font-size: 13px !important; line-height: 1.5 !important; color: #A9B3CE !important; max-width: 420px; margin: 8px auto 0 !important; letter-spacing: 0 !important; }
-.tr-1rm-what b { color: #fff; }
-.tr-1rm-formula { font-size: 11px !important; margin-top: 8px !important; opacity: .7; }
+
+
+
 
 /* Привычки: обводка «сегодня» внутрь, клетки не наезжают */
 .hab-dark .hab-cell.hab-today { box-shadow: inset 0 0 0 2px #8FD17F !important; }

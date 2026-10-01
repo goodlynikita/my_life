@@ -84,7 +84,7 @@ window.WinterArc = (function () {
 
   function start(sw) {
     if (busy) return; busy = true;
-    const setSw = (m) => sw.querySelectorAll('.ds-b').forEach(b => b.classList.toggle('on', b.dataset.ds === m));
+    const setSw = (m) => sw && sw.querySelectorAll('.ds-b').forEach(b => b.classList.toggle('on', b.dataset.ds === m));
     setSw('wa');
 
     /* видео создаём прямо в нажатии: так браузер разрешит звук */
@@ -149,5 +149,5 @@ window.WinterArc = (function () {
     }
   }
 
-  return { html, bind };
+  return { html, bind, start: (sw) => start(sw || document.getElementById('ds-sw')) };
 })();

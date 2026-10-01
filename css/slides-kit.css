@@ -153,3 +153,6 @@ textarea.sf-in { resize: vertical; }
 /* одинаковая высота слайдера в YOU и в кабинете тренера */
 .hero-slider .hero-slide{min-height:192px}
 @media(min-width:769px){.hero-slider .hero-slide{min-height:212px}}
+
+/* «2/3»: дробь не налезает на крупную цифру */
+.hero-stat-of{margin-left:.08em;letter-spacing:0}

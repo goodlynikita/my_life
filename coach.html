@@ -26,7 +26,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0B0E17">
 <title>YOU · Кабинет тренера</title>
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -44,13 +44,14 @@
 <link rel="stylesheet" href="css/coach-home.css">
 <link rel="stylesheet" href="css/slides-kit.css">
 <link rel="stylesheet" href="css/winter-arc.css">
+<link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/training.css">
 <link rel="stylesheet" href="css/light.css">
 <link rel="stylesheet" href="css/tour.css">
 <style>
 :root{--bg:#0B0E17;--panel:#111624;--card:#161D2E;--raised:#1F2840;--line:rgba(110,139,255,.12);--line2:rgba(110,139,255,.22);
   --txt:#F2F4F8;--soft:#A0A9C4;--faint:#6F7C9E;--acc:#4A7CFF;--acc2:#8B5CF6;--ok:#4ADE80;--warn:#FBBF24;--bad:#F87171}
-*{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Montserrat,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box} html,body{overflow-x:clip;margin:0;background:var(--bg);color:var(--txt);font-family:Montserrat,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font-family:inherit}
 .hidden{display:none!important}
 body{background:radial-gradient(700px 400px at 90% -10%,rgba(74,124,255,.16),transparent 65%),radial-gradient(600px 400px at -10% 30%,rgba(139,92,246,.10),transparent 65%),var(--bg);background-attachment:fixed;min-height:100vh}
@@ -250,10 +251,10 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(245,15
 /* v140: шапки как в YOU. Главная: конверт слева, справа тема и меню. Разделы: цветная шапка */
 #hdr-home .hdr-in{max-width:none;padding:max(16px,calc(env(safe-area-inset-top) + 8px)) 20px 16px;gap:10px}
 #hdr-home{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;position:relative}
-.hdr-in .fb-envelope{width:44px;height:40px}
+.hdr-in .fb-envelope{width:40px;height:40px;border-radius:14px}
 .hadd{height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:20px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#E8E5DC;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .hadd i{font-size:18px;color:#F2A93B}
-.hdots{position:relative;width:48px;height:40px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0;flex-shrink:0;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 6px 18px rgba(0,0,0,.35)}
+.hdots{position:relative;width:40px;height:40px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0;flex-shrink:0;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 6px 18px rgba(0,0,0,.35)}
 .hdots span{width:5px;height:5px;border-radius:50%;background:#F2F4F8;box-shadow:0 0 6px rgba(255,255,255,.45)}
 html[data-theme="light"] .hdots,html[data-theme="light"] .hadd{box-shadow:none}
 @media (max-width:440px){#hdr-home .hdr-in{gap:8px}.hadd{padding:0 10px}}
@@ -284,7 +285,7 @@ html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893
 .sc-empty{padding:22px 0;text-align:center;color:var(--faint);font-size:13px}
 .sc-add{width:100%}
 .sc-lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:2px 0 6px}
-.sc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px} .sc-row label{min-width:0}
+.sc-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px} .sc-row label{min-width:0;display:block} .sc-row .field{display:block;width:100%;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;line-height:46px;text-align:left}
 .sc-opt{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:14px;color:var(--txt,#E8E5DC);cursor:pointer} .sc-opt input{width:18px;height:18px;flex-shrink:0;margin:0;accent-color:var(--acc2,#4A7CFF)}
 .sc-msub{margin:-6px 0 12px;font-size:13px;color:var(--faint)}
 html[data-theme="light"] .sc-d.on,html[data-theme="light"] .sc-d.on b{color:#fff}
@@ -294,7 +295,7 @@ html[data-theme="light"] .sc-d.on,html[data-theme="light"] .sc-d.on b{color:#fff
 .c-home .hero-slider{margin:0 16px 16px}
 .c-home .hub-attn{width:auto;margin:0 16px 12px}
 .c-home .home2-grid{gap:12px;padding:0 16px!important;margin:0!important}
-.hero-slide-main .hero-big-text.num{font-size:44px;letter-spacing:-1.5px;line-height:1} .hero-slide-main .hero-big-text.num .hero-stat-of{font-size:24px}
+.hero-slide-main .hero-big-text.num{font-size:44px;letter-spacing:-.5px;line-height:1} .hero-slide-main .hero-big-text.num .hero-stat-of{font-size:24px;margin-left:3px;letter-spacing:0}
 @media(max-width:480px){.hero-slide-main .hero-big-text.num{font-size:38px}}
 html[data-theme="light"] .theme-toggle .tt-knob{background:rgba(0,0,0,.92);border-color:rgba(0,0,0,.4);box-shadow:0 2px 6px rgba(255,255,255,.25)}
 .hero-slide-main .hero-sub-text{font-size:12px;margin-top:4px}
@@ -534,7 +535,7 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .cd-ms span{display:block;font-size:11px;color:var(--soft)} .cd-ms b{font-size:14px} .cd-ms em{font-style:normal;font-size:11px;color:var(--soft);font-weight:600}
 .cd-grew{display:flex;flex-direction:column;gap:4px;margin:12px 0 4px} .cd-grew div{display:flex;gap:7px;align-items:center;font-size:12.5px;color:#BBF7D0} .cd-grew i{color:var(--ok)}
 .cd-grew.lag div{color:#FDE68A} .cd-grew.lag i{color:var(--warn)}
-#cw-card textarea{margin-top:10px;min-height:90px}
+#cw-card textarea{margin-top:10px;min-height:90px;width:calc(100% - 32px);display:block}
 /* v147: демо */
 .demo-bar{display:flex;align-items:center;gap:10px;margin:0 16px 12px;padding:10px 12px 10px 14px;border-radius:16px;border:1px dashed rgba(160,170,210,.3);background:rgba(160,170,210,.06);font-size:13px;color:var(--soft)}
 .demo-bar.in{margin:0 0 12px}
@@ -574,6 +575,10 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,15
 .qr-ov{align-items:center}.qr-big{background:#fff;color:#0B0D12;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:380px}
 .qr-big b{font-size:18px;font-weight:900}.qr-big span{font-size:13px;color:#4B5263}.qr-big em{font-style:normal;font-weight:800;letter-spacing:.12em;font-size:13px;color:#4A7CFF}
 @media(max-width:420px){.qr{width:110px;height:110px}}
+/* план клиента = экран тренировок из YOU */
+.coach-tr .tr-header,.coach-tr .tr-tabs,.coach-tr .tr-plan-bar{display:none!important}
+.coach-tr .theme-dark{background:none}
+.coach-tr .tr-body{padding:0}
 </style>
 </head>
 <body>
@@ -669,26 +674,18 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,15
 <script>
 /* ── Мини-хранилище под выбранного клиента (для AI и разбора из приложения) ── */
 window.__coachMode = true;
-const DOW_NAMES = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
-function trMigrateDayToSessions(day) {
-  if (!day) return day;
-  if (day.sessions) {
-    day.sessions = Array.isArray(day.sessions) ? day.sessions : Object.values(day.sessions);
-    day.sessions.forEach(s => { if (!s || typeof s !== 'object') return;
-      s.exercises = Array.isArray(s.exercises) ? s.exercises : (s.exercises ? Object.values(s.exercises) : []);
-      s.groups = Array.isArray(s.groups) ? s.groups : (s.groups ? Object.values(s.groups) : []); });
-    return day;
-  }
-  day.sessions = day.type ? [{ type: day.type, groups: day.groups || [], exercises: day.exercises || [] }] : [];
-  delete day.type; delete day.groups; delete day.exercises; return day;
-}
 window.CoachStore = { cur: null, onSet: null };
 window.Store = {
   get() { const c = CoachStore.cur; if (!c) return { training: {} }; return { training: Object.assign({}, c.training, { ai: c.tai.ai || null, aiPrefs: c.tai.aiPrefs || {}, aiSources: c.tai.aiSources || [] }) }; },
   set(path, val) { if (CoachStore.onSet) CoachStore.onSet(path, val); },
   replaceAll() {},
 };
+/* тот же экран «Тренировки», что и в YOU: тренер работает с планом клиента */
+window.Auth = window.Auth || { role: () => 'coach', logout: () => Promise.resolve() };
+window.Router = window.Router || { go() {} };
 </script>
+<script src="js/screens/training.js"></script>
+<script src="js/trainer-client.js"></script>
 <script src="js/screens/training-ai.js"></script>
 <script src="js/screens/training-insights.js"></script>
 <script src="js/body-progress.js"></script>
@@ -780,6 +777,7 @@ $('#menu').onclick = () => {
     <button data-m="tiles" ${R}><i class="ti ti-layout-grid" ${I}></i>Настройка плиток</button>
     <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
     <a href="index.html" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-apps" style="font-size:18px;color:#8EA8FF;"></i>Приложение YOU</a>
+    <button data-m="wa" ${R}><i class="ti ti-snowflake" ${I}></i>Дизайн Winter Arc</button>
     <button data-m="help" ${R}><i class="ti ti-help-circle" ${I}></i>Подсказки по кабинету</button>
     <button data-m="out" ${R.replace('color:#E8E5DC', 'color:#F87171')}><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button></div>`;
   document.body.appendChild(ov);
@@ -789,6 +787,7 @@ $('#menu').onclick = () => {
   ov.querySelector('[data-m="tiles"]').onclick = go(openTilesEditor);
   ov.querySelector('[data-m="slider"]').onclick = go(openSliderSettings);
   ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
+  ov.querySelector('[data-m="wa"]').onclick = () => { ov.remove(); if (window.WinterArc && WinterArc.start) WinterArc.start(); };
   ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
 };
 $('#hadd').onclick = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
@@ -1755,6 +1754,10 @@ async function openClient(i, tab) {
   if (!c.demo) try { const s = await get(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k)); tai = s.exists() ? s.val() : {}; } catch (e) {}
   CoachStore.cur = { k: c.k, training: c.training, tai };
   CoachStore.onSet = (path, val) => {
+    if (planSetPath(c, path, val)) {
+      if (!_planSaveQ) _planSaveQ = Promise.resolve().then(async () => { _planSaveQ = null; await savePlans(c, plansOf(c)); CoachStore.cur.training = c.training; });
+      return;
+    }
     const m = path.match(/^training\.(ai|aiPrefs|aiSources)$/);
     if (m) { CoachStore.cur.tai[m[1]] = val; if (!c.demo) set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
   };
@@ -1885,101 +1888,40 @@ function renderNote(c, body) {
 }
 
 /* ── План клиента: просмотр и правка ── */
-const TYPES = ['Тренажерный зал', 'Кардио', 'Бег', 'Шаги', 'Теннис', 'Растяжка', 'Отдых'];
-const GROUPS = ['Грудь', 'Спина', 'Ноги', 'Плечи', 'Руки', 'Кор', 'FULL BODY'];
+/* План клиента: тот же экран, что у клиента в YOU (js/screens/training.js),
+   только данные берутся и сохраняются у клиента */
+let _planSaveQ = null;
+function planSetPath(c, path, val) {
+  const parts = path.split('.'); if (parts[0] !== 'training' || parts[1] !== 'plans') return false;
+  let o = c.training;
+  for (let i = 1; i < parts.length - 1; i++) { const k = parts[i]; if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }
+  const last = parts[parts.length - 1];
+  if (val === null || val === undefined) { if (Array.isArray(o)) o[last] = null; else delete o[last]; } else o[last] = val;
+  return true;
+}
 function renderPlan(c, body) {
-  const ps = plansOf(c); const p = activePlan(c);
+  const p = activePlan(c);
   if (!p) {
     body.innerHTML = `<div class="empty"><i class="ti ti-calendar-plus"></i>У клиента пока нет плана.<br><button class="btn btn-main" id="np" style="margin-top:14px"><i class="ti ti-plus"></i> Создать план</button></div>`;
     $('#np').onclick = () => planModal(c); return;
   }
-  const A = window.TrainingAI; const t0 = new Date(); t0.setHours(0, 0, 0, 0);
-  const cw = Math.max(0, Math.min(toArr(p.weeks).length - 1, A.currentWeekIdx(p)));
-  const openW = view.open != null ? view.open : cw;
+  /* приводим данные к виду, который ждёт экран тренировок */
+  c.training.plans = plansOf(c);
+  c.training.plans.forEach(pp => { pp.weeks = toArr(pp.weeks); pp.weeks.forEach(w => { if (!w) return; w.days = toArr(w.days); w.days.forEach(d => d && trMigrateDayToSessions(d)); }); });
+  CoachStore.cur.training = c.training;
+  try { sessionStorage.removeItem('nik_tr_undo_stack'); } catch (e) {}
+  body.className = 'coach-tr';
   body.innerHTML = `
     <div class="pl-top"><b style="flex:1">План №${esc(p.number || '')}${p.tpl ? `<small class="faint" style="display:block;font-weight:600;font-size:12px">по шаблону «${esc(p.tpl)}»</small>` : ''}</b>
       <button class="btn btn-ghost btn-sm" id="st" title="Сохранить как шаблон"><i class="ti ti-template"></i> В шаблоны</button>
       <button class="btn btn-ghost btn-sm" id="np"><i class="ti ti-plus"></i> Новый</button></div>
-    ${toArr(p.weeks).map((w, wi) => `
-      <div class="wk${wi === openW ? ' open' : ''}" data-w="${wi}">
-        <div class="wk-h"><div><i class="ti ti-chevron-right"></i> Неделя ${wi + 1}</div><span>${esc(w.range || '')}</span></div>
-        <div class="wk-b">${toArr(w.days).map((d, di) => { trMigrateDayToSessions(d);
-          const dt = A.planDayDate(p, d.date); const isT = dt && +dt === +t0; const past = dt && dt < t0;
-          const ss = toArr(d.sessions).filter(Boolean);
-          return `<div class="dy${isT ? ' today' : ''}">
-            <div class="dy-h"><b>${esc(d.date)} ${esc(d.dow)}</b>${isT ? '<span class="today-b">сегодня</span>' : ''}<span class="sp"></span>
-              ${(past || isT) && ss.some(s => s.type !== 'Отдых' && s.type !== 'Шаги') ? `<button class="dn${d.done ? ' on' : ''}" data-act="done" data-w="${wi}" data-d="${di}" title="${d.done ? 'Снять отметку' : 'Отметить: тренировка проведена'}"><i class="ti ti-${d.done ? 'circle-check-filled' : 'circle-check'}"></i>${d.done ? (d.done.by === 'coach' ? 'провёл' : 'сделал') : 'отметить'}</button>` : ''}
-              <button class="mini" data-act="note" data-w="${wi}" data-d="${di}" title="Заметка тренера"><i class="ti ti-message-2"></i></button>
-              <button class="mini" data-act="sess" data-w="${wi}" data-d="${di}" title="Добавить тренировку"><i class="ti ti-plus"></i></button></div>
-            ${d.coachNote ? `<div class="cnote"><i class="ti ti-user-star"></i><span>${esc(d.coachNote)}</span></div>` : ''}
-            ${d.comment ? `<div class="cnote cnote-c"><i class="ti ti-message-circle"></i><span>Клиент: ${esc(d.comment)}</span></div>` : ''}
-            ${ss.map((s, si) => `<div class="ss">
-              <div class="ss-h"><span class="pill">${esc(s.type || '')}</span>${toArr(s.groups).map(g => `<span class="pill">${esc(g)}</span>`).join('')}${s.ai ? '<span class="pill" style="color:#A5B4FF">AI</span>' : ''}
-                <span style="flex:1"></span><button class="mini" data-act="dels" data-w="${wi}" data-d="${di}" data-s="${si}" title="Удалить тренировку"><i class="ti ti-trash"></i></button></div>
-              ${toArr(s.exercises).filter(Boolean).map((e, ei) => `<div class="ex" data-w="${wi}" data-d="${di}" data-s="${si}" data-e="${ei}">
-                <div class="ex-n">${esc(e.name || '')}${e.kind && e.kind !== 'strength' ? `<small>${esc(e.kind)}</small>` : ''}</div>
-                <div class="ex-v${past && (d.done || !s.byCoach) ? ' done' : ''}">${e.kind === 'strength' || !e.kind ? `${e.sets || 0}×${e.reps || 0}${e.weight ? ' × ' + String(e.weight).replace('.', ',') + ' кг' : ''}` : esc(e.steps ? e.steps + ' шагов' : e.distance ? e.distance + ' км' : e.duration ? e.duration + ' мин' : '')}</div></div>`).join('')}
-              ${s.type !== 'Отдых' ? `<button class="add-ex" data-act="addex" data-w="${wi}" data-d="${di}" data-s="${si}">+ упражнение</button>` : ''}
-            </div>`).join('')}
-          </div>`; }).join('')}</div>
-      </div>`).join('')}`;
-  body.querySelectorAll('.wk-h').forEach(el => el.onclick = () => { const w = +el.parentElement.dataset.w; view.open = view.open === w ? -1 : w; renderPlan(c, body); });
+    <div id="tr-mount"></div>`;
   body.querySelector('#np').onclick = () => planModal(c);
   body.querySelector('#st').onclick = () => saveTemplate(c);
+  window.Screens.training(body.querySelector('#tr-mount'));
   coachTips('plan');
-  const P = () => plansOf(c); const idx = () => P().indexOf(activePlan(c));
-  const day = (plans, w, d) => { const x = toArr(plans[idx()].weeks)[w]; x.days = toArr(x.days); trMigrateDayToSessions(x.days[d]); return x.days[d]; };
-  body.querySelectorAll('[data-act]').forEach(b => b.onclick = async (ev) => {
-    ev.stopPropagation();
-    const w = +b.dataset.w, d = +b.dataset.d, plans = P(); plans[idx()].weeks = toArr(plans[idx()].weeks);
-    const dd = day(plans, w, d);
-    if (b.dataset.act === 'done') {
-      if (dd.done) delete dd.done; else dd.done = { by: 'coach', at: Date.now() };
-      await savePlans(c, plans); renderPlan(c, body); return;
-    }
-    if (b.dataset.act === 'note') {
-      const v = prompt('Заметка тренера на этот день (клиент её увидит)', dd.coachNote || ''); if (v === null) return;
-      dd.coachNote = v.trim() || null; await savePlans(c, plans); renderPlan(c, body); toast('Заметка сохранена');
-    } else if (b.dataset.act === 'sess') sessionModal(c, plans, dd, () => renderPlan(c, body));
-    else if (b.dataset.act === 'dels') { if (!confirm('Удалить эту тренировку у клиента?')) return; dd.sessions.splice(+b.dataset.s, 1); await savePlans(c, plans); renderPlan(c, body); }
-    else if (b.dataset.act === 'addex') exModal(c, plans, dd.sessions[+b.dataset.s], null, () => renderPlan(c, body));
-  });
-  body.querySelectorAll('.ex').forEach(el => el.onclick = () => {
-    const plans = P(); plans[idx()].weeks = toArr(plans[idx()].weeks);
-    const dd = day(plans, +el.dataset.w, +el.dataset.d); const s = dd.sessions[+el.dataset.s]; s.exercises = toArr(s.exercises);
-    exModal(c, plans, s, +el.dataset.e, () => renderPlan(c, body));
-  });
 }
 function sheet(html) { const ov = document.createElement('div'); ov.className = 'ov'; ov.innerHTML = `<div class="sheet">${html}</div>`; document.body.appendChild(ov); ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); }); return ov; }
-function sessionModal(c, plans, dd, done) {
-  let type = TYPES[0], groups = new Set();
-  const ov = sheet(`<h3>Новая тренировка</h3><div class="lbl">Тип</div><div class="chips" id="ty">${TYPES.map((t, i) => `<button class="chip${i ? '' : ' on'}" data-v="${t}">${t}</button>`).join('')}</div>
-    <div id="gr-w"><div class="lbl">Группы мышц</div><div class="chips" id="gr">${GROUPS.map(g => `<button class="chip" data-v="${g}">${g}</button>`).join('')}</div></div>
-    <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Добавить</button></div>`);
-  ov.querySelectorAll('#ty .chip').forEach(b => b.onclick = () => { type = b.dataset.v; ov.querySelectorAll('#ty .chip').forEach(x => x.classList.toggle('on', x === b)); ov.querySelector('#gr-w').style.display = type === 'Тренажерный зал' ? '' : 'none'; });
-  ov.querySelectorAll('#gr .chip').forEach(b => b.onclick = () => { b.classList.toggle('on'); groups.has(b.dataset.v) ? groups.delete(b.dataset.v) : groups.add(b.dataset.v); });
-  ov.querySelector('#x').onclick = () => ov.remove();
-  ov.querySelector('#ok').onclick = async () => { dd.sessions = toArr(dd.sessions); dd.sessions.push({ type, groups: [...groups], exercises: [], byCoach: true }); await savePlans(c, plans); ov.remove(); done(); toast('Тренировка добавлена'); };
-}
-function exModal(c, plans, s, ei, done) {
-  s.exercises = toArr(s.exercises); const e = ei != null ? s.exercises[ei] : { kind: 'strength', name: '', sets: 3, reps: 10, weight: 0 };
-  const strength = !e.kind || e.kind === 'strength';
-  const ov = sheet(`<h3>${ei != null ? 'Упражнение' : 'Новое упражнение'}</h3>
-    <div class="lbl">Название</div><input class="field" id="n" value="${esc(e.name || '')}" placeholder="Жим штанги лёжа">
-    ${strength ? `<div class="row3"><div><div class="lbl">Подходы</div><input class="field" id="s" type="number" inputmode="numeric" value="${e.sets || 0}"></div>
-      <div><div class="lbl">Повторы</div><input class="field" id="r" type="number" inputmode="numeric" value="${e.reps || 0}"></div>
-      <div><div class="lbl">Вес, кг</div><input class="field" id="w" type="number" inputmode="decimal" step="0.5" value="${e.weight || 0}"></div></div>` : '<p class="muted" style="font-size:12.5px">Это не силовое упражнение, можно поменять только название.</p>'}
-    <div class="acts">${ei != null ? '<button class="btn btn-bad" id="del">Удалить</button>' : '<button class="btn btn-ghost" id="x">Отмена</button>'}<button class="btn btn-main" id="ok">Сохранить</button></div>`);
-  const x = ov.querySelector('#x'); if (x) x.onclick = () => ov.remove();
-  const del = ov.querySelector('#del'); if (del) del.onclick = async () => { s.exercises.splice(ei, 1); await savePlans(c, plans); ov.remove(); done(); };
-  ov.querySelector('#ok').onclick = async () => {
-    const n = ov.querySelector('#n').value.trim(); if (!n) return;
-    const ne = { ...e, name: n };
-    if (strength) { ne.kind = 'strength'; ne.sets = +ov.querySelector('#s').value || 0; ne.reps = +ov.querySelector('#r').value || 0; ne.weight = +String(ov.querySelector('#w').value).replace(',', '.') || 0; }
-    if (ei != null) s.exercises[ei] = ne; else s.exercises.push(ne);
-    await savePlans(c, plans); ov.remove(); done(); toast('Сохранено');
-  };
-}
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 <script src="js/hi.js"></script>

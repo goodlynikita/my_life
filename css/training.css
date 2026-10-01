@@ -223,6 +223,8 @@
   gap: 4px;
 }
 
+.tr-hint:empty { display: none; }
+.tr-hint:has(.tr-prog-hint) { background: none; padding: 0; }
 .tr-hint {
   font-size: 11px;
   color: var(--tr-accent-bright);
@@ -460,9 +462,9 @@
 .tr-modal-btn-primary {
   background: var(--tr-accent);
   border: none;
-  color: #1A0700;
+  color: #fff;
 }
-.tr-modal-btn-primary:hover { background: #FF6A40; }
+.tr-modal-btn-primary:hover { filter: brightness(1.08); }
 
 .tr-modal-btn-secondary {
   background: none;
@@ -1917,3 +1919,116 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .ai-bar span{background:#3A62C9!important}
 
 .q-all.bad{border-color:rgba(227,139,131,.4);background:rgba(227,139,131,.1);color:#F0A49C}
+.tr-rm-open{white-space:nowrap}
+
+
+/* ═══ Вид плана тренировок. Раньше лежал в sections.css и minimal.css,
+   перенесён сюда, чтобы план в YOU и в кабинете тренера выглядел одинаково ═══ */
+/* ── из sections.css ── */
+.tr-modal-btn-primary, .tr-modal-btn-secondary {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.tr-modal-actions {
+  display: flex !important;
+  gap: 10px !important;
+}
+.tr-modal-btn-primary, .tr-modal-btn-secondary {
+  flex: 1 !important;
+  width: 100% !important;
+}
+.tr-header {
+  padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+}
+.tr-modal {
+  background: #1E2028 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #F0EDE5 !important;
+}
+.tr-modal-title { color: #F0EDE5 !important; }
+.tr-modal-row label { color: rgba(255,255,255,0.5) !important; font-size: 11px !important; }
+.tr-modal-row input, .tr-modal select {
+  background: #2A2D35 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #F0EDE5 !important;
+  border-radius: 10px !important;
+}
+.tr-modal-row input:focus { border-color: rgba(255,255,255,0.3) !important; outline: none !important; }
+.theme-dark .tr-modal-btn-primary { background: linear-gradient(135deg,#1E3A8A,#3B82F6) !important; color:#fff !important; border:none !important; }
+.theme-dark .tr-modal-btn-secondary { background: none !important; border:1px solid rgba(255,255,255,0.15) !important; color:rgba(255,255,255,0.6) !important; }
+.tr-tab {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 12px 4px !important;
+}
+.tr-header {
+  min-height: var(--hdr-h) !important;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: 14px !important;
+  box-sizing: border-box !important;
+}
+.tr-title {
+  margin: 0 !important;
+  font-size: 20px !important;
+  line-height: 32px !important;
+}
+
+/* ── из minimal.css ── */
+.tr-tabs {
+  display: flex !important; padding: 0 !important; gap: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+.tr-tabs .tr-tab {
+  flex: 1 1 0 !important; position: relative; padding: 14px 6px !important; min-height: 48px;
+  background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important;
+  font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0; white-space: nowrap;
+  color: rgba(255,255,255,0.45) !important; transition: color .2s, background .25s;
+}
+.tr-tabs .tr-tab:hover { color: rgba(255,255,255,0.75) !important; }
+.tr-tabs .tr-tab::after {
+  content: '' !important; display: block !important; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
+  border-radius: 3px 3px 0 0; background: var(--tab-c); transform: scaleX(0); transition: transform .3s cubic-bezier(.22,1,.36,1);
+}
+.tr-tabs .tr-tab.active {
+  color: var(--tab-c) !important; font-weight: 800 !important; border-bottom: none !important;
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--tab-c) 12%, transparent) 100%) !important;
+}
+.tr-tabs .tr-tab.active::after { transform: scaleX(1); }
+.tr-tabs { --tab-c: #6E94FF; }
+.tr-tabs .tr-tab.tr-tab-ai { color: #A5B4FF !important; }
+.tr-tabs .tr-tab.tr-tab-ai.active { --tab-c: #A5B4FF; }
+@media (max-width: 480px) {
+.tr-tabs .tr-tab { font-size: 12.5px !important; padding: 13px 2px !important; }
+}
+.tr-tabs { background: #0F1524 !important; }
+.theme-dark:has(> .tr-header) { background: #0E1320 !important; }
+.tr-tabs { background: #111829 !important; }
+.tr-body { padding-top: 10px !important; }
+.theme-dark .tr-week-head { padding: 12px 6px !important; }
+.theme-dark .tr-week-label { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -.01em !important; text-transform: none !important; color: #fff !important; }
+.theme-dark .tr-week-range { font-size: 13px !important; color: #6F7C9E !important; }
+.theme-dark .tr-day { background: #161D2E !important; border: 1px solid rgba(110,139,255,0.08) !important; border-radius: 22px !important; box-shadow: none !important; padding: 16px 18px !important; margin-bottom: 10px !important; }
+.theme-dark .tr-day.tr-day-today { border-color: rgba(74,124,255,0.75) !important; box-shadow: 0 0 0 1px rgba(74,124,255,0.35), 0 10px 30px rgba(74,124,255,0.12) !important;
+  background: linear-gradient(180deg, rgba(74,124,255,0.10), transparent 140px), #161D2E !important; }
+.theme-dark .tr-day-head { border: none !important; }
+.theme-dark .tr-day-date { font-size: 15px !important; font-weight: 700 !important; }
+.theme-dark .tr-today-badge { border: none !important; background: #4A7CFF !important; color: #fff !important; }
+.theme-dark .tr-session { border: none !important; border-top: 1px solid rgba(110,139,255,0.10) !important; }
+.theme-dark .tr-day-head + .tr-session, .theme-dark .tr-day > .tr-session:first-of-type { border-top-color: rgba(110,139,255,0.10) !important; }
+.theme-dark .tr-day-tag { border: none !important; border-radius: 999px !important; padding: 4px 10px !important; font-size: 12px !important; font-weight: 600 !important; }
+.theme-dark .tr-day-tag:not(.has-session) { background: #1F2840 !important; color: #8F9BBE !important; }
+.theme-dark .tr-day-add, .theme-dark .tr-day-comment-btn { border: none !important; background: #1F2840 !important; border-radius: 50% !important; width: 32px !important; height: 32px !important; color: #9AA6C8 !important;
+  display: inline-flex !important; align-items: center; justify-content: center; }
+.theme-dark .tr-day-add:hover, .theme-dark .tr-day-comment-btn:hover { background: #2A3656 !important; color: #fff !important; }
+.theme-dark .tr-session-move { color: #9AA6C8 !important; }
+.theme-dark .tr-ex-name { font-size: 15px !important; font-weight: 600 !important; }
+.theme-dark .tr-ex-meta { color: #6F7C9E !important; font-weight: 500 !important; }
+.theme-dark .tr-progress-bar-track { background: #1F2840 !important; height: 4px !important; border-radius: 4px !important; }
+.theme-dark .tr-drag-handle { color: #34405E !important; }
+.theme-dark .tr-exercise-wrap { border-radius: 14px; }
+.theme-dark .tr-exercise-wrap:hover { background: rgba(110,139,255,0.04); }
+.theme-dark .tr-ww-table { border-radius: 18px !important; overflow: hidden; }
+.tr-tabs .tr-tab[data-tab="nutrition"] { display: none !important; }
+.tr-1rm-what { font-family: inherit !important; font-size: 13px !important; line-height: 1.5 !important; color: #A9B3CE !important; max-width: 420px; margin: 8px auto 0 !important; letter-spacing: 0 !important; }
+.tr-1rm-what b { color: #fff; }
+.tr-1rm-formula { font-size: 11px !important; margin-top: 8px !important; opacity: .7; }

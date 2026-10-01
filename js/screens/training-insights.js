@@ -248,7 +248,7 @@ window.TrainingInsights = (function () {
         g.fillStyle = '#4ADE80'; g.font = F(900, 36); const p = '+' + r.pct + '%'; g.fillText(p, 968 - g.measureText(p).width, y + 54); }
     });
     g.fillStyle = '#8A93B3'; g.font = F(600, 28); g.fillText('Тренировки, привычки и деньги в одном месте', 80, 1868);
-    g.fillStyle = '#A5B4FF'; g.font = F(800, 30); const url = 'goodlynikita.github.io/my_life'; g.fillText(url, 80, 1822);
+    g.fillStyle = '#A5B4FF'; g.font = F(800, 30); const url = 'you-app.ru'; g.fillText(url, 80, 1822);
 
     c.toBlob(blob => showShare(blob), 'image/png');
   }

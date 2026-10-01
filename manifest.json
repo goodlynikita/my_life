@@ -2,7 +2,7 @@
   "name": "YOU",
   "short_name": "YOU",
   "description": "Личный трекер: привычки, цели, финансы, тренировки",
-  "start_url": "/my_life/",
+  "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#11141C",
@@ -30,7 +30,7 @@
   "shortcuts": [
     {
       "name": "Привычки",
-      "url": "/my_life/?r=/habits",
+      "url": "./?r=/habits",
       "icons": [
         {
           "src": "img/fav/icon-192.png",
@@ -40,7 +40,7 @@
     },
     {
       "name": "Тренировки",
-      "url": "/my_life/?r=/training",
+      "url": "./?r=/training",
       "icons": [
         {
           "src": "img/fav/icon-192.png",
@@ -50,7 +50,7 @@
     },
     {
       "name": "Цели",
-      "url": "/my_life/?r=/goals",
+      "url": "./?r=/goals",
       "icons": [
         {
           "src": "img/fav/icon-192.png",
@@ -60,7 +60,7 @@
     },
     {
       "name": "Финансы",
-      "url": "/my_life/?r=/finance",
+      "url": "./?r=/finance",
       "icons": [
         {
           "src": "img/fav/icon-192.png",
@@ -69,5 +69,5 @@
       ]
     }
   ],
-  "scope": "/my_life/"
+  "scope": "./"
 }

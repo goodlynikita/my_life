@@ -340,11 +340,22 @@ window.Screens.home = function(mount) {
       el.classList.remove('tile-wide');
       if (!isHidden) { if (wide.indexOf(vis) !== -1) el.classList.add('tile-wide'); vis++; }
     });
-    /* Нечётное число видимых в 2×2 — последняя на всю ширину, чтобы не было дырки */
-    if (savedLayout === '2x2' && vis % 2 === 1) {
-      var visTiles = tiles.filter(function(el){ return !el.classList.contains('tile-hidden'); });
-      visTiles[visTiles.length-1].classList.add('tile-wide');
+    /* Плитка, оставшаяся одна в ряду, растягивается на всю ширину, чтобы не было дырки (в любом шаблоне) */
+    var visTiles = tiles.filter(function(el){ return !el.classList.contains('tile-hidden'); });
+    for (var k = 0; k < visTiles.length; k++) {
+      if (visTiles[k].classList.contains('tile-wide')) continue;
+      var nx = visTiles[k + 1];
+      if (!nx || nx.classList.contains('tile-wide')) visTiles[k].classList.add('tile-wide'); else k++;
     }
+    /* одна плитка: большая, на место всей сетки */
+    grid.classList.toggle('tiles-solo', visTiles.length === 1);
+    visTiles.forEach(function(el){ el.classList.toggle('tile-solo', visTiles.length === 1); });
+    /* одна плитка занимает место сетки 2×2: две высоты обычной плитки плюс промежуток */
+    var soloH = function(t, g){ t.style.removeProperty('min-height'); t.classList.remove('tile-solo'); var h = t.getBoundingClientRect().height; t.classList.add('tile-solo'); var gap = parseFloat(getComputedStyle(g).rowGap) || 12; return Math.round(h * 2 + gap); };
+    var fitSolo = function(){ var t = grid.querySelector('.tile-solo'); tiles.forEach(function(el){ if (el !== t) el.style.removeProperty('min-height'); }); if (!t) return;
+      t.style.setProperty('min-height', soloH(t, grid) + 'px', 'important'); };
+    fitSolo();
+    if (!window._homeSoloResize) { window._homeSoloResize = true; window.addEventListener('resize', function(){ var t = document.querySelector('.home2-grid.tiles-solo .tile-solo'); if (t) t.style.setProperty('min-height', soloH(t, t.parentElement) + 'px', 'important'); }); }
   }
   applyTileLayout();
 

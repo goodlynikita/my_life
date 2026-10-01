@@ -678,7 +678,7 @@ function trFindLastStrength(plan, exName) {
       if (dt && dt > today) return; /* будущие (запланированные) дни не считаем */
       trMigrateDayToSessions(day);
       (day.sessions || []).forEach(session => (session && session.exercises || []).forEach(ex => {
-        if (ex && ex.kind === 'strength' && ex.name === exName && (ex.weight > 0 || ex.reps > 0)) found = { ex, date: day.date, plan: p };
+        if (ex && ex.kind === 'strength' && ex.name === exName && ex !== window._trEditingEx && (ex.weight > 0 || (ex.reps > 0 && /подтяг|отжим|брусь|планк|скруч|подъём ног|подъем ног|гиперэкст|выпады|присед без/i.test(ex.name)))) found = { ex, date: day.date, plan: p };
       }));
     }));
     return found;
@@ -707,7 +707,7 @@ function trPrefillFromLast(root, plan, exName) {
     const auto = inp.dataset.auto === '1';
     if (inp.value !== '' && !auto) return; /* пользователь ввёл сам — не трогаем */
     const v = last ? last.ex[fields[sel]] : '';
-    inp.value = v ? v : '';
+    inp.value = v ? (sel === '#m-weight' ? String(v).replace('.', ',') : v) : '';
     inp.dataset.auto = v ? '1' : '';
   });
   root.querySelectorAll('#m-sets,#m-reps,#m-weight').forEach(inp => {
@@ -830,8 +830,12 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   if (ex.kind === 'steps') {
     return wrap(`${ex.steps.toLocaleString('ru-RU')} шагов`, '');
   }
+  /* крупно рабочий вес, а не тоннаж: так понятнее, что ставить на штангу */
   const tonnage = trTonnage(ex);
-  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${ex.sets} × ${ex.reps} × ${ex.weight} кг`);
+  const wNum = +ex.weight || 0;
+  const wStr = String(wNum).replace('.', ',');
+  if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span style="color:#F2C14E">вес подбери</span>', `${ex.sets} × ${ex.reps}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
+  return wrap(`${wStr} кг`, `${ex.sets} × ${ex.reps} · тоннаж ${tonnage.toLocaleString('ru-RU')} кг`);
 }
 
 function trMigrateDayToSessions(day) {
@@ -943,6 +947,7 @@ function trAnimateBars(scope) {
 
 function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave) {
   const ex = plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises[exIdx];
+  window._trEditingEx = ex; /* подсказка «Крайний раз» не должна брать эту же запись */
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
 
@@ -972,7 +977,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
       <div class="tr-modal-row">
         <label>Подходы<input type="number" id="m-sets" value="${ex.sets}" inputmode="numeric"></label>
         <label>Повторы<input type="number" id="m-reps" value="${ex.reps}" inputmode="numeric"></label>
-        <label>Вес, кг<input type="number" id="m-weight" value="${ex.weight}" inputmode="numeric"></label>
+        <label>Вес, кг<input type="text" id="m-weight" value="${String(ex.weight || '').replace('.', ',')}" inputmode="decimal"></label>
       </div>
       <button type="button" class="tr-link-btn" id="m-toggle-sets">${ex.setDetails ? 'Скрыть' : 'Записать каждый подход отдельно'}</button>
       <div id="m-set-details-wrap">${ex.setDetails ? trBuildSetDetailsRows(ex.setDetails) : ''}</div>`;
@@ -1051,7 +1056,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
       } else {
         ex.sets = parseInt(overlay.querySelector('#m-sets').value, 10) || 0;
         ex.reps = parseInt(overlay.querySelector('#m-reps').value, 10) || 0;
-        ex.weight = parseFloat(overlay.querySelector('#m-weight').value) || 0;
+        ex.weight = parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0;
         delete ex.setDetails;
       }
     }
@@ -1167,7 +1172,7 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
       <div class="tr-modal-row">
         <label>Подходы<input type="number" id="m-sets" placeholder="—" inputmode="numeric"></label>
         <label>Повторы<input type="number" id="m-reps" placeholder="—" inputmode="numeric"></label>
-        <label>Вес, кг<input type="number" id="m-weight" placeholder="—" inputmode="numeric"></label>
+        <label>Вес, кг<input type="text" id="m-weight" placeholder="—" inputmode="decimal"></label>
       </div>
       <p class="tr-hint" id="m-weight-hint"></p>`;
   }
@@ -1309,7 +1314,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
         name,
         sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
         reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-        weight: parseFloat(overlay.querySelector('#m-weight').value) || 0
+        weight: parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0
       });
     } else if (trIsCardioType(type)) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
@@ -1444,7 +1449,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
           name,
           sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
           reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-          weight: parseFloat(overlay.querySelector('#m-weight').value) || 0
+          weight: parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0
         }]
       });
       overlay.remove();
@@ -1996,10 +2001,12 @@ window.Screens.training = function (mount) {
       if (!hasAnyPlan) {
         content.innerHTML = `<div style="padding:32px 20px 60px;max-width:480px;margin:0 auto;">
           <div style="text-align:center;margin-bottom:28px;">
-            <div style="font-size:36px;margin-bottom:12px;">🏋️</div>
+            <div style="font-size:40px;margin-bottom:10px;color:#7EA0FF;"><i class="ti ti-barbell"></i></div>
             <div style="font-size:18px;font-weight:800;color:#E8E5DC;margin-bottom:8px;">Начни свой первый план</div>
             <div style="font-size:13px;color:#9D9A92;line-height:1.6;">Появится сетка на 8 недель. Заполни её сам или попроси AI.</div>
           </div>
+          <div style="margin-bottom:22px;">          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
+          <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:13px;background:none;border:1px solid rgba(96,165,250,0.35);border-radius:12px;color:#93C5FD;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Заполнить вручную</button></div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
             <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
               <i class="ti ti-calendar-plus" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
@@ -2037,8 +2044,7 @@ window.Screens.training = function (mount) {
               </div>
             </div>
           </div>
-          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
-          <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:13px;background:none;border:1px solid rgba(96,165,250,0.35);border-radius:12px;color:#93C5FD;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Заполню сам</button>
+
         </div>`;
         return;
       }
@@ -2161,7 +2167,9 @@ window.Screens.training = function (mount) {
         /* план создаётся сам, если его ещё нет: одна кнопка в AI */
         createPlan: () => { currentPlanId = trCreateNextPlan(); collapsedWeeks = []; populatePlanSelect(); return trGetPlans().find(p => p && p.id === currentPlanId); },
         rerender: () => renderTab('ai'),
-        openPlan: () => { const b = document.querySelector('.tr-tab[data-tab="plan"]'); if (b) b.click(); },
+        openPlan: () => { const b = document.querySelector('.tr-tab[data-tab="plan"]'); if (b) b.click();
+          /* к началу сегодняшней карточки, а не к последнему упражнению */
+          setTimeout(() => { const d = document.querySelector('.tr-day-today'); if (d) { d.scrollIntoView({ block: 'start' }); window.scrollBy(0, -120); } }, 200); },
       });
     } else if (tab === 'nutrition') {
       content.innerHTML = trRenderNutrition(plan);
@@ -2277,7 +2285,7 @@ window.Screens.training = function (mount) {
     const plans = trGetPlans().filter(Boolean);
     // Показываем бар автоматически если планов нет
     if (plans.length === 0) {
-      planBarEl.style.display = 'flex';
+      planBarEl.style.display = 'none'; /* пустой список планов только путает: на экране уже есть кнопки «AI» и «Заполнить вручную» */
     } else {
       const planBarSaved = Store.get().home?.planBarVisible;
       if (planBarSaved === true) planBarEl.style.display = 'flex';
@@ -2346,15 +2354,36 @@ function trExerciseCanonicalGroups(exName) {
   return null; /* кастомное — определится по сессии */
 }
 
+/* дата дня плана (dd.mm) с учётом перехода года */
+function trDayDateOf(p, dateStr) {
+  const [dd, mm] = String(dateStr || '').split('.').map(Number);
+  if (!dd || !mm) return null;
+  const start = p && p.startDate ? new Date(p.startDate) : new Date();
+  let d = new Date(start.getFullYear(), mm - 1, dd);
+  if (d < new Date(start.getFullYear(), start.getMonth(), start.getDate() - 7)) d = new Date(start.getFullYear() + 1, mm - 1, dd);
+  return d;
+}
+/* AI-тренировка стоит в плане, но человек её ещё не записывал */
+function trAiUntouched(session) {
+  if (!session || !session.ai || !session.aiSig) return false;
+  const sig = (session.exercises || []).map(e => e ? (e.name + '|' + (+e.weight || 0) + '|' + e.reps + '|' + e.sets) : '').join(';');
+  return sig === session.aiSig && !session.aiOk;
+}
 function trCollectGymExercises(plan) {
   const latest = {};
+  const today = new Date(); today.setHours(23, 59, 59, 0);
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach((day, dayIdx) => {
       trMigrateDayToSessions(day);
+      /* будущие дни и непройденные AI-тренировки в рабочие веса не попадают */
+      const dt = trDayDateOf(plan, day.date);
+      if (dt && dt > today) return;
       day.sessions.forEach((session, sessionIdx) => {
         if (!trIsGymType(session.type)) return;
+        if (trAiUntouched(session)) return;
         session.exercises.forEach((ex, exIdx) => {
           if (ex.kind !== 'strength') return;
+          if (!(+ex.weight > 0) && !(+ex.reps > 0)) return;
           /* Группа: сначала ищем в каноническом списке, иначе берём из сессии */
           const canonical = trExerciseCanonicalGroups(ex.name);
           const groups = canonical || session.groups || [];

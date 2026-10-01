@@ -42,7 +42,7 @@ window.TrainingInsights = (function () {
       if (last3[2].date - last3[0].date < 10 * DAY) return;
       const b3 = Math.max(...last3.map(e1)), bb = before.length ? Math.max(...before.map(e1)) : 0;
       const flat = before.length ? b3 <= bb * 1.005 : (e1(last3[2]) <= e1(last3[0]) * 1.005);
-      if (!flat) return;
+      if (!flat || e1(last3[2]) > e1(last3[0]) * 1.005) return;
       /* замены: сначала твои упражнения на ту же зону, потом база */
       /* упражнения, которые уже делаешь вместе с этим, в замену не предлагаем */
       const together = new Set(an.combos.flatMap(c => c.sessions).filter(ss => ss.exercises.some(e => e.key === x.key)).flatMap(ss => ss.exercises.map(e => e.key)));
@@ -76,7 +76,9 @@ window.TrainingInsights = (function () {
 
   /* ── Карточка недели ── */
   function weekCard(history, an) {
-    const mon = monday(new Date()), lastStart = +mon - WEEK, prevStart = +mon - 2 * WEEK;
+    let mon = monday(new Date()), lastStart = +mon - WEEK, prevStart = +mon - 2 * WEEK, cur = false;
+    /* прошлая неделя пустая, а на этой уже тренировки: показываем эту */
+    if (!history.some(x => +x.date >= lastStart && +x.date < +mon) && history.some(x => +x.date >= +mon)) { cur = true; prevStart = lastStart; lastStart = +mon; mon = new Date(+mon + WEEK); }
     const L = history.filter(x => +x.date >= lastStart && +x.date < +mon), P = history.filter(x => +x.date >= prevStart && +x.date < lastStart);
     const before = history.filter(x => +x.date < lastStart);
     const tL = tonnage(L), tP = tonnage(P);
@@ -89,7 +91,7 @@ window.TrainingInsights = (function () {
     const sets = setsByGroup(L, an);
     const trained = new Set(Object.values(an.ex).map(x => x.cls && x.cls.group).filter(Boolean));
     const lag = [...trained].filter(g => NORM[g] && (sets[g] || 0) < NORM[g][0]).map(g => `${g}: ${sets[g] || 0} подх.`);
-    return { from: new Date(lastStart), to: new Date(+mon - DAY), count: L.length, tL, tP, delta: tP ? Math.round((tL - tP) / tP * 100) : null, grew, lag };
+    return { cur, from: new Date(lastStart), to: new Date(+mon - DAY), count: L.length, tL, tP, delta: tP ? Math.round((tL - tP) / tP * 100) : null, grew, lag };
   }
 
   /* ── Экран ── */
@@ -112,11 +114,13 @@ window.TrainingInsights = (function () {
     const groups = Object.keys(NORM).filter(g => sets[g] || Object.values(an.ex).some(x => x.cls && x.cls.group === g));
     const isMon = new Date().getDay() === 1;
     const fmtD = d => d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-    const focus = pls[0] ? `Сменить стимул в «${pls[0].name}»: оно стоит на месте` : wc.lag[0] ? `Добавить подходов: ${wc.lag[0].split(':')[0].toLowerCase()} отстаёт` : wc.count ? 'Держать темп и добирать повторы до верха диапазона' : 'Вернуться в режим: хотя бы 2 тренировки';
+    const few = history.length < 3;
+    wc.lag = few ? [] : Object.keys(NORM).filter(g => groups.includes(g) && Math.round((sets[g] || 0) / wks) < NORM[g][0]).map(g => `${g}: ${Math.round((sets[g] || 0) / wks)} подх. в неделю`);
+    const focus = few ? 'Записать 2–3 тренировки, и я покажу, что подтянуть' : pls[0] ? `Сменить стимул в «${pls[0].name}»: оно стоит на месте` : wc.lag[0] ? `Добавить подходов на ${wc.lag[0].split(':')[0].toLowerCase()}: пока меньше нормы` : wc.count ? 'Держать темп и добирать повторы до верха диапазона' : 'Вернуться в режим: хотя бы 2 тренировки';
 
     content.innerHTML = `<div class="ai-wrap">${tabsHtml}
       <div class="in-card in-week">
-        <div class="in-h"><div><b>Итоги недели</b><span>${fmtD(wc.from)} – ${fmtD(wc.to)}</span></div>${isMon ? '<em class="in-new">новый отчёт</em>' : ''}</div>
+        <div class="in-h"><div><b>${wc.cur ? 'Эта неделя' : 'Итоги недели'}</b><span>${fmtD(wc.from)} – ${fmtD(wc.to)}</span></div>${isMon ? '<em class="in-new">новый отчёт</em>' : ''}</div>
         <div class="in-kpis">
           <div><b>${wc.count}</b><span>${pl(wc.count, 'тренировка', 'тренировки', 'тренировок')}</span></div>
           <div><b>${ton(wc.tL)}</b><span>тоннаж</span></div>
@@ -157,7 +161,7 @@ window.TrainingInsights = (function () {
             ${sw ? `<div class="in-pl-done"><i class="ti ti-check"></i> В AI-плане заменено на «${esc(sw)}» <button class="in-undo" data-k="${esc(p.key)}">вернуть</button></div>`
               : `<div class="in-alts">${p.alts.map(a => `<button class="in-alt" data-k="${esc(p.key)}" data-to="${esc(a)}"><i class="ti ti-arrows-exchange"></i> ${esc(a)}</button>`).join('')}</div>`}
           </div>`;
-        }).join('') : '<div class="in-ok"><i class="ti ti-circle-check"></i> Плато нет, всё растёт</div>'}
+        }).join('') : few ? '<div class="in-ok"><i class="ti ti-info-circle"></i> Пока мало тренировок, чтобы судить</div>' : '<div class="in-ok"><i class="ti ti-circle-check"></i> Плато нет, всё растёт</div>'}
       </div>
 
       <button class="in-share" id="in-share"><i class="ti ti-share"></i> Поделиться прогрессом за 8 недель</button>

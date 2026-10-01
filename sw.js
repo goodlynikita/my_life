@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v81';
+const CACHE = 'nik-system-v84';
 
 const STATIC = [
   './',
@@ -9,7 +9,7 @@ const STATIC = [
   './manifest.json',
   './icon.png',
   './favicon.ico',
-  './img/fav/icon-32.png',
+  './img/fav/tab-32.png',
   './img/fav/icon-192.png',
   './css/winter-arc.css',
   './css/tokens.css',

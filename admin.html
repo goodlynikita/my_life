@@ -30,8 +30,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0B0D12">
 <title>YOU · Админка</title>
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="img/fav/icon-32.png">
+<link rel="icon" type="image/svg+xml" href="img/fav/admin.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="img/fav/admin-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -49,7 +49,7 @@ button,input,select,textarea{font-family:inherit}
   background:radial-gradient(600px 400px at 80% 0%,rgba(110,139,255,.16),transparent 70%),radial-gradient(500px 400px at 0% 100%,rgba(167,139,250,.10),transparent 70%),var(--bg)}
 .login-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line2);border-radius:22px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .login-logo{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin-bottom:16px;
-  background:linear-gradient(135deg,#4A7CFF,#7C3AED);box-shadow:0 8px 24px rgba(74,124,255,.35)}
+  background:linear-gradient(135deg,#4A7CFF,#8B5CF6);box-shadow:0 8px 24px rgba(74,124,255,.35)}
 .login h1{font-size:20px;margin:0 0 4px} .login p{margin:0 0 20px;color:var(--soft);font-size:13px}
 .field{width:100%;height:48px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:0 14px;font-size:15px;outline:none;margin-bottom:10px}
 .field:focus{border-color:rgba(110,139,255,.6)}
@@ -66,7 +66,7 @@ button,input,select,textarea{font-family:inherit}
 .top{position:sticky;top:0;z-index:10;background:rgba(11,13,18,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .top-in{max-width:1100px;margin:0 auto;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
-.brand i{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4A7CFF,#7C3AED);color:#fff;font-size:18px}
+.brand i{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4A7CFF,#8B5CF6);color:#fff;font-size:18px}
 .brand small{display:block;font-size:11px;color:var(--faint);font-weight:600}
 .top .sp{flex:1}
 .wrap{max-width:1100px;margin:0 auto;padding:20px}
@@ -202,7 +202,7 @@ button,input,select,textarea{font-family:inherit}
 <!-- Вход -->
 <div class="login hidden" id="v-login">
   <div class="login-card">
-    <div class="login-logo"><i class="ti ti-shield-lock"></i></div>
+    <div class="login-logo"><i class="ti ti-shield-check"></i></div>
     <h1>Админка YOU</h1>
     <p>Вход только для владельца</p>
     <input class="field" id="a-email" type="email" placeholder="Email" autocomplete="username">

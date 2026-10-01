@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/coach-home.css">
+<link rel="stylesheet" href="css/slides-kit.css">
 <link rel="stylesheet" href="css/training.css">
 <link rel="stylesheet" href="css/light.css">
 <link rel="stylesheet" href="css/tour.css">
@@ -282,7 +283,7 @@ html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893
 .sc-add{width:100%}
 .sc-lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:2px 0 6px}
 .sc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px} .sc-row label{min-width:0}
-.sc-chk{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:14px;cursor:pointer} .sc-chk input{width:18px;height:18px;accent-color:#4A7CFF}
+.sc-opt{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:14px;color:var(--txt,#E8E5DC);cursor:pointer} .sc-opt input{width:18px;height:18px;flex-shrink:0;margin:0;accent-color:var(--acc2,#4A7CFF)}
 .sc-msub{margin:-6px 0 12px;font-size:13px;color:var(--faint)}
 html[data-theme="light"] .sc-d.on,html[data-theme="light"] .sc-d.on b{color:#fff}
 /* v137: главная как в YOU */
@@ -683,9 +684,10 @@ window.Store = {
 <script src="js/tour.js"></script>
 <script src="js/feedback.js"></script>
 <script src="js/celebrate.js"></script>
+<script src="js/slide-kit.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, set, update, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp(window.FIREBASE_CONFIG);
@@ -811,6 +813,20 @@ async function boot(u) {
   await Promise.all([loadClients(), loadTemplates(), loadSchedule()]);
   if (isDemo()) schedule = schedule.concat(demoSlots());
   render();
+  watchClients();
+}
+/* новый клиент подключился, пока кабинет открыт: подгружаем и показываем плашку */
+let _clUnsub = null;
+function watchClients() {
+  if (_clUnsub) return;
+  _clUnsub = onValue(ref(db, 'trainerClients/' + trainer.uid), async (snap) => {
+    const keys = snap.exists() ? Object.keys(snap.val()).sort().join(',') : '';
+    const have = clients.filter(c => !c.demo).map(c => c.k).sort().join(',');
+    if (keys === have) return;
+    await loadClients();
+    if (isDemo()) schedule = schedule.concat(demoSlots());
+    if (!document.querySelector('.tr-modal-overlay') || document.querySelector('.cel-ov')) render();
+  }, () => {});
 }
 
 /* ═══ Демо для нового тренера: примеры клиентов, пока своих нет. Ничего не сохраняется в базу ═══ */
@@ -888,9 +904,11 @@ function celebrateNew() {
   const initK = 'you_cel_init_' + trainer.uid;
   let inited = false; try { inited = !!localStorage.getItem(initK); localStorage.setItem(initK, '1'); } catch (e) {}
   const seen = Celebrate.seen();
-  const fresh = real.filter(c => !seen['co_' + trainer.uid + '_' + c.k]);
-  fresh.forEach(c => Celebrate.mark('co_' + trainer.uid + '_' + c.k));
-  if (!inited || !fresh.length) return; /* старые клиенты при первом запуске без плашки */
+  const unseen = real.filter(c => !seen['co_' + trainer.uid + '_' + c.k]);
+  unseen.forEach(c => Celebrate.mark('co_' + trainer.uid + '_' + c.k));
+  /* при первом запуске на устройстве плашка только для тех, кто подключился за последние 3 дня */
+  const fresh = inited ? unseen : unseen.filter(c => c.since && Date.now() - c.since < 3 * 864e5);
+  if (!fresh.length) return;
   const c = fresh[0], more = fresh.length - 1;
   const nm = String(c.name || c.email || 'Клиент').replace(/[&<>"]/g, '');
   Celebrate.show({ kicker: 'Новый подопечный', title: nm + ' в команде',
@@ -1036,7 +1054,11 @@ function hubCtx() {
   const ev = window.CoachDash.feed(live, cname);
   const atts = live.map(c => c.stat.att).filter(x => x != null);
   const tons = Math.round(live.reduce((s, c) => { const w = c.d && c.d.weeks; return s + (w && w.length ? w[w.length - 1].tons || 0 : 0); }, 0) * 10) / 10;
-  return { lim, n, live, ev, tons, sched: schedToday(),
+  /* по дням за последние 7 дней: сколько клиентов тренировалось и сколько тонн подняли */
+  const d7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - 6 + i); return +d; });
+  const wkSer = d7.map(t => live.filter(c => toArr(c.stat.hist).some(h => +h.date >= t && +h.date < t + DAY)).length);
+  const tonSer = d7.map(t => Math.round(live.reduce((s2, c) => s2 + toArr(c.stat.hist).filter(h => +h.date >= t && +h.date < t + DAY).reduce((a, h) => a + toArr(h.exercises).reduce((b, e) => b + (+e.sets || 0) * (+e.reps || 0) * (+e.weight || 0), 0), 0), 0) / 100) / 10);
+  return { lim, n, live, ev, tons, wkSer, tonSer, sched: schedToday(),
     inR: live.filter(c => c.stat.st === 'ok').length, lost: live.filter(c => c.stat.st === 'bad').length,
     todayL: live.filter(c => c.stat.today),
     fresh: ev.filter(e => e.t >= Date.now() - 864e5 * 1.5 && e.k !== 'miss').length,
@@ -1045,18 +1067,35 @@ function hubCtx() {
     attnN: live.filter(c => c.stat.st === 'bad' || c.stat.plat.length).length,
     attAvg: atts.length ? Math.round(atts.reduce((a, b) => a + b, 0) / atts.length) : null };
 }
+/* числа блоков для видов «полоска», «кольцо», «график» */
+const C_DATA = {
+  rhythm: (x) => ({ v: x.inR, max: x.live.length || 1, text: `${x.inR}/${x.live.length}`, lbl: 'активны' }),
+  total: (x) => ({ v: x.n, max: x.lim, text: `${x.n}/${x.lim}`, lbl: 'клиентов' }),
+  att: (x) => x.attAvg == null ? null : ({ v: x.attAvg, max: 100, text: x.attAvg + '%', lbl: 'посещаемость' }),
+  today_n: (x) => ({ v: x.todayL.length, max: x.live.length || 1, text: String(x.todayL.length), lbl: 'сегодня' }),
+  attn: (x) => ({ v: x.attnN, max: x.live.length || 1, text: String(x.attnN), lbl: 'внимание' }),
+  week_n: (x) => ({ v: x.wk, text: String(x.wk), lbl: 'за неделю', series: x.wkSer }),
+  week_tons: (x) => ({ v: x.tons, text: String(x.tons).replace('.', ',') + ' т', lbl: 'подняли вместе', series: x.tonSer }),
+};
+const cData = (bid, x) => { const f = C_DATA[bid]; if (!f) return null; try { return f(x); } catch (e) { return null; } };
 function slideHtml(s, x) {
   const sc = SLIDE_COLORS.find(c => c.cssClass === s.cssClass) || SLIDE_COLORS[0];
-  const out = toArr(s.blocks).map((bid, i) => { const b = CB.find(q => q.id === bid); if (!b) return null; try { return b.r(x, i === 0, (s.blockCfgs || {})[bid]); } catch (e) { return null; } }).filter(Boolean);
-  const stats = out.slice(1);
+  const K = window.SlideKit;
+  const out = toArr(s.blocks).map((bid, i) => { const b = CB.find(q => q.id === bid); if (!b) return null;
+    try { const vw = (s.views || {})[bid]; const vh = K && vw ? K.viewHtml(cData(bid, x), vw, K.accentOf(s)) : null; return { name: b.name, html: vh || b.r(x, i === 0 && (s.layout || 'auto') !== 'list', (s.blockCfgs || {})[bid]) }; } catch (e) { return null; } }).filter(Boolean);
   const glow = sc.glowClass ? '' : ` style="background:radial-gradient(ellipse at 80% 50%,${sc.glow}44 0%,transparent 70%);"`;
-  return `<div class="hero-slide ${sc.cssClass}"${s.route ? ` data-go="${s.route}"` : ''}>
+  return `<div class="hero-slide ${sc.cssClass} hsl-${s.layout || 'auto'}"${s.route ? ` data-go="${s.route}"` : ''}>
     <div class="slide-ray-1"></div><div class="slide-ray-2"></div>
-    <div class="hero-slide-label">${esc(s.label || '')}</div>
-    ${out[0] ? `<div class="hero-slide-main">${out[0]}</div>` : ''}
-    ${stats.length ? `<div class="hero-slide-sub"><div class="hero-stat-row stats-${Math.min(stats.length, 4)}${stats.length >= 4 ? ' stats-grid' : ''}">${stats.map(h => `<div class="sb-block">${h}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : ''}
+    ${K ? K.headHtml(s) + K.bodyHtml(s, out) : `<div class="hero-slide-label">${esc(s.label || '')}</div>`}
     <div class="hero-slide-glow ${sc.glowClass || ''}"${glow}></div></div>`;
 }
+const SLIDE_TPLS = [
+  { id: 'day', name: 'День тренера', desc: 'ближайшая запись и кто активен', slide: { label: 'СЕГОДНЯ', icon: 'ti-calendar-event', cssClass: 'slide-focus', glowClass: 'slide-glow-blue', route: 'sched', layout: 'auto', blocks: ['sched_next', 'sched_n', 'rhythm'], views: { rhythm: 'ring' } } },
+  { id: 'week', name: 'Неделя', desc: 'тренировки и тоннаж по дням', slide: { label: 'НЕДЕЛЯ', icon: 'ti-barbell', cssClass: 'slide-indigo', route: 'feed', layout: 'cols', blocks: ['week_n', 'week_tons', 'prs', 'att'], views: { week_n: 'spark', week_tons: 'spark', att: 'ring' } } },
+  { id: 'clients', name: 'Клиенты', desc: 'активность, посещаемость, внимание', slide: { label: 'КЛИЕНТЫ', icon: 'ti-users', cssClass: 'slide-goals', glowClass: 'slide-glow-purple', route: 'clients', layout: 'list', blocks: ['rhythm', 'att', 'attn', 'total'], views: {} } },
+  { id: 'focus', name: 'Фокус', desc: 'одна цифра по центру', slide: { label: 'ФОКУС', icon: 'ti-target-arrow', cssClass: 'slide-amber', route: 'clients', layout: 'center', blocks: ['rhythm', 'today_n', 'attn'], views: { rhythm: 'ring' } } },
+  { id: 'empty', name: 'Пустой', desc: 'соберу сам', slide: { label: 'НОВЫЙ СЛАЙД', cssClass: 'slide-slate', layout: 'auto', blocks: [], views: {} } },
+];
 const WIDE_BY_LAYOUT = { '2x2': [], row: [0, 1, 2, 3], bigfirst: [0, 3], biglast: [2, 3] };
 
 function renderHub(body) {
@@ -1123,42 +1162,31 @@ function openSlidesEditor() {
       <div id="se-body" class="se-body"><div class="se-hint">Стрелками меняй порядок, «Вкл/Выкл» показывает или прячет слайд.</div>${u.slides2.map((s, i) => card(s, i, u.slides2.length)).join('')}</div></div>`;
     const save = () => { applyUI(u); list(); };
     ov.querySelector('#se-close').onclick = () => ov.remove();
-    ov.querySelector('#se-add').onclick = () => { u.slides2.push({ id: 's_' + Date.now(), label: 'НОВЫЙ СЛАЙД', cssClass: 'slide-slate', enabled: true, blocks: [] }); save(); };
+    ov.querySelector('#se-add').onclick = () => {
+      ov.querySelector('.se-head-title').textContent = 'Новый слайд'; ov.querySelector('#se-add').style.display = 'none';
+      const x = hubCtx();
+      SlideKit.templates(ov.querySelector('#se-body'), { templates: SLIDE_TPLS, preview: (sl) => slideHtml(sl, x), onBack: list,
+        onPick: (sl) => { u.slides2.push({ ...sl, id: 's_' + Date.now(), enabled: true }); applyUI(u); edit(u.slides2.length - 1); } });
+    };
     ov.querySelectorAll('.se-up,.se-down').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + (b.classList.contains('se-up') ? -1 : 1); [u.slides2[i], u.slides2[j]] = [u.slides2[j], u.slides2[i]]; save(); });
     ov.querySelectorAll('.se-toggle-slide').forEach(b => b.onclick = () => { const s = u.slides2[+b.dataset.i]; s.enabled = s.enabled === false; save(); });
     ov.querySelectorAll('.se-del-slide').forEach(b => b.onclick = () => { if (!confirm('Удалить слайд?')) return; u.slides2.splice(+b.dataset.i, 1); save(); });
     ov.querySelectorAll('.se-edit-slide').forEach(b => b.onclick = () => edit(+b.dataset.i));
   };
   const edit = (idx) => {
-    const s = u.slides2[idx]; let css = s.cssClass || 'slide-focus';
-    const secs = [...new Set(CB.map(b => b.sec))], cfg = (s.blockCfgs || {}).custom_text || {};
-    const blocks = toArr(s.blocks).slice();
-    ov.querySelector('.se-head-title').textContent = 'Редактировать слайд';
+    ov.querySelector('.se-head-title').textContent = 'Слайд';
     ov.querySelector('#se-add').style.display = 'none';
-    const body = ov.querySelector('#se-body'); body.scrollTop = 0;
-    body.innerHTML = `<div style="padding:0 4px 4px;">
-      <div style="${LBL}margin-bottom:8px;">Название слайда</div>
-      <input type="text" id="se-label" value="${esc(s.label || '')}" placeholder="СЕГОДНЯ" style="${INP}font-weight:700;letter-spacing:.06em;margin-bottom:14px;">
-      <div style="${LBL}margin-bottom:8px;">Цвет фона</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">${SLIDE_COLORS.map(c => `<button class="se-color-btn" data-c="${c.cssClass}" title="${c.name}" style="width:36px;height:36px;border-radius:8px;background:${c.bg};border:2px solid ${c.cssClass === css ? 'rgba(255,255,255,0.9)' : 'transparent'};cursor:pointer;"></button>`).join('')}</div>
-      <div style="${LBL}margin-bottom:8px;">При нажатии открывать</div>
-      <select id="se-route" style="${INP}margin-bottom:16px;">${ROUTES.map(r => `<option value="${r[0]}"${(s.route || '') === r[0] ? ' selected' : ''}>${r[1]}</option>`).join('')}</select>
-      <div style="${LBL}margin-bottom:4px;">Блоки данных</div>
-      <div style="font-size:11px;color:#555;margin-bottom:4px;">Первый отмеченный показывается крупно</div>
-      ${secs.map(sec => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin:10px 0 4px;">${sec}</div>` + CB.filter(b => b.sec === sec).map(b => `<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;">
-          <input type="checkbox" class="se-block-cb" data-bid="${b.id}" ${blocks.includes(b.id) ? 'checked' : ''} style="width:auto;margin-top:2px;accent-color:#4A7CFF;">
-          <div><div style="font-size:13px;font-weight:600;color:#E8E5DC;">${b.name}</div><div style="font-size:11px;color:#555;">${b.desc}</div></div></label>
-          ${b.id === 'custom_text' ? `<div id="cfg-ct" style="margin:4px 0 0 22px;display:${blocks.includes(b.id) ? 'block' : 'none'};"><input id="ct-t" placeholder="Заголовок" value="${esc(cfg.text || '')}" style="${INP}padding:6px 8px;font-size:12px;margin-bottom:4px;"><input id="ct-s" placeholder="Подпись" value="${esc(cfg.sub || '')}" style="${INP}padding:6px 8px;font-size:12px;"></div>` : ''}`).join('')).join('')}
-      <button id="se-save-slide" style="width:100%;margin-top:16px;margin-bottom:8px;padding:14px;background:#4A7CFF;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Сохранить слайд</button></div>`;
-    body.querySelectorAll('.se-color-btn').forEach(b => b.onclick = () => { css = b.dataset.c; body.querySelectorAll('.se-color-btn').forEach(q => q.style.border = '2px solid ' + (q === b ? 'rgba(255,255,255,0.9)' : 'transparent')); });
-    /* порядок блоков = порядок нажатия, чтобы можно было выбрать главный */
-    body.querySelectorAll('.se-block-cb').forEach(cb => cb.onchange = () => { const k = cb.dataset.bid, i = blocks.indexOf(k); if (cb.checked && i < 0) blocks.push(k); if (!cb.checked && i >= 0) blocks.splice(i, 1); if (k === 'custom_text') body.querySelector('#cfg-ct').style.display = cb.checked ? 'block' : 'none'; });
-    body.querySelector('#se-save-slide').onclick = () => {
-      const sc = SLIDE_COLORS.find(c => c.cssClass === css);
-      Object.assign(s, { label: body.querySelector('#se-label').value.toUpperCase().slice(0, 40), cssClass: css, glowClass: sc.glowClass || '', route: body.querySelector('#se-route').value, blocks: blocks.slice(0, 5),
-        blockCfgs: blocks.includes('custom_text') ? { custom_text: { text: body.querySelector('#ct-t').value.slice(0, 60), sub: body.querySelector('#ct-s').value.slice(0, 80) } } : {} });
-      applyUI(u); list();
-    };
+    const x = hubCtx();
+    SlideKit.form(ov.querySelector('#se-body'), {
+      draft: u.slides2[idx], blocks: CB.map(b => ({ id: b.id, name: b.name, desc: b.desc, sec: b.sec })),
+      colors: SLIDE_COLORS, routes: ROUTES, preview: (d) => slideHtml(d, x),
+      views: (bid) => SlideKit.viewsFor(cData(bid, x)),
+      cfgHtml: (bid, c) => bid === 'custom_text' ? `<div class="sf-cfg"><input type="text" class="sf-in" data-cfg="text" data-bid="${bid}" placeholder="Заголовок" maxlength="60" value="${esc(c.text || '')}"><input type="text" class="sf-in" data-cfg="sub" data-bid="${bid}" placeholder="Подпись" maxlength="80" value="${esc(c.sub || '')}"></div>` : '',
+      onCancel: list,
+      onSave: (d) => { const sc = SLIDE_COLORS.find(c => c.cssClass === d.cssClass) || SLIDE_COLORS[0];
+        u.slides2[idx] = { ...d, label: (d.label || '').slice(0, 40), cssClass: sc.cssClass, glowClass: sc.glowClass || '', blocks: d.blocks.slice(0, 6) };
+        applyUI(u); list(); },
+    });
   };
   list();
 }
@@ -1419,8 +1447,8 @@ function slotModal(it, dateK, done) {
     <div class="sc-warn" id="sc-warn"></div>
     <div class="chips" id="sc-dur">${[45, 60, 90, 120].map(m => `<button class="chip${+it.dur === m ? ' on' : ''}" data-m="${m}">${m} мин</button>`).join('')}</div>
     <input class="field" id="sc-note" placeholder="Заметка: зал, онлайн, что делаем" value="${esc(it.note || '')}">
-    <label class="sc-chk"><input type="checkbox" id="sc-rep" ${it.rep ? 'checked' : ''}><span>Повторять каждую неделю</span></label>
-    <label class="sc-chk${ck ? '' : ' hidden'}" id="sc-tell-w"><input type="checkbox" id="sc-tell" ${it.id ? '' : 'checked'}><span>Написать клиенту в план</span></label>
+    <label class="sc-opt"><input type="checkbox" id="sc-rep" ${it.rep ? 'checked' : ''}><span>Повторять каждую неделю</span></label>
+    <label class="sc-opt${ck ? '' : ' hidden'}" id="sc-tell-w"><input type="checkbox" id="sc-tell" ${it.id ? '' : 'checked'}><span>Написать клиенту в план</span></label>
     <button class="btn btn-main" id="sc-save" style="width:100%;margin-top:6px">Сохранить</button>`);
   let dur = +it.dur || 60;
   ov.querySelectorAll('#sc-cl .chip').forEach(b => b.onclick = () => { ck = b.dataset.k; ov.querySelectorAll('#sc-cl .chip').forEach(x => x.classList.toggle('on', x === b)); ov.querySelector('#sc-nm').classList.toggle('hidden', !!ck); ov.querySelector('#sc-tell-w').classList.toggle('hidden', !ck); });

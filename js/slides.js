@@ -420,23 +420,9 @@ var Slides = (() => {
     finance_savings_pct: (st) => { const f=_fin(st); const pct=f.income>0?Math.round(Math.max(0,f.income-f.expenses)/f.income*100):0; return { v: pct, max: 100, text: pct+'%', lbl: 'накоплений' }; },
     finance_expenses: (st) => { const f=_fin(st); return { v: f.expenses, max: f.income || null, text: f.expenses>0?_rub(f.expenses):'—', lbl: f.income ? 'потрачено от дохода' : 'расходы' }; },
   };
-  const VIEW_NAMES = { num: 'Число', bar: 'Полоска', ring: 'Кольцо', spark: 'График' };
-  function viewsOf(bid) {
-    const f = BLOCK_DATA[bid]; if (!f) return ['num'];
-    let d = null; try { d = f(Store.get()); } catch (e) {}
-    const v = ['num']; if (d && d.max) { v.push('bar', 'ring'); } if (d && d.series) v.push('spark'); return v;
-  }
-  function renderBlockView(bid, view, store, color) {
-    const f = BLOCK_DATA[bid]; if (!f || !view || view === 'num') return null;
-    const d = f(store); const c = 'rgba(255,255,255,.92)'; /* белым: читается на любом цвете слайда */
-    const pct = d.max ? Math.max(0, Math.min(100, Math.round(d.v / d.max * 100))) : 0;
-    if (view === 'bar' && d.max) return `<div class="hb hb-bar"><div class="hero-stat-num">${d.text}</div><div class="hb-track"><i style="width:${pct}%;background:${c}"></i></div><div class="hero-stat-lbl">${d.lbl}</div></div>`;
-    if (view === 'ring' && d.max) { const L = 2 * Math.PI * 17;
-      return `<div class="hb hb-ring"><div class="hb-ring-c"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="17" class="hb-ring-bg"/><circle cx="21" cy="21" r="17" class="hb-ring-fg" style="stroke:${c};stroke-dasharray:${(L * pct / 100).toFixed(1)} ${L.toFixed(1)}"/></svg><b>${d.text}</b></div><div class="hero-stat-lbl">${d.lbl}</div></div>`; }
-    if (view === 'spark' && d.series) { const mx = Math.max(1, ...d.series);
-      return `<div class="hb hb-spark"><div class="hero-stat-num">${d.text}</div><div class="hb-sp">${d.series.map((x, i) => `<i style="height:${Math.max(6, Math.round(x / mx * 100))}%;background:${x ? c : 'rgba(255,255,255,.18)'}${i === d.series.length - 1 ? '' : ''}"></i>`).join('')}</div><div class="hero-stat-lbl">${d.lbl}</div></div>`; }
-    return null;
-  }
+  const blockData = (bid, store) => { const f = BLOCK_DATA[bid]; if (!f) return null; try { return f(store); } catch (e) { return null; } };
+  const viewsOf = (bid) => SlideKit.viewsFor(blockData(bid, Store.get()));
+  const renderBlockView = (bid, view, store, cfg) => SlideKit.viewHtml(blockData(bid, store), view, SlideKit.accentOf(cfg));
   /* ── Готовые шаблоны слайдов ── */
   const TEMPLATES = [
     { id: 'day', name: 'Мой день', desc: 'тренировка, привычки, серия', slide: { label: 'МОЙ ДЕНЬ', icon: 'ti-sun', cssClass: 'slide-focus', glowClass: 'slide-glow-blue', route: '/habits', layout: 'auto', blocks: ['workout_today', 'habits_today', 'discipline_streak'], views: { habits_today: 'ring' } } },
@@ -446,9 +432,7 @@ var Slides = (() => {
     { id: 'mind', name: 'Настрой', desc: 'дата и фраза дня', slide: { label: 'НАСТРОЙ', icon: 'ti-bolt', cssClass: 'slide-amber', glowColor: '#F59E0B', layout: 'center', blocks: ['motivational_quote', 'day_of_week'], views: {} } },
     { id: 'empty', name: 'Пустой', desc: 'соберу сам', slide: { label: 'НОВЫЙ СЛАЙД', cssClass: 'slide-slate', glowColor: '#64748B', layout: 'auto', blocks: [], views: {} } },
   ];
-  const ICONS = ['ti-sun', 'ti-flame', 'ti-barbell', 'ti-run', 'ti-heart', 'ti-checklist', 'ti-wallet', 'ti-coin', 'ti-target-arrow', 'ti-trophy', 'ti-bolt', 'ti-moon', 'ti-book', 'ti-brain', 'ti-rocket', 'ti-star'];
-  const iconHtml = (ic) => !ic ? '' : /^ti-[a-z0-9-]+$/.test(ic) ? `<i class="ti ${ic} hs-ico"></i>` : `<span class="hs-ico hs-emo">${String(ic).replace(/[<>&"]/g, '')}</span>`;
-  const escT = (t) => String(t || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const escT = SlideKit.esc;
 
   function getSlides() {
     let saved = Store.get().home?.slides;
@@ -477,35 +461,11 @@ var Slides = (() => {
       if (!def) return null;
       const blockCfg = cfg.blockCfgs?.[bid];
       const view = (cfg.views || {})[bid];
-      try { return { bid, name: def.name, html: renderBlockView(bid, view, store, slideColor) || def.render(store, blockCfg, slideColor) }; }
+      try { return { bid, name: def.name, html: renderBlockView(bid, view, store, cfg) || def.render(store, blockCfg, slideColor) }; }
       catch(e) { return null; }
     }).filter(Boolean);
 
     const layout = cfg.layout || 'auto';
-    let bodyHtml = '';
-    if (layout === 'cols') {
-      /* две колонки: все блоки одинаковые */
-      bodyHtml = `<div class="hero-slide-sub"><div class="hs-cols">${rendered.map(b => `<div class="sb-block">${b.html}</div>`).join('')}</div></div>`;
-    } else if (layout === 'list') {
-      /* список: название блока слева, значение справа */
-      bodyHtml = `<div class="hero-slide-sub"><div class="hs-list">${rendered.map(b => `<div class="hs-li"><span class="hs-li-n">${escT(b.name)}</span><div class="hs-li-v">${b.html}</div></div>`).join('')}</div></div>`;
-    } else if (layout === 'center') {
-      /* одна большая цифра по центру, остальное мелко под ней */
-      const rest = rendered.slice(1);
-      bodyHtml = (rendered[0] ? `<div class="hero-slide-main hs-center">${rendered[0].html}</div>` : '')
-        + (rest.length ? `<div class="hero-slide-sub"><div class="hero-stat-row hs-center-row stats-${Math.min(rest.length, 4)}">${rest.map(b => `<div class="sb-block">${b.html}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : '');
-    } else {
-      /* Первый блок — главный (big text в центре), остальные — статы внизу */
-      const mainHtml  = rendered[0] ? `<div class="hero-slide-main">${rendered[0].html}</div>` : '';
-      const stats = rendered.slice(1);
-      const statsHtml = stats.map(b => `<div class="sb-block">${b.html}</div>`).join('<div class="hero-stat-sep"></div>');
-      /* 4+ показателей — сетка 2×2, иначе одна строка. Размер шрифта у всех одинаковый */
-      const subHtml = statsHtml
-        ? `<div class="hero-slide-sub"><div class="hero-stat-row stats-${Math.min(stats.length, 4)}${stats.length >= 4 ? ' stats-grid' : ''}">${statsHtml}</div></div>`
-        : '';
-      bodyHtml = mainHtml + subHtml;
-    }
-
     const route = cfg.route ? ` data-route="${cfg.route}"` : '';
     /* Используем cssClass для оригинальных слайдов, иначе inline color */
     const slideClass = cfg.cssClass ? `hero-slide ${cfg.cssClass}` : 'hero-slide';
@@ -517,9 +477,8 @@ var Slides = (() => {
     return `<div class="${slideClass} hsl-${layout}"${stylePart}${route}>
       <div class="slide-ray-1"></div>
       <div class="slide-ray-2"></div>
-      <div class="hero-slide-label">${iconHtml(cfg.icon)}${escT(cfg.label||'')}</div>
-      ${cfg.motto ? `<div class="hero-slide-motto">${escT(cfg.motto)}</div>` : ''}
-      <div class="hs-body hs-lay-${layout}">${bodyHtml}</div>
+      ${SlideKit.headHtml(cfg)}
+      ${SlideKit.bodyHtml(cfg, rendered)}
       <div class="hero-slide-glow ${glowClass}"${glowStyle}></div>
     </div>`;
   }
@@ -589,140 +548,33 @@ var Slides = (() => {
     }
 
     /* ── Редактор одного слайда: живое превью сверху, всё меняется сразу ── */
-    const LAYOUTS = [
-      { id: 'auto', name: 'Главная + строка', svg: '<rect x="3" y="4" width="30" height="7" rx="2"/><rect x="3" y="16" width="9" height="5" rx="1.5"/><rect x="14" y="16" width="9" height="5" rx="1.5"/><rect x="25" y="16" width="9" height="5" rx="1.5"/>' },
-      { id: 'center', name: 'По центру', svg: '<rect x="9" y="4" width="18" height="10" rx="2"/><rect x="8" y="17" width="9" height="4" rx="1.5"/><rect x="19" y="17" width="9" height="4" rx="1.5"/>' },
-      { id: 'cols', name: 'Две колонки', svg: '<rect x="3" y="4" width="14" height="8" rx="2"/><rect x="19" y="4" width="14" height="8" rx="2"/><rect x="3" y="14" width="14" height="8" rx="2"/><rect x="19" y="14" width="14" height="8" rx="2"/>' },
-      { id: 'list', name: 'Список', svg: '<rect x="3" y="4" width="30" height="4" rx="1.5"/><rect x="3" y="11" width="30" height="4" rx="1.5"/><rect x="3" y="18" width="30" height="4" rx="1.5"/>' },
-    ];
     function openSlideForm(idx) {
       const sl = getSlides();
-      const draft = JSON.parse(JSON.stringify(sl[idx] || {}));
-      draft.blocks = (draft.blocks || []).slice(); draft.views = draft.views || {}; draft.blockCfgs = draft.blockCfgs || {}; draft.layout = draft.layout || 'auto';
       const panel = ov.querySelector('#se-panel');
-      const head  = panel.querySelector('.se-head');
-      head.querySelector('.se-head-title').textContent = 'Слайд';
-      head.querySelector('#se-add').style.display = 'none';
-      const body = panel.querySelector('#se-body');
-      const blocksBySection = {};
-      BLOCK_LIBRARY.forEach(b => { (blocksBySection[b.section] = blocksBySection[b.section] || []).push(b); });
-      const lbl = (t) => `<div class="sf-lbl">${t}</div>`;
-      body.innerHTML = `<div class="sf">
-        <div class="sf-prev" id="sf-prev"></div>
-        ${lbl('Название и значок')}
-        <div class="sf-row"><button class="sf-icon-btn" id="sf-icon-btn" aria-label="Значок"></button><input type="text" id="se-label" class="sf-in" value="${escT(draft.label || '')}" placeholder="ФОКУС ДНЯ" maxlength="24"></div>
-        <div class="sf-icons" id="sf-icons" hidden>
-          <button data-ic="" class="sf-ic-none">без</button>
-          ${ICONS.map(ic => `<button data-ic="${ic}"><i class="ti ${ic}"></i></button>`).join('')}
-          <input type="text" id="sf-emoji" maxlength="2" placeholder="😀" aria-label="Эмодзи">
-        </div>
-        ${lbl('Подпись под названием')}
-        <input type="text" id="sf-motto" class="sf-in" value="${escT(draft.motto || '')}" placeholder="Например: шаг за шагом" maxlength="40">
-        ${lbl('Цвет')}
-        <div class="sf-colors">${SLIDE_COLORS.map((c, i) => `<button class="se-color-btn" data-i="${i}" style="background:${c.bg || c.val}" title="${c.name}"></button>`).join('')}</div>
-        ${lbl('Раскладка')}
-        <div class="sf-lays">${LAYOUTS.map(l => `<button data-lay="${l.id}"><svg viewBox="0 0 36 26">${l.svg}</svg><span>${l.name}</span></button>`).join('')}</div>
-        ${lbl('Блоки на слайде')}
-        <div class="sf-hint">Порядок меняй стрелками или перетаскивай за <i class="ti ti-grip-vertical"></i>. Первый блок самый крупный</div>
-        <div class="sf-order" id="sf-order"></div>
-        <details class="sf-add"><summary><i class="ti ti-plus"></i> Добавить блок <i class="ti ti-chevron-down"></i></summary>
-          ${SECTION_ORDER.filter(sec => blocksBySection[sec]).map(sec => `<div class="sf-sec">${sec}</div>` + blocksBySection[sec].map(b => `<label class="sf-cb"><input type="checkbox" class="se-block-cb" data-bid="${b.id}"><div><b>${b.name}</b><span>${b.desc}</span></div></label>`).join('')).join('')}
-        </details>
-        ${lbl('Куда ведёт нажатие')}
-        <select id="se-route" class="sf-in">
-          <option value="">Никуда</option><option value="/training">Тренировки</option><option value="/habits">Привычки</option><option value="/finance">Финансы</option><option value="/goals">Цели</option>
-        </select>
-        <div class="sf-btns"><button class="sf-cancel" id="sf-cancel">Отмена</button><button class="sf-save" id="se-save-slide">Сохранить</button></div>
-      </div>`;
-      body.scrollTop = 0;
-      const $ = (q) => body.querySelector(q);
-      $('#se-route').value = draft.route || '';
-
-      const colorIdx = () => SLIDE_COLORS.findIndex(c => (draft.cssClass && c.cssClass === draft.cssClass) || (!draft.cssClass && draft.color && c.val === draft.color));
-      const drawPreview = () => {
-        $('#sf-prev').innerHTML = renderSlide(draft, Store.get());
-        $('#sf-icon-btn').innerHTML = draft.icon ? iconHtml(draft.icon) : '<i class="ti ti-mood-plus"></i>';
-        const ci = colorIdx(); body.querySelectorAll('.se-color-btn').forEach(b => b.classList.toggle('on', +b.dataset.i === ci));
-        body.querySelectorAll('.sf-lays button').forEach(b => b.classList.toggle('on', b.dataset.lay === draft.layout));
-        body.querySelectorAll('.sf-icons [data-ic]').forEach(b => b.classList.toggle('on', (b.dataset.ic || '') === (draft.icon || '')));
-      };
-      const cfgHtml = (bid) => {
-        const c = draft.blockCfgs[bid] || {};
-        if (bid === 'custom_text') return `<div class="sf-cfg"><input type="text" class="sf-in" data-cfg="text" data-bid="${bid}" placeholder="Заголовок" value="${escT(c.text)}"><input type="text" class="sf-in" data-cfg="sub" data-bid="${bid}" placeholder="Подпись" value="${escT(c.sub)}"></div>`;
-        if (bid === 'custom_goal') return `<div class="sf-cfg"><select class="sf-in" data-cfg="goalId" data-bid="${bid}">${goals.map(g => `<option value="${g.id}" ${g.id === c.goalId ? 'selected' : ''}>${escT(g.name)}</option>`).join('')}</select></div>`;
-        if (bid === 'motivational_quote') return `<div class="sf-cfg"><textarea class="sf-in" data-cfg="quotes" data-bid="${bid}" rows="3" placeholder="Свои фразы, каждая с новой строки. Пусто: стандартные">${escT(c.quotes)}</textarea></div>`;
-        return '';
-      };
-      const drawOrder = () => {
-        const box = $('#sf-order');
-        box.innerHTML = draft.blocks.length ? draft.blocks.map((bid, i) => {
-          const def = BLOCK_LIBRARY.find(b => b.id === bid); if (!def) return '';
-          const vs = viewsOf(bid), cur = draft.views[bid] || 'num';
-          return `<div class="sf-blk" data-i="${i}">
-            <div class="sf-blk-h"><span class="sf-grip" data-i="${i}"><i class="ti ti-grip-vertical"></i></span><b>${def.name}</b>
-              <button data-mv="-1" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
-              <button data-mv="1" data-i="${i}" ${i === draft.blocks.length - 1 ? 'disabled' : ''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
-              <button data-rm="${i}" aria-label="Убрать"><i class="ti ti-x"></i></button></div>
-            ${vs.length > 1 ? `<div class="sf-views">${vs.map(v => `<button data-bid="${bid}" data-v="${v}" class="${v === cur ? 'on' : ''}">${VIEW_NAMES[v]}</button>`).join('')}</div>` : ''}
-            ${cfgHtml(bid)}
-          </div>`;
-        }).join('') : '<div class="sf-empty">Пока пусто. Добавь блок ниже или выбери шаблон</div>';
-        body.querySelectorAll('.se-block-cb').forEach(cb => { cb.checked = draft.blocks.includes(cb.dataset.bid); });
-        box.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const i = +b.dataset.i, j = i + +b.dataset.mv; [draft.blocks[i], draft.blocks[j]] = [draft.blocks[j], draft.blocks[i]]; drawOrder(); drawPreview(); });
-        box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { draft.blocks.splice(+b.dataset.rm, 1); drawOrder(); drawPreview(); });
-        box.querySelectorAll('.sf-views button').forEach(b => b.onclick = () => { draft.views[b.dataset.bid] = b.dataset.v; drawOrder(); drawPreview(); });
-        box.querySelectorAll('[data-cfg]').forEach(inp => inp.addEventListener('input', () => { const c = draft.blockCfgs[inp.dataset.bid] = draft.blockCfgs[inp.dataset.bid] || {}; c[inp.dataset.cfg] = inp.value; drawPreview(); }));
-        /* перетаскивание за ручку: пальцем и мышкой */
-        box.querySelectorAll('.sf-grip').forEach(g => g.addEventListener('pointerdown', (e) => {
-          e.preventDefault(); const from = +g.dataset.i; const items = [...box.querySelectorAll('.sf-blk')]; const row = items[from];
-          row.classList.add('drag'); let to = from;
-          const mvH = (ev) => { const y = ev.clientY; to = items.findIndex(it => { const r = it.getBoundingClientRect(); return y < r.top + r.height / 2; }); if (to < 0) to = items.length;
-            items.forEach((it, k) => { it.classList.toggle('drop-before', k === to && k !== from && k !== from + 1); it.classList.toggle('drop-after', to === items.length && k === items.length - 1 && k !== from); }); };
-          const upH = () => { document.removeEventListener('pointermove', mvH); document.removeEventListener('pointerup', upH);
-            if (to !== from && to !== from + 1) { const [x] = draft.blocks.splice(from, 1); draft.blocks.splice(to > from ? to - 1 : to, 0, x); }
-            drawOrder(); drawPreview(); };
-          document.addEventListener('pointermove', mvH); document.addEventListener('pointerup', upH);
-        }));
-      };
-      body.querySelectorAll('.se-block-cb').forEach(cb => cb.addEventListener('change', () => {
-        const bid = cb.dataset.bid;
-        if (cb.checked && !draft.blocks.includes(bid)) draft.blocks.push(bid);
-        if (!cb.checked) draft.blocks = draft.blocks.filter(x => x !== bid);
-        drawOrder(); drawPreview();
-      }));
-      $('#se-label').addEventListener('input', (e) => { draft.label = e.target.value.toUpperCase(); drawPreview(); });
-      $('#sf-motto').addEventListener('input', (e) => { draft.motto = e.target.value; drawPreview(); });
-      $('#se-route').addEventListener('change', (e) => { draft.route = e.target.value; });
-      $('#sf-icon-btn').onclick = () => { const ic = $('#sf-icons'); ic.hidden = !ic.hidden; };
-      body.querySelectorAll('.sf-icons [data-ic]').forEach(b => b.onclick = () => { draft.icon = b.dataset.ic; $('#sf-emoji').value = ''; drawPreview(); });
-      $('#sf-emoji').addEventListener('input', (e) => { const v = e.target.value.trim(); if (v) { draft.icon = [...v].slice(0, 2).join(''); drawPreview(); } });
-      body.querySelectorAll('.se-color-btn').forEach(b => b.onclick = () => { const c = SLIDE_COLORS[+b.dataset.i];
-        draft.cssClass = c.cssClass || ''; draft.glowClass = c.glowClass || ''; draft.color = c.val || ''; draft.glowColor = c.glow || ''; drawPreview(); });
-      body.querySelectorAll('.sf-lays button').forEach(b => b.onclick = () => { draft.layout = b.dataset.lay; drawPreview(); });
-      $('#sf-cancel').onclick = () => renderOv();
-      $('#se-save-slide').onclick = () => {
-        const s2 = getSlides(); s2[idx] = { ...draft, label: (draft.label || '').toUpperCase() };
-        saveSlides(s2); renderOv(); Router.render();
-      };
-      drawOrder(); drawPreview();
+      panel.querySelector('.se-head-title').textContent = 'Слайд';
+      panel.querySelector('#se-add').style.display = 'none';
+      SlideKit.form(panel.querySelector('#se-body'), {
+        draft: sl[idx] || {}, blocks: BLOCK_LIBRARY.map(b => ({ id: b.id, name: b.name, desc: b.desc, sec: b.section })), sections: SECTION_ORDER,
+        colors: SLIDE_COLORS, routes: [['', 'Никуда'], ['/training', 'Тренировки'], ['/habits', 'Привычки'], ['/finance', 'Финансы'], ['/goals', 'Цели']],
+        preview: (d) => renderSlide(d, Store.get()), views: viewsOf,
+        cfgHtml: (bid, c) => {
+          if (bid === 'custom_text') return `<div class="sf-cfg"><input type="text" class="sf-in" data-cfg="text" data-bid="${bid}" placeholder="Заголовок" value="${escT(c.text)}"><input type="text" class="sf-in" data-cfg="sub" data-bid="${bid}" placeholder="Подпись" value="${escT(c.sub)}"></div>`;
+          if (bid === 'custom_goal') return `<div class="sf-cfg"><select class="sf-in" data-cfg="goalId" data-bid="${bid}">${goals.map(g => `<option value="${g.id}" ${g.id === c.goalId ? 'selected' : ''}>${escT(g.name)}</option>`).join('')}</select></div>`;
+          if (bid === 'motivational_quote') return `<div class="sf-cfg"><textarea class="sf-in" data-cfg="quotes" data-bid="${bid}" rows="3" placeholder="Свои фразы, каждая с новой строки. Пусто: стандартные">${escT(c.quotes)}</textarea></div>`;
+          return '';
+        },
+        onCancel: () => renderOv(),
+        onSave: (d) => { const s2 = getSlides(); s2[idx] = d; saveSlides(s2); renderOv(); Router.render(); },
+      });
     }
     /* ── Новый слайд: сначала шаблон, потом правка ── */
     function openTemplates() {
       const panel = ov.querySelector('#se-panel');
       panel.querySelector('.se-head-title').textContent = 'Новый слайд';
       panel.querySelector('#se-add').style.display = 'none';
-      const body = panel.querySelector('#se-body');
       const st = Store.get();
-      body.innerHTML = `<div class="sf-hint" style="margin-bottom:10px">Выбери основу, потом поправишь всё под себя</div>
-        <div class="sf-tpls">${TEMPLATES.map(t => `<button class="sf-tpl" data-t="${t.id}"><div class="sf-tpl-prev">${renderSlide({ ...t.slide, id: 'tpl' }, st)}</div><div class="sf-tpl-n"><b>${t.name}</b><span>${t.desc}</span></div></button>`).join('')}</div>
-        <div class="sf-btns"><button class="sf-cancel" id="sf-cancel">Назад</button></div>`;
-      body.scrollTop = 0;
-      body.querySelector('#sf-cancel').onclick = () => renderOv();
-      body.querySelectorAll('.sf-tpl').forEach(b => b.onclick = () => {
-        const t = TEMPLATES.find(x => x.id === b.dataset.t);
-        const s2 = getSlides(); s2.push({ ...JSON.parse(JSON.stringify(t.slide)), id: 's_' + Date.now(), enabled: true });
-        saveSlides(s2); Router.render(); openSlideForm(s2.length - 1);
-      });
+      SlideKit.templates(panel.querySelector('#se-body'), { templates: TEMPLATES, preview: (sl) => renderSlide({ ...sl, id: 'tpl' }, st), onBack: () => renderOv(),
+        onPick: (sl) => { const s2 = getSlides(); s2.push({ ...sl, id: 's_' + Date.now(), enabled: true }); saveSlides(s2); Router.render(); openSlideForm(s2.length - 1); } });
     }
 
     /* ── DOM ── центрированное окно, как остальные модалки */

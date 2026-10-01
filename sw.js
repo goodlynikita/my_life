@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v73';
+const CACHE = 'nik-system-v75';
 
 const STATIC = [
   '/my_life/',
@@ -10,6 +10,7 @@ const STATIC = [
   '/my_life/icon.png',
   '/my_life/css/tokens.css',
   '/my_life/css/home.css',
+  '/my_life/css/slides-kit.css',
   '/my_life/css/training.css',
   '/my_life/css/coach-home.css',
   '/my_life/css/sections.css',
@@ -25,6 +26,7 @@ const STATIC = [
   '/my_life/js/router.js',
   '/my_life/js/firebase-sync.js',
   '/my_life/js/features.js',
+  '/my_life/js/slide-kit.js',
   '/my_life/js/slides.js',
   '/my_life/js/feedback.js',
   '/my_life/js/celebrate.js',

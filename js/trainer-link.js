@@ -92,6 +92,12 @@ window.TrainerLink = (function () {
     ov.querySelector('#tl-code').onclick = () => { ov.remove(); askCode(); };
   }
 
+  /* копирование: Clipboard API, а если браузер не даёт, через скрытое поле */
+  async function copyText(t) {
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch (e) {}
+    try { const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; }
+  }
   /* ── Ключ доступа ── */
   let keyOv = null;
   function keyModal() {
@@ -103,7 +109,7 @@ window.TrainerLink = (function () {
       ov.innerHTML = `<div class="tr-modal coach-modal tl-modal">
         <div class="coach-head"><div class="coach-ico"><i class="ti ti-key"></i></div>
           <div><div class="tr-modal-title" style="margin:0">Ключ для тренера</div><div class="coach-sub">${k ? 'Отправь его тренеру' : 'Тренер введёт его в своём кабинете'}</div></div></div>
-        ${k ? `<div class="tl-key"><b>${fmtKey(k.code)}</b><span>${esc(k.name || '')} · действует ещё ${left(k.expiresAt)}</span></div>
+        ${k ? `<button class="tl-key" id="tl-copy" title="Скопировать"><b>${fmtKey(k.code)}</b><span>${esc(k.name || '')} · действует ещё ${left(k.expiresAt)}</span><em class="tl-copy"><i class="ti ti-copy"></i> Скопировать</em></button>
           <div class="tl-list">
             <div><i class="ti ti-shield-check"></i><span>Ключ одноразовый. После подключения он сгорает</span></div>
             <div><i class="ti ti-eye"></i><span>Тренер увидит <b>только тренировки</b>. Финансы, привычки и цели закрыты</span></div>
@@ -131,10 +137,15 @@ window.TrainerLink = (function () {
         catch (e) { mk.disabled = false; mk.textContent = 'Создать ключ'; alert('Не получилось создать ключ. Проверь интернет.'); }
       };
       const rev = ov.querySelector('#tl-rev'); if (rev) rev.onclick = async () => { await FirebaseSync.revokeAccessKey(); toast('Ключ отозван'); draw(null); };
+      const cp = ov.querySelector('#tl-copy'); if (cp) cp.onclick = async () => {
+        const ok = await copyText(fmtKey(k.code));
+        const em = cp.querySelector('.tl-copy'); em.innerHTML = ok ? '<i class="ti ti-check"></i> Скопировано' : 'Не получилось, выдели вручную'; em.classList.toggle('ok', ok);
+        setTimeout(() => { if (em.isConnected) { em.innerHTML = '<i class="ti ti-copy"></i> Скопировать'; em.classList.remove('ok'); } }, 1800);
+      };
       const sb = ov.querySelector('#tl-send'); if (sb) sb.onclick = () => {
         const text = `Мой ключ доступа для тренера в YOU: ${fmtKey(k.code)}\nВведи его в кабинете тренера: ${location.href.split('#')[0].replace(/index\.html$/, '')}coach.html`;
         if (navigator.share) navigator.share({ text }).catch(() => {});
-        else { navigator.clipboard && navigator.clipboard.writeText(text); toast('Скопировано'); }
+        else copyText(text).then(ok => toast(ok ? 'Скопировано' : 'Не получилось скопировать'));
       };
     }
     function close() { ov.remove(); keyOv = null; }

@@ -1,0 +1,41 @@
+# Автовыкладка на you-app.ru (Yandex Object Storage).
+# Срабатывает при каждой загрузке файлов в репозиторий.
+# Ключи лежат в Settings → Secrets → Actions: YC_KEY_ID, YC_SECRET.
+name: Выкладка на you-app.ru
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Сборка (сжатие кода)
+        run: |
+          mkdir dist
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'server' --exclude '*.md' --exclude '*.zip' ./ dist/
+          npm i -g esbuild@0.23.1 >/dev/null
+          cd dist
+          find . -name '*.js' -not -path './js/vendor/*' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
+          find . -name '*.css' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
+
+      - name: Загрузка в Яндекс
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.YC_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET }}
+          AWS_DEFAULT_REGION: ru-central1
+        run: |
+          S3="aws s3 --endpoint-url=https://storage.yandexcloud.net"
+          # картинки, видео, шрифты: кэш на сутки
+          $S3 sync dist s3://you-app.ru --delete --cache-control "public, max-age=86400" \
+            --exclude "*.html" --exclude "*.js" --exclude "*.css" --exclude "*.json" --exclude "*.webmanifest"
+          # код и страницы: всегда проверять свежую версию
+          $S3 sync dist s3://you-app.ru --cache-control "no-cache" \
+            --exclude "*" --include "*.html" --include "*.js" --include "*.css" --include "*.json"
+          $S3 cp dist/coach.webmanifest s3://you-app.ru/coach.webmanifest --cache-control "no-cache" --content-type "application/manifest+json"
+          $S3 cp dist/manifest.json s3://you-app.ru/manifest.json --cache-control "no-cache" --content-type "application/manifest+json"

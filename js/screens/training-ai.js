@@ -1035,6 +1035,7 @@ window.TrainingAI = (function () {
     if (!window.__coachMode && window.FirebaseSync && FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached()) return null;
     const ai = load();
     if (!ai || ai.planId !== plan.id) return null;
+    if (ai.mode !== 'queue' && prefsGet().method !== 'weeks') return null;
     const plans = chosenPlans(h.getPlans()).on.map(x => x.p);
     const history = collect(plans);
     const sig = sigOf(history);
@@ -1176,7 +1177,7 @@ window.TrainingAI = (function () {
       ${pick ? '<div class="q-tip"><i class="ti ti-info-circle"></i> Вес подбери так, чтобы последние 2 повтора давались тяжело, и запиши его во вкладке План. Дальше я буду вести его сам</div>' : ''}
       ${q.deload ? '<div class="q-tip"><i class="ti ti-feather"></i> Облегчённая тренировка: мышцы отдыхают перед новым планом</div>' : ''}`;
   }
-  function renderQueue(content, plan, h, plans, history, an, prefs, ai, cp) {
+  function renderQueue(content, plan, h, plans, history, an, prefs, ai, cp, legacy) {
     const L = ai ? { trainings: ai.layout, N: ai.N, manual: ai.manual } : buildLayout(history, an, prefs);
     const apply = (p2, msg, relayout) => { Store.set('training.aiPrefs', p2); if (ai) regenKeep(plans, plan, p2, relayout); render(content, plan, h); if (msg) qToast(msg); };
     const today = new Date(); today.setHours(0, 0, 0, 0); const todayK = ymdQ(today);
@@ -1202,6 +1203,7 @@ window.TrainingAI = (function () {
         <details class="ai-more"${window._aiMoreOpen ? ' open' : ''}><summary><i class="ti ti-adjustments-horizontal"></i> Настройки <i class="ti ti-chevron-down"></i></summary>
           ${qSettingsHtml(prefs, L.N, L.manual)}${sourcesHtml(cp.src, cp.on, plan)}</details>
       </div>
+      ${!ai && legacy ? '<div class="q-tip"><i class="ti ti-info-circle"></i> AI-план стал проще: тренировки идут по очереди, без привязки к дням недели. Нажми «Составить план». То, что ты уже добавил во вкладку План, останется</div>' : ''}
       ${!ai ? `<button class="ai-gen" id="q-gen"><i class="ti ti-sparkles"></i> Составить план</button><div class="ai-hint" style="text-align:center">Подставлю упражнения и веса до конца плана №${plan.number || ''} и буду прибавлять вес сам</div>`
       : `${askIdx >= 0 ? `<div class="q-ask"><div class="q-ask-t">${esc(fmtDayL(fromYmdQ(Q[askIdx].date)))} стояла ${esc(nameT(Q[askIdx]))}. Получилось сходить?</div>
           <div class="q-btns"><button class="ai-gen" id="q-yes">Да</button><button class="ai-regen" id="q-no">Нет, пропустил</button></div>
@@ -1395,7 +1397,8 @@ window.TrainingAI = (function () {
     try { adj = autoAdjust(plan, h); } catch (e) { console.error('autoAdjust', e); }
     let ai = load();
     if (ai && ai.planId !== plan.id) ai = null; /* план для другого 8-недельного блока */
-    if (prefs.method !== 'weeks' && (!ai || ai.mode === 'queue')) return renderQueue(content, plan, h, plans, history, an, prefs, ai, cp);
+    /* старый план по неделям после обновления показываем в новом виде: составляется заново по очереди */
+    if (prefs.method !== 'weeks') { const legacy = !!(ai && ai.mode !== 'queue'); return renderQueue(content, plan, h, plans, history, an, prefs, legacy ? null : ai, cp, legacy); }
 
     if (false) {
       const wPct = Math.min(100, Math.round(an.weeks / MIN_WEEKS * 100));

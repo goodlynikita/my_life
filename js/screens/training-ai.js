@@ -1025,7 +1025,8 @@ window.TrainingAI = (function () {
       L.push(`- ${x.name}${x.cls ? ' [' + x.cls.group + ', ' + (REGION_LABEL[x.cls.region] || '') + ']' : ''}: ${last.sets || '?'}×${last.reps || '?'}${last.weight ? '×' + last.weight + 'кг' : ''}; ${h}${rm}${flat ? '; ПЛАТО' : ''}`);
     });
     const ai = load();
-    if (ai && ai.planId === plan.id) L.push('AI-план уже составлен с недели ' + (ai.fromWeek + 1) + '.');
+    if (ai && ai.planId === plan.id && ai.mode === 'queue') L.push('AI-план: тренировки по очереди: ' + toArr(ai.layout).map((t, i) => (i + 1) + ') ' + toArr(t).join('+')).join(', ') + '.');
+    else if (ai && ai.planId === plan.id) L.push('AI-план уже составлен с недели ' + (ai.fromWeek + 1) + '.');
     return L.join('\n');
   }
 

@@ -1,0 +1,14 @@
+{
+  "id": "./admin.html",
+  "name": "YOU · Админка",
+  "short_name": "YOU Админ",
+  "start_url": "./admin.html",
+  "scope": "./admin.html",
+  "display": "standalone",
+  "background_color": "#0B0D12",
+  "theme_color": "#0B0D12",
+  "icons": [
+    { "src": "img/fav/admin-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "img/fav/admin-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

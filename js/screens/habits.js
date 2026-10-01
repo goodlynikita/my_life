@@ -320,6 +320,7 @@ window.Screens.habits = function(mount) {
         <button class="hab-tab" data-tab="wheel">Колесо</button>
         <button class="hab-tab" data-tab="history">История</button>
       </div>
+      <div id="wh-remind"></div>
       <div class="hab-body" id="hab-content"></div>
     </div>`;
 
@@ -918,6 +919,8 @@ window.Screens.habits = function(mount) {
   /* Выбранный на экране месяц — по умолчанию текущий */
   const _wheelNow = new Date();
   let wheelSelMk = habMonthKey(_wheelNow.getFullYear(), _wheelNow.getMonth());
+  { const pm = new Date(_wheelNow.getFullYear(), _wheelNow.getMonth() - 1, 1), pmk = habMonthKey(pm.getFullYear(), pm.getMonth());
+    if (_wheelNow.getDate() <= 10 && !wheelGetData(pmk)) wheelSelMk = pmk; }
 
   function renderWheel() {
     const allWheels = wheelAllData();
@@ -1008,7 +1011,25 @@ window.Screens.habits = function(mount) {
     });
   }
 
+  /* Месяц закончился, а колесо за него не заполнено: напоминание первые 10 дней нового месяца */
+  function renderRemind() {
+    const box = document.getElementById('wh-remind'); if (!box) return;
+    const n = new Date(), pm = new Date(n.getFullYear(), n.getMonth() - 1, 1);
+    const pmk = habMonthKey(pm.getFullYear(), pm.getMonth());
+    let dismissed = false; try { dismissed = localStorage.getItem('wh_dismiss_' + pmk) === '1'; } catch (e) {}
+    const tabBtn = mount.querySelector('.hab-tab[data-tab="wheel"]');
+    const need = n.getDate() <= 10 && !wheelGetData(pmk);
+    if (tabBtn) tabBtn.classList.toggle('hab-tab-dot', need);
+    if (!need || dismissed) { box.innerHTML = ''; return; }
+    const name = HAB_MONTHS_RU[pm.getMonth()];
+    box.innerHTML = `<div class="wh-remind"><i class="ti ti-calendar-check"></i><div><b>${name} закончился</b><span>Оцени его по сферам жизни, это минута</span></div>
+      <button class="wh-go" id="wh-go">Оценить</button><button class="wh-x" id="wh-x" aria-label="Скрыть"><i class="ti ti-x"></i></button></div>`;
+    box.querySelector('#wh-go').onclick = () => wheelOpenForm(pmk, null, () => { renderRemind(); if (activeTab === 'wheel') { wheelSelMk = pmk; renderWheel(); } });
+    box.querySelector('#wh-x').onclick = () => { try { localStorage.setItem('wh_dismiss_' + pmk, '1'); } catch (e) {} renderRemind(); };
+  }
+
   function render() {
+    renderRemind();
     if (activeTab==='grid') renderGrid();
     else if (activeTab==='wheel') renderWheel();
     else renderHistory();

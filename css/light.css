@@ -115,3 +115,6 @@ html[data-theme="light"] .goals-season-tabs .goals-season-tab.active { filter: s
 html[data-theme="light"] .tiles-v88 .home2-tile::before, html[data-theme="light"] .tiles-v88 .home2-tile::after { opacity: .75 !important; }
 html[data-theme="light"] .hero-slide::after { mix-blend-mode: normal !important; opacity: .6 !important; }
 html[data-theme="light"] .hero-slide::before { opacity: .6 !important; }
+/* v164: в светлой теме тёмная тень окон после инверсии превращалась в белое свечение. Светлая тень после инверсии = мягкая тёмная */
+html[data-theme="light"] .tr-modal, html[data-theme="light"] .se-panel, html[data-theme="light"] .fb-sheet,
+html[data-theme="light"] html.fin-dark-on .modal-finance .tr-modal, html[data-theme="light"].fin-dark-on .modal-finance .tr-modal { box-shadow: 0 10px 34px rgba(255,255,255,0.16) !important; }

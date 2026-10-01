@@ -36,7 +36,18 @@ window.Notices = (function () {
     if (FirebaseSync.loadSettings) await FirebaseSync.loadSettings();
     const a = FirebaseSync.getAnnouncement ? FirebaseSync.getAnnouncement() : null;
     let seen = ''; try { seen = localStorage.getItem('nt_seen') || ''; } catch (e) {}
-    if (a && a.at !== seen) {
+    /* кому показывать: всем, клиентам тренеров, без тренера, новичкам, по метке */
+    const aud = (a && a.aud) || 'all';
+    const fits = () => {
+      if (aud === 'all') return true;
+      const hasT = !!(FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached());
+      if (aud === 'coach') return hasT;
+      if (aud === 'solo') return !hasT;
+      if (aud === 'new') { const c = user.metadata && user.metadata.creationTime ? new Date(user.metadata.creationTime) : null; return !!c && Date.now() - c < 14 * 864e5; }
+      if (aud.indexOf('tag:') === 0) { const ix = FirebaseSync.myIndexCached ? FirebaseSync.myIndexCached() : null; return !!ix && ix.tag === aud.slice(4); }
+      return true;
+    };
+    if (a && a.at !== seen && fits()) {
       shownThisSession = true;
       modal('Объявление', a.text, () => { try { localStorage.setItem('nt_seen', a.at); } catch (e) {} });
     }

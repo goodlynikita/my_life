@@ -268,3 +268,6 @@ html.fin-inv-on .modal-finance .tr-modal, html.fin-inv-on .pg-sheet { filter: in
   .xp-table td:first-child, .xp-table th:first-child { padding-left: 14px !important; }
   .xp-table td:last-child, .xp-table th:last-child { padding-right: 14px !important; }
 }
+/* v164: окна финансов в светлой теме без белого свечения и с ровным списком */
+html.fin-inv-on .modal-finance .tr-modal, html.fin-inv-on .pg-sheet, html[data-theme="light"] .pg-sheet { box-shadow: none !important; }
+.pg-field select, .modal-finance select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important; background-repeat: no-repeat !important; background-position: right 14px center !important; padding-right: 38px !important; }

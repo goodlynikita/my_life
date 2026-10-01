@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, push, update, runTransaction, onValue, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -256,12 +256,54 @@ const FirebaseSync = (() => {
     try { await update(ref(_db), upd); } catch (e) { /* правила ещё не обновлены — не критично */ }
   }
 
+  /* ── Аналитика: только счётчики, без самих данных ──
+     userIndex/{uid}/m = { c: {раздел: число}, d: {ГГГГММДД: 1}, pwa, nps }
+     userIndex/{uid}/errs/e0..e4 = последние ошибки
+     userIndex/{uid}/ref = откуда пришёл; refs/{кто позвал}/{uid} = для счётчика у пригласившего */
+  async function track(c, day, extra) {
+    const u = _auth.currentUser; if (!u || isCoachUser(u)) return;
+    const base = 'userIndex/' + u.uid + '/m/', upd = {};
+    Object.keys(c || {}).forEach(k => { if (c[k] > 0 && /^[a-z]{2,12}$/.test(k)) upd[base + 'c/' + k] = increment(c[k]); });
+    if (day) upd[base + 'd/' + day] = 1;
+    Object.keys(extra || {}).forEach(k => { if (/^(pwa|nps|w\/\d{8})$/.test(k)) upd[base + k] = extra[k]; });
+    if (!Object.keys(upd).length) return;
+    try { await update(ref(_db), upd); } catch (e) {}
+  }
+  let _errN = 0;
+  async function logError(info) {
+    const u = _auth.currentUser; if (!u || isCoachUser(u) || _errN >= 5) return;
+    const slot = 'e' + (Math.floor(Date.now() / 1000) % 5); _errN++;
+    try { await set(ref(_db, 'userIndex/' + u.uid + '/errs/' + slot), { msg: String(info.msg || '').slice(0, 300), src: String(info.src || '').slice(0, 160), scr: String(info.scr || '').slice(0, 60), at: new Date().toISOString(), ua: (navigator.userAgent || '').slice(0, 160) }); } catch (e) {}
+  }
+  /* Источник регистрации: ссылка друга, тренера или кабинета тренера */
+  async function saveReferral(user, name) {
+    let r = null, join = null;
+    try { r = JSON.parse(localStorage.getItem('you_ref') || 'null'); join = localStorage.getItem('you_join'); } catch (e) {}
+    let by = null, kind = null;
+    if (join) { try { const inv = await findInvite(join); if (inv && inv.trainerUid) { by = inv.trainerUid; kind = 'client'; } } catch (e) {} }
+    if (!by && r && r.by && r.by !== user.uid) { by = String(r.by).slice(0, 64); kind = r.kind === 'trainer' ? 'trainer' : 'friend'; }
+    if (!by) return;
+    const at = Date.now();
+    try { await set(ref(_db, 'userIndex/' + user.uid + '/ref'), { by, kind, at }); } catch (e) {}
+    try { await set(ref(_db, 'refs/' + by + '/' + user.uid), { kind, at, name: String(name || user.displayName || '').slice(0, 60) }); } catch (e) {}
+    try { localStorage.removeItem('you_ref'); } catch (e) {}
+  }
+  async function myRefs() {
+    const u = _auth.currentUser; if (!u) return null;
+    try { const s = await get(ref(_db, 'refs/' + u.uid)); return s.exists() ? s.val() : {}; } catch (e) { return null; }
+  }
+  async function getIndexMeta() {
+    const u = _auth.currentUser; if (!u) return null;
+    try { const s = await get(ref(_db, 'userIndex/' + u.uid + '/m')); return s.exists() ? s.val() : {}; } catch (e) { return null; }
+  }
+
   /* Личное сообщение от админа: userIndex/{uid}/notice = {text, at}; прочитано → noticeSeen = at */
+  let _myIndex = null;
   async function getNotice(user) {
     if (!user) return null;
     try {
       const snap = await get(ref(_db, 'userIndex/' + user.uid));
-      const v = snap.exists() ? snap.val() : {};
+      const v = snap.exists() ? snap.val() : {}; _myIndex = v;
       if (v.notice && v.notice.text && v.notice.at !== v.noticeSeen) return v.notice;
     } catch (e) {}
     return null;
@@ -322,6 +364,7 @@ const FirebaseSync = (() => {
     }
     if (displayName) await updateProfile(cred.user, { displayName });
     touchUserIndex(cred.user);
+    saveReferral(cred.user, displayName);
     return cred.user;
   }
 
@@ -366,6 +409,7 @@ const FirebaseSync = (() => {
       uid: u ? u.uid : null, email: u ? u.email : null,
       at: new Date().toISOString(), ua: navigator.userAgent.slice(0, 200)
     };
+    if (data.score != null) payload.score = Math.max(0, Math.min(10, Math.round(+data.score) || 0));
     await Promise.race([
       push(ref(_db, 'feedback'), payload),
       new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))
@@ -539,7 +583,7 @@ const FirebaseSync = (() => {
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,
     getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,
-    getNotice, markNoticeSeen, getAnnouncement,
+    getNotice, markNoticeSeen, getAnnouncement, myIndexCached: () => _myIndex, track, logError, myRefs, getIndexMeta, saveReferral,
     isCoach: () => isCoachUser(_auth.currentUser), getCoach, setCoachPassword, setCoachEnabled, removeCoach,
     getConfig: () => window.FIREBASE_CONFIG
   };

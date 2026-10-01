@@ -131,3 +131,7 @@ textarea.sf-in { resize: vertical; }
 .hs-cols .skv-ring { flex-direction: column !important; align-items: flex-start !important; gap: 3px !important; }
 .skv-ring-c b.sm { font-size: 0.78em; letter-spacing: -.3px; }
 .hero-stat-row .skv-ring-c b.sm, .hs-cols .skv-ring-c b.sm { font-size: 8px; }
+/* кольцо в строке статов: рядом с подписью, по высоте как число соседей */
+.hero-stat-row .skv-ring { flex-direction: row !important; align-items: center !important; gap: 8px !important; }
+.hero-stat-row .skv-ring-c { width: 32px !important; height: 32px !important; }
+.hero-stat-row .skv-ring .hero-stat-lbl { margin-top: 0 !important; line-height: 1.25; }

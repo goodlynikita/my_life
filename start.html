@@ -1444,5 +1444,9 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 })();
 </script>
 <script src="js/hi.js"></script>
+<script>/* рефка: кто позвал. ?ref=UID друга, ?tref=UID тренера */
+try{var q=new URLSearchParams(location.search),r=q.get('ref'),t=q.get('tref');
+if(r&&/^[A-Za-z0-9_-]{2,64}$/.test(r)&&!localStorage.getItem('you_ref'))localStorage.setItem('you_ref',JSON.stringify({by:r,kind:'friend',at:Date.now()}));
+if(t&&/^[A-Za-z0-9_-]{2,64}$/.test(t))localStorage.setItem('you_tref',t);}catch(e){}</script>
 </body>
 </html>

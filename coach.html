@@ -563,6 +563,15 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,15
 .sc .sc-badge{color:#E6CFB5} .sc .sc-badge.now{background:color-mix(in srgb,var(--acc) 30%,transparent);color:#F2E4D3}
 .sc .sc-chk.on{background:var(--acc2);border-color:var(--acc2)}
 .sc .sc-warn{color:#D9B48C}
+/* v164 QR и рефки */
+.qr-wrap{display:flex;gap:14px;align-items:center;margin-top:14px;padding:12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.qr{width:132px;height:132px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:rgba(255,255,255,.06);font-size:40px;color:var(--faint)}
+.qr svg{display:block;border-radius:12px}
+.qr-t{display:flex;flex-direction:column;gap:6px;min-width:0}.qr-t b{font-size:14px}.qr-t span{font-size:12px;color:var(--soft);line-height:1.4}.qr-t .btn{align-self:flex-start;margin-top:4px}
+.ref-st{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12.5px;color:var(--soft)}.ref-st b{color:var(--txt)}.ref-st i{font-size:16px;color:#8EA8FF}
+.qr-ov{align-items:center}.qr-big{background:#fff;color:#0B0D12;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:380px}
+.qr-big b{font-size:18px;font-weight:900}.qr-big span{font-size:13px;color:#4B5263}.qr-big em{font-style:normal;font-weight:800;letter-spacing:.12em;font-size:13px;color:#4A7CFF}
+@media(max-width:420px){.qr{width:110px;height:110px}}
 </style>
 </head>
 <body>
@@ -785,13 +794,33 @@ $('#back').onclick = () => {
   window.scrollTo(0, 0); render();
 };
 
+/* ── Рефки и QR ── */
+const trefLink = () => APP_URL + 'coach.html?tref=' + encodeURIComponent(trainer.uid);
+async function refStats() { try { const s = await get(ref(db, 'refs/' + trainer.uid)); return s.exists() ? Object.entries(s.val()).map(([uid, v]) => ({ uid, ...v })) : []; } catch (e) { return []; } }
+let _qrLib = null;
+function loadQr() { if (window.qrcode) return Promise.resolve(); if (_qrLib) return _qrLib;
+  _qrLib = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'js/vendor/qrcode.js'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); }); return _qrLib; }
+async function qrInto(el, text, size) {
+  if (!el) return;
+  try { await loadQr(); const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+    const n = q.getModuleCount(), cell = size / (n + 2); let p = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) p += `M${((c + 1) * cell).toFixed(2)} ${((r + 1) * cell).toFixed(2)}h${cell.toFixed(2)}v${cell.toFixed(2)}h-${cell.toFixed(2)}z`;
+    el.innerHTML = `<svg viewBox="0 0 ${size} ${size}" width="100%" height="100%"><rect width="100%" height="100%" rx="12" fill="#fff"/><path d="${p}" fill="#0B0D12"/></svg>`;
+  } catch (e) { el.innerHTML = '<span style="font-size:11px;color:var(--faint)">QR не загрузился, проверьте интернет</span>'; }
+}
+/* кто позвал тренера: coach.html?tref=UID */
+try { const tr = new URLSearchParams(location.search).get('tref'); if (tr && /^[A-Za-z0-9_-]{2,64}$/.test(tr)) localStorage.setItem('you_tref', tr); } catch (e) {}
+
 function genCode() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 6; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
 async function createTrainer(u, name) {
   let code = genCode();
   for (let i = 0; i < 5 && (await get(ref(db, 'invites/' + code))).exists(); i++) code = genCode();
+  let by = null; try { by = localStorage.getItem('you_tref'); } catch (e) {}
   const t = { name: name.slice(0, 60), email: u.email, createdAt: Date.now(), tier: 'free', limit: 50, code, consent: { v: '2026-09-30', at: Date.now() } };
+  if (by && by !== u.uid) t.ref = { by, at: Date.now() };
   await set(ref(db, 'trainers/' + u.uid), t);
   await set(ref(db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
+  if (t.ref) { try { await set(ref(db, 'refs/' + by + '/' + u.uid), { kind: 'trainer', at: Date.now(), name: t.name }); localStorage.removeItem('you_tref'); } catch (e) {} }
 }
 
 try { const h = document.querySelector('#auth .ca-hero'); if (h) $('#bc-hero').innerHTML = h.innerHTML; } catch (e) {}
@@ -1507,10 +1536,31 @@ function renderAdd(body) {
         <button class="btn btn-main btn-sm" id="i-share"><i class="ti ti-share"></i> Отправить ссылку</button>
         <button class="btn btn-ghost btn-sm" id="i-copy"><i class="ti ti-copy"></i> Скопировать</button>
       </div>
+      <div class="qr-wrap"><div class="qr" id="i-qr"><i class="ti ti-qrcode"></i></div><div class="qr-t"><b>QR для зала</b><span>Покажите с телефона или распечатайте: клиент наводит камеру и сразу подключается</span>
+        <button class="btn btn-ghost btn-sm" id="i-qr-big"><i class="ti ti-maximize"></i> На весь экран</button></div></div>
+      <div class="ref-st" id="i-st"></div>
       <div class="tier"><span>Клиенты</span><div class="tier-bar"><span style="width:${Math.min(100, n / lim * 100)}%"></span></div><b>${n} из ${lim}</b></div>
       ${n >= lim ? `<div class="today" style="margin-top:10px"><div><i class="ti ti-crown w"></i><span>Все места раннего доступа заняты. Напишите нам, и мы расширим лимит. <a href="${esc((window.APP_CONFIG || {}).supportUrl || '#')}" target="_blank" style="color:#8EA8FF">Написать нам</a></span></div></div>` : ''}
+    </div>
+    <div class="card">
+      <div class="card-h"><div><b>Пригласить тренера</b><span>Знаете коллегу? Дайте ему ссылку на кабинет</span></div></div>
+      <div class="inv"><div><div class="inv-link">${esc(trefLink())}</div></div></div>
+      <div class="inv-btns"><button class="btn btn-main btn-sm" id="t-share"><i class="ti ti-share"></i> Отправить</button><button class="btn btn-ghost btn-sm" id="t-copy"><i class="ti ti-copy"></i> Скопировать</button></div>
+      <div class="ref-st" id="t-st"></div>
     </div>`;
   coachTips('add');
+  /* QR и статистика ссылок */
+  qrInto($('#i-qr'), link, 132);
+  $('#i-qr-big').onclick = () => { const ov = document.createElement('div'); ov.className = 'tr-modal-overlay qr-ov'; ov.innerHTML = `<div class="qr-big"><div class="qr-big-box" id="qr-big"></div><b>${esc(trainer.name || '')}</b><span>Наведите камеру, чтобы тренироваться со мной в YOU</span><em>код ${esc(trainer.code)}</em></div>`; document.body.appendChild(ov); ov.onclick = () => ov.remove(); qrInto(ov.querySelector('#qr-big'), link, Math.min(320, window.innerWidth - 80)); };
+  refStats().then(r => {
+    const cl = r.filter(x => x.kind === 'client'), tr = r.filter(x => x.kind === 'trainer');
+    const conn = cl.filter(x => clients.some(c => c.uid === x.uid)).length;
+    $('#i-st') && ($('#i-st').innerHTML = cl.length ? `<i class="ti ti-chart-arrows"></i><span>По ссылке зарегистрировались <b>${cl.length}</b>, подключены <b>${conn}</b></span>` : '<i class="ti ti-chart-arrows"></i><span>Здесь будет видно, сколько людей пришло по вашей ссылке</span>');
+    $('#t-st') && ($('#t-st').innerHTML = tr.length ? `<i class="ti ti-users-group"></i><span>Вы привели тренеров: <b>${tr.length}</b> · ${tr.slice(0, 3).map(x => esc(x.name || 'тренер')).join(', ')}</span>` : '<i class="ti ti-users-group"></i><span>Пока никого. Коллеги по залу будут рады</span>');
+  });
+  $('#t-copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(trefLink()); toast('Ссылка скопирована'); };
+  $('#t-share').onclick = () => { const text = `Веду клиентов в YOU: планы, расписание и AI-подсказки в одном кабинете. Попробуй: ${trefLink()}`;
+    if (navigator.share) navigator.share({ text }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(text); toast('Текст скопирован'); } };
   $('#i-copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(link); toast('Ссылка скопирована'); };
   $('#i-share').onclick = () => {
     const text = `Веду тренировки в приложении YOU. Подключайся по ссылке: ${link} (код ${trainer.code})`;

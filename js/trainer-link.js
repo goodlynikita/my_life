@@ -50,6 +50,7 @@ window.TrainerLink = (function () {
         await FirebaseSync.connectTrainer(code, fn);
         ov.remove(); toast('Тренер ' + (inv.name || '') + ' подключён');
         celebrate({ trainerUid: inv.trainerUid, name: inv.name });
+        window.Analytics && Analytics.ev('coach');
         if (window.Router) Router.render({ keepScroll: true });
       } catch (e) {
         b.disabled = false; b.textContent = 'Подключить';

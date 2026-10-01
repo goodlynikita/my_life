@@ -1335,7 +1335,7 @@ window.TrainingAI = (function () {
     });
 
     /* составить, пересобрать, удалить */
-    if ($('#q-gen')) $('#q-gen').onclick = () => { const res = generate(plans, plan, {}); if (res.error) { alert('Не получилось составить план'); return; } save(res); render(content, plan, h); qToast('План готов'); };
+    if ($('#q-gen')) $('#q-gen').onclick = () => { window.Analytics && Analytics.ev('ai'); const res = generate(plans, plan, {}); if (res.error) { alert('Не получилось составить план'); return; } save(res); render(content, plan, h); qToast('План готов'); };
     if ($('#q-regen')) $('#q-regen').onclick = () => { if (!confirm('Пересобрать с учётом последних тренировок? То, что уже стоит в плане, не тронется.')) return; regenKeep(plans, plan, prefs); render(content, plan, h); qToast('План пересобран'); };
     if ($('#q-reset')) $('#q-reset').onclick = () => { if (!confirm('Удалить AI-план? Тренировки, которые уже стоят во вкладке План, останутся.')) return; Store.set('training.ai', null); render(content, plan, h); };
     if ($('#q-early')) $('#q-early').onclick = () => { const a = load(); const q = a.queue[soonIdx]; untransfer(plan, h, q); Object.assign(q, { transferred: false, date: null, wi: null, di: null }); save(a);
@@ -1459,7 +1459,7 @@ window.TrainingAI = (function () {
       bindViews(content, plan, h);
       bindAnketa(content, an0, pr0, (p2) => { Store.set('training.aiPrefs', p2); render(content, plan, h); });
       content.querySelectorAll('.q-focus [data-f]').forEach(b => b.onclick = () => { Store.set('training.aiPrefs', { ...pr0, focus: b.dataset.f, layout: null }); render(content, plan, h); });
-      content.querySelector('#ai-start').onclick = () => {
+      content.querySelector('#ai-start').onclick = () => { window.Analytics && Analytics.ev('ai');
         const np = h.createPlan ? h.createPlan() : null; if (!np) return;
         const res = generate(toArr(h.getPlans()), np, { fromWeek: 0 });
         if (res.error) { alert('Не получилось составить план'); return; }

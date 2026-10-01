@@ -104,7 +104,7 @@ button,input,select,textarea{font-family:inherit}
 .msg-meta a{color:#9DB6FF;text-decoration:none}
 .msg-actions{display:flex;flex-wrap:wrap;gap:6px}
 /* Пользователи */
-.urow{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.urow{display:grid;grid-template-columns:auto 1fr auto auto auto auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
 .urow:first-child{border-top:none}
 .ava{width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff}
 .u-name{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -174,6 +174,26 @@ button,input,select,textarea{font-family:inherit}
   .set-in,.set-in.wide{width:100%;text-align:left}
   .top-email{display:none}
 }
+/* v164 дашборд */
+#p-dash{margin-bottom:6px}
+.db{display:flex;flex-direction:column;gap:12px}
+.db-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.db-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}.db-h b{font-size:14px;display:flex;align-items:center;gap:6px}.db-h b i{color:var(--acc)}.db-h span{font-size:11.5px;color:var(--faint)}
+.db-goals{background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(124,58,237,.08));border-color:rgba(110,139,255,.25)}
+.db-goal{margin-top:10px}.db-goal-t,.db-fn-t{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--soft);margin-bottom:6px}.db-goal-t b,.db-fn-t b{color:var(--txt)}.db-goal-t em,.db-fn-t em{font-style:normal;color:var(--faint);font-weight:600}
+.db-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}.db-bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#4A7CFF,#8B5CF6)}
+.db-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.db-k{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}.db-k small{display:block;font-size:10.5px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}.db-k b{display:block;font-size:24px;margin-top:4px}.db-k span{font-size:11px;color:var(--soft)}
+.db-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.db-fn{margin-bottom:12px}.db-fn small{font-size:10.5px;color:var(--faint)}
+.db-chart{display:flex;align-items:flex-end;gap:5px;height:150px;padding-top:14px}
+.db-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}.db-col span{width:100%;min-height:2px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#8B5CF6,#4A7CFF)}.db-col em{position:absolute;top:-2px;font-style:normal;font-size:10px;color:var(--soft)}.db-col small{font-size:10px;color:var(--faint);margin-top:4px}
+.db-ref{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}.db-ref span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db-ref em{font-style:normal;font-size:11px;color:var(--faint)}.db-ref b{min-width:22px;text-align:right}
+.db-err{display:flex;gap:10px;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line)}.db-err b{display:block;font-size:12.5px;color:#FCA5A5;word-break:break-word}.db-err span{font-size:11px;color:var(--faint)}.db-err em{font-style:normal;font-size:11px;color:var(--faint);white-space:nowrap}
+.db-empty{font-size:12.5px;color:var(--faint);line-height:1.5}
+@media(max-width:760px){.db-grid{grid-template-columns:1fr}.db-kpis{grid-template-columns:1fr 1fr}}
+.goal-in{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.goal-in label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--soft)}.goal-in .set-in{width:100%}
+@media(max-width:620px){.goal-in{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -216,14 +236,18 @@ button,input,select,textarea{font-family:inherit}
     </div>
 
     <div class="tabs">
-      <button class="tab on" data-tab="msgs"><i class="ti ti-inbox"></i> Сообщения <span class="cnt hidden" id="t-cnt"></span></button>
+      <button class="tab on" data-tab="dash"><i class="ti ti-chart-dots"></i> Дашборд</button>
+      <button class="tab" data-tab="msgs"><i class="ti ti-inbox"></i> Сообщения <span class="cnt hidden" id="t-cnt"></span></button>
       <button class="tab" data-tab="users"><i class="ti ti-users"></i> Пользователи</button>
       <button class="tab" data-tab="trainers"><i class="ti ti-user-star"></i> Тренеры <span class="cnt hidden" id="t-tr"></span></button>
       <button class="tab" data-tab="settings"><i class="ti ti-settings"></i> Настройки</button>
     </div>
 
+    <!-- Дашборд -->
+    <div id="p-dash"></div>
+
     <!-- Сообщения -->
-    <div class="panel" id="p-msgs">
+    <div class="panel hidden" id="p-msgs">
       <div class="toolbar" id="m-filters"></div>
       <div id="m-list"></div>
     </div>
@@ -267,9 +291,20 @@ button,input,select,textarea{font-family:inherit}
           </div>
         </div>
         <div class="set-row">
-          <div style="flex:1"><div class="set-t">Объявление для всех</div><div class="set-d">Покажется окном каждому пользователю один раз при входе. Например, о новой функции или техработах.</div>
-            <textarea class="ta" id="s-ann" style="margin-top:10px" placeholder="Текст объявления"></textarea></div>
+          <div style="flex:1"><div class="set-t">Рассылка в приложении</div><div class="set-d">Покажется окном один раз при входе. Например, о новой функции или техработах.</div>
+            <textarea class="ta" id="s-ann" style="margin-top:10px" placeholder="Текст сообщения"></textarea>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><span style="font-size:12px;color:var(--soft)">Кому:</span>
+              <select class="set-in wide" id="s-aud" style="width:auto"><option value="all">Всем</option><option value="coach">Тем, у кого есть тренер</option><option value="solo">Тем, кто без тренера</option><option value="new">Новичкам (до 14 дней)</option><option value="tag:VIP">С меткой VIP</option><option value="tag:Тестер">С меткой Тестер</option><option value="tag:Друг">С меткой Друг</option><option value="tag:Клиент">С меткой Клиент</option></select></div></div>
           <button class="tgl" id="s-ann-on" title="Показывать"></button>
+        </div>
+        <div class="set-row">
+          <div style="flex:1"><div class="set-t">Цели проекта</div><div class="set-d">Видны на дашборде с полосками прогресса.</div>
+            <div class="goal-in">
+              <label>Записывают за 7 дней<input class="set-in" id="g-active" type="number" inputmode="numeric" placeholder="50"></label>
+              <label>Тренеров с клиентами<input class="set-in" id="g-trainers" type="number" inputmode="numeric" placeholder="3"></label>
+              <label>Всего пользователей<input class="set-in" id="g-users" type="number" inputmode="numeric" placeholder="100"></label>
+              <label>Срок<input class="set-in" id="g-deadline" type="date"></label>
+            </div></div>
         </div>
         <div class="set-row">
           <div><div class="set-t">Ссылка на поддержку</div><div class="set-d">Куда ведут кнопки «Написать в Telegram» и «Получить инвайт».</div></div>
@@ -338,16 +373,100 @@ onAuthStateChanged(auth, async (u) => {
 /* ── Данные ── */
 let FEED={}, USERS={}, SETTINGS={}, COUNT=0;
 let mFilter='all', uFilter='all', uQuery='';
-const TYPES={ idea:{l:'Идея',i:'ti-bulb'}, bug:{l:'Ошибка',i:'ti-bug'}, question:{l:'Вопрос',i:'ti-help-circle'}, invite:{l:'Инвайт',i:'ti-ticket'}, other:{l:'Другое',i:'ti-message'} };
+const TYPES={ nps:{l:'Оценка',i:'ti-heart-handshake'}, idea:{l:'Идея',i:'ti-bulb'}, bug:{l:'Ошибка',i:'ti-bug'}, question:{l:'Вопрос',i:'ti-help-circle'}, invite:{l:'Инвайт',i:'ti-ticket'}, other:{l:'Другое',i:'ti-message'} };
 
 function start(){
   const sub=(path,cb)=>{ const off=onValue(ref(db,path), s=>cb(s.val()), e=>{ console.error(path,e); if(denied(e)) rulesWarn(); }); unsub.push(off); };
   sub('feedback', v=>{ FEED=v||{}; renderMsgs(); renderKpi(); });
-  sub('userIndex', v=>{ USERS=v||{}; renderUsers(); renderKpi(); if(openUid) openUser(openUid,true); });
-  sub('settings', v=>{ SETTINGS=v||{}; fillSettings(); renderKpi(); });
+  sub('userIndex', v=>{ USERS=v||{}; renderUsers(); renderKpi(); renderDash(); if(openUid) openUser(openUid,true); });
+  sub('settings', v=>{ SETTINGS=v||{}; fillSettings(); renderKpi(); renderDash(); });
+  sub('refs', v=>{ REFS=v||{}; renderDash(); });
   sub('stats/usersCount', v=>{ COUNT=Number(v)||0; fillSettings(); renderKpi(); });
-  sub('trainers', v=>{ TRAINERS=v||{}; renderTrainers(); });
-  sub('trainerClients', v=>{ TCL=v||{}; renderTrainers(); });
+  sub('trainers', v=>{ TRAINERS=v||{}; renderTrainers(); renderDash(); });
+  sub('trainerClients', v=>{ TCL=v||{}; renderTrainers(); renderDash(); });
+}
+
+/* ── Дашборд: цели, воронка, активность, рефки, ошибки ── */
+let REFS = {};
+const dk = (d) => d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+const daysBack = (n) => Array.from({ length: n }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (n - 1 - i)); return d; });
+const wDays = (u) => Object.keys((u.m && u.m.w) || {});
+const dDays = (u) => Object.keys((u.m && u.m.d) || {});
+function userMetrics() {
+  const list = Object.entries(USERS).filter(([, u]) => u).map(([uid, u]) => ({ uid, ...u }));
+  const last7 = daysBack(7).map(dk), now = Date.now();
+  const writes7 = list.filter(u => wDays(u).some(d => last7.includes(d)));
+  const visits7 = list.filter(u => dDays(u).some(d => last7.includes(d)) || (u.lastSeen && now - new Date(u.lastSeen) < 7 * DAY));
+  const new7 = list.filter(u => u.createdAt && now - new Date(u.createdAt) < 7 * DAY);
+  const pwa = list.filter(u => u.m && u.m.pwa);
+  const nps = list.map(u => u.m && u.m.nps).filter(x => x != null && x >= 0);
+  /* воронка: первая запись → 3+ дня записей за первую неделю → вернулся через 4 недели */
+  const created = (u) => u.createdAt ? new Date(u.createdAt) : null;
+  const toD = (k) => new Date(+k.slice(0, 4), +k.slice(4, 6) - 1, +k.slice(6, 8));
+  const f1 = list.filter(u => wDays(u).length);
+  const f2 = list.filter(u => { const c = created(u); return c && wDays(u).filter(k => toD(k) - c < 7 * DAY).length >= 3; });
+  const f3 = list.filter(u => { const c = created(u); return c && wDays(u).some(k => toD(k) - c >= 28 * DAY); });
+  const eligible4w = list.filter(u => { const c = created(u); return c && now - c >= 28 * DAY; });
+  return { list, writes7, visits7, new7, pwa, nps, f1, f2, f3, eligible4w };
+}
+function bar(v, max, col) { return `<div class="db-bar"><span style="width:${max ? Math.min(100, Math.round(v / max * 100)) : 0}%;${col ? 'background:' + col : ''}"></span></div>`; }
+function renderDash() {
+  const box = $('#p-dash'); if (!box) return;
+  const M = userMetrics(), G = SETTINGS.goals || {};
+  const trs = Object.entries(TRAINERS).filter(([, t]) => t).map(([uid, t]) => ({ uid, ...t, n: Object.keys(TCL[uid] || {}).length }));
+  const trActive = trs.filter(t => t.n > 0).length;
+  const npsAvg = M.nps.length ? (M.nps.reduce((a, b) => a + b, 0) / M.nps.length).toFixed(1) : '–';
+  const npsScore = M.nps.length ? Math.round((M.nps.filter(x => x >= 9).length - M.nps.filter(x => x <= 6).length) / M.nps.length * 100) : null;
+  const goals = [
+    ['Записывают за 7 дней', M.writes7.length, +G.active || 0, 'ti-activity'],
+    ['Тренеров с клиентами', trActive, +G.trainers || 0, 'ti-user-star'],
+    ['Всего пользователей', M.list.length, +G.users || 0, 'ti-users'],
+  ];
+  /* активность по дням */
+  const days14 = daysBack(14), act = days14.map(d => { const k = dk(d); return M.list.filter(u => (u.m && u.m.w && u.m.w[k])).length; }), mx = Math.max(1, ...act);
+  /* разделы */
+  const secN = (k) => M.list.filter(u => u.m && u.m.c && u.m.c[k] > 0).length, base = Math.max(1, M.list.length);
+  const secs = [['Тренировки', 'train', '#60A5FA'], ['Привычки', 'habit', '#4ADE80'], ['Финансы', 'fin', '#A78BFA'], ['Цели', 'goal', '#FBBF24'], ['AI-план', 'ai', '#F472B6'], ['Подключили тренера', 'coach', '#2DD4BF']];
+  /* рефки */
+  const refRows = Object.entries(REFS || {}).map(([by, v]) => { const arr = Object.values(v || {}).filter(Boolean);
+    const who = (USERS[by] && (USERS[by].name || USERS[by].email)) || (TRAINERS[by] && (TRAINERS[by].name + ' · тренер')) || by;
+    return { by, who, n: arr.length, cl: arr.filter(x => x.kind === 'client').length, fr: arr.filter(x => x.kind === 'friend').length, tr: arr.filter(x => x.kind === 'trainer').length }; }).sort((a, b) => b.n - a.n);
+  const refTot = refRows.reduce((s, r) => s + r.n, 0);
+  /* ошибки */
+  const errs = []; M.list.forEach(u => Object.values(u.errs || {}).forEach(e => e && errs.push({ ...e, who: u.name || u.email || u.uid })));
+  errs.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  const deadline = G.deadline ? new Date(G.deadline) : null, left = deadline ? Math.ceil((deadline - Date.now()) / DAY) : null;
+  box.innerHTML = `<div class="db">
+    <div class="db-card db-goals"><div class="db-h"><b><i class="ti ti-flag"></i> Цели проекта</b><span>${deadline ? `до ${deadline.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} · ${left > 0 ? 'осталось ' + left + ' дн' : 'срок прошёл'}` : 'задай в «Настройках»'}</span></div>
+      ${goals.map(([l, v, t, ic]) => `<div class="db-goal"><div class="db-goal-t"><span><i class="ti ${ic}"></i> ${l}</span><b>${v}${t ? ` <em>из ${t}</em>` : ''}</b></div>${t ? bar(v, t) : ''}</div>`).join('')}
+    </div>
+    <div class="db-kpis">
+      <div class="db-k"><small>Записывают за 7 дней</small><b>${M.writes7.length}</b><span>из ${M.list.length} · главная цифра</span></div>
+      <div class="db-k"><small>Заходили за 7 дней</small><b>${M.visits7.length}</b><span>открывали приложение</span></div>
+      <div class="db-k"><small>Новых за 7 дней</small><b>${M.new7.length}</b><span>регистраций</span></div>
+      <div class="db-k"><small>На главном экране</small><b>${M.pwa.length}</b><span>поставили как приложение</span></div>
+      <div class="db-k"><small>Оценка «посоветуешь?»</small><b>${npsAvg}</b><span>${M.nps.length ? `ответов ${M.nps.length}${npsScore != null ? ' · NPS ' + npsScore : ''}` : 'пока нет ответов'}</span></div>
+      <div class="db-k"><small>Пришли по ссылкам</small><b>${refTot}</b><span>друзья, тренеры, клиенты</span></div>
+    </div>
+    <div class="db-grid">
+      <div class="db-card"><div class="db-h"><b><i class="ti ti-filter"></i> Воронка</b><span>с момента запуска</span></div>
+        ${[['Зарегистрировались', M.list.length], ['Записали хоть что-то', M.f1.length], ['3+ дня записей в первую неделю', M.f2.length], ['Записывают спустя месяц', M.f3.length, M.eligible4w.length]].map(([l, v, e], i) =>
+          `<div class="db-fn"><div class="db-fn-t"><span>${l}</span><b>${v}${i ? ` <em>${Math.round(v / Math.max(1, i === 3 ? (e || 1) : M.list.length) * 100)}%</em>` : ''}</b></div>${bar(v, i === 3 ? Math.max(1, e) : Math.max(1, M.list.length))}${i === 3 ? `<small>из тех, кто с нами 4+ недели (${e})</small>` : ''}</div>`).join('')}
+      </div>
+      <div class="db-card"><div class="db-h"><b><i class="ti ti-chart-bar"></i> Записывали по дням</b><span>последние 14 дней</span></div>
+        <div class="db-chart">${act.map((v, i) => `<div class="db-col" title="${days14[i].toLocaleDateString('ru-RU')}: ${v}"><span style="height:${Math.round(v / mx * 100)}%"></span><em>${v || ''}</em><small>${days14[i].getDate()}</small></div>`).join('')}</div>
+      </div>
+      <div class="db-card"><div class="db-h"><b><i class="ti ti-layout-grid"></i> Чем пользуются</b><span>доля пользователей</span></div>
+        ${secs.map(([l, k, c]) => { const n = secN(k); return `<div class="db-fn"><div class="db-fn-t"><span>${l}</span><b>${n} <em>${Math.round(n / base * 100)}%</em></b></div>${bar(n, base, c)}</div>`; }).join('')}
+      </div>
+      <div class="db-card"><div class="db-h"><b><i class="ti ti-gift"></i> Кто кого привёл</b><span>${refTot ? refTot + ' по ссылкам' : 'пока никто'}</span></div>
+        ${refRows.length ? refRows.slice(0, 8).map(r => `<div class="db-ref"><span>${esc(r.who)}</span><em>${[r.cl ? r.cl + ' клиент.' : '', r.fr ? r.fr + ' друз.' : '', r.tr ? r.tr + ' трен.' : ''].filter(Boolean).join(' · ')}</em><b>${r.n}</b></div>`).join('') : '<div class="db-empty">Ссылки: «Позови друга» в меню YOU, QR и ссылка в кабинете тренера</div>'}
+      </div>
+    </div>
+    <div class="db-card"><div class="db-h"><b><i class="ti ti-bug"></i> Ошибки у пользователей</b><span>${errs.length ? 'последние ' + Math.min(10, errs.length) : 'всё чисто'}</span></div>
+      ${errs.length ? errs.slice(0, 10).map(e => `<div class="db-err"><div><b>${esc(e.msg)}</b><span>${esc(e.who)} · ${esc(e.scr || '')} · ${esc(e.src || '')} · ${esc(device(e.ua))}</span></div><em>${ago(e.at)}</em></div>`).join('') : '<div class="db-empty">Ошибок нет. Если у кого-то что-то упадёт, увидишь здесь: где и на каком устройстве</div>'}
+    </div>
+  </div>`;
 }
 
 function limit(){ return Number(SETTINGS.freeUsersLimit) || (window.APP_CONFIG&&APP_CONFIG.freeUsersLimit) || 1000; }
@@ -368,7 +487,7 @@ function renderKpi(){
 function renderMsgs(){
   const list=Object.entries(FEED).filter(([,m])=>m).map(([id,m])=>({id,...m})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   const cnt=(f)=>list.filter(f).length;
-  const filters=[['all','Все',list.length],['new','Новые',cnt(m=>(m.status||'new')==='new')],['idea','Идеи',cnt(m=>m.type==='idea')],['bug','Ошибки',cnt(m=>m.type==='bug')],['question','Вопросы',cnt(m=>m.type==='question')],['invite','Инвайты',cnt(m=>m.type==='invite')],['done','Отвечено',cnt(m=>m.status==='done')]];
+  const filters=[['all','Все',list.length],['new','Новые',cnt(m=>(m.status||'new')==='new')],['idea','Идеи',cnt(m=>m.type==='idea')],['bug','Ошибки',cnt(m=>m.type==='bug')],['question','Вопросы',cnt(m=>m.type==='question')],['invite','Инвайты',cnt(m=>m.type==='invite')],['nps','Оценки',cnt(m=>m.type==='nps')],['done','Отвечено',cnt(m=>m.status==='done')]];
   $('#m-filters').innerHTML=filters.map(([k,l,n])=>`<button class="chip${mFilter===k?' on':''}" data-mf="${k}">${l} · ${n}</button>`).join('');
   $('#m-filters').querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{ mFilter=b.dataset.mf; renderMsgs(); });
   const vis=list.filter(m=> mFilter==='all' ? true : mFilter==='new' ? (m.status||'new')==='new' : mFilter==='done' ? m.status==='done' : m.type===mFilter);
@@ -416,6 +535,7 @@ function renderUsers(){
       <div class="ava" style="background:${col}">${esc(letter)}</div>
       <div style="min-width:0"><div class="u-name">${esc(u.name||u.email||'Без имени')}${me?'<span class="tag tag-me">ты</span>':''}${u.tag?`<span class="tag tag-t">${esc(u.tag)}</span>`:''}${u.blocked?'<span class="tag tag-bl">заблокирован</span>':''}</div>${u.name?`<div class="u-mail">${esc(u.email||u.uid)}</div>`:''}</div>
       <div class="u-col hide-m"><b>${u.createdAt?new Date(u.createdAt).toLocaleDateString('ru-RU'):'—'}</b>регистрация</div>
+      <div class="u-col hide-m"><b>${(()=>{ const l7=daysBack(7).map(dk); return wDays(u).filter(d=>l7.includes(d)).length; })()} из 7</b>дней записей</div>
       <div class="u-col"><b>${ago(u.lastSeen)}</b>был(а)</div>
       <div>${me?'':(u.blocked
         ?`<button class="btn btn-okc btn-sm" data-ub="0" data-uid="${u.uid}"><i class="ti ti-lock-open"></i> Разблок.</button>`
@@ -483,10 +603,11 @@ function fillSettings(force){
   $('#s-count').value=COUNT;
   $('#s-support').value=SETTINGS.supportUrl||(window.APP_CONFIG&&APP_CONFIG.supportUrl)||'';
   const ann=SETTINGS.announcement||{};
-  $('#s-ann').value=ann.text||''; $('#s-ann-on').classList.toggle('on',!!ann.active);
+  $('#s-ann').value=ann.text||''; $('#s-ann-on').classList.toggle('on',!!ann.active); $('#s-aud').value=ann.aud||'all';
+  const G=SETTINGS.goals||{}; $('#g-active').value=G.active||''; $('#g-trainers').value=G.trainers||''; $('#g-users').value=G.users||''; $('#g-deadline').value=G.deadline||'';
   $('#s-count-d').textContent='Сколько мест уже занято. В реестре сейчас '+Object.keys(USERS).length+'.';
 }
-['s-limit','s-count','s-support','s-ann'].forEach(id=>$('#'+id).addEventListener('input',()=>dirty=true));
+['s-limit','s-count','s-support','s-ann','s-aud','g-active','g-trainers','g-users','g-deadline'].forEach(id=>{ $('#'+id).addEventListener('input',()=>dirty=true); $('#'+id).addEventListener('change',()=>dirty=true); });
 $('#s-ann-on').onclick=()=>{ $('#s-ann-on').classList.toggle('on'); dirty=true; };
 $('#s-open').onclick=()=>{ $('#s-open').classList.toggle('on'); dirty=true; };
 $('#s-recount').onclick=()=>{ $('#s-count').value=Object.keys(USERS).length; dirty=true; };
@@ -496,9 +617,13 @@ $('#s-save').onclick=async()=>{
   try{
     const annText=$('#s-ann').value.trim(), annOn=$('#s-ann-on').classList.contains('on')&&!!annText;
     const prev=SETTINGS.announcement||{};
-    const annAt=(annText!==(prev.text||'')||(annOn&&!prev.active))?new Date().toISOString():(prev.at||new Date().toISOString());
+    const aud=$('#s-aud').value||'all';
+    const annAt=(annText!==(prev.text||'')||(annOn&&!prev.active)||aud!==(prev.aud||'all'))?new Date().toISOString():(prev.at||new Date().toISOString());
+    const gi=(id)=>{ const v=parseInt($('#'+id).value,10); return v>0?v:null; };
+    const goals={ active:gi('g-active'), trainers:gi('g-trainers'), users:gi('g-users'), deadline:$('#g-deadline').value||null };
     await update(ref(db,'settings'),{ freeUsersLimit:lim, registrationOpen:$('#s-open').classList.contains('on'), supportUrl:$('#s-support').value.trim()||null,
-      announcement: annText?{text:annText,active:annOn,at:annAt}:null });
+      announcement: annText?{text:annText,active:annOn,at:annAt,aud}:null,
+      goals: (goals.active||goals.trainers||goals.users||goals.deadline)?goals:null });
     await set(ref(db,'stats/usersCount'),cnt);
     dirty=false; toast('Сохранено');
   }catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось сохранить'); }
@@ -540,6 +665,21 @@ function openUser(uid, silent){
         <div><small>Статус</small><b style="color:${u.blocked?'var(--bad)':'var(--ok)'}">${u.blocked?'Заблокирован':'Активен'}</b></div>
         <div class="full copy" id="u-uid"><small>ID пользователя · нажми, чтобы скопировать</small><b>${esc(uid)}</b></div>
       </div>
+    </div>
+
+    <div class="dr-sec">
+      <div class="dr-t">Как пользуется</div>
+      ${(()=>{ const m=u.m||{}, c=m.c||{}, l7=daysBack(7).map(dk), l30=daysBack(30).map(dk);
+        const w7=wDays(u).filter(d=>l7.includes(d)).length, w30=wDays(u).filter(d=>l30.includes(d)).length;
+        const src=u.ref?({friend:'по ссылке друга',client:'по ссылке тренера',trainer:'от тренера'}[u.ref.kind]||'по ссылке')+((USERS[u.ref.by]&&(' · '+(USERS[u.ref.by].name||USERS[u.ref.by].email)))||(TRAINERS[u.ref.by]&&(' · '+TRAINERS[u.ref.by].name))||''):'сам';
+        return `<div class="info">
+          <div><small>Дней с записями</small><b>${w7} за неделю · ${w30} за месяц</b></div>
+          <div><small>Откуда пришёл</small><b>${esc(src)}</b></div>
+          <div><small>Разделы</small><b>${[['train','Трен.'],['habit','Привычки'],['fin','Финансы'],['goal','Цели']].filter(([k])=>c[k]>0).map(([,l])=>l).join(', ')||'пока нет'}</b></div>
+          <div><small>AI, тренер, экран</small><b>${[c.ai?'AI-план':'',c.coach?'тренер':'',m.pwa?'на главном экране':''].filter(Boolean).join(', ')||'—'}</b></div>
+          ${m.nps!=null&&m.nps>=0?`<div><small>Оценка «посоветуешь?»</small><b>${m.nps} из 10</b></div>`:''}
+          ${u.errs?`<div class="full"><small>Ошибки</small>${Object.values(u.errs).filter(Boolean).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,3).map(e=>`<b style="font-size:12px;color:var(--bad)">${esc(e.msg)} <span style="color:var(--faint);font-weight:500">· ${ago(e.at)}</span></b>`).join('')}</div>`:''}
+        </div>`; })()}
     </div>
 
     <div class="dr-sec">
@@ -612,7 +752,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUser(); });
 /* ── Вкладки ── */
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
-  ['msgs','users','trainers','settings'].forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==t.dataset.tab));
+  ['dash','msgs','users','trainers','settings'].forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==t.dataset.tab));
 });
 </script>
 <script src="js/hi.js"></script>

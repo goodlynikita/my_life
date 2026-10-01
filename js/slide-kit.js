@@ -162,5 +162,11 @@ window.SlideKit = (() => {
     body.querySelectorAll('.sf-tpl').forEach(b => b.onclick = () => { const t = o.templates.find(x => x.id === b.dataset.t); o.onPick(JSON.parse(JSON.stringify(t.slide))); });
   }
 
-  return { esc, accentOf, VIEW_NAMES, ICONS, LAYOUTS, iconHtml, viewsFor, viewHtml, headHtml, bodyHtml, form, templates };
+  /* интервал автолистания: готовые варианты вместо +1 сек */
+  const IVS = [3, 5, 8, 12, 20, 30];
+  function ivHtml(cur) {
+    const near = IVS.reduce((a, b) => Math.abs(b - cur) < Math.abs(a - cur) ? b : a, IVS[0]);
+    return IVS.map(v => `<button type="button" data-iv="${v}" class="${v === near ? 'on' : ''}"><b>${v}</b><span>сек</span></button>`).join('');
+  }
+  return { ivHtml, esc, accentOf, VIEW_NAMES, ICONS, LAYOUTS, iconHtml, viewsFor, viewHtml, headHtml, bodyHtml, form, templates };
 })();

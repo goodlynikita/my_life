@@ -135,3 +135,21 @@ textarea.sf-in { resize: vertical; }
 .hero-stat-row .skv-ring { flex-direction: row !important; align-items: center !important; gap: 8px !important; }
 .hero-stat-row .skv-ring-c { width: 32px !important; height: 32px !important; }
 .hero-stat-row .skv-ring .hero-stat-lbl { margin-top: 0 !important; line-height: 1.25; }
+
+/* ── тумблеры и интервал в настройках слайдера (YOU и кабинет) ── */
+.sl-tgl{flex-shrink:0;position:relative;width:50px;height:30px;padding:0;border-radius:99px;border:1px solid rgba(255,255,255,.07);background:#262932;cursor:pointer;transition:background .25s,box-shadow .25s,border-color .25s}
+.sl-tgl>i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#8E93A3;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .3s cubic-bezier(.3,1.35,.5,1),background .25s}
+.sl-tgl>i::after{content:'';position:absolute;left:7px;top:6px;width:7px;height:4px;border-left:2px solid #5B6CFF;border-bottom:2px solid #5B6CFF;transform:rotate(-45deg);opacity:0;transition:opacity .2s}
+.sl-tgl[data-on="1"]{background:linear-gradient(135deg,#4A7CFF,#8B5CF6);border-color:transparent;box-shadow:0 3px 12px rgba(74,124,255,.3)}
+.sl-tgl[data-on="1"]>i{transform:translateX(20px);background:#fff}
+.sl-tgl[data-on="1"]>i::after{opacity:1}
+.sl-tgl:active>i{width:26px}
+.sl-tgl[data-on="1"]:active>i{transform:translateX(16px)}
+.sl-iv{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:6px;margin-bottom:8px;border-radius:14px;background:#1C1E24}
+.sl-iv button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 0 8px;border:none;border-radius:10px;background:transparent;color:#9D9A92;font-family:inherit;cursor:pointer;transition:background .2s,color .2s}
+.sl-iv button b{font-size:17px;font-weight:800;line-height:1}
+.sl-iv button span{font-size:10px;font-weight:600;opacity:.7}
+.sl-iv button.on{background:linear-gradient(135deg,#4A7CFF,#8B5CF6);color:#fff;box-shadow:0 3px 12px rgba(74,124,255,.3)}
+/* одинаковая высота слайдера в YOU и в кабинете тренера */
+.hero-slider .hero-slide{min-height:192px}
+@media(min-width:769px){.hero-slider .hero-slide{min-height:212px}}

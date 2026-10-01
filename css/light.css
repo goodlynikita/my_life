@@ -118,3 +118,5 @@ html[data-theme="light"] .hero-slide::before { opacity: .6 !important; }
 /* v164: в светлой теме тёмная тень окон после инверсии превращалась в белое свечение. Светлая тень после инверсии = мягкая тёмная */
 html[data-theme="light"] .tr-modal, html[data-theme="light"] .se-panel, html[data-theme="light"] .fb-sheet,
 html[data-theme="light"] html.fin-dark-on .modal-finance .tr-modal, html[data-theme="light"].fin-dark-on .modal-finance .tr-modal { box-shadow: 0 10px 34px rgba(255,255,255,0.16) !important; }
+/* переключатель темы как в кабинете тренера: в светлой плотный белый кружок */
+html[data-theme="light"] .theme-toggle .tt-knob{background:rgba(0,0,0,.92);border-color:rgba(0,0,0,.4);box-shadow:0 2px 6px rgba(255,255,255,.25)}

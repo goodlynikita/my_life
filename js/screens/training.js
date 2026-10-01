@@ -505,6 +505,10 @@ function trUndoLastChange() {
     if (stack.length === 0) return false;
     const previous = stack.pop();
     sessionStorage.setItem(TR_UNDO_KEY, JSON.stringify(stack));
+    /* отмена правки в Плане не должна стирать AI-план и его настройки */
+    const cur = Store.get().training || {};
+    if (cur.ai !== undefined) previous.ai = cur.ai;
+    if (cur.aiPrefs !== undefined) previous.aiPrefs = cur.aiPrefs;
     Store.set('training', previous);
     return true;
   } catch (e) {
@@ -830,12 +834,12 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   if (ex.kind === 'steps') {
     return wrap(`${ex.steps.toLocaleString('ru-RU')} шагов`, '');
   }
-  /* крупно рабочий вес, а не тоннаж: так понятнее, что ставить на штангу */
+  /* крупно тоннаж, рабочий вес строкой ниже */
   const tonnage = trTonnage(ex);
   const wNum = +ex.weight || 0;
   const wStr = String(wNum).replace('.', ',');
   if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span style="color:#F2C14E">вес подбери</span>', `${ex.sets} × ${ex.reps}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
-  return wrap(`${wStr} кг`, `${ex.sets} × ${ex.reps} · тоннаж ${tonnage.toLocaleString('ru-RU')} кг`);
+  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${ex.sets} × ${ex.reps} · вес ${wStr} кг`);
 }
 
 function trMigrateDayToSessions(day) {
@@ -1092,6 +1096,49 @@ function trWeightHint(plan, exerciseName) {
   const suggested = Math.round((last.ex.weight + last.ex.weight * 0.05) * 2) / 2;
   return `Последний раз: ${last.ex.sets} × ${last.ex.reps} × ${last.ex.weight} кг. Можно попробовать ~${suggested} кг.`;
 }
+
+/* ── Короткие списки в модалках тренировок показываем кнопками, как в кабинете тренера.
+   Сам select остаётся (скрытый), поэтому вся логика .value и change работает как раньше ── */
+function trChipify(root) {
+  root.querySelectorAll('.tr-modal select').forEach(sel => {
+    if (sel.dataset.chips || sel.id === 'm-name' || sel.options.length < 2 || sel.options.length > 12) return;
+    sel.dataset.chips = '1'; sel.style.display = 'none';
+    if (sel.id === 'm-type') { trDropdown(sel); return; }
+    const box = document.createElement('div'); box.className = 'tr-chips';
+    const draw = () => { box.innerHTML = Array.from(sel.options).map(o => `<button type="button" class="tr-chip${o.value === sel.value ? ' on' : ''}" data-v="${o.value.replace(/"/g, '&quot;')}">${o.textContent}</button>`).join(''); };
+    draw();
+    box.addEventListener('click', (e) => { const b = e.target.closest('.tr-chip'); if (!b || b.dataset.v === sel.value) return; sel.value = b.dataset.v; draw(); sel.dispatchEvent(new Event('change', { bubbles: true })); });
+    sel.insertAdjacentElement('afterend', box);
+  });
+}
+/* «Тип» тренировки: свой раскрывающийся список с цветом и подписью */
+function trDropdown(sel) {
+  const cat = (v) => TRAINING_CATEGORIES.find(c => c.id === v) || { id: v, label: v, color: '#8A8F9C', desc: '' };
+  const dd = document.createElement('div'); dd.className = 'tr-dd';
+  const head = () => { const c = cat(sel.value); return `<button type="button" class="tr-dd-h"><i class="tr-dd-dot" style="--c:${c.color}"></i><span><b>${c.label}</b><small>${c.desc || ''}</small></span><i class="ti ti-chevron-down tr-dd-ch"></i></button>`; };
+  const list = () => `<div class="tr-dd-list">${Array.from(sel.options).map(o => { const c = cat(o.value); return `<button type="button" class="tr-dd-o${o.value === sel.value ? ' on' : ''}" data-v="${o.value.replace(/"/g, '&quot;')}"><i class="tr-dd-dot" style="--c:${c.color}"></i><span><b>${c.label}</b><small>${c.desc || ''}</small></span>${o.value === sel.value ? '<i class="ti ti-check"></i>' : ''}</button>`; }).join('')}</div>`;
+  const draw = (open) => { dd.classList.toggle('open', !!open); dd.innerHTML = head() + (open ? list() : ''); };
+  draw(false);
+  dd.addEventListener('click', (e) => {
+    const o = e.target.closest('.tr-dd-o');
+    if (o) { const ch = o.dataset.v !== sel.value; sel.value = o.dataset.v; draw(false); if (ch) sel.dispatchEvent(new Event('change', { bubbles: true })); return; }
+    if (e.target.closest('.tr-dd-h')) draw(!dd.classList.contains('open'));
+  });
+  sel.insertAdjacentElement('afterend', dd);
+}
+(function trChipWatch() {
+  if (window.__trChipObs) return;
+  const ok = (ov) => /training/.test(location.hash) && !/modal-(finance|habits|goals)|fin-/.test(ov.className || '');
+  window.__trChipObs = new MutationObserver((muts) => {
+    for (const m of muts) for (const n of m.addedNodes) {
+      if (n.nodeType !== 1) continue;
+      const ov = n.classList && n.classList.contains('tr-modal-overlay') ? n : (n.closest && n.closest('.tr-modal-overlay'));
+      if (ov && ok(ov)) trChipify(ov);
+    }
+  });
+  const go = () => window.__trChipObs.observe(document.body, { childList: true, subtree: true });
+  if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+})();
 
 function trBuildExerciseSelect(selectedGroups) {
   const list = trExercisesForGroups(selectedGroups);

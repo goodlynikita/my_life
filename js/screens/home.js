@@ -380,14 +380,11 @@ window.Screens.home = function(mount) {
     ov.className = 'tr-modal-overlay';
 
     function toggleHtml(id, on, extra) {
-      return '<button '+(id?'id="'+id+'" ':'')+(extra||'')+' data-on="'+(on?'1':'0')+'" class="sl-tgl" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:'+(on?'#4A7CFF':'#2A2D35')+';position:relative;transition:background .25s;">'
-        + '<div style="position:absolute;top:4px;left:'+(on?'23px':'4px')+';width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div></button>';
+      return '<button '+(id?'id="'+id+'" ':'')+(extra||'')+' data-on="'+(on?'1':'0')+'" class="sl-tgl" aria-pressed="'+(on?'true':'false')+'"><i></i></button>';
     }
     function flip(btn) {
       var on = btn.dataset.on !== '1';
-      btn.dataset.on = on ? '1' : '0';
-      btn.style.background = on ? '#4A7CFF' : '#2A2D35';
-      btn.querySelector('div').style.left = on ? '23px' : '4px';
+      btn.dataset.on = on ? '1' : '0'; btn.setAttribute('aria-pressed', on);
       return on;
     }
     function swatch(sl) {
@@ -419,11 +416,7 @@ window.Screens.home = function(mount) {
       + '</div>'
       + '<div id="sl-more" style="'+(shownOn?'':'opacity:.4;pointer-events:none;')+'">'
       + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Интервал переключения</div>'
-      + '<div style="display:flex;align-items:center;gap:16px;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:8px;">'
-      +   '<button id="sl-int-minus" style="width:36px;height:36px;border-radius:50%;border:1px solid #2A2D35;background:#2A2D35;color:#E8E5DC;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>'
-      +   '<span id="sl-int-val" style="flex:1;text-align:center;font-size:26px;font-weight:900;color:#E8E5DC;">'+intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span></span>'
-      +   '<button id="sl-int-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>'
-      + '</div>'
+      + '<div class="sl-iv" id="sl-iv"></div>'
       + '<div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:18px;">'
       +   '<div><div style="font-size:14px;font-weight:600;color:#E8E5DC;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: листать вручную</div></div>'
       +   toggleHtml('sl-auto-toggle', autoOn)
@@ -461,9 +454,8 @@ window.Screens.home = function(mount) {
       more.style.opacity = on ? '' : '.4'; more.style.pointerEvents = on ? '' : 'none';
     });
     ov.querySelector('#sl-auto-toggle').addEventListener('click', function(){ flip(this); });
-    function showInt() { ov.querySelector('#sl-int-val').innerHTML = intVal+'<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>'; }
-    ov.querySelector('#sl-int-minus').addEventListener('click', function(){ intVal=Math.max(1,intVal-1); showInt(); });
-    ov.querySelector('#sl-int-plus').addEventListener('click', function(){ intVal=Math.min(60,intVal+1); showInt(); });
+    function showInt() { var box = ov.querySelector('#sl-iv'); box.innerHTML = window.SlideKit.ivHtml(intVal); box.querySelectorAll('[data-iv]').forEach(function(b){ b.addEventListener('click', function(){ intVal = +b.dataset.iv; showInt(); }); }); }
+    showInt();
     ov.querySelector('#sl-save').addEventListener('click', function(){
       Store.set('home.sliderCfg', {
         interval: intVal*1000,

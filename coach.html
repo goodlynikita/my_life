@@ -29,8 +29,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0B0E17">
 <title>YOU · Кабинет тренера</title>
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="img/fav/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/fav/icon-180.png">
 <link rel="manifest" href="coach.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,6 +43,7 @@
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/coach-home.css">
 <link rel="stylesheet" href="css/slides-kit.css">
+<link rel="stylesheet" href="css/winter-arc.css">
 <link rel="stylesheet" href="css/training.css">
 <link rel="stylesheet" href="css/light.css">
 <link rel="stylesheet" href="css/tour.css">
@@ -649,6 +651,7 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,15
   <div class="hdr" id="hdr-home"><div class="hdr-in">
     <button class="fb-envelope" data-feedback aria-label="Обратная связь" title="Обратная связь"><i class="ti ti-mail"></i></button>
     <button class="hadd" id="hadd" title="Добавить клиента"><i class="ti ti-user-plus"></i><span id="hadd-n"></span></button>
+    <span id="c-ds"></span>
     <div class="sp"></div>
     <button id="c-theme" class="theme-toggle" aria-label="Светлая / тёмная тема" title="Светлая / тёмная тема"><span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span></button>
     <button class="hdots" id="menu" aria-label="Меню"><span></span><span></span><span></span></button>
@@ -694,6 +697,7 @@ window.Store = {
 <script src="js/feedback.js"></script>
 <script src="js/celebrate.js"></script>
 <script src="js/slide-kit.js"></script>
+<script src="js/winter-arc.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -1078,6 +1082,12 @@ async function saveUI(u) {
   trainer.ui = u; try { localStorage.setItem('you_hub_' + trainer.uid, JSON.stringify(u)); } catch (e) {}
   try { await update(ref(db, 'trainers/' + trainer.uid), { ui: clean(u) }); } catch (e) {}
 }
+/* «требует внимания» на главной: показываем, пока тренер не открыл список клиентов.
+   Появится снова, только если добавился новый повод */
+const attnKeys = () => clients.filter(c => c.ok && (c.stat.st === 'bad' || c.stat.plat.length)).map(c => c.k + ':' + (c.stat.st === 'bad' ? 'b' : '') + c.stat.plat.length);
+const attnSeenKey = () => 'c_attn_seen_' + ((trainer && trainer.uid) || '');
+function attnFresh() { let seen = []; try { seen = JSON.parse(localStorage.getItem(attnSeenKey()) || '[]'); } catch (e) {} return attnKeys().filter(k => !seen.includes(k)).length; }
+function attnMarkSeen() { try { localStorage.setItem(attnSeenKey(), JSON.stringify(attnKeys())); } catch (e) {} }
 function hubCtx() {
   const lim = trainer.limit || 50, n = clients.length, live = clients.filter(c => c.ok);
   const ev = window.CoachDash.feed(live, cname);
@@ -1140,7 +1150,7 @@ function renderHub(body) {
   body.innerHTML = `<div class="c-home">${demoBar()}
     ${n ? `<div class="hero-slider" id="hero-slider"><div class="hero-slides" id="hero-slides" style="width:${n * 100}%">${slides.map(s => slideHtml(s, x)).join('')}</div>
       ${n > 1 ? `<div class="hero-dots">${slides.map((_, i) => `<div class="hero-dot${i ? '' : ' active'}" data-idx="${i}"></div>`).join('')}</div>` : ''}</div>` : ''}
-    ${x.attnN ? `<button class="hub-attn" data-go="clients"><i class="ti ti-alert-triangle"></i><b>${x.attnN} ${pl(x.attnN, 'требует', 'требуют', 'требуют')} внимания</b><i class="ti ti-chevron-right"></i></button>` : ''}
+    ${x.attnN && attnFresh() ? `<button class="hub-attn" data-go="clients"><i class="ti ti-alert-triangle"></i><b>${x.attnN} ${pl(x.attnN, 'требует', 'требуют', 'требуют')} внимания</b><i class="ti ti-chevron-right"></i></button>` : ''}
     <div class="home2-grid tiles-v88 layout-${ui.layout || '2x2'}">${tiles.map((k, i) => { const t = TILE_DEF[k];
       const w = wide.includes(i) || (ui.layout === '2x2' && tiles.length % 2 === 1 && i === tiles.length - 1);
       return `<button class="home2-tile ${t.cls}${w ? ' tile-wide' : ''}" data-go="${k}" style="--i:${i}"><div class="home2-tile-content"><i class="ti ${t.icon} home2-tile-icon"></i><div class="home2-tile-name">${HUB_TILES[k]}</div><div class="home2-tile-desc">${TD[k]}</div></div></button>`; }).join('')}</div></div>`;
@@ -1165,8 +1175,8 @@ function renderHub(body) {
 }
 
 /* ── Окна настроек: разметка и стили как в YOU ── */
-const tglHtml = (id, on, extra) => `<button ${id ? `id="${id}" ` : ''}${extra || ''} data-on="${on ? 1 : 0}" class="sl-tgl" style="flex-shrink:0;width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;background:${on ? '#4A7CFF' : '#2A2D35'};position:relative;transition:background .25s;"><div style="position:absolute;top:4px;left:${on ? '23px' : '4px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div></button>`;
-const flip = (b) => { const on = b.dataset.on !== '1'; b.dataset.on = on ? '1' : '0'; b.style.background = on ? '#4A7CFF' : '#2A2D35'; b.querySelector('div').style.left = on ? '23px' : '4px'; return on; };
+const tglHtml = (id, on, extra) => `<button ${id ? `id="${id}" ` : ''}${extra || ''} data-on="${on ? 1 : 0}" class="sl-tgl" aria-pressed="${on ? 'true' : 'false'}"><i></i></button>`;
+const flip = (b) => { const on = b.dataset.on !== '1'; b.dataset.on = on ? '1' : '0'; b.setAttribute('aria-pressed', on); return on; };
 const LBL = 'font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;';
 const INP = 'width:100%;box-sizing:border-box;background:#1C1E24;border:1px solid #2A2D35;border-radius:8px;color:#E8E5DC;padding:10px 12px;font-size:13px;font-family:inherit;';
 function overlay() { const ov = document.createElement('div'); ov.className = 'tr-modal-overlay'; document.body.appendChild(ov); ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); }); return ov; }
@@ -1270,16 +1280,13 @@ function openSliderSettings() {
         <div><div style="font-size:14px;font-weight:700;color:#E8E5DC;">Показывать слайдер</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: на главной только плитки</div></div>${tglHtml('sl-show', shown)}</div>
       <div id="sl-more" style="${shown ? '' : 'opacity:.4;pointer-events:none;'}">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Интервал переключения</div>
-        <div style="display:flex;align-items:center;gap:16px;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:8px;">
-          <button id="sl-minus" style="width:36px;height:36px;border-radius:50%;border:1px solid #2A2D35;background:#2A2D35;color:#E8E5DC;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
-          <span id="sl-val" style="flex:1;text-align:center;font-size:26px;font-weight:900;color:#E8E5DC;"></span>
-          <button id="sl-plus" style="width:36px;height:36px;border-radius:50%;border:none;background:#4A7CFF;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div>
+        <div class="sl-iv" id="sl-iv"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;background:#1C1E24;border-radius:14px;padding:12px 18px;margin-bottom:18px;">
           <div><div style="font-size:14px;font-weight:600;color:#E8E5DC;">Автолистание</div><div style="font-size:11px;color:#555;margin-top:2px;">Выкл: листать вручную</div></div>${tglHtml('sl-auto', u.autoplay !== false)}</div>
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;">Слайды и порядок</div>
         <div id="sl-list"></div></div>
       <button id="sl-save" style="width:100%;margin-top:10px;padding:15px;background:#4A7CFF;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(74,124,255,.35);">Сохранить</button></div></div>`;
-  const showIv = () => { ov.querySelector('#sl-val').innerHTML = iv + '<span style="font-size:14px;color:#9D9A92;font-weight:500;"> сек</span>'; };
+  const showIv = () => { const box = ov.querySelector('#sl-iv'); box.innerHTML = window.SlideKit.ivHtml(iv); box.querySelectorAll('[data-iv]').forEach(b => b.onclick = () => { iv = +b.dataset.iv; showIv(); }); };
   const bindList = () => {
     ov.querySelector('#sl-list').innerHTML = rows();
     ov.querySelectorAll('#sl-list [data-s]').forEach(b => b.onclick = () => { const s = u.slides2[+b.dataset.s]; s.enabled = flip(b); b.closest('.sl-row').classList.toggle('is-off', !s.enabled); });
@@ -1289,8 +1296,6 @@ function openSliderSettings() {
   ov.querySelector('#sl-close-x').onclick = () => ov.remove();
   ov.querySelector('#sl-show').onclick = function () { const on = flip(this), m = ov.querySelector('#sl-more'); m.style.opacity = on ? '' : '.4'; m.style.pointerEvents = on ? '' : 'none'; };
   ov.querySelector('#sl-auto').onclick = function () { flip(this); };
-  ov.querySelector('#sl-minus').onclick = () => { iv = Math.max(2, iv - 1); showIv(); };
-  ov.querySelector('#sl-plus').onclick = () => { iv = Math.min(60, iv + 1); showIv(); };
   ov.querySelector('#sl-save').onclick = () => {
     Object.assign(u, { interval: iv, autoplay: ov.querySelector('#sl-auto').dataset.on === '1', sliderHidden: ov.querySelector('#sl-show').dataset.on !== '1' });
     ov.remove(); applyUI(u);
@@ -1328,6 +1333,7 @@ function renderHome(body) {
         </div>`).join('')}</div>
     </div>
     `;
+  attnMarkSeen();
   body.querySelectorAll('.cl').forEach(el => el.onclick = () => openClient(+el.dataset.i));
   body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
   { const dof = $('#demo-off'); if (dof) dof.onclick = hideDemo; }
@@ -1626,6 +1632,7 @@ function coachTips(k) {
     Tour.play(CT[k], 'coach-' + k);
   }, 700);
 }
+(function(){ const d = $('#c-ds'); if (d && window.WinterArc) { d.outerHTML = WinterArc.html(); WinterArc.bind(document.getElementById('hdr-home')); } })();
 (function(){ const b = $('#c-theme'); if (!b || !window.Theme) return; b.dataset.mode = Theme.get();
   b.onclick = () => { const n = Theme.get() === 'light' ? 'dark' : 'light'; b.dataset.mode = n; setTimeout(() => Theme.set(n), 180); }; })();
 $('#help').onclick = () => {

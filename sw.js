@@ -1,13 +1,17 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v76';
+const CACHE = 'nik-system-v78';
 
 const STATIC = [
   '/my_life/',
   '/my_life/index.html',
   '/my_life/manifest.json',
   '/my_life/icon.png',
+  '/my_life/favicon.ico',
+  '/my_life/img/fav/icon-32.png',
+  '/my_life/img/fav/icon-192.png',
+  '/my_life/css/winter-arc.css',
   '/my_life/css/tokens.css',
   '/my_life/css/home.css',
   '/my_life/css/slides-kit.css',

@@ -23,8 +23,8 @@ window.WinterArc = (function () {
 
   /* элементы главного экрана, которые улетают */
   function targets() {
-    const s = document.querySelector('.home2-screen'); if (!s) return [];
-    const list = [...s.querySelectorAll('.home2-header > *, .hero-slider, .home2-tile')];
+    const s = document.querySelector('.home2-screen') || document.querySelector('#appv'); if (!s) return [];
+    const list = [...s.querySelectorAll('.home2-header > *, .hdr-in > *, .hero-slider, .hub-attn, .home2-tile')];
     return list.filter(el => el.getBoundingClientRect().height > 0);
   }
 

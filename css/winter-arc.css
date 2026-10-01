@@ -1,0 +1,35 @@
+/* переключатель дизайна Минимал / Winter Arc: YOU и кабинет тренера */
+.ds-sw { display: inline-flex; gap: 2px; padding: 3px; border-radius: 20px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); margin-right: auto; margin-left: 10px; }
+.ds-b { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 10px; border: none; border-radius: 16px; background: none; color: rgba(255,255,255,0.55); font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: background .3s, color .3s; }
+.ds-b i { font-size: 15px; }
+.ds-b.on { background: rgba(255,255,255,0.14); color: #fff; }
+.ds-b[data-ds="wa"].on { background: linear-gradient(135deg, #0B1220, #1E293B); color: #E0F2FE; box-shadow: 0 0 0 1px rgba(186,230,253,0.35), 0 0 16px rgba(125,211,252,0.35); }
+@media (max-width: 440px) { .ds-b[data-ds="min"] span { display: none; } .ds-b { padding: 0 9px; } .ds-sw { margin-left: 8px; } }
+body.wa-busy { overflow: hidden; }
+body.wa-busy .home2-screen { pointer-events: none; }
+.wa-wind { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9990; pointer-events: none; }
+.wa-ov { position: fixed; inset: 0; z-index: 9995; background: rgba(0,0,0,0); transition: background .5s ease; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.wa-ov.dark { background: #000; pointer-events: auto; }
+.wa-ov video { width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .8s ease; background: #000; }
+.wa-ov.playing.ready video { opacity: 1; }
+.wa-ov.ended video { opacity: .25; transition: opacity .6s; }
+.wa-load { position: absolute; font-size: 30px; color: rgba(224,242,254,.6); opacity: 0; transition: opacity .3s; animation: waSpin 2s linear infinite; }
+.wa-ov.playing:not(.ready):not(.ended) .wa-load { opacity: 1; }
+@keyframes waSpin { to { transform: rotate(360deg); } }
+.wa-skip, .wa-sound { position: absolute; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); height: 38px; padding: 0 14px; border-radius: 19px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; opacity: 0; transition: opacity .5s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.wa-skip { right: 18px; } .wa-sound { left: 18px; }
+.wa-ov.playing .wa-skip, .wa-ov.playing .wa-sound { opacity: 1; }
+.wa-ov.ended .wa-skip, .wa-sound.hidden { display: none; }
+.wa-card { position: absolute; left: 50%; top: 50%; width: min(330px, calc(100vw - 40px)); transform: translate(-50%, -40%) scale(.94); opacity: 0; transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .4s; text-align: center; padding: 26px 22px 20px; border-radius: 24px; background: linear-gradient(160deg, rgba(15,23,42,.96), rgba(2,6,23,.98)); border: 1px solid rgba(186,230,253,.25); box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 60px rgba(125,211,252,.12); color: #E2E8F0; }
+.wa-card.in { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+.wa-card-i { width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #E0F2FE; background: linear-gradient(135deg, #0EA5E9, #1E3A8A); box-shadow: 0 10px 30px rgba(14,165,233,.35); }
+.wa-card b { display: block; font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: .01em; }
+.wa-card span { display: block; font-size: 13.5px; line-height: 1.55; color: #94A3B8; margin-bottom: 18px; }
+.wa-ok { width: 100%; height: 46px; border: none; border-radius: 14px; background: #F8FAFC; color: #0F172A; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.wa-ov.out { background: rgba(0,0,0,0); transition: background .5s; }
+.wa-ov.out > * { opacity: 0 !important; transition: opacity .35s; }
+html[data-theme="light"] .wa-ov video { filter: none; }
+html[data-theme="light"] .wa-wind { filter: invert(1) hue-rotate(180deg); }
+.hdr .ds-sw{margin-left:4px}
+.hdr-in>*{flex-shrink:0}
+@media (max-width:440px){.hdr .ds-b span{display:none}.hdr .ds-b{padding:0 9px}}

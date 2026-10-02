@@ -252,6 +252,9 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(245,15
 /* v140: шапки как в YOU. Главная: конверт слева, справа тема и меню. Разделы: цветная шапка */
 #hdr-home .hdr-in{max-width:none;padding:max(16px,calc(env(safe-area-inset-top) + 8px)) 20px 16px;gap:10px}
 #hdr-home{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;position:relative}
+/* переключатель дизайна по центру шапки, как в YOU */
+#hdr-home .hdr-in{position:relative}
+#hdr-home .ds-sw{display:inline-flex!important;position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% + max(0px,(env(safe-area-inset-top) - 8px) / 2)));margin:0}
 .hdr-in .fb-envelope{width:40px;height:40px;border-radius:14px}
 .hadd{height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:20px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#E8E5DC;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .hadd i{font-size:18px;color:#F2A93B}
@@ -797,7 +800,11 @@ $('#menu').onclick = () => {
   const R = 'style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none;box-sizing:border-box;"', I = 'style="font-size:18px;color:#9D9A92;"';
   const ov = document.createElement('div'); ov.className = 'tr-modal-overlay';
   ov.innerHTML = `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:340px;overflow:hidden;">
-    <div style="padding:16px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;">Внешний вид</div>
+    <div style="padding:16px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;">Приглашения</div>
+    <button data-m="inv" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-user-plus" style="font-size:18px;color:#8EA8FF;"></i>Пригласить клиента</button>
+    <button data-m="qr" ${R}><i class="ti ti-qrcode" ${I}></i>QR-код для зала</button>
+    <button data-m="tref" ${R}><i class="ti ti-users-group" ${I}></i>Пригласить тренера</button>
+    <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Внешний вид</div>
     ${window.Palette ? Palette.rowHtml() : ''}
     <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Редактор слайдов</button>
     <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
@@ -815,6 +822,11 @@ $('#menu').onclick = () => {
   if (window.Palette) Palette.bind(ov);
   ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
   ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
+  /* приглашения: ссылка клиенту, QR на весь экран, ссылка коллеге. Всё живёт на вкладке «Добавить» */
+  const toAdd = (sel) => { ov.remove(); view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); if (sel) setTimeout(() => { const b = $(sel); if (b) b.click(); }, 120); };
+  ov.querySelector('[data-m="inv"]').onclick = () => toAdd('#i-share');
+  ov.querySelector('[data-m="qr"]').onclick = () => toAdd('#i-qr-big');
+  ov.querySelector('[data-m="tref"]').onclick = () => toAdd('#t-share');
 };
 $('#hadd').onclick = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
 $('#back').onclick = () => {

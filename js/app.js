@@ -80,6 +80,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   } finally {
     if (window.Theme) Theme.syncFromStore();
     window._appReady = true;
+    /* быстрые ссылки: ?r=/habits (ярлыки на иконке), ?spend=кофе 290 (запись траты из «Команд» iPhone), ?add=1 (сразу строка записи) */
+    try {
+      const q = new URLSearchParams(location.search);
+      const r = q.get('r'), sp = q.get('spend'), add = q.has('add');
+      if (r || sp != null || add) {
+        if (sp != null && sp.trim()) window.__spendQuick = sp.trim().slice(0, 200);
+        else if (sp != null || add) window.__spendFocus = true;
+        const to = (sp != null || add) ? '/finance' : (/^\/(home|training|habits|finance|goals)$/.test(r) ? r : '/home');
+        history.replaceState(null, '', location.pathname + '#' + to);
+      }
+    } catch (e) {}
     Router.render();
     if (window.FirebaseSync && FirebaseSync.myTrainer && typeof Auth !== 'undefined' && Auth.isLoggedIn() && Auth.role() !== 'coach') {
       FirebaseSync.myTrainer().then((t) => { if (Router.currentPath() !== '/training') return; if (t) Router.render({ keepScroll: true }); else if (window.TrainerLink) TrainerLink.decorate(); }).catch(() => {});

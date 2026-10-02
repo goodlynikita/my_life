@@ -481,3 +481,22 @@ html.fin-dark-on .modal-finance .ce-bot select{height:38px !important;padding-to
 .sp-pay .sp-sec-h b{white-space:nowrap}
 @media (max-width:400px){.sp-pay .sp-sec-h{font-size:12px;letter-spacing:.04em}}
 .sp-edit #pm-day{min-width:120px}
+/* v118: разовые платежи и цели по дате */
+.sp-seg{display:flex;gap:4px;padding:4px;margin:2px 0 14px;border-radius:12px;background:rgba(255,255,255,.06)}
+.sp-seg button{flex:1;height:38px;border:none;border-radius:9px;background:none;color:var(--tk-soft,#ADADAD);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.sp-seg button.on{background:#977FE9;color:#fff}
+.sp-pm-hint{margin:2px 0 8px;font-size:12.5px;line-height:1.45;color:#C9BDF7}
+.sp-chk{display:flex;align-items:center;gap:10px;margin:4px 0 6px;font-size:13.5px;color:var(--tk-soft,#C8C8C8);cursor:pointer}
+.sp-chk input{width:18px;height:18px;accent-color:#977FE9;margin:0}
+.sp-om-acts{display:flex;gap:8px;margin:6px 0 4px}
+.sp-om-b{flex:1;height:44px;border-radius:12px;border:1px solid rgba(151,127,233,.35);background:rgba(151,127,233,.10);color:#E4DCFF;font:inherit;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.sp-om-b.on{background:rgba(95,201,139,.16);border-color:rgba(95,201,139,.45);color:#BFF0D2}
+.sp-om-b i{font-size:17px}
+.sp-cal{flex-direction:column;line-height:1}
+.sp-cal small{font-size:9px;font-weight:700;opacity:.8;margin-top:1px;text-transform:lowercase}
+.sp-pay-more{display:block;width:100%;margin-top:4px;padding:10px 0 2px;border:none;border-top:1px solid var(--tk-line,rgba(255,255,255,.07));background:none;color:#C9BDF7;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+/* минус без кислотного красного */
+.sp-big.neg{color:#F2A49B}
+.tochka-screen.fin-inv .sp-big.neg{color:#D07C72;filter:invert(1) hue-rotate(180deg)}
+.sp-pay-r .sp-row-a{display:flex;flex-direction:column;align-items:flex-end}
+.sp-pay-r .sp-row-a .sp-pm-mo{font-size:11.5px;font-weight:600;color:#C9BDF7;margin-top:2px;white-space:nowrap}

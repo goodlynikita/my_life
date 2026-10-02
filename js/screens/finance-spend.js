@@ -24,6 +24,7 @@ window.FinSpend = (function () {
   const fmt = (n) => (n < 0 ? '−' : '') + num(n) + ' ₽';
   const MON_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
   const MON_NOM = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const MON_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
   const MON_PREP = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
   const DOW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
   const MAX_AMT = 100000000; /* 100 млн за одну трату: больше почти наверняка опечатка */
@@ -104,6 +105,33 @@ window.FinSpend = (function () {
     }
     return out;
   }
+  /* разовые платежи и цели по дате: finance.planned = [{ id, name, amt, date: 'YYYY-MM-DD', done, doneAt }] */
+  function planned() {
+    return toArr((Store.get().finance || {}).planned).filter(x => x && typeof x === 'object' && x.id && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date)))
+      .map(x => Object.assign({}, x, { amt: Math.max(0, Math.round(+x.amt || 0)), name: String(x.name || 'Платёж').slice(0, 60) }));
+  }
+  function savePlanned(arr) { Store.set('finance.planned', arr.map(x => JSON.parse(JSON.stringify(x)))); }
+  const pDate = (s) => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); };
+  const isoDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  /* сколько откладывать в месяц: сумма на число месяцев до даты, текущий тоже считается */
+  function perMonth(p, now) { const d = pDate(p.date); const m = Math.max(1, (d.getFullYear() - now.getFullYear()) * 12 + d.getMonth() - now.getMonth() + 1); return Math.ceil(p.amt / m / 100) * 100; }
+  function markPlanned(id, done) { savePlanned(planned().map(x => x.id === id ? Object.assign(x, done ? { done: true, doneAt: Date.now() } : { done: false, doneAt: null }) : x)); }
+  /* напоминание в календарь телефона: файл .ics, событие на весь день и два напоминания (за 3 дня и накануне, в 9:00) */
+  function icsDownload(p) {
+    const d = pDate(p.date), d2 = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    const ymd = (x) => isoDate(x).replace(/-/g, '');
+    const clean = (t) => String(t).replace(/[\\;,]/g, ' ').replace(/[\r\n]+/g, ' ');
+    const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    const title = clean(p.name) + ': ' + fmt(p.amt);
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//YOU//Finance//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:' + p.id + '@you-app.ru', 'DTSTAMP:' + stamp,
+      'DTSTART;VALUE=DATE:' + ymd(d), 'DTEND;VALUE=DATE:' + ymd(d2), 'SUMMARY:' + title, 'DESCRIPTION:Платёж из YOU. Оплатил? Отметь в Финансах: Расходы',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + title, 'TRIGGER:-P2DT15H', 'END:VALARM',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + title, 'TRIGGER:-PT15H', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = (String(p.name).replace(/[^\wа-яё ]+/gi, '').trim() || 'platezh') + '.ics';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+
   /* выученные правила «слово → категория» */
   function rules() { const r = (Store.get().finance || {}).spendRules; return r && typeof r === 'object' ? r : {}; }
 
@@ -125,19 +153,21 @@ window.FinSpend = (function () {
     const planOf = {}; b.cats.forEach(c => { planOf[c.id] = Math.max(0, +c.amt || 0); });
     const planTotal = Object.values(planOf).reduce((s, v) => s + v, 0);
     const planLeft = b.cats.reduce((s, c) => s + Math.max(0, planOf[c.id] - (sp[c.id] || 0)), 0);
-    const free = inc - save - planLeft - spent;
+    /* разовые платежи этого периода и просроченные: резервируем целиком, пока не оплачены */
+    const onceLeft = planned().filter(p => !p.done && pDate(p.date) < per.end).reduce((s, p) => s + p.amt, 0);
+    const free = inc - save - planLeft - onceLeft - spent;
     const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dim = Math.round((per.end - per.start) / 864e5); /* дней в периоде */
     const daysLeft = Math.max(1, Math.round((per.end - t0) / 864e5));
     /* «свободные» траты сегодня: без категории или сверх плана категории (траты в рамках плана уже учтены выше) */
     const todayKey = now.toDateString();
-    const todayBy = {}; items.filter(x => new Date(x.at).toDateString() === todayKey).forEach(x => { const k = x.cat && planOf[x.cat] != null ? x.cat : '_other'; todayBy[k] = (todayBy[k] || 0) + x.amt; });
+    const todayBy = {}; items.filter(x => !x.once && new Date(x.at).toDateString() === todayKey).forEach(x => { const k = x.cat && planOf[x.cat] != null ? x.cat : '_other'; todayBy[k] = (todayBy[k] || 0) + x.amt; });
     const todaySpent = Object.entries(todayBy).reduce((s, [k, v]) => s + (k === '_other' ? v : Math.min(v, Math.max(0, (sp[k] || 0) - planOf[k]))), 0);
     /* норма на день считается от свободного на утро: сегодняшние траты не уменьшают сегодняшнюю норму */
     const perDay = Math.max(0, Math.floor((free + todaySpent) / daysLeft));
     /* сколько ушло именно в плановые категории (для кольца в «Балансе») */
     const planSpent = b.cats.reduce((s, c) => s + (sp[c.id] || 0), 0);
-    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo, sample: demoOn() };
+    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, onceLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo, sample: demoOn() };
   }
 
   /* плановые платежи месяца: категории с днём оплаты, оплачено = потрачено ≥ плана */
@@ -152,8 +182,11 @@ window.FinSpend = (function () {
       const amt = Math.max(0, +x.amt || 0), sp = c.sp[x.id] || 0;
       const paid = amt > 0 ? sp >= amt : sp > 0;
       const diff = Math.round((date - t0) / 864e5);
-      return { id: x.id, name: x.name || 'Платёж', color: col(x.color), day: date.getDate(), date, amt, left: Math.max(0, amt - sp), paid, late: !paid && diff < 0, diff };
-    }).sort((a, b) => (a.paid - b.paid) || (b.late - a.late) || (a.date - b.date));
+      return { id: x.id, name: x.name || 'Платёж', color: col(x.color), day: date.getDate(), date, amt, left: Math.max(0, amt - sp), paid, late: !paid && diff < 0, diff, inPer: true };
+    }).concat(planned().filter(p => !p.done || +p.doneAt >= +start).map(p => {
+      const date = pDate(p.date), diff = Math.round((date - t0) / 864e5);
+      return { once: true, id: p.id, name: p.name, color: '#977FE9', day: date.getDate(), date, amt: p.amt, left: p.done ? 0 : p.amt, paid: !!p.done, late: !p.done && diff < 0, diff, inPer: !c.end || date < c.end, monthly: perMonth(p, now) };
+    })).sort((a, b) => (a.paid - b.paid) || (b.late - a.late) || (a.date - b.date));
   }
 
   /* ── Разбор строки ── */
@@ -292,9 +325,10 @@ window.FinSpend = (function () {
     const d = p.date.getDate() + ' ' + MON_GEN[p.date.getMonth()];
     if (p.paid) return d;
     if (p.late) return d + ' · не оплачено';
-    return d + ' · ' + (p.diff === 0 ? 'сегодня' : p.diff === 1 ? 'завтра' : 'через ' + p.diff + ' ' + plural(p.diff, ['день', 'дня', 'дней']));
+    const w = d + ' · ' + (p.diff === 0 ? 'сегодня' : p.diff === 1 ? 'завтра' : 'через ' + p.diff + ' ' + plural(p.diff, ['день', 'дня', 'дней']));
+    return w;
   }
-  let showAll = false, lastCommit = { sig: '', t: 0 }, soft = false;
+  let showPays = false, showAll = false, lastCommit = { sig: '', t: 0 }, soft = false;
 
   function render(content, rerenderOuter) {
     /* перерисовка после записи/правки «мягкая»: без вылета карточек, цифры едут от прошлых значений */
@@ -312,7 +346,7 @@ window.FinSpend = (function () {
     const pos = (d) => Math.max(0, Math.min(100, Math.round(Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - c.start) / 864e5) / Math.max(1, c.dim - 1) * 1000) / 10));
     const monthPos = pos(now);
     const pays = payments(c, now);
-    const payLeft = pays.reduce((s, p) => s + (p.paid ? 0 : p.left), 0);
+    const payLeft = pays.reduce((s, p) => s + (p.paid || !p.inPer ? 0 : p.left), 0);
     const shown = showAll ? items : items.slice(0, 40);
     const groups = [];
     shown.forEach(x => { const d = new Date(x.at); const k = d.toDateString(); let g = groups.find(z => z.k === k); if (!g) { g = { k, d, items: [] }; groups.push(g); } g.items.push(x); });
@@ -333,7 +367,7 @@ window.FinSpend = (function () {
         ${noInc ? '<button class="sp-cta" id="sp-to-month"><i class="ti ti-plus"></i>Добавь доход месяца</button>' : ''}
         <div class="sp-track">
           <span class="sp-track-fill" data-k="track" data-w="${monthPos}"></span>
-          ${pays.map(p => `<i class="sp-mark${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}" style="left:${pos(p.date)}%;--c:${p.color}" title="${esc(p.name)}, ${dm(p.date)}"></i>`).join('')}
+          ${pays.filter(p => p.inPer).map(p => `<i class="sp-mark${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}" style="left:${pos(p.date)}%;--c:${p.color}" title="${esc(p.name)}, ${dm(p.date)}"></i>`).join('')}
           <i class="sp-track-now" style="left:${monthPos}%"></i>
         </div>
         <div class="sp-track-l"><span style="${monthPos < 30 ? 'visibility:hidden' : ''}">${dm(c.start)}</span><span class="sp-track-t" style="left:${Math.min(85, Math.max(15, monthPos))}%">сегодня, ${now.getDate()}</span><span style="${monthPos > 70 ? 'visibility:hidden' : ''}">${dm(monthEnd)}</span></div>
@@ -345,6 +379,7 @@ window.FinSpend = (function () {
           <div class="sp-how-r"><span>${c.est ? 'Доход (как в ' + MON_PREP[c.estFrom] + ')' : c.P ? 'Доход за ' + MON_NOM[c.start.getMonth()] : 'Доход за месяц'}</span><b>${fmt(c.inc)}</b></div>
           <div class="sp-how-r"><span>В копилку, ${c.savePct}%</span><b>−${fmt(c.save)}</b></div>
           <div class="sp-how-r"><span>План по категориям, ещё не потрачено</span><b>−${fmt(c.planLeft)}</b></div>
+          ${c.onceLeft ? `<div class="sp-how-r"><span>Разовые платежи до ${dm(monthEnd)}</span><b>−${fmt(c.onceLeft)}</b></div>` : ''}
           <div class="sp-how-r"><span>${c.P ? 'Уже потрачено с ' + dm(c.start) : 'Уже потрачено в этом месяце'}</span><b>−${fmt(c.spent)}</b></div>
           <div class="sp-how-r sp-how-t"><span>Свободно</span><b>${fmt(c.free)}</b></div>
           <div class="sp-how-r"><span>Осталось дней, с сегодняшним</span><b>${c.daysLeft}</b></div>
@@ -352,12 +387,13 @@ window.FinSpend = (function () {
       </div>
 
       <div class="sp-card sp-pay">
-        <div class="sp-sec-h">Ближайшие платежи<span class="sp-sec-r">${pays.length ? (payLeft ? `<b>ещё ${fmt(payLeft)}</b>` : '<b class="ok">всё оплачено</b>') : ''}<button class="sp-pay-add" id="sp-pay-add" aria-label="Добавить платёж"><i class="ti ti-plus"></i></button></span></div>
+        <div class="sp-sec-h">Ближайшие платежи<span class="sp-sec-r">${pays.length ? (payLeft ? `<b>ещё ${fmt(payLeft)}</b>` : pays.some(p => !p.paid) ? '' : '<b class="ok">всё оплачено</b>') : ''}<button class="sp-pay-add" id="sp-pay-add" aria-label="Добавить платёж"><i class="ti ti-plus"></i></button></span></div>
         ${!pays.length ? '<button class="sp-pay-empty" id="sp-pay-empty"><i class="ti ti-calendar-plus"></i>Добавь платёж по дате: аренда, кредит, подписка</button>' : ''}
-        ${pays.slice(0, 3).map(p => `<button class="sp-pay-r${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}" data-cat="${esc(p.id)}" data-left="${p.left}">
-          <i class="sp-cal" style="--c:${p.color}">${p.day}</i>
+        ${pays.slice(0, showPays ? 50 : 3).map(p => `<button class="sp-pay-r${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}${p.once ? ' once' : ''}" data-cat="${esc(p.id)}"${p.once ? ' data-once="1"' : ''} data-left="${p.left}">
+          <i class="sp-cal" style="--c:${p.color}">${p.day}${p.once && !p.inPer ? `<small>${MON_SHORT[p.date.getMonth()]}</small>` : ''}</i>
           <span class="sp-row-m"><b>${esc(p.name)}</b><em>${esc(payWhen(p, now))}</em></span>
-          <span class="sp-row-a">${p.paid ? '<span class="sp-paid"><i class="ti ti-check"></i>оплачено</span>' : fmt(p.left)}</span></button>`).join('')}
+          <span class="sp-row-a">${p.paid ? '<span class="sp-paid"><i class="ti ti-check"></i>оплачено</span>' : fmt(p.left)}${p.once && !p.paid && !p.inPer && p.monthly < p.amt ? `<small class="sp-pm-mo">по ${fmt(p.monthly)} в мес</small>` : ''}</span></button>`).join('')}
+        ${pays.length > 3 && !showPays ? `<button class="sp-pay-more" id="sp-pay-more">Все платежи · ${pays.length}</button>` : ''}
       </div>
 
       <div class="sp-card sp-add">
@@ -388,7 +424,7 @@ window.FinSpend = (function () {
     /* живой разбор строки; ручной выбор категории из «платежей» сбрасывается, если стёрли название */
     const refresh = (warn) => { const p = parse(inp.value, cats, inp.dataset.cat); setChips(chips, chipList(p), warn != null ? warn : (p && p.multi && !p.err ? 'Взял ' + fmt(p.amt) + ', остальные числа оставил в названии' : '')); };
     /* категория платежа держится, пока строка начинается с его названия: перепечатал строку, категория снова подбирается сама */
-    inp.addEventListener('input', () => { if (inp.dataset.cat && (!inp.value.trim() || !norm(inp.value).startsWith(norm(inp.dataset.pref || '')))) { delete inp.dataset.cat; delete inp.dataset.pref; } refresh(); });
+    inp.addEventListener('input', () => { if (inp.dataset.once && !inp.value.trim()) delete inp.dataset.once; if (inp.dataset.cat && (!inp.value.trim() || !norm(inp.value).startsWith(norm(inp.dataset.pref || '')))) { delete inp.dataset.cat; delete inp.dataset.pref; } refresh(); });
     const commit = () => {
       const p = parse(inp.value, cats, inp.dataset.cat);
       if (!p) { inp.focus(); return; }
@@ -399,9 +435,13 @@ window.FinSpend = (function () {
       lastCommit = { sig, t: Date.now() };
       const at = Date.now(), ym = ymKey(new Date(at)); /* месяц берём в момент записи, а не отрисовки */
       const rec = { id: uid('s'), amt: p.amt, cat: p.cat, note: p.note, src: p.src || '', at };
+      /* запись разового платежа из «Ближайших»: трата помечается им (не съедает дневную норму), платёж становится оплаченным */
+      const onceId = inp.dataset.once; delete inp.dataset.once;
+      if (onceId) rec.once = onceId;
       const arr = rawList(ym); arr.push(rec); saveList(ym, arr);
+      if (onceId) markPlanned(onceId, true);
       rerender();
-      toast(`Записал ${fmt(p.amt)} · ${p.catName}`, () => { saveList(ym, rawList(ym).filter(x => x.id !== rec.id)); rerender(); });
+      toast(`Записал ${fmt(p.amt)} · ${p.catName}`, () => { saveList(ym, rawList(ym).filter(x => x.id !== rec.id)); if (onceId) markPlanned(onceId, false); rerender(); });
       const ni = document.querySelector('#sp-in'); if (ni) ni.focus({ preventScroll: true });
     };
     content.querySelector('#sp-ok').addEventListener('click', commit);
@@ -411,17 +451,25 @@ window.FinSpend = (function () {
     const more = content.querySelector('#sp-more'); if (more) more.onclick = () => { showAll = true; rerender(); };
     ['#sp-pay-add', '#sp-pay-empty'].forEach(q => { const el = content.querySelector(q); if (el) el.onclick = () => payModal(rerender); });
     /* платёж из списка: подставляем строку с суммой остатка, Enter запишет его в нужную категорию */
+    const pm = content.querySelector('#sp-pay-more'); if (pm) pm.onclick = () => { showPays = true; rerender(); };
     content.querySelectorAll('.sp-pay-r').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.once) { onceModal(b.dataset.cat, rerender, (p) => {
+        inp.value = p.name + ' ' + p.amt; delete inp.dataset.cat; inp.dataset.once = p.id; refresh(); syncBtn(); inp.focus();
+        inp.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' }); }); return; }
       const ct = catById[b.dataset.cat]; if (!ct) return;
       if (b.classList.contains('paid')) { catModal(ct.id, rerender); return; }
       const short = String(ct.name || '').split(/\s*[/(,]\s*/)[0].trim() || 'Платёж';
-      inp.value = short + ' ' + (+b.dataset.left || ''); inp.dataset.cat = ct.id; inp.dataset.pref = short; refresh(); syncBtn(); inp.focus();
+      inp.value = short + ' ' + (+b.dataset.left || ''); delete inp.dataset.once; inp.dataset.cat = ct.id; inp.dataset.pref = short; refresh(); syncBtn(); inp.focus();
       inp.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
     }));
     /* в примере траты не редактируются: подсказываем, как начать по-настоящему */
     content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => { if (c.sample) { toast('Это пример. Запиши свою трату строкой выше'); return; } editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender); }));
     const dOff = content.querySelector('#sp-demo-off'); if (dOff) dOff.onclick = () => { Store.set('finance.spendDemoOff', true); rerender(); };
     const pb = content.querySelector('#sp-per'); if (pb) pb.onclick = () => periodModal(rerender);
+
+    /* быстрая запись по ссылке: ?spend=кофе 290 (Команды на iPhone) или ?add=1 (ярлык на иконке) */
+    if (window.__spendQuick) { const q = window.__spendQuick; window.__spendQuick = null; inp.value = q; refresh(); syncBtn(); setTimeout(commit, 350); }
+    else if (window.__spendFocus) { window.__spendFocus = false; setTimeout(() => { inp.focus(); inp.scrollIntoView({ block: 'center' }); }, 300); }
 
     animate(content, !first);
     const to = noInc ? 0 : c.free;
@@ -434,7 +482,7 @@ window.FinSpend = (function () {
     { sel: '.sp-per', t: 'До конца месяца или до зарплаты', d: 'Нажми, чтобы выбрать, до какого дня считать деньги.' },
     { sel: '.sp-big', t: 'Свободно', d: 'Доход минус копилка, минус обязательные платежи и уже потраченное. Знак ≈: доходов в этом месяце ещё нет, считаю по прошлому. Красная цифра: трат больше, чем дохода.' },
     { sel: '.sp-today', t: 'Сегодня', d: 'Сколько можно потратить сегодня, чтобы хватило до конца. Покупки по плану (продукты, аренда) сюда не входят.' },
-    { sel: '.sp-pay', t: 'Ближайшие платежи', d: 'Платежи по датам: аренда, кредит, подписки. «+» добавляет свой платёж с днём и суммой. Нажми на платёж, и строка для записи заполнится сама.' },
+    { sel: '.sp-pay', t: 'Ближайшие платежи', d: 'Платежи по датам. «+»: каждый месяц (аренда, кредит, подписка) или один раз к дате (брекеты, отпуск, страховка). Для разового покажу, сколько откладывать в месяц, и поставлю напоминание в календарь. Нажми на платёж, чтобы записать оплату.' },
     { sel: '#sp-in', t: 'Запись одной строкой', d: 'Пиши как есть: «кофе 420», «такси 350 тинькофф», «продукты 2,3к». Поменяешь категорию у траты, в следующий раз такая строка попадёт туда сама.' },
     { sel: '.sp-row, .sp-empty', t: 'Траты', d: 'Нажми на трату, чтобы поменять сумму, категорию или дату либо удалить.' },
   ];
@@ -568,30 +616,68 @@ window.FinSpend = (function () {
 
   /* свой платёж по дате: новая категория с днём оплаты или день для существующей.
      Платёж = плановая трата, поэтому он живёт в бюджете («Баланс») и сразу учитывается в «Свободно» */
+  /* новый платёж: каждый месяц (категория с днём оплаты) или один раз к дате (цель, напоминание) */
   function payModal(onDone) {
     const b = budget();
     const free = b.cats.filter(c => !c.day);
+    const today = new Date(), soon = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
     ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Новый платёж"><p class="tr-modal-title">Новый платёж</p>
-      <div class="tr-modal-row"><label style="flex:1 1 100%">Что за платёж<select id="pm-cat"><option value="">Новый: впишу название</option>${free.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label></div>
+      <div class="sp-seg" id="pm-kind"><button type="button" data-k="m" class="on">Каждый месяц</button><button type="button" data-k="o">Один раз</button></div>
+      <div class="tr-modal-row pm-m"><label style="flex:1 1 100%">Что за платёж<select id="pm-cat"><option value="">Новый: впишу название</option>${free.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label></div>
       <div class="tr-modal-row" id="pm-name-row"><label style="flex:1 1 100%">Название<input type="text" id="pm-name" maxlength="40" placeholder="Кредит, абонемент, iCloud"></label></div>
-      <div class="tr-modal-row"><label style="flex:1">Сумма в месяц, ₽<input type="text" inputmode="decimal" id="pm-amt" placeholder="0"></label>
-        <label style="flex:0 0 130px">Каждый месяц<select id="pm-day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${i + 1 === new Date().getDate() ? ' selected' : ''}>${i + 1} числа</option>`).join('')}</select></label></div>
+      <div class="tr-modal-row"><label style="flex:1"><span id="pm-amt-l">Сумма в месяц, ₽</span><input type="text" inputmode="decimal" id="pm-amt" placeholder="0"></label>
+        <label style="flex:0 0 130px" class="pm-m">Каждый месяц<select id="pm-day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${i + 1 === today.getDate() ? ' selected' : ''}>${i + 1} числа</option>`).join('')}</select></label>
+        <label style="flex:0 0 150px;display:none" class="pm-o">Дата<input type="date" id="pm-date" value="${isoDate(soon)}" min="${isoDate(today)}"></label></div>
+      <p class="sp-pm-hint pm-o" id="pm-hint" style="display:none"></p>
+      <label class="sp-chk pm-o" style="display:none"><input type="checkbox" id="pm-cal" checked><span>Напомнить в календаре телефона</span></label>
       <p class="sp-pm-err" id="pm-err"></p>
       <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="pm-cancel">Отмена</button><button class="tr-modal-btn-primary" id="pm-ok">Добавить</button></div></div>`;
     document.body.appendChild(ov);
     const $ = (q) => ov.querySelector(q);
+    let kind = 'm';
     const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    const amtOf = () => Math.round(parseFloat(String($('#pm-amt').value).replace(/\s/g, '').replace(',', '.')) || 0);
+    /* подсказка «по N ₽ в месяц» для разового платежа */
+    const hint = () => {
+      const a = amtOf(), dv = $('#pm-date').value; const h = $('#pm-hint');
+      if (kind !== 'o' || !(a > 0) || !dv) { h.textContent = ''; return; }
+      const m = perMonth({ amt: a, date: dv }, new Date());
+      h.textContent = m < a ? `Откладывай по ${fmt(m)} в месяц, и к ${pDate(dv).getDate()} ${MON_GEN[pDate(dv).getMonth()]} сумма будет` : 'Сумма зарезервируется в этом месяце';
+    };
+    const setKind = (k) => {
+      kind = k; ov.querySelectorAll('#pm-kind button').forEach(x => x.classList.toggle('on', x.dataset.k === k));
+      ov.querySelectorAll('.pm-m').forEach(x => { x.style.display = k === 'm' ? '' : 'none'; });
+      ov.querySelectorAll('.pm-o').forEach(x => { x.style.display = k === 'o' ? '' : 'none'; });
+      const c = k === 'm' && free.find(x => x.id === $('#pm-cat').value);
+      $('#pm-name-row').style.display = c ? 'none' : '';
+      $('#pm-name').placeholder = k === 'm' ? 'Кредит, абонемент, iCloud' : 'Брекеты, отпуск, страховка';
+      $('#pm-amt-l').textContent = k === 'm' ? 'Сумма в месяц, ₽' : 'Сумма, ₽';
+      $('#pm-err').textContent = ''; hint();
+    };
+    ov.querySelectorAll('#pm-kind button').forEach(x => { x.onclick = () => setKind(x.dataset.k); });
+    $('#pm-amt').addEventListener('input', hint); $('#pm-date').addEventListener('change', hint);
     $('#pm-cat').onchange = () => { const c = free.find(x => x.id === $('#pm-cat').value); $('#pm-name-row').style.display = c ? 'none' : ''; if (c && c.amt) $('#pm-amt').value = String(c.amt); };
     $('#pm-cancel').onclick = close;
     setTimeout(() => { const n = $('#pm-name'); if (n) n.focus(); }, 60);
     $('#pm-ok').onclick = () => {
+      const amt = amtOf(), name = String($('#pm-name').value || '').trim();
+      if (kind === 'o') {
+        const dv = $('#pm-date').value;
+        if (!name) { $('#pm-err').textContent = 'Впиши, на что платёж'; return; }
+        if (!(amt > 0)) { $('#pm-err').textContent = 'Укажи сумму'; return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dv)) { $('#pm-err').textContent = 'Выбери дату'; return; }
+        const item = { id: uid('o'), name: name.slice(0, 60), amt, date: dv, done: false, createdAt: Date.now() };
+        savePlanned(planned().concat([item]));
+        if ($('#pm-cal').checked) { try { icsDownload(item); } catch (e) {} }
+        close(); if (onDone) onDone();
+        toast(`${item.name}: ${fmt(amt)} к ${pDate(dv).getDate()} ${MON_GEN[pDate(dv).getMonth()]}`);
+        return;
+      }
       const catId = $('#pm-cat').value, day = +$('#pm-day').value;
-      const amt = Math.round(parseFloat(String($('#pm-amt').value).replace(/\s/g, '').replace(',', '.')) || 0);
-      const name = String($('#pm-name').value || '').trim();
       if (!catId && !name) { $('#pm-err').textContent = 'Впиши название платежа'; return; }
       if (!(amt > 0)) { $('#pm-err').textContent = 'Укажи сумму'; return; }
       const cats = budget().cats.map(c => Object.assign({}, c));
@@ -601,6 +687,41 @@ window.FinSpend = (function () {
       close(); if (onDone) onDone();
       toast(`Платёж ${catId ? (cats.find(x => x.id === catId) || {}).name || '' : name}: ${day} числа, ${fmt(amt)}`);
     };
+  }
+
+  /* разовый платёж: правка, напоминание, «Оплатил» (заполняет строку записи), удаление */
+  function onceModal(id, onDone, onPay) {
+    const p = planned().find(x => x.id === id); if (!p) return;
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
+    ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Разовый платёж"><p class="tr-modal-title">${p.done ? 'Оплачено' : 'Разовый платёж'}</p>
+      <div class="tr-modal-row"><label style="flex:1 1 100%">Название<input type="text" id="om-name" maxlength="60" value="${esc(p.name)}"></label></div>
+      <div class="tr-modal-row"><label style="flex:1">Сумма, ₽<input type="text" inputmode="decimal" id="om-amt" value="${p.amt}"></label>
+        <label style="flex:0 0 150px">Дата<input type="date" id="om-date" value="${esc(p.date)}"></label></div>
+      ${p.done ? '' : `<div class="sp-om-acts"><button type="button" class="sp-om-b" id="om-cal"><i class="ti ti-calendar-bell"></i>В календарь</button><button type="button" class="sp-om-b on" id="om-pay"><i class="ti ti-check"></i>Оплатил</button></div>`}
+      <p class="sp-pm-err" id="om-err"></p>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="om-del">Удалить</button><button class="tr-modal-btn-primary" id="om-ok">Сохранить</button></div></div>`;
+    document.body.appendChild(ov);
+    const $ = (q) => ov.querySelector(q);
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    const read = () => {
+      const amt = Math.round(parseFloat(String($('#om-amt').value).replace(/\s/g, '').replace(',', '.')) || 0);
+      const name = String($('#om-name').value || '').trim().slice(0, 60), date = $('#om-date').value;
+      if (!name) { $('#om-err').textContent = 'Впиши название'; return null; }
+      if (!(amt > 0)) { $('#om-err').textContent = 'Укажи сумму'; return null; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { $('#om-err').textContent = 'Выбери дату'; return null; }
+      return Object.assign({}, p, { name, amt, date });
+    };
+    const save = (x) => savePlanned(planned().map(y => y.id === x.id ? x : y));
+    $('#om-ok').onclick = () => { const x = read(); if (!x) return; save(x); close(); if (onDone) onDone(); toast('Сохранил'); };
+    $('#om-del').onclick = () => {
+      const all = planned(); savePlanned(all.filter(y => y.id !== id)); close(); if (onDone) onDone();
+      toast(`Удалил ${p.name}`, () => { savePlanned(all); if (onDone) onDone(); });
+    };
+    const cb = $('#om-cal'); if (cb) cb.onclick = () => { const x = read(); if (!x) return; save(x); icsDownload(x); };
+    const pb = $('#om-pay'); if (pb) pb.onclick = () => { const x = read(); if (!x) return; save(x); close(); if (onPay) onPay(x); };
   }
 
   /* до конца месяца или до зарплаты N-го числа */

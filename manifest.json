@@ -29,8 +29,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Привычки",
-      "url": "./?r=/habits",
+      "name": "Записать трату",
+      "short_name": "Трата",
+      "url": "./?add=1",
       "icons": [
         {
           "src": "img/fav/icon-192.png",
@@ -49,8 +50,8 @@
       ]
     },
     {
-      "name": "Цели",
-      "url": "./?r=/goals",
+      "name": "Привычки",
+      "url": "./?r=/habits",
       "icons": [
         {
           "src": "img/fav/icon-192.png",
@@ -59,8 +60,8 @@
       ]
     },
     {
-      "name": "Финансы",
-      "url": "./?r=/finance",
+      "name": "Цели",
+      "url": "./?r=/goals",
       "icons": [
         {
           "src": "img/fav/icon-192.png",

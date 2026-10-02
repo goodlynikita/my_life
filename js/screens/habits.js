@@ -61,7 +61,9 @@ function habSaveList(list) {
   for (let i = list.length; i < prev.length; i++) Store.set(`habits.list.${i}`, null);
 }
 
-const habEsc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+/* иконка привычки идёт в class: только имена Tabler вида ti-xxx */
+const habIco = (v) => /^ti-[a-z0-9-]{1,40}$/.test(String(v || '')) ? v : 'ti-star';
+const habEsc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* Считаем прогресс с учётом расписания */
 function habProgress(h, marks, year, month) {
@@ -183,12 +185,12 @@ function habOpenModal(existing, onSave) {
       <p class="tr-modal-title">${isEdit?'Редактировать':'Новая привычка'}</p>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Название
-          <input type="text" id="h-name" value="${existing?.name||''}" placeholder="Медитация, чтение…">
+          <input type="text" id="h-name" value="${habEsc(existing?.name||'')}" placeholder="Медитация, чтение…">
         </label>
       </div>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Описание / критерий
-          <input type="text" id="h-desc" value="${existing?.description||''}" placeholder="Что считается выполненным?">
+          <input type="text" id="h-desc" value="${habEsc(existing?.description||'')}" placeholder="Что считается выполненным?">
         </label>
       </div>
       <div class="tr-modal-row">
@@ -344,9 +346,9 @@ window.Screens.habits = function(mount) {
       const list = habGetList();
       const itemsHtml = list.map((h, i) => `
         <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #1E2028;">
-          <i class="ti ${h.icon||'ti-star'}" style="font-size:20px;color:#C8A84B;width:24px;text-align:center;"></i>
+          <i class="ti ${habIco(h.icon)}" style="font-size:20px;color:#C8A84B;width:24px;text-align:center;"></i>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:600;color:#E8E5DC;font-family:Montserrat,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name}</div>
+            <div style="font-size:14px;font-weight:600;color:#E8E5DC;font-family:Montserrat,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${habEsc(h.name)}</div>
             <div style="font-size:11px;color:#6B6F7A;margin-top:2px;">${habSchedLabel(h)}</div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
@@ -516,7 +518,7 @@ window.Screens.habits = function(mount) {
                   const isToday = isNow && d===today.getDate();
                   return `<td style="text-align:center;padding:2px 1px;">
                     <span class="hab-cell ${active?'hab-active':''} ${mark} ${isToday?'hab-today':''}"
-                      data-hid="${h.id}" data-day="${d}" data-active="${active}">
+                      data-hid="${habEsc(h.id)}" data-day="${d}" data-active="${active}">
                       ${habMarkHtml(mark, active)}
                     </span>
                   </td>`;
@@ -529,10 +531,10 @@ window.Screens.habits = function(mount) {
                   <tr>
                     <td class="hab-nm-td" style="padding:6px 8px;white-space:nowrap;${(!window.Features||window.Features.isOn('habit_sticky_col'))?'position:sticky;left:0;z-index:4;background:#1A1C22;':''}">
                       <div style="display:flex;align-items:center;gap:6px;cursor:pointer;" class="hab-name-edit" data-idx="${hi}">
-                        <i class="ti ${h.icon}" style="color:#C8A84B;font-size:13px;"></i>
+                        <i class="ti ${habIco(h.icon)}" style="color:#C8A84B;font-size:13px;"></i>
                         <span class="hab-nm" style="font-size:12px;">${habEsc(h.name)}</span>
                       </div>
-                      ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${h.description}</div>`:''}
+                      ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${habEsc(h.description)}</div>`:''}
                       <div style="display:flex;align-items:center;gap:6px;margin-left:19px;margin-top:1px;">
                         <span style="font-size:9px;color:#555;">${habSchedLabel(h)}</span>
                         ${(()=>{const s=habStreak(h,Store.get());if(!s)return '';const c=s>=14?'#FF4500':s>=7?'#F59E0B':s>=3?'#FB923C':'#9D9A92';return `<span class="hab-streak-chip" style="display:inline-flex;align-items:center;gap:3px;background:${c}18;border:1px solid ${c}44;border-radius:20px;padding:1px 6px;margin-left:2px;"><svg width="7" height="9" viewBox="0 0 8 10" fill="${c}"><path d="M4 0C4 0 6.5 3 6.5 5.5C6.5 7.5 5.4 9 4 9C2.6 9 1.5 7.5 1.5 5.5C1.5 4 2.5 2.5 3 1.5C3 1.5 2 3 2.5 4.5C3 4 3.5 3 4 0Z"/></svg><span style="font-size:10px;font-weight:700;color:${c};">${s}</span></span>`})()}
@@ -680,7 +682,7 @@ window.Screens.habits = function(mount) {
               const p = progresses[i];
               const barColor = p.pct>=80?'#8FD17F':p.pct>=50?'#E0B873':'#FF6B63';
               return `<div class="hh-row">
-                <span class="hh-name"><i class="ti ${h.icon}"></i>${h.name}</span>
+                <span class="hh-name"><i class="ti ${habIco(h.icon)}"></i>${habEsc(h.name)}</span>
                 <span class="hh-bar"><span style="width:${Math.min(100,p.pct)}%;background:${barColor};"></span></span>
                 <span class="hh-pct r" style="color:${barColor}">${p.pct}%</span>
                 <span class="hh-done r">${p.done}</span>
@@ -960,7 +962,7 @@ window.Screens.habits = function(mount) {
           </div>
           ${currentData
             ? `<div style="display:flex;justify-content:center;">${wheelDrawSVG(currentData.scores, 260, false)}</div>
-               ${currentData.comment ? `<div class="wheel-comment">"${currentData.comment}"</div>` : ''}`
+               ${currentData.comment ? `<div class="wheel-comment">"${habEsc(currentData.comment)}"</div>` : ''}`
             : `<div class="wheel-empty">За ${HAB_MONTHS_RU[selM-1].toLowerCase()} оценки нет. Оцени месяц по сферам жизни</div>`}
         </div>
 
@@ -973,7 +975,7 @@ window.Screens.habits = function(mount) {
             return `<div class="wheel-hist-row wheel-hist-open" data-mk="${mk}">
               <div>
                 <div class="wheel-hist-month">${wheelMkLabel(mk)}</div>
-                ${d.comment?`<div class="wheel-hist-comment">"${d.comment}"</div>`:''}
+                ${d.comment?`<div class="wheel-hist-comment">"${habEsc(d.comment)}"</div>`:''}
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
                 <div class="wheel-hist-avg">${avg}</div>
@@ -1009,7 +1011,7 @@ window.Screens.habits = function(mount) {
           <div class="tr-modal">
             <p class="tr-modal-title">${wheelMkLabel(mk)}</p>
             <div style="display:flex;justify-content:center;">${wheelDrawSVG(d.scores,260,false)}</div>
-            ${d.comment?`<div class="wheel-comment" style="margin:12px 0;">"${d.comment}"</div>`:''}
+            ${d.comment?`<div class="wheel-comment" style="margin:12px 0;">"${habEsc(d.comment)}"</div>`:''}
             <div class="tr-modal-actions">
               <button class="tr-modal-btn-secondary" id="wh-edit">Изменить / перенести</button>
               <button class="tr-modal-btn-primary" id="wh-close">Закрыть</button>

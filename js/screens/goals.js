@@ -3,6 +3,8 @@
    ============================================================ */
 
 window.Screens = window.Screens || {};
+/* пользовательский текст в HTML только через экранирование */
+const goalsEsc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const GOALS_SEASONS = [
   { key: 'all',    label: 'Всё',   color: '#F2A93B', bg: '#1A1200' },
@@ -149,7 +151,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay modal-goals';
   const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
-  const catOpts = existingCats.map(c=>`<option value="${c}"${existing?.cat===c?' selected':''}>${c}</option>`).join('');
+  const catOpts = existingCats.map(c=>`<option value="${goalsEsc(c)}"${existing?.cat===c?' selected':''}>${goalsEsc(c)}</option>`).join('');
   const isNewCat = existing?.cat && !existingCats.includes(existing.cat);
   overlay.innerHTML = `
     <div class="goals-modal">
@@ -159,7 +161,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
       </div>
       <div class="goals-modal-field">
         <div class="goals-modal-label">Название</div>
-        <input class="goals-modal-input" type="text" id="g-name" value="${existing?.name||''}" placeholder="Название цели">
+        <input class="goals-modal-input" type="text" id="g-name" value="${goalsEsc(existing?.name||'')}" placeholder="Название цели">
       </div>
       <div class="goals-modal-field">
         <div class="goals-modal-label">Сумма, ₽</div>
@@ -171,7 +173,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
           ${catOpts}
           <option value="_new"${isNewCat?' selected':''}>+ Новая категория…</option>
         </select>
-        <input class="goals-modal-input" type="text" id="g-cat" value="${isNewCat?existing?.cat||'':''}" placeholder="Название новой категории" style="margin-top:8px;display:${isNewCat?'block':'none'};">
+        <input class="goals-modal-input" type="text" id="g-cat" value="${goalsEsc(isNewCat?existing?.cat||'':'')}" placeholder="Название новой категории" style="margin-top:8px;display:${isNewCat?'block':'none'};">
       </div>
       <div class="goals-modal-2col">
         <div class="goals-modal-field">
@@ -490,22 +492,22 @@ window.Screens.goals = function(mount) {
                 ? '<span style="color:'+itemColor+';font-size:13px;font-weight:700;">?</span>'
                 : (g.amount>0?goalsFmt(g.amount):'');
             const rowOpacity = (g.done||g.maybe)?'0.6':'1';
-            return '<div class="goals-item-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+g.id+'" style="opacity:'+rowOpacity+';transition:opacity 0.3s;">'
-              + '<div class="goals-check-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+g.id+'" style="background:'+checkBg+';border-color:'+checkBorder+';">'
+            return '<div class="goals-item-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+goalsEsc(g.id)+'" style="opacity:'+rowOpacity+';transition:opacity 0.3s;">'
+              + '<div class="goals-check-v3 '+gStatus+'" data-idx="'+idx+'" data-gid="'+goalsEsc(g.id)+'" style="background:'+checkBg+';border-color:'+checkBorder+';">'
               + checkIcon + '</div>'
               + seasonDot
               + '<span class="goals-item-v3-name" style="'+(g.done?'text-decoration:line-through;':'')+'">'
-              + g.name+'<span style="font-size:10px;color:#9D9A92;">'+mt+'</span></span>'
+              + goalsEsc(g.name)+'<span style="font-size:10px;color:#9D9A92;">'+mt+'</span></span>'
               + '<span class="goals-item-v3-amt">'+amtDisplay+'</span>'
               + '</div>';
           }).join('');
       return '<div class="goals-cat-v3 '+(isGoal?'goals-cat-main':'')+'" style="--cat-color:'+catColor+';">'
         + '<div class="goals-cat-v3-head">'
-        + '<span class="goals-cat-v3-title">'+(isGoal?'🎯 ':'')+' '+cat+'</span>'
-        + '<span class="goals-cat-total goals-cat-v3-total" data-cat="'+cat+'" style="color:'+catColor+';transition:all 0.4s;">'+goalsFmt(catTotal)+'</span>'
+        + '<span class="goals-cat-v3-title">'+(isGoal?'🎯 ':'')+' '+goalsEsc(cat)+'</span>'
+        + '<span class="goals-cat-total goals-cat-v3-total" data-cat="'+goalsEsc(cat)+'" style="color:'+catColor+';transition:all 0.4s;">'+goalsFmt(catTotal)+'</span>'
         + '</div>'
         + itemsHtml
-        + '<button class="goals-add-v3" data-cat="'+cat+'" data-season="'+activeSeason+'" style="color:'+catColor+';">+ добавить</button>'
+        + '<button class="goals-add-v3" data-cat="'+goalsEsc(cat)+'" data-season="'+activeSeason+'" style="color:'+catColor+';">+ добавить</button>'
         + '</div>';
     });
 

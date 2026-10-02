@@ -52,6 +52,9 @@ window.FIN_DEFAULT_CATS = [
     { id:'b15', name:'Непредвиденные расходы',      amt:5000,  color:'#EF4444' },
   ];
 
+/* пользовательский текст в HTML только через экранирование */
+function finEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
 function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
   return ((Store.get().finance||{}).years||{})[year] && (((Store.get().finance.years||{})[year]||{})[mm]||{}).entries || [];
@@ -262,8 +265,8 @@ window.Screens.finance = function(mount) {
         </div>
         ${(()=>{
           if(!sorted.length) return '<div class="tochka-empty">Нет записей, добавь первую</div>';
-          const grps={};sorted.forEach(e=>{if(!grps[e.date])grps[e.date]=[];grps[e.date].push(e);});
-          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+date+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(e.amount)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+e.label+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
+          const grps={};sorted.forEach(e=>{const dk=e.date&&!/undefined/.test(e.date)?e.date:'Без даты';if(!grps[dk])grps[dk]=[];grps[dk].push(e);});
+          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+finEsc(date)+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(e.amount)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+finEsc(e.label)+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
         })()}
       </div>`;
 
@@ -634,9 +637,9 @@ window.Screens.finance = function(mount) {
     ov.innerHTML = '<div class="tr-modal">'
       + '<p class="tr-modal-title">'+title+'</p>'
       + (isSrc
-        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
+        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+finEsc(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
         + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма потенциала, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric" placeholder="0"></label></div>'
-        : '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'" placeholder="Название"></label></div>'
+        : '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+finEsc(item&&item.name||'')+'" placeholder="Название"></label></div>'
         + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric" placeholder="0"></label></div>')
       + '<div class="tr-modal-actions">'
       + (isEdit ? '<button class="tr-modal-btn-secondary" id="em-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="em-cancel">Отмена</button>')
@@ -675,11 +678,11 @@ window.Screens.finance = function(mount) {
     var rows = list.map(function(e,i){
       return '<tr data-idx="'+i+'">'
         + dragL(i)
-        + '<td class="exp-cl xp-name" data-idx="'+i+'" data-side="expense">'+(e.name||'')+'</td>'
+        + '<td class="exp-cl xp-name" data-idx="'+i+'" data-side="expense">'+finEsc(e.name||'')+'</td>'
         + '<td class="exp-cl xp-amt xp-red" data-idx="'+i+'" data-side="expense">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
         + '<td class="xp-sep"></td>'
         + dragR(i)
-        + '<td class="exp-cr xp-name xp-green" data-idx="'+i+'" data-side="source">'+(e.source||'')+'</td>'
+        + '<td class="exp-cr xp-name xp-green" data-idx="'+i+'" data-side="source">'+finEsc(e.source||'')+'</td>'
         + '<td class="exp-cr xp-amt xp-green" data-idx="'+i+'" data-side="source">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
     }).join('');

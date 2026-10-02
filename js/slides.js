@@ -41,7 +41,7 @@ var Slides = (() => {
       desc: 'Группы мышц / тип тренировки на сегодня',
       render: (store) => {
         const t = todayWorkoutInfo(store);
-        return `<div class="hero-big-text${t.empty ? ' hero-dim' : ''}">${t.text}</div>`;
+        return `<div class="hero-big-text${t.empty ? ' hero-dim' : ''}">${SlideKit.esc(t.text)}</div>`;
       },
     },
     {
@@ -170,7 +170,7 @@ var Slides = (() => {
       id: 'custom_text', section: 'Кастом',
       name: 'Свой текст',
       desc: 'Любой заголовок и подпись, вводишь сам',
-      render: (store, cfg) => `<div class="hero-big-text">${cfg?.text||'Твой текст'}</div>${cfg?.sub?`<div class="hero-sub-text">${cfg.sub}</div>`:''}`,
+      render: (store, cfg) => `<div class="hero-big-text">${SlideKit.esc(cfg?.text||'Твой текст')}</div>${cfg?.sub?`<div class="hero-sub-text">${SlideKit.esc(cfg.sub)}</div>`:''}`,
     },
     {
       id: 'custom_goal', section: 'Кастом',
@@ -182,7 +182,7 @@ var Slides = (() => {
         if (!g) return `<div class="hero-big-text">Нет цели</div>`;
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const num = g.done ? '✓ ' + (g.amount ? fmt(g.amount) : 'готово') : (g.amount ? fmt(g.amount) : 'без суммы');
-        return `<div class="hero-stat-num"${g.done?' style="opacity:.55"':''}>${num}</div><div class="hero-stat-lbl">${g.name}</div>`;
+        return `<div class="hero-stat-num"${g.done?' style="opacity:.55"':''}>${num}</div><div class="hero-stat-lbl">${SlideKit.esc(g.name)}</div>`;
       },
     },
     /* ── Тренировки: доп блоки ── */
@@ -542,7 +542,7 @@ var Slides = (() => {
             <button class="se-up" data-idx="${idx}" ${idx===0?'disabled':''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
             <button class="se-down" data-idx="${idx}" ${idx===total-1?'disabled':''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
           </div>
-          <span class="se-card-title">${s.label||'Без названия'}</span>
+          <span class="se-card-title">${SlideKit.esc(s.label||'Без названия')}</span>
           <button class="se-toggle-slide${s.enabled!==false?' on':''}" data-idx="${idx}">${s.enabled!==false?'Вкл':'Выкл'}</button>
           <button class="se-edit-slide" data-idx="${idx}" aria-label="Изменить"><i class="ti ti-edit"></i></button>
           ${total>1?`<button class="se-del-slide" data-idx="${idx}" aria-label="Удалить"><i class="ti ti-trash"></i></button>`:''}
@@ -563,7 +563,7 @@ var Slides = (() => {
         preview: (d) => renderSlide(d, Store.get()), views: viewsOf,
         cfgHtml: (bid, c) => {
           if (bid === 'custom_text') return `<div class="sf-cfg"><input type="text" class="sf-in" data-cfg="text" data-bid="${bid}" placeholder="Заголовок" value="${escT(c.text)}"><input type="text" class="sf-in" data-cfg="sub" data-bid="${bid}" placeholder="Подпись" value="${escT(c.sub)}"></div>`;
-          if (bid === 'custom_goal') return `<div class="sf-cfg"><select class="sf-in" data-cfg="goalId" data-bid="${bid}">${goals.map(g => `<option value="${g.id}" ${g.id === c.goalId ? 'selected' : ''}>${escT(g.name)}</option>`).join('')}</select></div>`;
+          if (bid === 'custom_goal') return `<div class="sf-cfg"><select class="sf-in" data-cfg="goalId" data-bid="${bid}">${goals.map(g => `<option value="${escT(g.id)}" ${g.id === c.goalId ? 'selected' : ''}>${escT(g.name)}</option>`).join('')}</select></div>`;
           if (bid === 'motivational_quote') return `<div class="sf-cfg"><textarea class="sf-in" data-cfg="quotes" data-bid="${bid}" rows="3" placeholder="Свои фразы, каждая с новой строки. Пусто: стандартные">${escT(c.quotes)}</textarea></div>`;
           return '';
         },

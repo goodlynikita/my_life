@@ -1,5 +1,6 @@
 /* ============================================================
    ФИНАНСЫ → «Расходы»: сколько можно спокойно потратить до конца месяца
+   или до зарплаты N-го числа (finance.payday, выбор по нажатию на подпись)
    • Главная цифра: доход месяца минус копилка, минус ещё не оплаченный план
      по категориям, минус уже потраченное. Раскрывается «Как рассчитано».
    • Норма на сегодня: свободное делим на оставшиеся дни.
@@ -59,6 +60,25 @@ window.FinSpend = (function () {
   function catSpent(ym) {
     const out = {}; list(ym).forEach(x => { const k = x.cat || '_other'; out[k] = (out[k] || 0) + x.amt; }); return out;
   }
+  /* день зарплаты: считаем «до зарплаты» вместо «до конца месяца». Нет дня = до конца месяца */
+  function payday() { const d = Math.round(+(Store.get().finance || {}).payday); return d >= 2 && d <= 31 ? d : 0; }
+  /* день P в месяце: 31-е в 30-дневном месяце = последний день */
+  const dayIn = (y, m, P) => new Date(y, m, Math.min(P, new Date(y, m + 1, 0).getDate()));
+  /* период: с последней зарплаты (включительно) до следующей (не включая) */
+  function period(now, P) {
+    P = P || 1;
+    let s = dayIn(now.getFullYear(), now.getMonth(), P);
+    if (s > now) s = dayIn(now.getFullYear(), now.getMonth() - 1, P);
+    return { start: s, end: dayIn(s.getFullYear(), s.getMonth() + 1, P) };
+  }
+  /* траты за период, он может захватывать два месяца */
+  function listRange(start, end) {
+    const out = []; const a = +start, b = +end;
+    for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d < end; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+      const ym = ymKey(d); list(ym).forEach(x => { if (x.at >= a && x.at < b) out.push(Object.assign(x, { ym })); });
+    }
+    return out;
+  }
   /* выученные правила «слово → категория» */
   function rules() { const r = (Store.get().finance || {}).spendRules; return r && typeof r === 'object' ? r : {}; }
 
@@ -67,40 +87,48 @@ window.FinSpend = (function () {
     now = now || new Date();
     const ym = ymKey(now);
     const b = budget();
-    let inc = income(now), est = false, estFrom = null;
+    /* период: календарный месяц или от зарплаты до зарплаты. Доход берём за месяц, в котором пришла зарплата */
+    const P = payday(), per = period(now, P), incM = per.start;
+    let inc = income(incM), est = false, estFrom = null;
     /* доходов в этом месяце ещё нет: берём последний месяц с доходом (до трёх назад) */
-    if (!inc) for (let i = 1; i <= 3 && !inc; i++) { const p = new Date(now.getFullYear(), now.getMonth() - i, 1); const pi = income(p); if (pi) { inc = pi; est = true; estFrom = p.getMonth(); } }
+    if (!inc) for (let i = 1; i <= 3 && !inc; i++) { const p = new Date(incM.getFullYear(), incM.getMonth() - i, 1); const pi = income(p); if (pi) { inc = pi; est = true; estFrom = p.getMonth(); } }
     const save = Math.round(inc * b.savePct / 100);
-    const sp = catSpent(ym);
+    const items = listRange(per.start, per.end);
+    const sp = {}; items.forEach(x => { const k = x.cat || '_other'; sp[k] = (sp[k] || 0) + x.amt; });
     const spent = Object.values(sp).reduce((s, v) => s + v, 0);
     /* план, который ещё предстоит оплатить: по каждой категории остаток плана */
     const planOf = {}; b.cats.forEach(c => { planOf[c.id] = Math.max(0, +c.amt || 0); });
     const planTotal = Object.values(planOf).reduce((s, v) => s + v, 0);
     const planLeft = b.cats.reduce((s, c) => s + Math.max(0, planOf[c.id] - (sp[c.id] || 0)), 0);
     const free = inc - save - planLeft - spent;
-    const dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const daysLeft = dim - now.getDate() + 1;
+    const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dim = Math.round((per.end - per.start) / 864e5); /* дней в периоде */
+    const daysLeft = Math.max(1, Math.round((per.end - t0) / 864e5));
     /* «свободные» траты сегодня: без категории или сверх плана категории (траты в рамках плана уже учтены выше) */
     const todayKey = now.toDateString();
-    const todayBy = {}; list(ym).filter(x => new Date(x.at).toDateString() === todayKey).forEach(x => { const k = x.cat && planOf[x.cat] != null ? x.cat : '_other'; todayBy[k] = (todayBy[k] || 0) + x.amt; });
+    const todayBy = {}; items.filter(x => new Date(x.at).toDateString() === todayKey).forEach(x => { const k = x.cat && planOf[x.cat] != null ? x.cat : '_other'; todayBy[k] = (todayBy[k] || 0) + x.amt; });
     const todaySpent = Object.entries(todayBy).reduce((s, [k, v]) => s + (k === '_other' ? v : Math.min(v, Math.max(0, (sp[k] || 0) - planOf[k]))), 0);
     /* норма на день считается от свободного на утро: сегодняшние траты не уменьшают сегодняшнюю норму */
     const perDay = Math.max(0, Math.floor((free + todaySpent) / daysLeft));
     /* сколько ушло именно в плановые категории (для кольца в «Балансе») */
     const planSpent = b.cats.reduce((s, c) => s + (sp[c.id] || 0), 0);
-    return { ym, inc, est, estFrom, save, savePct: b.savePct, planLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo };
+    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo };
   }
 
   /* плановые платежи месяца: категории с днём оплаты, оплачено = потрачено ≥ плана */
   function payments(c, now) {
     now = now || new Date();
-    const today = now.getDate();
+    const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const start = c.start || new Date(now.getFullYear(), now.getMonth(), 1);
     return c.cats.filter(x => +x.day >= 1 && +x.day <= 31).map(x => {
-      const day = Math.min(c.dim, Math.round(+x.day)); /* 31-е в 30-дневном месяце = последний день */
+      /* дата платежа внутри периода: в месяце начала периода или в следующем */
+      let date = dayIn(start.getFullYear(), start.getMonth(), Math.round(+x.day));
+      if (date < start) date = dayIn(start.getFullYear(), start.getMonth() + 1, Math.round(+x.day));
       const amt = Math.max(0, +x.amt || 0), sp = c.sp[x.id] || 0;
       const paid = amt > 0 ? sp >= amt : sp > 0;
-      return { id: x.id, name: x.name || 'Платёж', color: col(x.color), day, amt, left: Math.max(0, amt - sp), paid, late: !paid && day < today, diff: day - today };
-    }).sort((a, b) => (a.paid - b.paid) || (b.late - a.late) || (a.day - b.day));
+      const diff = Math.round((date - t0) / 864e5);
+      return { id: x.id, name: x.name || 'Платёж', color: col(x.color), day: date.getDate(), date, amt, left: Math.max(0, amt - sp), paid, late: !paid && diff < 0, diff };
+    }).sort((a, b) => (a.paid - b.paid) || (b.late - a.late) || (a.date - b.date));
   }
 
   /* ── Разбор строки ── */
@@ -236,7 +264,7 @@ window.FinSpend = (function () {
   const dayLabel = (d) => { const t = new Date(); t.setHours(0, 0, 0, 0); const dd = new Date(d); dd.setHours(0, 0, 0, 0); const diff = Math.round((t - dd) / 864e5); return diff === 0 ? 'Сегодня' : diff === 1 ? 'Вчера' : DOW[d.getDay()] + ', ' + d.getDate() + ' ' + MON_GEN[d.getMonth()]; };
   /* подпись платежа: «5 октября · через 3 дня» */
   function payWhen(p, now) {
-    const d = p.day + ' ' + MON_GEN[now.getMonth()];
+    const d = p.date.getDate() + ' ' + MON_GEN[p.date.getMonth()];
     if (p.paid) return d;
     if (p.late) return d + ' · не оплачено';
     return d + ' · ' + (p.diff === 0 ? 'сегодня' : p.diff === 1 ? 'завтра' : 'через ' + p.diff + ' ' + plural(p.diff, ['день', 'дня', 'дней']));
@@ -249,13 +277,15 @@ window.FinSpend = (function () {
     const rerender = () => { soft = true; rerenderOuter(); };
     const now = new Date();
     const c = calc(now);
-    const items = list(c.ym).sort((a, b) => b.at - a.at);
+    const items = c.items.slice().sort((a, b) => b.at - a.at);
     const catById = {}; c.cats.forEach(x => { catById[x.id] = x; });
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    /* последний день периода: конец месяца или день перед зарплатой */
+    const monthEnd = new Date(c.end.getFullYear(), c.end.getMonth(), c.end.getDate() - 1);
+    const dm = (d) => d.getDate() + ' ' + MON_GEN[d.getMonth()];
     const pctToday = c.perDay > 0 ? Math.min(100, Math.round(c.todaySpent / c.perDay * 100)) : (c.todaySpent > 0 ? 100 : 0);
-    /* шкала месяца: где мы сейчас */
-    const pos = (day) => Math.round((day - 1) / Math.max(1, c.dim - 1) * 1000) / 10;
-    const monthPos = pos(now.getDate());
+    /* шкала периода: где мы сейчас */
+    const pos = (d) => Math.max(0, Math.min(100, Math.round(Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - c.start) / 864e5) / Math.max(1, c.dim - 1) * 1000) / 10));
+    const monthPos = pos(now);
     const pays = payments(c, now);
     const payLeft = pays.reduce((s, p) => s + (p.paid ? 0 : p.left), 0);
     const shown = showAll ? items : items.slice(0, 40);
@@ -263,14 +293,13 @@ window.FinSpend = (function () {
     shown.forEach(x => { const d = new Date(x.at); const k = d.toDateString(); let g = groups.find(z => z.k === k); if (!g) { g = { k, d, items: [] }; groups.push(g); } g.items.push(x); });
     const noInc = !c.inc;
     const bigTxt = (c.est ? '≈ ' : '') + fmt(noInc ? 0 : c.free);
-    const mon = MON_GEN[now.getMonth()];
 
     content.classList.toggle('sp-first', first);
     content.innerHTML = `
       <div class="sp-card sp-hero">
         <div class="sp-hero-top">
           <div class="sp-hero-m">
-            <div class="sp-lbl">Свободно до ${monthEnd.getDate()} ${mon}</div>
+            <button class="sp-lbl sp-per" id="sp-per">${c.P ? 'До зарплаты ' + dm(c.end) : 'Свободно до ' + dm(monthEnd)}<i class="ti ti-chevron-down"></i></button>
             <div class="sp-big${!noInc && c.free < 0 ? ' neg' : ''}${noInc ? ' mute' : ''}${bigTxt.length > 11 ? ' long' : ''}">${c.est ? '<small>≈</small>' : ''}<span id="sp-num">${fmt(noInc ? 0 : c.free)}</span></div>
           </div>
           <button class="sp-help" id="sp-help" aria-label="Подсказки"><i class="ti ti-help"></i></button>
@@ -278,19 +307,19 @@ window.FinSpend = (function () {
         ${noInc ? '<button class="sp-cta" id="sp-to-month"><i class="ti ti-plus"></i>Добавь доход месяца</button>' : ''}
         <div class="sp-track">
           <span class="sp-track-fill" data-k="track" data-w="${monthPos}"></span>
-          ${pays.map(p => `<i class="sp-mark${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}" style="left:${pos(p.day)}%;--c:${p.color}" title="${esc(p.name)}, ${p.day} ${mon}"></i>`).join('')}
+          ${pays.map(p => `<i class="sp-mark${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}" style="left:${pos(p.date)}%;--c:${p.color}" title="${esc(p.name)}, ${dm(p.date)}"></i>`).join('')}
           <i class="sp-track-now" style="left:${monthPos}%"></i>
         </div>
-        <div class="sp-track-l"><span style="${monthPos < 30 ? 'visibility:hidden' : ''}">1 ${mon}</span><span class="sp-track-t" style="left:${Math.min(85, Math.max(15, monthPos))}%">сегодня, ${now.getDate()}</span><span style="${monthPos > 70 ? 'visibility:hidden' : ''}">${monthEnd.getDate()} ${mon}</span></div>
+        <div class="sp-track-l"><span style="${monthPos < 30 ? 'visibility:hidden' : ''}">${dm(c.start)}</span><span class="sp-track-t" style="left:${Math.min(85, Math.max(15, monthPos))}%">сегодня, ${now.getDate()}</span><span style="${monthPos > 70 ? 'visibility:hidden' : ''}">${dm(monthEnd)}</span></div>
         ${noInc ? '' : `<div class="sp-today">
           <div class="sp-today-h"><span>Сегодня</span><b>${fmt(c.todaySpent)} <em>из ${fmt(c.perDay)}</em></b></div>
           <div class="sp-bar"><span data-k="today" data-w="${pctToday}" class="${c.todaySpent > c.perDay ? 'over' : ''}"></span></div>
         </div>`}
         <details class="sp-how"><summary>Как рассчитано <i class="ti ti-chevron-down"></i></summary>
-          <div class="sp-how-r"><span>${c.est ? 'Доход (как в ' + MON_PREP[c.estFrom] + ')' : 'Доход за месяц'}</span><b>${fmt(c.inc)}</b></div>
+          <div class="sp-how-r"><span>${c.est ? 'Доход (как в ' + MON_PREP[c.estFrom] + ')' : c.P ? 'Доход за ' + MON_NOM[c.start.getMonth()] : 'Доход за месяц'}</span><b>${fmt(c.inc)}</b></div>
           <div class="sp-how-r"><span>В копилку, ${c.savePct}%</span><b>−${fmt(c.save)}</b></div>
           <div class="sp-how-r"><span>План по категориям, ещё не потрачено</span><b>−${fmt(c.planLeft)}</b></div>
-          <div class="sp-how-r"><span>Уже потрачено в этом месяце</span><b>−${fmt(c.spent)}</b></div>
+          <div class="sp-how-r"><span>${c.P ? 'Уже потрачено с ' + dm(c.start) : 'Уже потрачено в этом месяце'}</span><b>−${fmt(c.spent)}</b></div>
           <div class="sp-how-r sp-how-t"><span>Свободно</span><b>${fmt(c.free)}</b></div>
           <div class="sp-how-r"><span>Осталось дней, с сегодняшним</span><b>${c.daysLeft}</b></div>
         </details>
@@ -313,14 +342,14 @@ window.FinSpend = (function () {
       </div>
 
       <div class="sp-card sp-list">
-        <div class="sp-list-h">Траты за ${MON_NOM[now.getMonth()]}<b>${fmt(c.spent)}</b></div>
+        <div class="sp-list-h">${c.P ? 'Траты с ' + dm(c.start) : 'Траты за ' + MON_NOM[now.getMonth()]}<b>${fmt(c.spent)}</b></div>
         ${groups.length ? groups.map(g => `<div class="sp-day">${dayLabel(g.d)}<span>${fmt(g.items.reduce((s, x) => s + x.amt, 0))}</span></div>
-          ${g.items.map(x => { const ct = catById[x.cat]; return `<button class="sp-row" data-id="${esc(x.id)}">
+          ${g.items.map(x => { const ct = catById[x.cat]; return `<button class="sp-row" data-id="${esc(x.id)}" data-ym="${esc(x.ym)}">
             <i class="sp-ico" style="--c:${ct ? col(ct.color) : '#737373'}">${esc((String(x.note || '?').trim()[0] || '?').toUpperCase())}</i>
             <span class="sp-row-m"><b>${esc(x.note || 'Трата')}</b><em>${esc(ct ? ct.name : 'Другое')}${x.src ? ' · ' + esc(x.src) : ''}</em></span>
             <span class="sp-row-a">−${fmt(x.amt)}</span></button>`; }).join('')}`).join('')
           + (items.length > shown.length ? `<button class="sp-more" id="sp-more">Показать все ${items.length}</button>` : '')
-          : '<div class="sp-empty"><i class="ti ti-receipt"></i>Трат в этом месяце пока нет</div>'}
+          : `<div class="sp-empty"><i class="ti ti-receipt"></i>${c.P ? 'Трат с зарплаты пока нет' : 'Трат в этом месяце пока нет'}</div>`}
       </div>`;
 
     const inp = content.querySelector('#sp-in'), chips = content.querySelector('#sp-chips');
@@ -360,7 +389,8 @@ window.FinSpend = (function () {
       inp.value = short + ' ' + (+b.dataset.left || ''); inp.dataset.cat = ct.id; refresh(); syncBtn(); inp.focus();
       inp.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
     }));
-    content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => editModal(c.ym, b.dataset.id, cats, rerender)));
+    content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender)));
+    const pb = content.querySelector('#sp-per'); if (pb) pb.onclick = () => periodModal(rerender);
 
     animate(content, !first);
     const to = noInc ? 0 : c.free;
@@ -370,6 +400,7 @@ window.FinSpend = (function () {
 
   /* подсказки вместо описаний на экране: по кнопке «?» и один раз при первом входе (Tour) */
   const TIPS = [
+    { sel: '.sp-per', t: 'До конца месяца или до зарплаты', d: 'Нажми, чтобы выбрать: считать до конца месяца или до зарплаты N-го числа. До зарплаты: период от прошлой зарплаты до следующей, доход берётся за месяц, в котором пришла зарплата, траты и платежи за этот период.' },
     { sel: '.sp-big', t: 'Свободно до конца месяца', d: 'Доход месяца минус копилка, минус план по категориям, который ещё не потрачен, минус уже потраченное. Если доходов в этом месяце пока нет, считаю от последнего месяца с доходом, тогда стоит знак ≈. Красная цифра: план и траты уже больше дохода, урежь план в «Балансе» или добавь доход.' },
     { sel: '.sp-track', t: 'Месяц', d: 'Белая точка: где ты сейчас. Цветные точки: плановые платежи (день оплаты задаётся у категории во вкладке «Баланс»). Тусклая точка уже оплачена, красная просрочена.' },
     { sel: '.sp-today', t: 'Сегодня', d: 'Норма на день: свободные деньги делим на оставшиеся дни. Сюда идут траты без категории и сверх плана. Покупки в рамках плана (продукты и т.п.) норму не съедают. Перебрал сегодня, завтра норма станет чуть меньше.' },
@@ -504,6 +535,32 @@ window.FinSpend = (function () {
       const edited = readCatRows(box, b.cats); /* строка удалена → категории нет */
       saveCats(b.cats.map(x => x.id === id ? edited[0] : x).filter(Boolean));
       close(); if (onDone) onDone();
+    };
+  }
+
+  /* до конца месяца или до зарплаты N-го числа */
+  function periodModal(onDone) {
+    const P = payday();
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
+    ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Период"><p class="tr-modal-title">Считать свободные деньги</p>
+      <div class="sp-seg" id="pd-seg"><button type="button" data-v="month" class="${P ? '' : 'on'}">До конца месяца</button><button type="button" data-v="pay" class="${P ? 'on' : ''}">До зарплаты</button></div>
+      <div class="tr-modal-row" id="pd-row" style="margin-top:12px;${P ? '' : 'display:none'}"><label style="flex:1 1 100%">Зарплата приходит<select id="pd-day">${Array.from({ length: 30 }, (_, i) => `<option value="${i + 2}"${(P || 10) === i + 2 ? ' selected' : ''}>${i + 2} числа</option>`).join('')}</select></label></div>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="pd-cancel">Отмена</button><button class="tr-modal-btn-primary" id="pd-ok">Сохранить</button></div></div>`;
+    document.body.appendChild(ov);
+    const $ = (q) => ov.querySelector(q);
+    let mode = P ? 'pay' : 'month';
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    $('#pd-seg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; mode = b.dataset.v;
+      $('#pd-seg').querySelectorAll('button').forEach(z => z.classList.toggle('on', z === b)); $('#pd-row').style.display = mode === 'pay' ? '' : 'none'; });
+    $('#pd-cancel').onclick = close;
+    $('#pd-ok').onclick = () => {
+      const d = mode === 'pay' ? +$('#pd-day').value : 0;
+      Store.set('finance.payday', d >= 2 && d <= 31 ? d : null);
+      close(); if (onDone) onDone();
+      toast(d ? 'Считаю до зарплаты ' + d + ' числа' : 'Считаю до конца месяца');
     };
   }
 

@@ -64,6 +64,7 @@ window.ShareTpl = (function () {
       const name = ov.querySelector('#st-name').value.trim(), au = ov.querySelector('#st-author').value.trim();
       if (!name) { ov.querySelector('#st-err').textContent = 'Придумай название'; ov.querySelector('#st-name').focus(); return; }
       try { localStorage.setItem('you_tpl_author', au); } catch (e) {}
+      ov.querySelector('#st-err').textContent = '';
       mk.disabled = true; mk.textContent = 'Создаю…';
       try {
         const t = CoachDash.templateFrom(activePlan(), name);
@@ -112,24 +113,11 @@ window.ShareTpl = (function () {
       const plans = trGetPlans();
       const wasActive = plans.filter(p => p && p.status === 'active');
       wasActive.forEach(p => { p.status = 'archived'; });
-      let weeks = r.weeks;
-      /* старт со следующего понедельника: текущая неделя первой неделей нового плана, её тренировки переезжают из старого,
-         иначе сегодняшняя неделя пропадёт из «Плана» */
-      if (start === 'next') {
-        const DOWS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
-        const w0 = { weekNum: 1, range: F(mon) + ' – ' + F(new Date(+mon + 6 * 864e5)), days: DOWS.map((dw, i) => ({ date: F(new Date(+mon + i * 864e5)), dow: dw, sessions: [] })) };
-        wasActive.forEach(op => toArr(op.weeks).forEach(w => toArr(w && w.days).forEach(d => {
-          if (!d || typeof trDayDateOf !== 'function') return; const dt = trDayDateOf(op, d.date); if (!dt || dt < mon || dt >= next) return;
-          if (typeof trMigrateDayToSessions === 'function') trMigrateDayToSessions(d);
-          if (!toArr(d.sessions).length && !d.comment) return;
-          const nd = w0.days.find(x => x.date === d.date); if (!nd) return;
-          nd.sessions = nd.sessions.concat(toArr(d.sessions)); if (d.comment && !nd.comment) nd.comment = d.comment; if (d.done) nd.done = d.done;
-          d.sessions = []; delete d.comment; delete d.done;
-        })));
-        weeks = [w0].concat(r.weeks).map((w, i) => Object.assign(w, { weekNum: i + 1 }));
-      }
+      /* текущая неделя не теряется: см. CoachDash.carryWeek */
+      const cw = CoachDash.carryWeek(wasActive, r.weeks, from);
+      const weeks = cw.weeks;
       const num = plans.reduce((m, p) => Math.max(m, +(p && p.number) || 0), 0) + 1;
-      plans.push({ id: 'p' + Date.now().toString(36), number: num, startDate: (start === 'next' ? mon : from).toISOString(), status: 'active', nutrition: {}, weeks, tpl: t.name, sharedFrom: t.code, sharedBy: t.authorName || '' });
+      plans.push({ id: 'p' + Date.now().toString(36), number: num, startDate: cw.startDate.toISOString(), status: 'active', nutrition: {}, weeks, tpl: t.name, sharedFrom: t.code, sharedBy: t.authorName || '' });
       trSavePlans(plans);
       if (!mine) FirebaseSync.markSharedUse(t.code);
       Router.go('/training'); if (Router.currentPath() === '/training') Router.render();

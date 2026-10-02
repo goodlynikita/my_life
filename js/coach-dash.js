@@ -357,5 +357,28 @@ window.CoachDash = (function () {
     return { weeks, fromClient, empty };
   }
 
-  return { sig, analyze, feed, feedHtml, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
+  /* Новый план не должен терять текущую неделю.
+     Старт со следующего понедельника: текущая неделя становится первой неделей нового плана, её дни переезжают из старого.
+     Старт с этого понедельника: уже прошедшие дни с записями (тренировки, отметки, комментарии) остаются как были. */
+  function carryWeek(oldPlans, weeks, start) {
+    const DOWS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+    const mon = monday(new Date()), next = new Date(+mon + WEEK), today = t0();
+    const ins = [];
+    toArr(oldPlans).forEach(op => toArr(op && op.weeks).forEach(w => toArr(w && w.days).forEach(d => {
+      if (!d || !A() || !A().planDayDate) return; const dt = A().planDayDate(op, d.date); if (!dt || dt < mon || dt >= next) return;
+      if (typeof trMigrateDayToSessions === 'function') trMigrateDayToSessions(d);
+      if (!toArr(d.sessions).length && !d.comment && !d.done) return;
+      ins.push({ d, dt });
+    })));
+    const move = (d, nd) => { nd.sessions = toArr(d.sessions); ['comment', 'done'].forEach(k => { if (d[k]) nd[k] = d[k]; else delete nd[k]; }); d.sessions = []; delete d.comment; delete d.done; };
+    if (+start > +mon) {
+      const w0 = { weekNum: 1, range: fmtD(mon) + ' – ' + fmtD(new Date(+mon + 6 * DAY)), days: DOWS.map((dw, i) => ({ date: fmtD(new Date(+mon + i * DAY)), dow: dw, sessions: [] })) };
+      ins.forEach(({ d }) => { const nd = w0.days.find(x => x.date === d.date); if (nd) move(d, nd); });
+      return { weeks: [w0].concat(weeks).map((w, i) => Object.assign(w, { weekNum: i + 1 })), startDate: mon };
+    }
+    if (+start === +mon && weeks[0]) ins.filter(x => x.dt <= today).forEach(({ d }) => { const nd = toArr(weeks[0].days).find(x => x.date === d.date); if (nd) move(d, nd); });
+    return { weeks, startDate: start };
+  }
+
+  return { carryWeek, sig, analyze, feed, feedHtml, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
 })();

@@ -1282,7 +1282,7 @@ function trBuildExerciseSelect(selectedGroups) {
   const list = trExercisesForGroups(selectedGroups);
   const customOption = `<option value="__custom__">Своё название…</option>`;
   if (list.length === 0) {
-    return `<select id="m-name" class="tr-color-select"><option value="">Выбери группу мышц</option>${customOption}</select>`;
+    return `<select id="m-name" class="tr-color-select"><option value="">${window.__coachMode ? 'Выберите' : 'Выбери'} группу мышц</option>${customOption}</select>`;
   }
   const options = list.map(name => `<option value="${trEsc(name)}">${trEsc(name)}</option>`).join('');
   return `<select id="m-name" class="tr-color-select">${options}${customOption}</select>`;
@@ -2488,6 +2488,7 @@ window.Screens.training = function (mount) {
       const isVisible = planBarEl.style.display !== 'none';
       planBarEl.style.display = isVisible ? 'none' : 'flex';
       Store.set('home.planBarVisible', !isVisible);
+      if (!isVisible) window.scrollTo({ top: 0, behavior: 'smooth' }); /* панель вверху: иначе открылась бы за экраном */
     });
   }
   const backBtn = document.getElementById('tr-back');

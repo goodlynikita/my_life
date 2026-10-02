@@ -59,7 +59,7 @@ window.Screens.login = function(mount, opts) {
           <button class="reg-closed-btn" id="reg-invite"><i class="ti ti-brand-telegram"></i> Получить приглашение</button>
         </div>
         <div id="form-reg" style="display:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;">
-          <div id="reg-hint" style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.5;"></div>
+          <div id="reg-hint" style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:14px;line-height:1.5;"></div><style>#reg-hint:empty{display:none}</style>
           <input id="reg-name" type="text" placeholder="Имя (необязательно)" autocomplete="given-name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-email" type="email" inputmode="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
           <input id="reg-pwd" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#F2F4F8;font-size:15px;padding:13px 14px;outline:none;margin-bottom:8px;-webkit-appearance:none;font-family:'Montserrat',sans-serif;">
@@ -135,6 +135,14 @@ window.Screens.login = function(mount, opts) {
       btn.disabled = false;
     });
     document.getElementById('fg-email').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('fg-btn').click(); });
+  })();
+
+  /* пришли по ссылке на план или от тренера: подсказываем, что будет после входа */
+  (function () {
+    const h = document.getElementById('reg-hint'); if (!h) return;
+    let tp = null, jn = null; try { tp = localStorage.getItem('you_tpl'); jn = localStorage.getItem('you_join'); } catch (e) {}
+    if (tp) h.textContent = 'После регистрации сразу откроется план по ссылке. Уже есть аккаунт? Нажми «Войти».';
+    else if (jn) h.textContent = 'После регистрации подключишься к тренеру. Уже есть аккаунт? Нажми «Войти».';
   })();
 
   /* Пришли с лендинга по кнопке «Получить приложение» — сразу регистрация */

@@ -74,7 +74,8 @@ const Router = (() => {
     const handler = routes[path] || routes['/login'];
     try {
       handler();
-      if (window.Tour && !keepScroll) Tour.onScreen(path);
+      let tplPend = null; try { tplPend = localStorage.getItem('you_tpl'); } catch (e) {}
+      if (window.Tour && !keepScroll && !tplPend) Tour.onScreen(path); /* по ссылке на план сначала превью, без тура поверх */
       if (window.TrainerLink && loggedIn) {
         if (path === '/training') TrainerLink.decorate();
         let pend = null; try { pend = localStorage.getItem('you_join'); } catch (e) {}

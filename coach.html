@@ -273,6 +273,7 @@ html[data-theme="light"] .hdots,html[data-theme="light"] .hadd{box-shadow:none}
 html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893)}
 /* v139: шапка (конверт, добавить) и расписание */
 @media (max-width:370px){.hadd span{display:none}}
+.sc-cal-all{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:8px;border:none;background:none;color:#E8C49A;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.sc-cal-all i{font-size:17px}
 .sc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px} .sc-top b{font-size:14.5px;text-align:center}
 .sc-nav{width:38px;height:38px;border-radius:12px;font-size:18px}
 .sc-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:14px}
@@ -1458,11 +1459,13 @@ function renderSched(body) {
     <div class="sc-list">${all.length ? timed.map((e, i) => row(e, i, i === nextI && !(isT && hm2m(e.tm) <= nowM) ? ' next' : '')).join('')
         + (plan.length ? `<div class="sc-sub">По плану, без времени</div>` + plan.map((e, i) => row(e, timed.length + i)).join('') : '')
       : `<div class="sc-empty">${isPast ? 'Тренировок не было' : 'Свободный день'}</div>`}</div>
-    ${isPast ? '' : '<button class="btn btn-main sc-add" id="sc-add"><i class="ti ti-plus"></i> Запись</button>'}</div>`;
+    ${isPast ? '' : '<button class="btn btn-main sc-add" id="sc-add"><i class="ti ti-plus"></i> Запись</button>'}
+    ${schedule.some(x => !x.demo && x.tm && (x.rep || x.d >= ymd(t0))) ? '<button class="sc-cal-all" id="sc-cal-all"><i class="ti ti-calendar-share"></i>Все записи в календарь телефона</button>' : ''}</div>`;
   body.querySelectorAll('.sc-nav').forEach(b => b.onclick = () => { schedWeek += +b.dataset.wk; const d = new Date(mon); d.setDate(mon.getDate() + 7 * +b.dataset.wk); schedSel = ymd(d); renderSched(body); });
   body.querySelectorAll('.sc-d').forEach(b => b.onclick = () => { schedSel = b.dataset.d; renderSched(body); });
   const tb = body.querySelector('#sc-today'); if (tb) tb.onclick = () => { schedWeek = 0; schedSel = ymd(t0); renderSched(body); };
   const ab = body.querySelector('#sc-add'); if (ab) ab.onclick = () => slotModal(null, schedSel, () => renderSched(body));
+  const ca = body.querySelector('#sc-cal-all'); if (ca) ca.onclick = () => schedIcs(schedule.filter(x => !x.demo && x.tm && (x.rep || x.d >= ymd(t0))), 'raspisanie.ics');
   body.querySelectorAll('[data-chk]').forEach(b => b.onclick = async (ev) => { ev.stopPropagation(); const e = all[+b.dataset.chk]; if (!e.c && !e.it) return; await toggleDone(e, schedSel); renderSched(body); });
   body.querySelectorAll('.sc-it').forEach(b => b.onclick = () => entryMenu(all[+b.dataset.i], sel, () => renderSched(body)));
   coachTips('sched');
@@ -1487,6 +1490,7 @@ function entryMenu(e, date, done) {
     <div class="mn">
       ${canDone ? `<button data-m="done"><i class="ti ti-${e.done ? 'circle-x' : 'circle-check'}"></i>${e.done ? 'Снять отметку' : 'Провёл тренировку'}</button>` : ''}
       ${e.c ? '<button data-m="open"><i class="ti ti-user"></i>Карточка клиента</button>' : ''}
+      ${e.it && e.it.tm ? '<button data-m="cal"><i class="ti ti-calendar-plus"></i>В календарь телефона</button>' : ''}
       ${e.it ? '<button data-m="edit"><i class="ti ti-edit"></i>Изменить</button>' : `<button data-m="time"><i class="ti ti-clock"></i>Назначить время</button>`}
       ${e.it ? `<button data-m="del" class="bad"><i class="ti ti-trash"></i>${e.it.rep ? 'Убрать этот день' : 'Удалить запись'}</button>` : ''}
       ${e.it && e.it.rep ? '<button data-m="delall" class="bad"><i class="ti ti-trash-x"></i>Удалить все повторы</button>' : ''}
@@ -1496,9 +1500,31 @@ function entryMenu(e, date, done) {
   on('open', async () => { const i = clients.indexOf(e.c); if (i >= 0) { view.back = 'sched'; openClient(i); } });
   const ob = ov.querySelector('[data-m="open"]'); if (ob) ob.onclick = () => { ov.remove(); const i = clients.indexOf(e.c); if (i >= 0) openClient(i); };
   on('edit', async () => slotModal(e.it, k, done));
+  const cb = ov.querySelector('[data-m="cal"]'); if (cb) cb.onclick = () => { ov.remove(); schedIcs([e.it], 'trenirovka.ics'); };
   on('time', async () => slotModal({ ck: e.c ? e.c.k : '', d: k }, k, done));
   on('del', async () => { if (e.it.rep) { const it = Object.assign({}, e.it, { skip: Object.assign({}, e.it.skip || {}, { [k]: true }) }); await saveSlot(it); } else await removeSlot(e.it.id); toast('Убрано'); });
   on('delall', async () => { if (confirm('Удалить все повторы этой записи?')) { await removeSlot(e.it.id); toast('Удалено'); } });
+}
+
+/* календарь телефона: файл .ics с записями расписания. Повторяющиеся записи уходят одним событием «каждую неделю»
+   без пропущенных дней, напоминание за час */
+function slotNameOf(it) { const c = it.ck ? clients.find(x => x.k === it.ck) : null; return c ? cname(c) : (it.nm || 'клиент'); }
+function schedIcs(items, file) {
+  const icsT = (s) => String(s || '').replace(/[\\;,]/g, ' ').replace(/[\r\n]+/g, ' ').slice(0, 200);
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const loc = (d, m) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, m); return ymd(x).replace(/-/g, '') + 'T' + String(x.getHours()).padStart(2, '0') + String(x.getMinutes()).padStart(2, '0') + '00'; };
+  const ev = items.filter(it => it && it.d && it.tm).map(it => {
+    const d = fromYmd(it.d), st = hm2m(it.tm), dur = +it.dur || 60;
+    const L = ['BEGIN:VEVENT', 'UID:' + it.id + '@you-app.ru', 'DTSTAMP:' + stamp, 'DTSTART:' + loc(d, st), 'DTEND:' + loc(d, st + dur),
+      'SUMMARY:' + icsT('Тренировка: ' + slotNameOf(it)), 'DESCRIPTION:' + icsT(it.note || 'Расписание YOU')];
+    if (it.rep) { L.push('RRULE:FREQ=WEEKLY'); Object.keys(it.skip || {}).forEach(k => { if ((it.skip || {})[k]) L.push('EXDATE:' + loc(fromYmd(k), st)); }); }
+    L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsT('Тренировка: ' + slotNameOf(it) + ' в ' + it.tm), 'TRIGGER:-PT1H', 'END:VALARM', 'END:VEVENT');
+    return L.join('\r\n');
+  });
+  if (!ev.length) { toast('Нет записей со временем'); return; }
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//YOU//Coach//RU', 'CALSCALE:GREGORIAN'].concat(ev, ['END:VCALENDAR']).join('\r\n');
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = file || 'trenirovki.ics'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
 function slotModal(it, dateK, done) {
@@ -1522,6 +1548,7 @@ function slotModal(it, dateK, done) {
     <div class="chips" id="sc-dur">${[45, 60, 90, 120].map(m => `<button class="chip${+it.dur === m ? ' on' : ''}" data-m="${m}">${m} мин</button>`).join('')}</div>
     <input class="field" id="sc-note" placeholder="Заметка: зал, онлайн, что делаем" value="${esc(it.note || '')}">
     <label class="sc-opt"><input type="checkbox" id="sc-rep" ${it.rep ? 'checked' : ''}><span>Повторять каждую неделю</span></label>
+    <label class="sc-opt"><input type="checkbox" id="sc-cal" ${it.id ? '' : 'checked'}><span>Добавить в календарь телефона</span></label>
     <label class="sc-opt${ck ? '' : ' hidden'}" id="sc-tell-w"><input type="checkbox" id="sc-tell" ${it.id ? '' : 'checked'}><span>Написать клиенту в план</span></label>
     <button class="btn btn-main" id="sc-save" style="width:100%;margin-top:6px">Сохранить</button>`);
   let dur = +it.dur || 60;
@@ -1539,7 +1566,8 @@ function slotModal(it, dateK, done) {
     const d = ov.querySelector('#sc-d').value, tm = ov.querySelector('#sc-tm').value, nm = ov.querySelector('#sc-nm').value.trim();
     if (!d) return toast('Выберите дату'); if (!ck && !nm) return toast('Выберите клиента или впишите имя');
     const rec = { id: it.id || 's' + Date.now().toString(36), d, tm, dur, ck: ck || '', nm: ck ? '' : nm.slice(0, 60), note: ov.querySelector('#sc-note').value.trim().slice(0, 120), rep: ov.querySelector('#sc-rep').checked, skip: it.skip || null, done: it.done || null, at: it.at || Date.now() };
-    ov.remove(); await saveSlot(rec);
+    const wantCal = ov.querySelector('#sc-cal').checked;
+    ov.remove(); if (wantCal) { try { schedIcs([rec], 'trenirovka.ics'); } catch (e) {} } await saveSlot(rec);
     /* клиент увидит время в своём плане заметкой тренера */
     const c = ck && clients.find(x => x.k === ck);
     if (c && ov.querySelector('#sc-tell').checked) {

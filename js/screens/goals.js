@@ -407,7 +407,8 @@ window.Screens.goals = function(mount) {
       /* grandTotal = все незакрытые (Цель + сезонные) */
       const grandTotal = goalTotal + otherTotal;
       /* Закрыто = все закрытые с суммой */
-      const doneTotal = all.filter(g=>g.done&&g.amount>0).reduce((s,g)=>s+g.amount,0);
+      /* те же цели, что и в «Осталось»: «Без сезона» (кроме категории «Цель») в суммы не входят, иначе при закрытии итог прыгает */
+      const doneTotal = all.filter(g=>g.done&&g.amount>0&&(g.cat==='Цель'||g.season!=='all')).reduce((s,g)=>s+g.amount,0);
       /* На год = открытые + закрытые, Осталось = открытые */
       const naGodTotal = grandTotal + doneTotal;
       const remainTotal = Math.max(0, grandTotal);
@@ -572,7 +573,8 @@ window.Screens.goals = function(mount) {
     });
 
     document.getElementById('goals-new').onclick = (()=>{
-      goalsOpenModal({season:activeSeason==='all'?'all':activeSeason},result=>{
+      /* при фильтре по месяцу новая цель сразу в этом месяце, иначе она «пропадает» из списка */
+      goalsOpenModal({season:activeSeason==='all'?'all':activeSeason, month: activeMonth > 0 ? activeMonth : undefined},result=>{
         if(!result)return;
         /* При первом сохранении своей цели — инициализируем пустой список (сбрасываем демо) */
         const current = goalsIsDemo() ? [] : goalsGet();

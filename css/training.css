@@ -2143,3 +2143,8 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-plan-share{flex:0 0 auto;width:40px;padding:0!important;justify-content:center}
 .st-modal{padding-bottom:0!important}
 .st-modal>.tr-modal-actions{position:sticky;bottom:0;margin:14px -20px 0;padding:12px 20px max(14px,env(safe-area-inset-bottom));background:#1E2028;border-top:1px solid rgba(255,255,255,.07)}
+/* шапка дня в одну строку на телефоне: кнопки не переносятся вниз */
+.tr-day-head{flex-wrap:nowrap}
+.tr-day-head .tr-day-date{white-space:nowrap}
+.tr-day-head .tr-day-tag{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-day-head>span[style*="margin-left:auto"]{flex-shrink:0}

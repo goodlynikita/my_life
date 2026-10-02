@@ -110,7 +110,7 @@ var Slides = (() => {
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income  = entries.reduce((s,e)=>s+((e?.amount)||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        return `<div class="hero-big-text">${income>0?fmt(income):'Нет данных'}</div>`;
+        return income > 0 ? `<div class="hero-big-text">${fmt(income)}</div>` : `<div class="hero-big-text">0₽</div><div class="hero-sub-text">доход месяца не внесён</div>`;
       },
     },
     {

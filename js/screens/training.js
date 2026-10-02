@@ -856,7 +856,7 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '';
   const sign = progress.pct > 0 ? '+' : '';
   const diffStr = (progress.diff !== undefined && progress.diff !== 0)
-    ? ' ' + (progress.diff > 0 ? '+' : '') + (Math.round(progress.diff * 10) / 10) + ' кг'
+    ? ' ' + (progress.diff > 0 ? '+' : '') + String(Math.round(progress.diff * 10) / 10).replace('.', ',') + ' кг'
     : '';
   let progressBadge = '<span class="tr-progress '+progress.dir+'">'+(arrow ? arrow+' ' : '')+sign+progress.pct+'%'+diffStr+'</span>';
   /* Двунаправленный прогресс-бар: центр = 0%, вправо = рост, влево = падение */
@@ -1135,15 +1135,22 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
 
   const toggleBtn = overlay.querySelector('#m-toggle-sets');
   if (toggleBtn) {
+    { const w0 = overlay.querySelector('#m-set-details-wrap'); if (w0 && w0.innerHTML.trim()) ['#m-reps', '#m-weight'].forEach(q => { const i = overlay.querySelector(q); if (i) (i.closest('label') || i).style.display = 'none'; }); }
     toggleBtn.addEventListener('click', () => {
       const wrap = overlay.querySelector('#m-set-details-wrap');
+      /* в режиме «каждый подход» общие «Повторы / Вес» не сохраняются, поэтому прячем их, чтобы не путали */
+      const topF = ['#m-reps', '#m-weight'].map(q => overlay.querySelector(q)).filter(Boolean).map(i => i.closest('label') || i);
       if (wrap.innerHTML.trim()) {
         wrap.innerHTML = '';
         toggleBtn.textContent = 'Записать каждый подход отдельно';
+        topF.forEach(l => { l.style.display = ''; });
       } else {
         const setsCount = parseInt(overlay.querySelector('#m-sets').value, 10) || 3;
-        wrap.innerHTML = trBuildSetDetailsRows(ex.setDetails || Array.from({ length: setsCount }, () => ({ reps: ex.reps, weight: ex.weight })));
+        const rIn = parseInt((overlay.querySelector('#m-reps') || {}).value, 10), wIn = parseFloat(String((overlay.querySelector('#m-weight') || {}).value || '').replace(',', '.'));
+        const r0 = isFinite(rIn) ? rIn : ex.reps, w0 = isFinite(wIn) ? wIn : ex.weight;
+        wrap.innerHTML = trBuildSetDetailsRows(ex.setDetails || Array.from({ length: setsCount }, () => ({ reps: r0, weight: w0 })));
         toggleBtn.textContent = 'Скрыть';
+        topF.forEach(l => { l.style.display = 'none'; });
       }
     });
   }

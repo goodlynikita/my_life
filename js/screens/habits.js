@@ -11,6 +11,8 @@ const HAB_DOW = ['вс','пн','вт','ср','чт','пт','сб'];
 const HAB_MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь',
                         'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
+/* огонёк серии у привычки: одна функция для таблицы и для обновления после отметки */
+function habStreakChip(h){const s=habStreak(h,Store.get());if(!s)return '';const c=s>=14?'#FF4500':s>=7?'#F59E0B':s>=3?'#FB923C':'#9D9A92';return `<span class="hab-streak-chip" style="display:inline-flex;align-items:center;gap:3px;background:${c}18;border:1px solid ${c}44;border-radius:20px;padding:1px 6px;margin-left:2px;"><svg width="7" height="9" viewBox="0 0 8 10" fill="${c}"><path d="M4 0C4 0 6.5 3 6.5 5.5C6.5 7.5 5.4 9 4 9C2.6 9 1.5 7.5 1.5 5.5C1.5 4 2.5 2.5 3 1.5C3 1.5 2 3 2.5 4.5C3 4 3.5 3 4 0Z"/></svg><span style="font-size:10px;font-weight:700;color:${c};">${s}</span></span>`}
 function habDow(year, month, day) {
   return new Date(year, month, day).getDay(); // 0=вс
 }
@@ -537,7 +539,7 @@ window.Screens.habits = function(mount) {
                       ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${habEsc(h.description)}</div>`:''}
                       <div style="display:flex;align-items:center;gap:6px;margin-left:19px;margin-top:1px;">
                         <span style="font-size:9px;color:#555;">${habSchedLabel(h)}</span>
-                        ${(()=>{const s=habStreak(h,Store.get());if(!s)return '';const c=s>=14?'#FF4500':s>=7?'#F59E0B':s>=3?'#FB923C':'#9D9A92';return `<span class="hab-streak-chip" style="display:inline-flex;align-items:center;gap:3px;background:${c}18;border:1px solid ${c}44;border-radius:20px;padding:1px 6px;margin-left:2px;"><svg width="7" height="9" viewBox="0 0 8 10" fill="${c}"><path d="M4 0C4 0 6.5 3 6.5 5.5C6.5 7.5 5.4 9 4 9C2.6 9 1.5 7.5 1.5 5.5C1.5 4 2.5 2.5 3 1.5C3 1.5 2 3 2.5 4.5C3 4 3.5 3 4 0Z"/></svg><span style="font-size:10px;font-weight:700;color:${c};">${s}</span></span>`})()}
+                        <span class="hab-streak-wrap" data-hi="${hi}">${habStreakChip(h)}</span>
                       </div>
                     </td>
                     ${cells}
@@ -584,6 +586,7 @@ window.Screens.habits = function(mount) {
         if (pctEl) { pctEl.textContent = prog.pct+'%'; pctEl.style.color = barColor; }
         if (barEl) { barEl.style.width = prog.pct+'%'; barEl.style.background = barColor; }
         if (totEl) { totEl.textContent = prog.done; }
+        const stEl = content.querySelector('.hab-streak-wrap[data-hi="'+hi+'"]'); if (stEl) stEl.innerHTML = habStreakChip(habList[hi]);
         /* Обновляем общий % */
         const allPcts = habList.map((h,i) => habProgress(h, marks, viewYear, viewMonth).pct);
         const overall = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
@@ -798,8 +801,8 @@ window.Screens.habits = function(mount) {
       return `<circle cx="${x}" cy="${y}" r="5" fill="${color}" stroke="#1C1E24" stroke-width="2"/>`;
     }).join('');
 
-    const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : '0';
-    const avgColor = parseFloat(avg) >= 7 ? '#4ADE80' : parseFloat(avg) >= 5 ? '#F59E0B' : '#F87171';
+    const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1).replace('.', ',') : '0';
+    const avgColor = parseFloat(avg.replace(',', '.')) >= 7 ? '#4ADE80' : parseFloat(avg.replace(',', '.')) >= 5 ? '#F59E0B' : '#F87171';
 
     return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <defs>
@@ -971,7 +974,7 @@ window.Screens.habits = function(mount) {
           <div class="wheel-history-title">История</div>
           ${keys.filter(k=>k!==wheelSelMk).map(mk=>{
             const d = allWheels[mk];
-            const avg = d.scores.length ? (d.scores.reduce((a,b)=>a+b,0)/d.scores.length).toFixed(1) : '0';
+            const avg = d.scores.length ? (d.scores.reduce((a,b)=>a+b,0)/d.scores.length).toFixed(1).replace('.', ',') : '0';
             return `<div class="wheel-hist-row wheel-hist-open" data-mk="${mk}">
               <div>
                 <div class="wheel-hist-month">${wheelMkLabel(mk)}</div>

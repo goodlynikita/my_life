@@ -129,7 +129,7 @@ window.Screens.login = function(mount, opts) {
         err.textContent = c === 'auth/invalid-email' ? 'Некорректный email'
           : c === 'auth/too-many-requests' ? 'Слишком много попыток. Попробуй через несколько минут'
           : c === 'auth/network-request-failed' ? 'Нет интернета. Проверь подключение'
-          : 'Не получилось отправить. Попробуй ещё раз или напиши в поддержку';
+          : 'Не получилось отправить. Код: ' + String(c || (e && e.message) || '').slice(0, 80);
         btn.textContent = 'Отправить ссылку';
       }
       btn.disabled = false;
@@ -211,7 +211,13 @@ window.Screens.login = function(mount, opts) {
       if (window.FirebaseSync.myTrainer) FirebaseSync.myTrainer().catch(() => {});
       if (window.Notices) setTimeout(() => Notices.check(), 1200);
     } catch(e) {
-      err.textContent = e && e.code === 'app/blocked' ? 'Доступ к аккаунту ограничен. Напиши в поддержку.' : 'Неверный email или пароль';
+      const c = (e && e.code) || (e && e.message) || '';
+      /* неверный пароль показываем как раньше; любую другую причину с кодом, чтобы поддержка поняла, в чём дело */
+      err.textContent = c === 'app/blocked' ? 'Доступ к аккаунту ограничен. Напиши в поддержку.'
+        : /invalid-credential|wrong-password|user-not-found|invalid-login/.test(c) ? 'Неверный email или пароль'
+        : c === 'auth/too-many-requests' ? 'Слишком много попыток. Подожди несколько минут или восстанови пароль'
+        : c === 'auth/network-request-failed' ? 'Нет связи с сервером. Проверь интернет'
+        : 'Не получилось войти. Код: ' + String(c).slice(0, 80);
       btn.textContent = 'Войти'; btn.disabled = false;
     }
   }

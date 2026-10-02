@@ -2,8 +2,8 @@
    В браузере сразу переадресуем. В установленной иконке (на рабочем столе) показываем,
    как поставить приложение с нового адреса: сама иконка адрес сменить не может. */
 (function () {
-  /* выключено, пока у you-app.ru нет HTTPS-сертификата: включить, когда https://you-app.ru откроется без предупреждения */
-  var ENABLED = false;
+  /* выключатель на случай проблем с you-app.ru (например, с сертификатом) */
+  var ENABLED = true;
   if (!ENABLED || !/github\.io$/.test(location.hostname)) return;
   var to = 'https://you-app.ru' + location.pathname.replace(/^\/my_life/, '') + location.search + location.hash;
   var standalone = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);

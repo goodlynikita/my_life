@@ -799,7 +799,6 @@ $('#menu').onclick = () => {
   ov.innerHTML = `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:340px;overflow:hidden;">
     <div style="padding:16px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;">Внешний вид</div>
     ${window.Palette ? Palette.rowHtml() : ''}
-    <button data-m="wa" ${R}><i class="ti ti-snowflake" ${I}></i>Дизайн Winter Arc</button>
     <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Редактор слайдов</button>
     <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
     <button data-m="tiles" ${R}><i class="ti ti-layout-grid" ${I}></i>Настройка плиток</button>
@@ -815,7 +814,6 @@ $('#menu').onclick = () => {
   ov.querySelector('[data-m="slider"]').onclick = go(openSliderSettings);
   if (window.Palette) Palette.bind(ov);
   ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
-  ov.querySelector('[data-m="wa"]').onclick = () => { ov.remove(); if (window.WinterArc && WinterArc.start) WinterArc.start(); };
   ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
 };
 $('#hadd').onclick = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };

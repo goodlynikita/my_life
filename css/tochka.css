@@ -500,3 +500,11 @@ html.fin-dark-on .modal-finance .ce-bot select{height:38px !important;padding-to
 .tochka-screen.fin-inv .sp-big.neg{color:#D07C72;filter:invert(1) hue-rotate(180deg)}
 .sp-pay-r .sp-row-a{display:flex;flex-direction:column;align-items:flex-end}
 .sp-pay-r .sp-row-a .sp-pm-mo{font-size:11.5px;font-weight:600;color:#C9BDF7;margin-top:2px;white-space:nowrap}
+/* запись с рабочего стола */
+.sp-quick{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:0;border:none;background:none;color:#B9A9F5;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.sp-quick i{font-size:16px}
+.sp-q-sub{margin:-4px 0 12px;font-size:13px;color:var(--tk-soft,#ADADAD)}
+.sp-q-box{padding:12px 14px;margin-bottom:10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+.sp-q-box b{display:flex;align-items:center;gap:6px;font-size:14px;margin-bottom:8px}
+.sp-q-box ol{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:var(--tk-soft,#C8C8C8)}
+.sp-q-btn{display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;background:#977FE9;color:#fff;font-weight:700;font-size:14px;text-decoration:none}

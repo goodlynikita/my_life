@@ -402,6 +402,7 @@ window.FinSpend = (function () {
           <button id="sp-ok" aria-label="Записать"><i class="ti ti-check"></i></button>
         </div>
         <div class="sp-chips" id="sp-chips"></div>
+        <button class="sp-quick" id="sp-quick"><i class="ti ti-device-mobile-plus"></i>Записывать с рабочего стола</button>
       </div>
 
       <div class="sp-card sp-list">
@@ -466,6 +467,7 @@ window.FinSpend = (function () {
     content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => { if (c.sample) { toast('Это пример. Запиши свою трату строкой выше'); return; } editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender); }));
     const dOff = content.querySelector('#sp-demo-off'); if (dOff) dOff.onclick = () => { Store.set('finance.spendDemoOff', true); rerender(); };
     const pb = content.querySelector('#sp-per'); if (pb) pb.onclick = () => periodModal(rerender);
+    const qb = content.querySelector('#sp-quick'); if (qb) qb.onclick = quickModal;
 
     /* быстрая запись по ссылке: ?spend=кофе 290 (Команды на iPhone) или ?add=1 (ярлык на иконке) */
     if (window.__spendQuick) { const q = window.__spendQuick; window.__spendQuick = null; inp.value = q; refresh(); syncBtn(); setTimeout(commit, 350); }
@@ -616,6 +618,25 @@ window.FinSpend = (function () {
 
   /* свой платёж по дате: новая категория с днём оплаты или день для существующей.
      Платёж = плановая трата, поэтому он живёт в бюджете («Баланс») и сразу учитывается в «Свободно» */
+  /* запись трат с рабочего стола: команда «Трата» на iPhone, ярлык на иконке на Android */
+  function quickModal() {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
+    const iosBox = `<div class="sp-q-box"><b><i class="ti ti-brand-apple"></i>iPhone</b>
+        <a class="sp-q-btn" href="dl/${encodeURIComponent('Трата')}.shortcut" target="_blank" rel="noopener">Добавить команду «Трата»</a>
+        <ol><li>Нажми «Добавить команду»</li><li>Удерживай пустое место на экране → «+» → «Команды» → «Трата»</li><li>Один раз войди в YOU в Safari: команда открывает его</li></ol></div>`;
+    const andBox = `<div class="sp-q-box"><b><i class="ti ti-brand-android"></i>Android</b>
+        <ol><li>Удерживай иконку YOU на экране</li><li>Выбери «Записать трату» или перетащи этот пункт на экран</li></ol></div>`;
+    ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Запись с рабочего стола"><p class="tr-modal-title">Записывать с рабочего стола</p>
+      <p class="sp-q-sub">Пишешь «кофе 290», и трата сразу в YOU</p>
+      ${ios ? iosBox + andBox : andBox + iosBox}
+      <div class="tr-modal-actions"><button class="tr-modal-btn-primary" id="q-ok" style="flex:1">Понятно</button></div></div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    ov.querySelector('#q-ok').onclick = close;
+  }
+
   /* новый платёж: каждый месяц (категория с днём оплаты) или один раз к дате (цель, напоминание) */
   function payModal(onDone) {
     const b = budget();

@@ -1548,7 +1548,7 @@ function slotModal(it, dateK, done) {
     <div class="chips" id="sc-dur">${[45, 60, 90, 120].map(m => `<button class="chip${+it.dur === m ? ' on' : ''}" data-m="${m}">${m} мин</button>`).join('')}</div>
     <input class="field" id="sc-note" placeholder="Заметка: зал, онлайн, что делаем" value="${esc(it.note || '')}">
     <label class="sc-opt"><input type="checkbox" id="sc-rep" ${it.rep ? 'checked' : ''}><span>Повторять каждую неделю</span></label>
-    <label class="sc-opt"><input type="checkbox" id="sc-cal" ${it.id ? '' : 'checked'}><span>Добавить в календарь телефона</span></label>
+    <label class="sc-opt"><input type="checkbox" id="sc-cal" ${!it.id && (() => { try { return localStorage.getItem('you_sc_cal') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}><span>Добавить в календарь телефона</span></label>
     <label class="sc-opt${ck ? '' : ' hidden'}" id="sc-tell-w"><input type="checkbox" id="sc-tell" ${it.id ? '' : 'checked'}><span>Написать клиенту в план</span></label>
     <button class="btn btn-main" id="sc-save" style="width:100%;margin-top:6px">Сохранить</button>`);
   let dur = +it.dur || 60;
@@ -1567,6 +1567,7 @@ function slotModal(it, dateK, done) {
     if (!d) return toast('Выберите дату'); if (!ck && !nm) return toast('Выберите клиента или впишите имя');
     const rec = { id: it.id || 's' + Date.now().toString(36), d, tm, dur, ck: ck || '', nm: ck ? '' : nm.slice(0, 60), note: ov.querySelector('#sc-note').value.trim().slice(0, 120), rep: ov.querySelector('#sc-rep').checked, skip: it.skip || null, done: it.done || null, at: it.at || Date.now() };
     const wantCal = ov.querySelector('#sc-cal').checked;
+    if (!it.id) { try { localStorage.setItem('you_sc_cal', wantCal ? '1' : '0'); } catch (e) {} } /* запоминаем выбор для следующих записей */
     ov.remove(); if (wantCal) { try { schedIcs([rec], 'trenirovka.ics'); } catch (e) {} } await saveSlot(rec);
     /* клиент увидит время в своём плане заметкой тренера */
     const c = ck && clients.find(x => x.k === ck);

@@ -653,7 +653,7 @@ window.FinSpend = (function () {
         <label style="flex:0 0 130px" class="pm-m">Каждый месяц<select id="pm-day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${i + 1 === today.getDate() ? ' selected' : ''}>${i + 1} числа</option>`).join('')}</select></label>
         <label style="flex:0 0 150px;display:none" class="pm-o">Дата<input type="date" id="pm-date" value="${isoDate(soon)}" min="${isoDate(today)}"></label></div>
       <p class="sp-pm-hint pm-o" id="pm-hint" style="display:none"></p>
-      <label class="sp-chk pm-o" style="display:none"><input type="checkbox" id="pm-cal" checked><span>Напомнить в календаре телефона</span></label>
+      <label class="sp-chk pm-o" style="display:none"><input type="checkbox" id="pm-cal"${(() => { try { return localStorage.getItem('you_pm_cal') !== '0'; } catch (e) { return true; } })() ? ' checked' : ''}><span>Напомнить в календаре телефона</span></label>
       <p class="sp-pm-err" id="pm-err"></p>
       <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="pm-cancel">Отмена</button><button class="tr-modal-btn-primary" id="pm-ok">Добавить</button></div></div>`;
     document.body.appendChild(ov);
@@ -695,6 +695,7 @@ window.FinSpend = (function () {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(dv)) { $('#pm-err').textContent = 'Выбери дату'; return; }
         const item = { id: uid('o'), name: name.slice(0, 60), amt, date: dv, done: false, createdAt: Date.now() };
         savePlanned(planned().concat([item]));
+        try { localStorage.setItem('you_pm_cal', $('#pm-cal').checked ? '1' : '0'); } catch (e) {} /* запоминаем выбор */
         if ($('#pm-cal').checked) { try { icsDownload(item); } catch (e) {} }
         close(); if (onDone) onDone();
         toast(`${item.name}: ${fmt(amt)} к ${pDate(dv).getDate()} ${MON_GEN[pDate(dv).getMonth()]}`);

@@ -68,14 +68,16 @@ function trNormalizeTypes(arr) {
     .filter(t => t && t.name)
     .map(t => ({ name: t.name, group: t.group || 'Спорт', color: trTypeColor(t) }));
 }
+const TR_COACH = !!window.__coachMode; /* кабинет тренера: каталог берём только у клиента, в память браузера не пишем */
 function trLoadTypes() {
+  if (TR_COACH) return trNormalizeTypes(TRAINING_TYPES_DEFAULT);
   try { const s = localStorage.getItem('nik_training_types'); if (s) return trNormalizeTypes(JSON.parse(s)); } catch(e) {}
   return trNormalizeTypes(TRAINING_TYPES_DEFAULT);
 }
 /* Типы сохраняются и в Firebase — иначе удалённые типы «возвращались»
    (раньше удаление вообще никуда не записывалось) */
 function trSaveTypes(arr) {
-  try { localStorage.setItem('nik_training_types', JSON.stringify(arr)); } catch(e) {}
+  if (!TR_COACH) try { localStorage.setItem('nik_training_types', JSON.stringify(arr)); } catch(e) {}
   try { Store.set('training.catalog.types', arr.map(t => ({ name: t.name, group: t.group, color: t.color }))); } catch(e) {}
 }
 let TRAINING_TYPES = trLoadTypes();
@@ -188,6 +190,7 @@ const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
 
 /* Ключ v2 — новые пользователи получат полный список, у старых (v1) остаются их данные */
 function trLoadExercises() {
+  if (TR_COACH) return JSON.parse(JSON.stringify(MUSCLE_BLOCK_EXERCISES_DEFAULT));
   try {
     const saved = localStorage.getItem('nik_exercises_v2');
     if (saved) return JSON.parse(saved);
@@ -206,7 +209,7 @@ function trLoadExercises() {
 }
 
 function trSaveExercises(data) {
-  try { localStorage.setItem('nik_exercises_v2', JSON.stringify(data)); } catch(e) {}
+  if (!TR_COACH) try { localStorage.setItem('nik_exercises_v2', JSON.stringify(data)); } catch(e) {}
   try { Store.set('training.catalog.exercises', JSON.parse(JSON.stringify(data))); } catch(e) {}
 }
 
@@ -216,11 +219,17 @@ const MUSCLE_BLOCK_EXERCISES = trLoadExercises();
    открытии экрана, чтобы правки с другого устройства не терялись */
 function trSyncCatalogFromStore() {
   const cat = (Store.get().training || {}).catalog || {};
+  /* у тренера каталог свой у каждого клиента: сначала сброс к стандартному */
+  if (TR_COACH) {
+    TRAINING_TYPES.splice(0, TRAINING_TYPES.length, ...trNormalizeTypes(TRAINING_TYPES_DEFAULT));
+    Object.keys(MUSCLE_BLOCK_EXERCISES).forEach(k => { delete MUSCLE_BLOCK_EXERCISES[k]; });
+    Object.assign(MUSCLE_BLOCK_EXERCISES, JSON.parse(JSON.stringify(MUSCLE_BLOCK_EXERCISES_DEFAULT)));
+  }
   if (cat.types) {
     const types = trNormalizeTypes(cat.types);
     if (types.length) {
       TRAINING_TYPES.splice(0, TRAINING_TYPES.length, ...types);
-      try { localStorage.setItem('nik_training_types', JSON.stringify(types)); } catch(e) {}
+      if (!TR_COACH) try { localStorage.setItem('nik_training_types', JSON.stringify(types)); } catch(e) {}
     }
   }
   if (cat.exercises && typeof cat.exercises === 'object') {
@@ -229,7 +238,7 @@ function trSyncCatalogFromStore() {
       const v = cat.exercises[k];
       MUSCLE_BLOCK_EXERCISES[k] = Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {}).filter(Boolean);
     });
-    try { localStorage.setItem('nik_exercises_v2', JSON.stringify(MUSCLE_BLOCK_EXERCISES)); } catch(e) {}
+    if (!TR_COACH) try { localStorage.setItem('nik_exercises_v2', JSON.stringify(MUSCLE_BLOCK_EXERCISES)); } catch(e) {}
   }
 }
 
@@ -480,6 +489,14 @@ function trGetPlans() {
 const TR_UNDO_KEY = 'nik_tr_undo_stack';
 const TR_UNDO_MAX = 20;
 
+/* снимок для «Отменить», который попадает в историю только если правка случилась (окно могли просто закрыть) */
+function trSnapshotTake() { try { return JSON.stringify(Store.get().training); } catch (e) { return null; } }
+function trSnapshotPush(snap) {
+  if (!snap) return;
+  try { if (JSON.stringify(Store.get().training) === snap) return; } catch (e) {} /* ничего не поменялось: шаг отмены не нужен */
+  try { const stack = JSON.parse(sessionStorage.getItem(TR_UNDO_KEY) || '[]'); stack.push(JSON.parse(snap)); if (stack.length > TR_UNDO_MAX) stack.shift(); sessionStorage.setItem(TR_UNDO_KEY, JSON.stringify(stack)); } catch (e) {}
+}
+
 function trSnapshotBeforeChange() {
   try {
     const stack = JSON.parse(sessionStorage.getItem(TR_UNDO_KEY) || '[]');
@@ -561,6 +578,9 @@ function trCreateNextPlan() {
 }
 
 function trTonnage(ex) {
+  /* если записан каждый подход, считаем точно по подходам */
+  const sd = ex && ex.setDetails ? (Array.isArray(ex.setDetails) ? ex.setDetails : Object.values(ex.setDetails)) : null;
+  if (sd && sd.length) return Math.round(sd.reduce((t, d) => t + (+d.reps || 0) * (+d.weight || 0), 0) * 10) / 10;
   return Math.round((ex.sets * ex.reps * ex.weight) * 10) / 10;
 }
 
@@ -796,37 +816,48 @@ function trProgressionHint(plan, exName) {
 
 function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const progress = trCalcProgress(plan, weekIndex, ex.name);
-  const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
+  const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '';
   const sign = progress.pct > 0 ? '+' : '';
   const diffStr = (progress.diff !== undefined && progress.diff !== 0)
     ? ' ' + (progress.diff > 0 ? '+' : '') + (Math.round(progress.diff * 10) / 10) + ' кг'
     : '';
-  const progressBadge = '<span class="tr-progress '+progress.dir+'">'+arrow+' '+sign+progress.pct+'%'+diffStr+'</span>';
+  let progressBadge = '<span class="tr-progress '+progress.dir+'">'+(arrow ? arrow+' ' : '')+sign+progress.pct+'%'+diffStr+'</span>';
   /* Двунаправленный прогресс-бар: центр = 0%, вправо = рост, влево = падение */
   const clampedPct = Math.min(50, Math.abs(progress.pct) / 2); /* макс ±50% от центра */
   const barColor = progress.dir === 'up' ? '#A8C97F' : progress.dir === 'down' ? '#FF5C5C' : '#3A3D45';
   const barLeft = progress.dir === 'down' ? (50 - clampedPct) + '%' : '50%';
   const barWidth = clampedPct > 0 ? clampedPct + '%' : '0%';
-  const bar = `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${barLeft}; width:${barWidth}; background:${barColor};"></div></div>`;
+  let bar = `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${barLeft}; width:${barWidth}; background:${barColor};"></div></div>`;
+  /* AI-тренировка, которую ещё не сделали: это план, прироста пока нет */
+  const _sess = (((plan.weeks[weekIndex] || {}).days || [])[dayIdx] || {}).sessions;
+  const _s = _sess ? _sess[sessionIdx] : null;
+  /* будущий день (и несделанная AI-тренировка на сегодня): прироста ещё нет, это план */
+  {
+    const _dt = window.TrainingAI && TrainingAI.planDayDate ? TrainingAI.planDayDate(plan, plan.weeks[weekIndex].days[dayIdx].date) : null;
+    const _t0 = new Date(); _t0.setHours(0, 0, 0, 0);
+    const future = _dt && _dt > _t0;
+    const aiTodo = _s && _s.ai && !_s.aiOk && (!_dt || _dt >= _t0);
+    if (future || aiTodo) { progressBadge = '<span class="tr-progress plan">план</span>'; bar = '<div class="tr-progress-bar-track"></div>'; }
+  }
   const wrap = (headline, meta) => `
     <div class="tr-exercise-wrap" draggable="false" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" data-ex="${exIdx}">
       <div class="tr-drag-handle" title="Перетащить"><i class="ti ti-grip-vertical"></i></div>
       <button class="tr-exercise" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" data-ex="${exIdx}">
         <div class="tr-ex-top">
-          <div class="tr-ex-name">${ex.name}</div>
+          <div class="tr-ex-name">${trEsc(ex.name)}</div>
           <div class="tr-ex-stats">
             <span class="tr-ex-weight num">${headline}</span>
-            ${progressBadge}
           </div>
         </div>
-        <div class="tr-ex-bottom"><div class="tr-ex-meta num">${meta}</div></div>
+        <div class="tr-ex-bottom"><div class="tr-ex-meta num">${meta}</div>${progressBadge}</div>
         ${bar}
       </button>
     </div>`;
 
   if (ex.kind === 'cardio') {
     const pace = trPace(ex);
-    return wrap(`${ex.distance} км`, `${ex.duration} мин${pace ? ' · ' + pace : ''}`);
+    if (!(+ex.distance > 0)) return wrap(`${ex.duration || 0} мин`, 'без дистанции');
+    return wrap(`${String(ex.distance).replace('.', ',')} км`, `${ex.duration} мин${pace ? ' · ' + pace : ''}`);
   }
   if (ex.kind === 'time_calorie') {
     return wrap(`${ex.calories} ккал`, `${ex.duration} мин`);
@@ -838,7 +869,7 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const tonnage = trTonnage(ex);
   const wNum = +ex.weight || 0;
   const wStr = String(wNum).replace('.', ',');
-  if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span style="color:#F2C14E">вес подбери</span>', `${ex.sets} × ${ex.reps}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
+  if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${ex.sets} × ${ex.reps}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
   return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${ex.sets} × ${ex.reps} · вес ${wStr} кг`);
 }
 
@@ -871,6 +902,51 @@ function trMigrateDayToSessions(day) {
   return day;
 }
 
+/* экранирование текста пользователя (заметки, названия), чтобы HTML не исполнялся */
+function trEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+/* окно ввода текста вместо системного prompt(): несколько строк, кнопки в стиле приложения.
+   Возвращает строку, '' (удалить) или null (отмена) */
+function trAskText(o) {
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.className = 'tr-modal-overlay';
+    ov.innerHTML = `<div class="tr-modal tr-ask">
+      <p class="tr-modal-title">${trEsc(o.title)}</p>
+      ${o.hint ? `<p class="tr-ask-hint">${trEsc(o.hint)}</p>` : ''}
+      <textarea id="tr-ask-t" rows="4" maxlength="600" placeholder="Напиши здесь">${trEsc(o.value || '')}</textarea>
+      <div class="tr-modal-actions">
+        ${o.clear ? '<button class="tr-modal-btn-secondary" id="tr-ask-del">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="tr-ask-x">Отмена</button>'}
+        <button class="tr-modal-btn-primary" id="tr-ask-ok">Сохранить</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    const ta = ov.querySelector('#tr-ask-t');
+    const done = (v) => { ov.remove(); resolve(v); };
+    ov.addEventListener('click', e => { if (e.target === ov) done(null); });
+    const x = ov.querySelector('#tr-ask-x'); if (x) x.onclick = () => done(null);
+    const del = ov.querySelector('#tr-ask-del'); if (del) del.onclick = () => done('');
+    ov.querySelector('#tr-ask-ok').onclick = () => done(ta.value);
+    const onKey = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); done(null); } };
+    document.addEventListener('keydown', onKey);
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 60);
+  });
+}
+
+/* метки тренировки: насыщенный фон и светлый текст своего цвета */
+function trTagStyle(c) {
+  return `background:${c}33; color:color-mix(in srgb, ${c} 55%, #fff); border-color:${c}55; box-shadow:inset 0 0 0 1px ${c}40;`;
+}
+
+/* AI-тренировки в Плане, у которых больше нет AI-плана: баннер с кнопкой «Убрать» */
+function trAiOrphanBanner(plan) {
+  if (!window.TrainingAI || !TrainingAI.orphanList) return '';
+  const t = Store.get().training || {};
+  if (t.ai) return '';
+  const n = TrainingAI.orphanList(plan).length;
+  if (!n) return '';
+  return `<div class="tr-orph"><i class="ti ti-sparkles"></i><div><b>${n} ${n % 10 === 1 && n % 100 !== 11 ? 'тренировка' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 'тренировки' : 'тренировок'} от удалённого AI-плана</b><span>Сделанные и изменённые тобой останутся</span></div><button id="tr-orph-rm">Убрать</button></div>`;
+}
+
 function trRenderDay(day, plan, weekIndex, dayIdx) {
   trMigrateDayToSessions(day);
   const sessions = day.sessions;
@@ -882,16 +958,16 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     const typeColor = trBadgeColor(TRAINING_TYPES, session.type);
     const groupTags = (session.groups || []).map(g => {
       const c = trBadgeColor(MUSCLE_GROUPS, g);
-      return `<span class="tr-day-tag has-session" style="background:${c}18; color:${c}99; border-color:${c}33;">${g}</span>`;
+      return `<span class="tr-day-tag has-session" style="${trTagStyle(c)}">${trEsc(g)}</span>`;
     }).join('');
     const exercisesHtml = session.exercises.map((ex, exIdx) => trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx)).join('');
 
     return `
       <div class="tr-session">
         <div class="tr-session-head">
-          <span class="tr-day-tag has-session" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" style="background:${typeColor}18; color:${typeColor}99; border-color:${typeColor}33;">${session.type}</span>${groupTags}
+          <span class="tr-day-tag has-session tr-session-type-tag" title="Сменить тип" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" style="${trTagStyle(typeColor)}cursor:pointer;">${trEsc(session.type)}</span>${groupTags}
           <span class="tr-session-actions">
-            <button class="tr-session-move" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день" style="background:none; border:none; cursor:pointer; color:#9D9A92; padding:4px 6px; font-size:15px;"><i class="ti ti-calendar-share"></i></button>
+            <button class="tr-session-move tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Перенести тренировку" title="Перенести в другой день"><i class="ti ti-calendar-share"></i></button>
             ${!isRest ? `<button class="tr-day-add tr-session-add-ex" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Добавить упражнение" title="Добавить упражнение в эту тренировку"><i class="ti ti-plus"></i></button>` : ''}
             <button class="tr-day-add tr-day-clear" data-week="${weekIndex}" data-day="${dayIdx}" data-session="${sessionIdx}" aria-label="Удалить тренировку" title="Удалить эту тренировку"><i class="ti ti-trash"></i></button>
           </span>
@@ -906,9 +982,9 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
   const comment = day.comment || '';
   const myNote = coachMode ? (day.coachNote || '') : comment;
   const commentHtml = (comment
-    ? `<div class="tr-day-comment"><i class="ti ti-message-circle" style="font-size:12px;"></i> ${coachMode ? '<b>Клиент:</b> ' + String(comment).replace(/[<>&]/g, '') : comment}</div>`
+    ? `<div class="tr-day-comment"><i class="ti ti-message-circle" style="font-size:12px;"></i> ${coachMode ? '<b>Клиент:</b> ' : ''}${trEsc(comment)}</div>`
     : '') + (day.coachNote
-    ? `<div class="tr-day-coachnote"><i class="ti ti-user-star"></i><span><b>Тренер:</b> ${String(day.coachNote).replace(/[<>&]/g, '')}</span></div>`
+    ? `<div class="tr-day-coachnote"><i class="ti ti-user-star"></i><span><b>Тренер:</b> ${trEsc(day.coachNote)}</span></div>`
     : '');
 
   return `
@@ -962,7 +1038,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
   if (ex.kind === 'cardio') {
     fieldsHtml = `
       <div class="tr-modal-row">
-        <label>Дистанция, км<input type="number" id="m-distance" value="${ex.distance}" inputmode="decimal" step="0.1"></label>
+        <label>Дистанция, км<input type="text" id="m-distance" value="${String(ex.distance || '').replace('.', ',')}" inputmode="decimal"></label>
         <label>Время, мин<input type="number" id="m-duration" value="${ex.duration}" inputmode="numeric"></label>
       </div>`;
   } else if (ex.kind === 'time_calorie') {
@@ -992,10 +1068,10 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
 
   overlay.innerHTML = `
     <div class="tr-modal">
-      <p class="tr-modal-title">${ex.name}</p>
+      <div class="tr-modal-head"><p class="tr-modal-title">${trEsc(ex.name)}</p><button class="tr-modal-del" id="m-delete" title="Удалить упражнение" aria-label="Удалить упражнение"><i class="ti ti-trash"></i></button></div>
       ${fieldsHtml}
       <div class="tr-modal-actions">
-        <button class="tr-modal-btn-secondary" id="m-delete">Удалить</button>
+        <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
         <button class="tr-modal-btn-primary" id="m-save">Сохранить</button>
       </div>
     </div>`;
@@ -1028,7 +1104,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
         <span class="tr-set-num">${num}</span>
         <input type="number" class="m-set-reps" value="" placeholder="повт." inputmode="numeric">
         <span class="tr-set-x">×</span>
-        <input type="number" class="m-set-weight" value="" placeholder="кг" inputmode="decimal" step="0.5">
+        <input type="text" class="m-set-weight" value="" placeholder="кг" inputmode="decimal">
         <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>`;
       details.insertBefore(row, addBtn);
     }
@@ -1042,7 +1118,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
     if (ex.kind === 'cardio') {
-      ex.distance = parseFloat(overlay.querySelector('#m-distance').value) || 0;
+      ex.distance = parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0;
       ex.duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
     } else if (ex.kind === 'time_calorie') {
       ex.duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
@@ -1054,7 +1130,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
       if (detailRows.length > 0) {
         const setDetails = Array.from(detailRows).map(row => ({
           reps: parseInt(row.querySelector('.m-set-reps').value, 10) || 0,
-          weight: parseFloat(row.querySelector('.m-set-weight').value) || 0
+          weight: parseFloat(String(row.querySelector('.m-set-weight').value).replace(',', '.')) || 0
         }));
         ex.setDetails = setDetails;
         ex.sets = setDetails.length;
@@ -1070,7 +1146,9 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
     overlay.remove();
     onSave();
   });
+  overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
   overlay.querySelector('#m-delete').addEventListener('click', () => {
+    if (!confirm('Удалить упражнение «' + ex.name + '»?')) return;
     plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises.splice(exIdx, 1);
     overlay.remove();
     onSave();
@@ -1085,7 +1163,7 @@ function trBuildSetDetailsRows(setDetails) {
           <span class="tr-set-num">${i + 1}</span>
           <input type="number" class="m-set-reps" value="${d.reps||''}" placeholder="повт." inputmode="numeric">
           <span class="tr-set-x">×</span>
-          <input type="number" class="m-set-weight" value="${d.weight||''}" placeholder="кг" inputmode="decimal" step="0.5">
+          <input type="text" class="m-set-weight" value="${d.weight ? String(d.weight).replace('.', ',') : ''}" placeholder="кг" inputmode="decimal">
           <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>
         </div>
       `).join('')}
@@ -1149,7 +1227,7 @@ function trBuildExerciseSelect(selectedGroups) {
   if (list.length === 0) {
     return `<select id="m-name" class="tr-color-select"><option value="">Выбери группу мышц</option>${customOption}</select>`;
   }
-  const options = list.map(name => `<option value="${name}">${name}</option>`).join('');
+  const options = list.map(name => `<option value="${trEsc(name)}">${trEsc(name)}</option>`).join('');
   return `<select id="m-name" class="tr-color-select">${options}${customOption}</select>`;
 }
 
@@ -1220,9 +1298,9 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
         <label style="flex:1 1 100%">Упражнение<span id="m-name-wrap">${trBuildExerciseSelect(selectedGroups)}</span></label>
       </div>
       <div class="tr-modal-row">
-        <label>Подходы<input type="number" id="m-sets" placeholder="—" inputmode="numeric"></label>
-        <label>Повторы<input type="number" id="m-reps" placeholder="—" inputmode="numeric"></label>
-        <label>Вес, кг<input type="text" id="m-weight" placeholder="—" inputmode="decimal"></label>
+        <label>Подходы<input type="number" id="m-sets" placeholder="0" inputmode="numeric"></label>
+        <label>Повторы<input type="number" id="m-reps" placeholder="0" inputmode="numeric"></label>
+        <label>Вес, кг<input type="text" id="m-weight" placeholder="0" inputmode="decimal"></label>
       </div>
       <p class="tr-hint" id="m-weight-hint"></p>`;
   }
@@ -1232,8 +1310,8 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
         <label style="flex:1 1 100%">Направление${trBuildSelect('m-cardio-dir', CARDIO_DIRECTIONS.map(d => ({ name: d })), CARDIO_DIRECTIONS[0])}</label>
       </div>
       <div class="tr-modal-row">
-        <label>Дистанция, км<input type="number" id="m-distance" placeholder="—" inputmode="decimal" step="0.1"></label>
-        <label>Время, мин<input type="number" id="m-duration" placeholder="—" inputmode="numeric"></label>
+        <label>Дистанция, км<input type="text" id="m-distance" placeholder="0" inputmode="decimal"></label>
+        <label>Время, мин<input type="number" id="m-duration" placeholder="0" inputmode="numeric"></label>
       </div>`;
   }
   if (trIsTimeCalorieType(typeName)) {
@@ -1246,14 +1324,14 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
         </label>
       </div>
       <div class="tr-modal-row">
-        <label>Время, мин<input type="number" id="m-duration" placeholder="—" inputmode="numeric"></label>
-        <label>Калории<input type="number" id="m-calories" placeholder="—" inputmode="numeric"></label>
+        <label>Время, мин<input type="number" id="m-duration" placeholder="0" inputmode="numeric"></label>
+        <label>Калории<input type="number" id="m-calories" placeholder="0" inputmode="numeric"></label>
       </div>`;
   }
   if (trIsStepsType(typeName)) {
     return `
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" placeholder="—" inputmode="numeric"></label>
+        <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" placeholder="0" inputmode="numeric"></label>
       </div>`;
   }
   if (trIsFitnessType(typeName)) {
@@ -1266,15 +1344,15 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
         </label>
       </div>
       <div class="tr-modal-row">
-        <label>Время, мин<input type="number" id="m-duration" placeholder="—" inputmode="numeric"></label>
-        <label>Калории<input type="number" id="m-calories" placeholder="—" inputmode="numeric"></label>
+        <label>Время, мин<input type="number" id="m-duration" placeholder="0" inputmode="numeric"></label>
+        <label>Калории<input type="number" id="m-calories" placeholder="0" inputmode="numeric"></label>
       </div>`;
   }
   // Фолбэк для любого другого типа
   return `
     <div class="tr-modal-row">
-      <label>Время, мин<input type="number" id="m-duration" placeholder="—" inputmode="numeric"></label>
-      <label>Калории<input type="number" id="m-calories" placeholder="—" inputmode="numeric"></label>
+      <label>Время, мин<input type="number" id="m-duration" placeholder="0" inputmode="numeric"></label>
+      <label>Калории<input type="number" id="m-calories" placeholder="0" inputmode="numeric"></label>
     </div>`;
 }
 
@@ -1370,7 +1448,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
       const direction = overlay.querySelector('#m-cardio-dir').value;
       session.exercises.push({
         kind: 'cardio', name: direction,
-        distance: parseFloat(overlay.querySelector('#m-distance').value) || 0,
+        distance: parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0,
         duration: parseFloat(overlay.querySelector('#m-duration').value) || 0
       });
     } else if (trIsTimeCalorieType(type)) {
@@ -1509,7 +1587,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
 
     if (trIsCardioType(type)) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
-      const distance = parseFloat(overlay.querySelector('#m-distance').value) || 0;
+      const distance = parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0;
       const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'cardio', name: direction, distance, duration }] });
       overlay.remove();
@@ -1717,25 +1795,30 @@ window.Screens.training = function (mount) {
   let collapsedWeeks = loadCollapsedWeeks(currentPlanId, trGetPlans().find(p => p.id === currentPlanId));
 
   function trOpenMoveModal(plan, srcWeek, srcDay, srcSession, onSave) {
-    /* Строим список всех дней плана для выбора */
+    /* дни от сегодня (прошедшие и текущий пропускаем), занятые подписаны */
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0);
     const options = [];
     plan.weeks.forEach((w, wi) => {
       w.days.forEach((d, di) => {
-        if (wi === srcWeek && di === srcDay) return; /* пропускаем текущий */
-        options.push({ wi, di, label: `Неделя ${wi+1} · ${d.date} ${d.dow}` });
+        if (wi === srcWeek && di === srcDay) return;
+        const dt = window.TrainingAI && TrainingAI.planDayDate ? TrainingAI.planDayDate(plan, d.date) : null;
+        if (dt && dt < t0) return;
+        trMigrateDayToSessions(d);
+        const busy = (d.sessions || []).filter(x => x && x.type !== 'Отдых').map(x => (x.groups && x.groups.length ? x.groups.join(', ') : x.type)).join(' · ');
+        options.push({ wi, di, date: d.date, dow: d.dow, today: dt && +dt === +t0, busy });
       });
     });
 
     const overlay = document.createElement('div');
     overlay.className = 'tr-modal-overlay';
     overlay.innerHTML = `
-      <div class="tr-modal" style="max-height:70vh; overflow-y:auto;">
-        <p class="tr-modal-title"><i class="ti ti-calendar-share"></i> Перенести тренировку</p>
-        <p style="font-size:13px; color:#9D9A92; margin-bottom:12px;">Выберите день назначения:</p>
-        <div id="move-day-list">
-          ${options.map((o, i) => `
-            <button class="tr-move-day-opt" data-wi="${o.wi}" data-di="${o.di}" style="width:100%; text-align:left; padding:10px 12px; background:#1C1E24; border:0.5px solid #2A2D35; border-radius:8px; color:#E8E5DC; font-size:13px; cursor:pointer; margin-bottom:6px;">
-              ${o.label}
+      <div class="tr-modal tr-move" style="max-height:80vh; overflow-y:auto;">
+        <p class="tr-modal-title">Перенести тренировку</p>
+        <p class="tr-ask-hint">Выбери день</p>
+        <div class="tr-move-grid">
+          ${options.map(o => `
+            <button class="tr-move-day-opt${o.today ? ' today' : ''}${o.busy ? ' busy' : ''}" data-wi="${o.wi}" data-di="${o.di}">
+              <b>${trEsc(o.dow)}, ${trEsc(o.date)}</b><span>${o.today ? 'сегодня' : o.busy ? trEsc(o.busy) : 'свободно'}</span>
             </button>`).join('')}
         </div>
         <div class="tr-modal-actions">
@@ -1764,6 +1847,8 @@ window.Screens.training = function (mount) {
         trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
         overlay.remove();
         onSave();
+        const td = plan.weeks[tgtW].days[tgtD];
+        if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Перенёс на ' + td.dow + ', ' + td.date);
       });
     });
   }
@@ -1774,24 +1859,26 @@ window.Screens.training = function (mount) {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10), d = parseInt(btn.dataset.day, 10);
         const day = plan.weeks[w].days[d];
-        if (window.__coachMode) {
-          const v = prompt('Заметка тренера на этот день (клиент её увидит):', day.coachNote || '');
+        const coach = !!window.__coachMode;
+        trAskText({
+          title: coach ? 'Заметка тренера' : 'Заметка к дню',
+          hint: coach ? 'Клиент увидит её в этом дне' : 'Самочувствие, что получилось, что поменять',
+          value: coach ? (day.coachNote || '') : (day.comment || ''),
+          clear: coach ? !!day.coachNote : !!day.comment,
+        }).then(v => {
           if (v === null) return;
-          day.coachNote = v.trim() || null;
           const pi = trGetPlans().findIndex(p => p.id === plan.id);
-          Store.set('training.plans.' + pi + '.weeks.' + w + '.days.' + d + '.coachNote', day.coachNote);
+          if (coach) {
+            day.coachNote = v.trim() || null;
+            Store.set('training.plans.' + pi + '.weeks.' + w + '.days.' + d + '.coachNote', day.coachNote);
+          } else {
+            trSnapshotBeforeChange();
+            day.comment = v.trim();
+            /* Пустой коммент = удаление */
+            Store.set('training.plans.' + pi + '.weeks.' + w + '.days.' + d + '.comment', day.comment || null);
+          }
           renderTab('plan');
-          return;
-        }
-        const current = day.comment || '';
-        const newComment = prompt('Заметка к дню (оставь пустым чтобы удалить):', current);
-        if (newComment === null) return;
-        trSnapshotBeforeChange();
-        day.comment = newComment.trim();
-        const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
-        /* Пустой коммент = удаление */
-        Store.set('training.plans.' + planIdx + '.weeks.' + w + '.days.' + d + '.comment', day.comment || null);
-        renderTab('plan');
+        });
       });
     });
 
@@ -1925,8 +2012,9 @@ window.Screens.training = function (mount) {
         const d = parseInt(btn.dataset.day, 10);
         const s = parseInt(btn.dataset.session, 10);
         const ex = parseInt(btn.dataset.ex, 10);
-        trSnapshotBeforeChange();
+        const snap = trSnapshotTake();
         trOpenExerciseModal(plan, w, d, s, ex, () => {
+          trSnapshotPush(snap);
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
         });
@@ -1946,8 +2034,9 @@ window.Screens.training = function (mount) {
         const w = parseInt(btn.dataset.week, 10);
         const d = parseInt(btn.dataset.day, 10);
         const s = parseInt(btn.dataset.session, 10);
-        trSnapshotBeforeChange();
+        const snap = trSnapshotTake();
         trOpenAddExerciseToSessionModal(plan, w, d, s, () => {
+          trSnapshotPush(snap);
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
         });
@@ -1994,10 +2083,15 @@ window.Screens.training = function (mount) {
         overlay.querySelector('#tr-type-close').addEventListener('click', () => overlay.remove());
         overlay.querySelectorAll('.tr-type-pick-btn').forEach(btn => {
           btn.addEventListener('click', () => {
+            const nt = btn.dataset.type;
+            if (nt === session.type) { overlay.remove(); return; }
+            /* силовые упражнения не могут жить в беге или отдыхе: предупреждаем и убираем их */
+            const strength = (session.exercises || []).filter(e => e && (!e.kind || e.kind === 'strength'));
+            if (!trIsGymType(nt) && strength.length && !confirm(`Сменить на «${nt}»? Силовые упражнения (${strength.length}) из этой тренировки удалятся.`)) return;
             trSnapshotBeforeChange();
-            session.type = btn.dataset.type;
-            // Сбрасываем группы если тип не зал
-            if (!trIsGymType(session.type)) session.groups = [];
+            session.type = nt;
+            // Сбрасываем группы и силовые упражнения, если тип не зал
+            if (!trIsGymType(session.type)) { session.groups = []; session.exercises = (session.exercises || []).filter(e => e && e.kind && e.kind !== 'strength'); }
             trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
             overlay.remove();
             renderTab('plan');
@@ -2005,12 +2099,13 @@ window.Screens.training = function (mount) {
         });
       });
     });
-    content.querySelectorAll('.tr-day-add:not(.tr-day-clear):not(.tr-session-add-ex)').forEach(btn => {
+    content.querySelectorAll('.tr-day-add:not(.tr-day-clear):not(.tr-session-add-ex):not(.tr-session-move)').forEach(btn => {
       btn.addEventListener('click', () => {
         const w = parseInt(btn.dataset.week, 10);
         const d = parseInt(btn.dataset.day, 10);
-        trSnapshotBeforeChange();
+        const snap = trSnapshotTake();
         trOpenAddModal(plan, w, d, () => {
+          trSnapshotPush(snap);
           trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
           renderTab('plan');
         });
@@ -2036,6 +2131,7 @@ window.Screens.training = function (mount) {
   }
 
   function renderTab(tab) {
+    const prevTab = content.dataset.tab; content.dataset.tab = tab;
     refreshUndoState();
     let plan = getPlan();
 
@@ -2122,7 +2218,12 @@ window.Screens.training = function (mount) {
     }
 
     if (tab === 'plan') {
-      content.innerHTML = (window.TrainerClient ? TrainerClient.weeklyHtml() : '') + trRenderPlanTab(plan, collapsedWeeks);
+      /* перерисовка плана после правки не прыгает наверх */
+      const keepY = prevTab === 'plan' ? window.scrollY : null;
+      content.innerHTML = (window.TrainerClient ? TrainerClient.weeklyHtml() : '') + trAiOrphanBanner(plan) + trRenderPlanTab(plan, collapsedWeeks);
+      if (keepY != null) { window.scrollTo(0, keepY); requestAnimationFrame(() => window.scrollTo(0, keepY)); }
+      const orphBtn = document.getElementById('tr-orph-rm');
+      if (orphBtn) orphBtn.onclick = () => { if (!confirm('Убрать из Плана будущие тренировки от удалённого AI-плана? Сделанные и изменённые тобой останутся.')) return; trSnapshotBeforeChange(); const n = TrainingAI.dropOrphans(trGetPlans(), plan.id); trSavePlans(trGetPlans()); renderTab('plan'); if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Убрал ' + n); };
       trAnimateBars(content);
       bindPlanEvents(plan);
       if (window.TrainerClient) TrainerClient.bind(content, plan, () => renderTab('plan'));
@@ -2364,13 +2465,14 @@ window.Screens.training = function (mount) {
 
   if (undoBtn) {
     undoBtn.addEventListener('click', () => {
-      if (!confirm('Отменить последнее изменение?')) return;
+      /* без вопроса: отмену можно отменить только новой правкой, поэтому просто сообщаем */
       const ok = trUndoLastChange();
       if (ok) {
         populatePlanSelect();
         refreshUndoState();
         renderTab(document.querySelector('.tr-tab.active')?.dataset.tab || 'plan');
-      }
+        if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Последнее действие отменено');
+      } else if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Отменять нечего');
     });
   }
 
@@ -2529,14 +2631,14 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
     const exerciseRows = allForCat.map(name => {
       const { ex, weekIndex } = latest[name];
       const progress = trCalcProgress(plan, weekIndex, name, _bw);
-      const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '–';
+      const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '';
       const sign = progress.pct > 0 ? '+' : '';
       return `
         <tr>
-          <td class="tr-ww-name">${ex.name}</td>
+          <td class="tr-ww-name">${trEsc(ex.name)}</td>
           <td class="tr-ww-num num">${ex.sets}</td>
           <td class="tr-ww-num num">${ex.reps}</td>
-          <td class="tr-ww-num num tr-ww-weight">${ex.weight} кг</td>
+          <td class="tr-ww-num num tr-ww-weight">${String(ex.weight).replace(".", ",")}&nbsp;кг</td>
           <td class="tr-ww-num num tr-progress ${progress.dir}">${sign}${progress.pct}% ${arrow}</td>
         </tr>`;
     }).join('');
@@ -2545,7 +2647,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       <div class="tr-ww-group">
         <div class="tr-ww-group-label fb-accent">${cat}</div>
         <table class="tr-ww-table">
-          <thead><tr><th>Упражнение</th><th>Подх.</th><th>Повт.</th><th>Вес</th><th>Прогресс</th></tr></thead>
+          <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th>Рост</th></tr></thead>
           <tbody>${exerciseRows}</tbody>
         </table>
       </div>`;
@@ -2847,19 +2949,19 @@ function nutrRenderDay(dateKey, plan, onUpdate) {
       <div class="nutr-macro-card">
         <div class="nutr-macro-label">Белки</div>
         <div class="nutr-macro-val" style="color:#A8C97F">${total.protein}г</div>
-        <div class="nutr-macro-sub">${target.protein > 0 ? `из ${target.protein}г` : '—'}</div>
+        <div class="nutr-macro-sub">${target.protein > 0 ? `из ${target.protein}г` : 'без цели'}</div>
         ${nutrRenderMacroBar(total.protein, target.protein, '#A8C97F')}
       </div>
       <div class="nutr-macro-card">
         <div class="nutr-macro-label">Жиры</div>
         <div class="nutr-macro-val" style="color:#E0B873">${total.fat}г</div>
-        <div class="nutr-macro-sub">${target.fat > 0 ? `из ${target.fat}г` : '—'}</div>
+        <div class="nutr-macro-sub">${target.fat > 0 ? `из ${target.fat}г` : 'без цели'}</div>
         ${nutrRenderMacroBar(total.fat, target.fat, '#E0B873')}
       </div>
       <div class="nutr-macro-card">
         <div class="nutr-macro-label">Углеводы</div>
         <div class="nutr-macro-val" style="color:#B6A4D9">${total.carbs}г</div>
-        <div class="nutr-macro-sub">${target.carbs > 0 ? `из ${target.carbs}г` : '—'}</div>
+        <div class="nutr-macro-sub">${target.carbs > 0 ? `из ${target.carbs}г` : 'без цели'}</div>
         ${nutrRenderMacroBar(total.carbs, target.carbs, '#B6A4D9')}
       </div>
     </div>`;
@@ -3051,7 +3153,7 @@ function trRenderWasNowRow(exerciseName, plan) {
     pct = Math.round(((nowVal - wasVal) / wasVal) * 100);
   }
   const dir = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
-  const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '–';
+  const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '';
   const sign = pct > 0 ? '+' : '';
 
   if (sameRecord) {
@@ -3103,7 +3205,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   const diff = byReps ? rN - r1 : Math.round((wN - w1) * 10) / 10;
   const pct = byReps ? (r1 > 0 ? Math.round(diff / r1 * 100) : 0) : (w1 > 0 ? Math.round(diff / w1 * 100) : 0);
   const color = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#9D9A92';
-  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '';
   const sign = diff > 0 ? '+' : diff < 0 ? '−' : '';
   const head = n < 2
     ? `<span class="tr-ex-weight num" style="color:#9D9A92;">одна запись</span>`

@@ -64,7 +64,7 @@ var Slides = (() => {
       render: (store) => {
         const list   = (store.habits?.list||[]).filter(Boolean);
         const months = store.habits?.months||{};
-        let best = 0, bestName = '—';
+        let best = 0, bestName = 'нет';
         list.forEach(h => {
           let streak = 0, max = 0;
           const now = new Date();
@@ -122,6 +122,8 @@ var Slides = (() => {
         const cushion = income - expenses;
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const color = cushion>=0?'#4ADE80':'#F87171';
+        /* доходов в этом месяце ещё нет: показываем ожидаемые расходы, а не красный «дефицит» */
+        if (!income) return `<div class="hero-stat-num">${fmt(expenses)}</div><div class="hero-stat-lbl">расходы месяца</div>`;
         return `<div class="hero-stat-num" style="color:${color}">${cushion<0?'−':''}${fmt(cushion)}</div><div class="hero-stat-lbl">${cushion>=0?'свободно':'не хватает'}</div>`;
       },
     },
@@ -148,7 +150,7 @@ var Slides = (() => {
         const left   = goals.filter(g=>g.season===season&&!g.done&&!g.maybe).reduce((s,g)=>s+(g.amount||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const names  = {spring:'Весна',summer:'Лето',autumn:'Осень',winter:'Зима'};
-        return `<div class="hero-stat-num">${fmt(left)}</div><div class="hero-stat-lbl">цели ${names[season]}</div>`;
+        return `<div class="hero-stat-num">${fmt(left)}</div><div class="hero-stat-lbl">осталось на ${({spring:'весну',summer:'лето',autumn:'осень',winter:'зиму'})[season] || String(names[season] || '').toLowerCase()}</div>`;
       },
     },
     {
@@ -175,9 +177,9 @@ var Slides = (() => {
       render: (store, cfg) => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const g = goals.find(x=>x.id===cfg?.goalId) || goals[0];
-        if (!g) return `<div class="hero-big-text">—</div>`;
+        if (!g) return `<div class="hero-big-text">Нет цели</div>`;
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        const num = g.done ? '✓ ' + (g.amount ? fmt(g.amount) : 'готово') : (g.amount ? fmt(g.amount) : '—');
+        const num = g.done ? '✓ ' + (g.amount ? fmt(g.amount) : 'готово') : (g.amount ? fmt(g.amount) : 'без суммы');
         return `<div class="hero-stat-num"${g.done?' style="opacity:.55"':''}>${num}</div><div class="hero-stat-lbl">${g.name}</div>`;
       },
     },
@@ -219,7 +221,7 @@ var Slides = (() => {
             (d.sessions||[]).forEach(s=>(s?.exercises||[]).forEach(e=>{ vol += (e.sets||0)*(e.reps||0)*(e.weight||0); }));
         }));
         const fmt = n => n>=1000 ? (n/1000).toFixed(1)+'т' : Math.round(n)+'кг';
-        return `<div class="hero-big-text">${vol>0?fmt(vol):'—'}</div>`;
+        return `<div class="hero-big-text">${vol>0?fmt(vol):'0'}</div>`;
       },
     },
     /* ── Привычки: доп блоки ── */
@@ -274,7 +276,7 @@ var Slides = (() => {
         const data = store.finance?.years?.[yr]?.[mm];
         const expenses = (data?.cats||[]).reduce((s,c)=>s+(c?.spent||0),0);
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
-        return `<div class="hero-big-text">${expenses>0?fmt(expenses):'—'}</div>`;
+        return `<div class="hero-big-text">${expenses>0?fmt(expenses):'0'}</div>`;
       },
     },
     {
@@ -413,12 +415,12 @@ var Slides = (() => {
       const done=days.filter(d=>d<=today&&has(d)).length, planned=days.filter(has).length;
       return { v: done, max: Math.max(planned, done, 1), text: planned ? `${done}/${planned}` : String(done), lbl: 'тренировок за неделю', series: days.map(d=>d<=today&&has(d)?1:0) }; },
     workout_volume: (st) => { const p=_plan(st); const today=new Date(); today.setHours(23,59,59,0); const ser=_weekDays().map(d=>d<=today?_ton(_planDay(p,d)):0); const v=ser.reduce((a,b)=>a+b,0);
-      return { v, text: v>0?_fmtT(v):'—', lbl: 'тоннаж за неделю', series: ser }; },
+      return { v, text: v>0?_fmtT(v):'0', lbl: 'тоннаж за неделю', series: ser }; },
     goals_pct: (st) => { const g=((st.goals?.directions)||[]).filter(Boolean); const pct=g.length?Math.round(g.filter(x=>x.done).length/g.length*100):0; return { v: pct, max: 100, text: pct+'%', lbl: 'целей закрыто' }; },
     goals_done_count: (st) => { const g=((st.goals?.directions)||[]).filter(Boolean); const d=g.filter(x=>x.done).length; return { v: d, max: g.length||1, text: `${d}/${g.length}`, lbl: 'целей' }; },
     goals_season_pct: (st) => { const m=new Date().getMonth(); const season=m<=4?'spring':m<=7?'summer':m<=10?'autumn':'december'; const g=((st.goals?.directions)||[]).filter(x=>x&&x.season===season); const pct=g.length?Math.round(g.filter(x=>x.done).length/g.length*100):0; return { v: pct, max: 100, text: pct+'%', lbl: 'целей сезона' }; },
     finance_savings_pct: (st) => { const f=_fin(st); const pct=f.income>0?Math.round(Math.max(0,f.income-f.expenses)/f.income*100):0; return { v: pct, max: 100, text: pct+'%', lbl: 'накоплений' }; },
-    finance_expenses: (st) => { const f=_fin(st); return { v: f.expenses, max: f.income || null, text: f.expenses>0?_rub(f.expenses):'—', lbl: f.income ? 'потрачено от дохода' : 'расходы' }; },
+    finance_expenses: (st) => { const f=_fin(st); return { v: f.expenses, max: f.income || null, text: f.expenses>0?_rub(f.expenses):'0', lbl: f.income ? 'потрачено от дохода' : 'расходы' }; },
   };
   const blockData = (bid, store) => { const f = BLOCK_DATA[bid]; if (!f) return null; try { return f(store); } catch (e) { return null; } };
   const viewsOf = (bid) => SlideKit.viewsFor(blockData(bid, Store.get()));

@@ -61,6 +61,8 @@ function habSaveList(list) {
   for (let i = list.length; i < prev.length; i++) Store.set(`habits.list.${i}`, null);
 }
 
+const habEsc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
 /* Считаем прогресс с учётом расписания */
 function habProgress(h, marks, year, month) {
   const hMarks = marks[h.id] || {};
@@ -68,33 +70,37 @@ function habProgress(h, marks, year, month) {
   const today = new Date();
   const isCurrentMonth = today.getFullYear()===year && today.getMonth()===month;
 
-  let done = Object.values(hMarks).filter(v=>v==='done').length;
+  /* текущий месяц считаем по прошедшим дням, а не по всему месяцу: 2-го числа 2 из 2 = 100%, а не 6% */
+  const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
+  let done = Object.entries(hMarks).filter(([d,v])=>v==='done' && +d <= lastDay).length;
   let total = 0;
 
   if (h.schedule === 'weekday') {
-    for (let d=1; d<=daysInMonth; d++) {
+    for (let d=1; d<=lastDay; d++) {
       if (habIsWorkday(year, month, d)) total++;
     }
   } else if (h.schedule === 'weekend') {
-    for (let d=1; d<=daysInMonth; d++) {
+    for (let d=1; d<=lastDay; d++) {
       const dow = new Date(year, month, d).getDay();
       if (dow===0||dow===6) total++;
     }
   } else if (h.schedule === 'custom') {
     const days = h.customDays||[];
-    for (let d=1; d<=daysInMonth; d++) {
+    for (let d=1; d<=lastDay; d++) {
       const dow = new Date(year, month, d).getDay()||7; // 1=пн..7=вс
       if (days.includes(dow)) total++;
     }
   } else if (h.schedule === '3perweek') {
-    const fullWeeks = Math.floor(daysInMonth / 7);
-    const remainder = daysInMonth % 7;
+    const fullWeeks = Math.floor(lastDay / 7);
+    const remainder = lastDay % 7;
     total = fullWeeks * (h.target||3) + Math.round(remainder/7 * (h.target||3));
   } else {
-    total = daysInMonth;
+    total = lastDay;
   }
+  /* будущий месяц или день без плановых отметок */
+  if (isCurrentMonth && total < 1) total = 0;
 
-  const pct = total>0 ? Math.round(done/total*100) : 0;
+  const pct = total>0 ? Math.min(100, Math.round(done/total*100)) : 0;
   return { done, total, pct };
 }
 
@@ -169,7 +175,7 @@ function habOpenModal(existing, onSave) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;box-sizing:border-box;';
 
   const ICONS = ['ti-star','ti-bolt','ti-apple','ti-barbell','ti-device-mobile',
-    'ti-book','ti-run','ti-heart','ti-moon','ti-sun','ti-drop',
+    'ti-book','ti-run','ti-heart','ti-moon','ti-sun','ti-droplet',
     'ti-pencil','ti-music','ti-brain','ti-leaf','ti-flame','ti-target','ti-trophy'];
 
   overlay.innerHTML = `
@@ -430,6 +436,8 @@ window.Screens.habits = function(mount) {
     const overallPct = progresses.length ? Math.round(progresses.reduce((s,p)=>s+p.pct,0)/progresses.length) : 0;
     const bestIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>a.pct>b.pct?a:b)) : -1;
     const worstIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>a.pct<b.pct?a:b)) : -1;
+    /* все на одном уровне: «лучшая» и «подтянуть» ничего не говорят */
+    const habSame = progresses.length < 2 || progresses.every(p => p.pct === progresses[0].pct);
 
     const demoBanner = isDemo ? `
       <div id="hab-demo-banner" style="background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:12px;padding:12px 14px;margin:0 0 12px;display:flex;align-items:flex-start;gap:10px;">
@@ -449,7 +457,7 @@ window.Screens.habits = function(mount) {
           <div style="display:flex;gap:6px;align-items:center;">
             <button id="hab-prev" class="sec-back" style="width:28px;height:28px;"><i class="ti ti-chevron-left"></i></button>
             <span style="font-size:13px;white-space:nowrap;">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</span>
-            <button id="hab-next" class="sec-back" style="width:28px;height:28px;" ${isNow?'disabled style="opacity:.3;"':''}><i class="ti ti-chevron-right"></i></button>
+            <button id="hab-next" class="sec-back" style="width:28px;height:28px;${isNow?'opacity:.3;':''}" ${isNow?'disabled':''}><i class="ti ti-chevron-right"></i></button>
           </div>
         </div>
         <div class="sec-metric-grid" style="grid-template-columns:repeat(3,1fr);gap:10px;">
@@ -459,11 +467,11 @@ window.Screens.habits = function(mount) {
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Лучшая</div>
-            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;">${bestIdx>=0?habits[bestIdx]?.name:'—'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;" id="hab-best">${bestIdx>=0&&!habSame?habEsc(habits[bestIdx]?.name):'поровну'}</div>
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Подтянуть</div>
-            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;">${worstIdx>=0?habits[worstIdx]?.name:'—'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;" id="hab-worst">${worstIdx>=0&&!habSame?habEsc(habits[worstIdx]?.name):'поровну'}</div>
           </div>
         </div>
       </div>
@@ -472,7 +480,7 @@ window.Screens.habits = function(mount) {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);">
           <button id="hab-grid-prev" style="background:rgba(255,255,255,0.07);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;"><i class="ti ti-chevron-left"></i></button>
           <span style="font-size:13px;font-weight:700;color:#E8E5DC;">${HAB_MONTHS_RU[viewMonth]} ${viewYear}</span>
-          <button id="hab-grid-next" style="background:rgba(255,255,255,0.07);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;"><i class="ti ti-chevron-right"></i></button>
+          <button id="hab-grid-next" ${isNow?'disabled':''} style="${isNow?'opacity:.3;cursor:default;':''}background:rgba(255,255,255,0.07);border:none;border-radius:8px;width:30px;height:30px;color:#E8E5DC;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;"><i class="ti ti-chevron-right"></i></button>
         </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;">
           <table class="habit-table" style="min-width:max-content;min-width:calc(7*40px + 130px);">
@@ -519,10 +527,10 @@ window.Screens.habits = function(mount) {
 
                 return `
                   <tr>
-                    <td style="padding:6px 8px;white-space:nowrap;${(!window.Features||window.Features.isOn('habit_sticky_col'))?'position:sticky;left:0;z-index:4;background:#1A1C22;':''}">
+                    <td class="hab-nm-td" style="padding:6px 8px;white-space:nowrap;${(!window.Features||window.Features.isOn('habit_sticky_col'))?'position:sticky;left:0;z-index:4;background:#1A1C22;':''}">
                       <div style="display:flex;align-items:center;gap:6px;cursor:pointer;" class="hab-name-edit" data-idx="${hi}">
                         <i class="ti ${h.icon}" style="color:#C8A84B;font-size:13px;"></i>
-                        <span style="font-size:12px;">${h.name}</span>
+                        <span class="hab-nm" style="font-size:12px;">${habEsc(h.name)}</span>
                       </div>
                       ${h.description?`<div style="font-size:10px;color:#555;margin-left:19px;">${h.description}</div>`:''}
                       <div style="display:flex;align-items:center;gap:6px;margin-left:19px;margin-top:1px;">
@@ -579,6 +587,12 @@ window.Screens.habits = function(mount) {
         const overall = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
         const overallEl = content.querySelector('.hab-overall-pct');
         if (overallEl) overallEl.textContent = overall+'%';
+        /* «Лучшая» и «Подтянуть» тоже сразу */
+        const same = allPcts.length < 2 || allPcts.every(p => p === allPcts[0]);
+        const bi = allPcts.indexOf(Math.max(...allPcts)), wi = allPcts.indexOf(Math.min(...allPcts));
+        const bEl = content.querySelector('#hab-best'), wEl = content.querySelector('#hab-worst');
+        if (bEl) bEl.innerHTML = !same && habList[bi] ? habEsc(habList[bi].name) : 'поровну';
+        if (wEl) wEl.innerHTML = !same && habList[wi] ? habEsc(habList[wi].name) : 'поровну';
       });
     });
 
@@ -955,7 +969,7 @@ window.Screens.habits = function(mount) {
           <div class="wheel-history-title">История</div>
           ${keys.filter(k=>k!==wheelSelMk).map(mk=>{
             const d = allWheels[mk];
-            const avg = d.scores.length ? (d.scores.reduce((a,b)=>a+b,0)/d.scores.length).toFixed(1) : '—';
+            const avg = d.scores.length ? (d.scores.reduce((a,b)=>a+b,0)/d.scores.length).toFixed(1) : '0';
             return `<div class="wheel-hist-row wheel-hist-open" data-mk="${mk}">
               <div>
                 <div class="wheel-hist-month">${wheelMkLabel(mk)}</div>

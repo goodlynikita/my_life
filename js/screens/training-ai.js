@@ -168,6 +168,18 @@ window.TrainingAI = (function () {
   /* упражнения со своим весом: у них 0 кг это нормально */
   const BODYW = /подтяг|отжим|брусь|планк|скруч|подъём ног|подъем ног|гиперэкст|пресс|вакуум/i;
   const aiSigOf = (s) => toArr(s.exercises).map(e => e ? (e.name + '|' + (+e.weight || 0) + '|' + e.reps + '|' + e.sets) : '').join(';');
+  /* будущие AI-тренировки в плане, которые человек не трогал */
+  function orphanList(p) {
+    const out = []; if (!p) return out; const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => { if (!d) return; const dt = planDayDate(p, d.date); if (!dt || dt < t0) return;
+      toArr(d.sessions).forEach((x, si) => { if (x && x.ai && !x.aiOk && (!x.aiSig || x.aiSig === aiSigOf(x))) out.push({ wi, di, si }); }); }));
+    return out;
+  }
+  function dropOrphans(plans, planId) {
+    const p = plans.find(x => x && x.id === planId); const list = orphanList(p);
+    list.slice().reverse().forEach(o => { const w = toArr(p.weeks)[o.wi]; w.days = toArr(w.days); const d = w.days[o.di]; const ss = toArr(d.sessions); ss.splice(o.si, 1); d.sessions = ss; });
+    return list.length;
+  }
   function collect(plans) {
     const today = new Date(); today.setHours(23, 59, 59, 0);
     const out = [];
@@ -377,13 +389,21 @@ window.TrainingAI = (function () {
     let G = GOAL;
     /* изоляция в силовом режиме не идёт на 4 повтора; отведения и махи в многоповторном диапазоне */
     if (cls && cls.kind === 'iso' && G.hi <= 6) G = { ...G, lo: 8, hi: 12 };
-    if (/отведени/i.test(name)) G = { ...G, lo: Math.max(G.lo, 12), hi: Math.max(G.hi, 20) };
+    if (/отведени|махи|разведени/i.test(name)) G = { ...G, lo: Math.max(G.lo, 12), hi: Math.max(G.hi, 20) };
+    /* новое упражнение в силовом режиме: вес ещё подбирать, поэтому начинаем с 8–10 повторов */
+    if (!x && G.hi <= 6) G = { ...G, lo: 8, hi: 10 };
     const sets = cls && cls.kind === 'comp' ? G.compSets : G.isoSets;
     const out = [];
     const h = toArr(x && x.hist), last = h[h.length - 1], prev = h[h.length - 2];
     if (isCore) {
-      let r = last && last.reps ? last.reps : 12;
-      for (let k = 0; k < weeksN; k++) { r = Math.min(25, r + (k === 0 ? 0 : 2)); out.push({ sets: 3, reps: r, weight: last && last.weight ? last.weight : 0, up: false }); }
+      /* планка и вакуум растут секундами (40 → 90), остальной кор повторами; в облегчённом круге на подход меньше */
+      const secs = /планк|вакуум/i.test(name);
+      let r = secs ? Math.max(30, Math.min(90, last && last.reps >= 20 ? last.reps : 40)) : (last && last.reps ? last.reps : 12);
+      for (let k = 0; k < weeksN; k++) {
+        const deload = deloadLast && k === weeksN - 1;
+        if (!deload && k) r = secs ? Math.min(90, r + 5) : Math.min(25, r + 2);
+        out.push({ sets: deload ? 2 : 3, reps: r, weight: last && last.weight ? last.weight : 0, up: false, deload, secs });
+      }
       return { rows: out, step, why: '' };
     }
     let w = last && last.weight ? last.weight : 0;
@@ -395,7 +415,7 @@ window.TrainingAI = (function () {
     /* сколько повторов реально сделать с новым весом по оценке максимума, в пределах цели */
     const repsAt = (nw, ow, orr) => Math.max(G.lo, Math.min(G.hi, Math.floor(30 * (e1(ow, orr) / nw - 1))));
     if (last) {
-      if (last.reps >= G.hi && w) { w = upTo(last.weight, step); r = repsAt(w, last.weight, last.reps); first = 'up'; why = `в прошлый раз ${last.reps} повторов, прибавляем вес`; }
+      if (last.reps >= G.hi && w) { w = upTo(last.weight, step); r = repsAt(w, last.weight, last.reps); first = 'up'; why = 'дошёл до верха по повторам, прибавляем вес'; }
       else if (last.reps < G.lo && prev && prev.reps < G.lo && w && prev.weight >= w) { w = downTo(w * 0.925, step); r = G.lo; first = 'down'; why = 'два раза не хватило повторов, вес чуть ниже'; }
       else if (last.reps < G.lo) { r = G.lo; first = 'hold'; why = 'не хватило повторов, вес тот же'; }
       else { r = Math.min(G.hi, last.reps + 1); first = 'rep'; }
@@ -662,21 +682,31 @@ window.TrainingAI = (function () {
   const unitRegion = (u) => (UNIT_G[u] || [])[1] || null;
   const titleOf = (units) => units.map((u, i) => i ? u.toLowerCase() : u).join(' + ');
   /* без истории: нейтральные связки, их легко поправить нажатием */
+  /* Восстановление: в базовых упражнениях работают и помощники.
+     Жимы груди грузят трицепс и передние дельты, жимы плеч трицепс, тяги спины бицепс.
+     Поэтому помощника ставим в тот же день, что и основную мышцу, а не на следующую тренировку. */
+  const SYN = { 'Грудь': ['Трицепс', 'Плечи'], 'Плечи': ['Трицепс'], 'Спина': ['Бицепс'], 'Ноги': ['Ягодицы'], 'Ягодицы': ['Ноги'] };
+  const tiredAfter = (t) => new Set(t.flatMap(u => [u].concat(SYN[u] || [])));
+  /* насколько тренировка b мешает восстановлению после a: одна и та же мышца или уставший помощник */
+  const pairCost = (a, b) => { const tr = tiredAfter(a); return b.filter(x => a.includes(x)).length * 2 + b.filter(x => !a.includes(x) && tr.has(x)).length
+    + b.reduce((s2, x) => s2 + (SYN[x] || []).filter(y => a.includes(y) && !b.includes(y) && !BIG.has(y)).length, 0); };
+  const circleCost = (T) => T.length < 2 ? 0 : T.reduce((s2, a, i) => s2 + pairCost(a, T[(i + 1) % T.length]), 0);
+  /* без истории: проверенные связки, соседние тренировки не грузят одни и те же мышцы */
   const Q_DEFAULT = {
     1: [['Грудь', 'Спина', 'Ноги', 'Плечи']],
     2: [['Грудь', 'Спина', 'Плечи', 'Бицепс', 'Трицепс'], ['Ноги', 'Кор']],
-    3: [['Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Плечи', 'Кор']],
-    4: [['Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор'], ['Плечи', 'Бицепс', 'Трицепс']],
-    5: [['Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор'], ['Плечи', 'Трицепс'], ['Ноги', 'Бицепс']],
-    6: [['Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор'], ['Грудь', 'Плечи'], ['Спина', 'Трицепс'], ['Ноги', 'Бицепс']],
+    3: [['Грудь', 'Плечи', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор']],
+    4: [['Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Плечи', 'Трицепс'], ['Ноги', 'Кор']],
+    5: [['Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор'], ['Грудь', 'Плечи', 'Трицепс'], ['Спина', 'Бицепс']],
+    6: [['Грудь', 'Плечи', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор'], ['Плечи', 'Грудь', 'Трицепс'], ['Спина', 'Бицепс'], ['Ноги', 'Кор']],
   };
-  /* без истории, акцент на ноги и ягодицы: низ дважды за круг, верх тела отдельным днём */
+  /* без истории, акцент на ноги и ягодицы: низ чаще, верх тела между днями ног */
   const Q_LOWER = {
     1: [['Ягодицы', 'Ноги', 'Спина', 'Плечи']],
     2: [['Ягодицы', 'Ноги', 'Кор'], ['Спина', 'Плечи', 'Грудь', 'Трицепс']],
-    3: [['Ягодицы', 'Ноги'], ['Спина', 'Плечи', 'Трицепс'], ['Ягодицы', 'Ноги', 'Кор']],
+    3: [['Ягодицы', 'Ноги'], ['Спина', 'Грудь', 'Плечи'], ['Ягодицы', 'Ноги', 'Кор']],
     4: [['Ягодицы', 'Ноги'], ['Спина', 'Плечи', 'Бицепс'], ['Ягодицы', 'Ноги', 'Кор'], ['Плечи', 'Грудь', 'Трицепс']],
-    5: [['Ягодицы', 'Ноги'], ['Спина', 'Плечи', 'Бицепс'], ['Ягодицы', 'Кор'], ['Плечи', 'Грудь', 'Трицепс'], ['Ноги', 'Ягодицы']],
+    5: [['Ягодицы', 'Ноги'], ['Спина', 'Бицепс'], ['Плечи', 'Грудь', 'Трицепс'], ['Ягодицы', 'Ноги', 'Кор'], ['Спина', 'Плечи', 'Бицепс']],
     6: [['Ягодицы', 'Ноги'], ['Спина', 'Бицепс'], ['Ягодицы', 'Кор'], ['Плечи', 'Грудь', 'Трицепс'], ['Ноги', 'Ягодицы'], ['Спина', 'Плечи']],
   };
   function sessionUnits(h) {
@@ -693,6 +723,8 @@ window.TrainingAI = (function () {
     const manual = toArr(prefs.layout).map(t => toArr(t).filter(u => UNITS.includes(u)));
     if (manual.length === N && manual.every(t => t.length)) return { N, trainings: manual, manual: true, notes, added: [] };
     const recent = history.slice(-40);
+    /* упор на ноги и ягодицы: своя раскладка, даже если история есть */
+    if (prefs.focus === 'lower') return { N, trainings: Q_LOWER[N].map(t => t.slice()), manual: false, notes: ['Упор на ноги и ягодицы: низ два раза за круг, упражнения в эти дни разные'], added: [] };
     if (recent.length < 3) return { N, trainings: (prefs.focus === 'lower' ? Q_LOWER : Q_DEFAULT)[N].map(t => t.slice()), manual: false, notes: [prefs.focus === 'lower' ? 'Тренировок пока мало, поэтому раскладка с акцентом на ноги и ягодицы: низ два раза за круг, упражнения в эти дни разные' : 'Тренировок пока мало, поэтому раскладка стандартная. Поменять можно нажатием на мышцу'], added: [] };
     const cnt = {}, C = {};
     const sess = recent.map(sessionUnits);
@@ -714,7 +746,7 @@ window.TrainingAI = (function () {
         T.forEach((t, ti) => {
           if (t.includes(u)) return;
           let sc = 0;
-          t.forEach(v => { sc += aff(u, v) * 3; if (BIG.has(u) && BIG.has(v) && !aff(u, v)) sc -= 8; });
+          t.forEach(v => { sc += aff(u, v) * 3; if (BIG.has(u) && BIG.has(v) && !aff(u, v)) sc -= 8; if ((SYN[v] || []).includes(u) && !BIG.has(u)) sc += 4; });
           sc -= t.length * 1.5;
           if (!t.length) sc += BIG.has(u) ? 3 : -4;
           if (sc > bs) { bs = sc; best = ti; }
@@ -737,13 +769,16 @@ window.TrainingAI = (function () {
     });
     /* порядок круга: соседние тренировки с минимумом общих групп */
     const perm = (arr) => arr.length <= 1 ? [arr] : arr.flatMap((x, i) => perm(arr.slice(0, i).concat(arr.slice(i + 1))).map(p => [x].concat(p)));
-    const cost = (p) => p.reduce((s, ti, i) => { const a = T[ti], b = T[p[(i + 1) % p.length]]; return s + (N > 1 ? a.filter(x => b.includes(x)).length : 0); }, 0);
+    const cost = (p) => p.reduce((s, ti, i) => s + (N > 1 ? pairCost(T[ti], T[p[(i + 1) % p.length]]) : 0), 0);
     const idx = T.map((_, i) => i);
     const first = idx.slice().sort((a, b) => (T[b].includes('Грудь') - T[a].includes('Грудь')))[0];
     const perms = perm(idx.filter(i => i !== first)).map(p => [first].concat(p));
     const bestP = perms.sort((a, b) => cost(a) - cost(b))[0] || idx;
     /* внутри тренировки: крупные первыми, затем как ты обычно делаешь */
     const trainings = bestP.map(ti => T[ti].slice().sort((a, b) => (BIG.has(b) - BIG.has(a)) || (cnt[b] || 0) - (cnt[a] || 0) || UNITS.indexOf(a) - UNITS.indexOf(b)));
+    /* раскладка по истории мешает восстановлению (уставшая мышца или помощник на следующей тренировке)?
+       берём проверенную схему, где соседние тренировки не грузят одно и то же */
+    if (circleCost(trainings) > circleCost(Q_DEFAULT[N]) || (N > 1 && trainings.some(t => t.length < 2))) return { N, trainings: Q_DEFAULT[N].map(t => t.slice()), manual: false, notes: ['Раскладка по восстановлению: помощники (трицепс, бицепс, плечи) в один день с основной мышцей, на следующей тренировке работают другие мышцы'], added: [] };
     return { N, trainings, manual: false, notes, added };
   }
   /* упражнения для каждой тренировки круга */
@@ -805,15 +840,32 @@ window.TrainingAI = (function () {
         /* добор пропущенной зоны идёт сверху твоих упражнений, а не вместо них */
         if (!addedSet.has(u) && pool.some(x => x.mine)) want += must.filter(z => !pool.some(x => x.mine && x.region === z)).length;
         must.forEach(z => { const x = rot.find(e => e.region === z && !pick.includes(e) && !used.has(e.key)); if (x && pick.length < want) pick.push(x); });
-        rot.forEach(x => { if (pick.length < want && !pick.includes(x) && !used.has(x.key) && !(units.length > 1 && x.base && pick.length >= Math.max(2, Math.ceil(want * 0.6)) && pool.some(p => p.mine))) pick.push(x); });
+        const okPick = (x) => pick.length < want && !pick.includes(x) && !used.has(x.key) && !(units.length > 1 && x.base && pick.length >= Math.max(2, Math.ceil(want * 0.6)) && pool.some(p => p.mine));
+        /* сначала разные зоны мышцы (середина, верх, низ), потом уже второе упражнение в той же зоне */
+        rot.forEach(x => { if (okPick(x) && !pick.some(p => p.region && p.region === x.region)) pick.push(x); });
+        rot.forEach(x => { if (okPick(x)) pick.push(x); });
         pick.sort((a, b) => (b.kind === 'comp') - (a.kind === 'comp') || (b.mine ? 1 : 0) - (a.mine ? 1 : 0));
         pick.forEach(x => { used.add(x.key); prev.add(x.key);
           let it = { kind: x.kind, mine: !!x.mine, key: x.key, name: x.name, group: unitGroup(u), region: x.region, isNew: !an.ex[x.key], why: addedSet.has(u) ? 'новая группа, чтобы тело росло ровно' : x.fill && j === 0 ? 'подтягиваем ' + zonePlain(unitGroup(u), x.region) : '' };
           const to = swaps[it.key]; if (to) { const k2 = exKey(to); it = { ...it, swappedFrom: it.name, name: to, key: k2, isNew: !an.ex[k2], why: 'замена при плато: было «' + it.name + '»' }; }
           items.push(it); });
       });
-      /* по всей тренировке: сначала тяжёлая база, потом изоляция; внутри порядок групп сохраняется */
-      const ord = items.map((it, i) => ({ it, i })).sort((a, b) => ((b.it.kind === 'comp') - (a.it.kind === 'comp')) || (a.i - b.i)).map(x => x.it);
+      /* потолок упражнений за тренировку (добор зон мог его превысить): лишнее снимаем с самой загруженной мышцы, изоляцию первой */
+      const cap = fresh ? 6 : 8;
+      while (items.length > cap) {
+        const cnt = {}; items.forEach(it => { cnt[it.group] = (cnt[it.group] || 0) + 1; });
+        const g = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+        let k = -1; for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g && items[q].kind !== 'comp') { k = q; break; }
+        if (k < 0) for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g) { k = q; break; }
+        items.splice(k, 1);
+      }
+      /* порядок: базовые упражнения по очереди мышц (грудь, спина, ноги, грудь...), потом изоляция так же.
+         Так в тренировке на всё тело присед не уезжает за три жима */
+      const rr = (list) => { const by = {}; const order = []; list.forEach(it => { if (!by[it.group]) { by[it.group] = []; order.push(it.group); } by[it.group].push(it); });
+        const out = []; for (let k = 0; out.length < list.length; k++) order.forEach(g => { if (by[g][k]) out.push(by[g][k]); }); return out; };
+      const ord = units.length > 2 && units.filter(u => BIG.has(u)).length > 1
+        ? rr(items.filter(it => it.kind === 'comp')).concat(rr(items.filter(it => it.kind !== 'comp')))
+        : items.map((it, i) => ({ it, i })).sort((a, b) => ((b.it.kind === 'comp') - (a.it.kind === 'comp')) || (a.i - b.i)).map(x => x.it);
       return { key: 't' + (ti + 1), title: titleOf(units), units, groups: [...new Set(units.map(unitGroup))], items: ord };
     });
     return { L, sessions, addedZones };
@@ -841,7 +893,8 @@ window.TrainingAI = (function () {
       transferred: false, date: null }));
     const notes = [];
     notes.push(`${Q.L.N} ${pl(Q.L.N, 'тренировка', 'тренировки', 'тренировок')} по очереди: ` + Q.sessions.map((s, i) => (i + 1) + ') ' + s.title.toLowerCase()).join(', ') + '. Дни недели не важны: в зале делаешь следующую по очереди');
-    notes.push(Q.L.manual ? 'Какие мышцы в какой тренировке, выбрано тобой' : 'Мышцы разложены как ты обычно тренируешь: что делаешь вместе и сколько раз в неделю. Грудь, спина и ноги в разных тренировках, одна мышца не идёт два раза подряд');
+    if (Q.L.manual) notes.push('Какие мышцы в какой тренировке, выбрано тобой');
+    else if (!Q.L.notes.length) notes.push('Мышцы разложены как ты обычно тренируешь: что делаешь вместе и сколько раз в неделю. Грудь, спина и ноги в разных тренировках, одна мышца не идёт два раза подряд');
     Q.L.notes.forEach(n => notes.push(n));
     Q.addedZones.forEach(a => notes.push('Добавил, чтобы не отставало: ' + a));
     notes.push('Пропуск ничего не ломает: в следующий раз делаешь ту же тренировку');
@@ -1195,22 +1248,30 @@ window.TrainingAI = (function () {
   }
   function focusHtml(prefs) {
     const f = prefs.focus || 'even';
-    return `<div class="q-focus"><div class="ai-pref-t"><i class="ti ti-target"></i> На что упор</div><div class="q-focus-b">
-      <button data-f="even" class="${f === 'even' ? 'on' : ''}"><b>Всё тело ровно</b><span>грудь, спина, ноги, плечи, руки</span></button>
-      <button data-f="lower" class="${f === 'lower' ? 'on' : ''}"><b>Ноги и ягодицы</b><span>низ два раза за круг, верх одним днём</span></button></div></div>`;
+    return `<div class="q-focus"><div class="q-lbl">Упор</div><div class="q-seg">
+      <button data-f="even" class="${f === 'even' ? 'on' : ''}">Всё тело</button>
+      <button data-f="lower" class="${f === 'lower' ? 'on' : ''}">Ноги и ягодицы</button></div></div>`;
   }
+  function nHtml(prefs, N) {
+    return `<div class="q-nrow"><div class="q-lbl">Тренировок в круге</div><div class="q-seg q-n">${[1, 2, 3, 4, 5, 6].map(n => `<button class="${N === n ? 'on' : ''}" data-n="${n}">${n}</button>`).join('')}</div></div>`;
+  }
+  /* подсказки к программе AI: по кнопке «?» и один раз при первом входе */
+  const AI_TIPS = [
+    { sel: '.q-focus', t: 'Упор', d: 'Всё тело: грудь, спина, ноги, плечи и руки поровну. Ноги и ягодицы: низ два раза за круг, верх одним днём.' },
+    { sel: '.q-nrow', t: 'Тренировок в круге', d: 'Сколько разных тренировок. Обычно столько, сколько раз в неделю ходишь в зал.' },
+    { sel: '.q-circle', t: 'Тренировки по кругу', d: 'Идут по очереди: 1, 2, 3 и снова 1. В какой день идти, выбираешь ты. Нажми на мышцу, чтобы перенести её в другую тренировку.' },
+    { sel: '.ai-more', t: 'Настройки', d: 'Цель (масса, сила, рельеф), шаг веса под блины в твоём зале и откуда брать упражнения.' },
+    { sel: '#q-gen', t: 'Составить план', d: 'Подставлю упражнения и веса до конца плана и буду прибавлять вес сам после каждой тренировки.' },
+  ];
   function qSettingsHtml(prefs, N, manual) {
     const g = GOALS[prefs.goal] || GOALS.mass;
-    return `<div class="ai-pref"><div class="ai-pref-t"><i class="ti ti-repeat"></i> Сколько разных тренировок <em>${prefs.n ? 'выбрано тобой' : 'как ты обычно ходишь в неделю'}</em></div>
-        <div class="ai-days q-n">${[1, 2, 3, 4, 5, 6].map(n => `<button class="ai-day-chip${N === n ? ' on' : ''}" data-n="${n}"><b>${n}</b></button>`).join('')}</div>
-        ${manual ? '<button class="ai-pref-reset" id="q-auto"><i class="ti ti-refresh"></i> Разложить мышцы заново, как по истории</button>' : ''}</div>
-      <div class="ai-pref"><div class="ai-pref-t"><i class="ti ti-target"></i> Цель <em>${g.lo}–${g.hi} повторов · отдых ${g.rest}</em></div>
+    return `<div class="ai-pref"><div class="ai-pref-t"><i class="ti ti-target"></i> Цель <em>${g.lo}–${g.hi} повторов · отдых ${g.rest}</em></div>
         <div class="ai-goals">${Object.entries(GOALS).map(([k, x]) => `<button class="ai-goal ai-gl${(prefs.goal || 'mass') === k ? ' on' : ''}" data-v="${k}"><b>${x.label}</b><span>${x.lo}–${x.hi}</span></button>`).join('')}</div></div>
-      <div class="ai-pref"><div class="ai-pref-t"><i class="ti ti-weight"></i> На сколько прибавлять вес <em>какие блины и гантели есть в зале</em></div>
+      <div class="ai-pref"><div class="ai-pref-t"><i class="ti ti-weight"></i> Шаг веса <em>какие блины и гантели есть в зале</em></div>
         <div class="ai-steps">${Object.entries(EQUIP).map(([k, e]) => `<div class="ai-step"><span>${e.label}</span><div class="ai-stp"><button data-eq="${k}" data-d="-1" aria-label="Меньше">−</button><input data-eq="${k}" type="text" inputmode="decimal" value="${numW(+(prefs.steps || {})[k] || e.def)}"><em>кг</em><button data-eq="${k}" data-d="1" aria-label="Больше">+</button></div></div>`).join('')}</div></div>`;
   }
   function exLoad(e) {
-    const sets = `${e.sets} ${pl(e.sets, 'подход', 'подхода', 'подходов')} × ${/планк|вакуум/i.test(e.name) ? '40 сек' : e.reps + ' раз'}`;
+    const sets = `${e.sets} ${pl(e.sets, 'подход', 'подхода', 'подходов')} × ${/планк|вакуум/i.test(e.name) ? (e.reps || 40) + ' сек' : e.reps + ' раз'}`;
     if (e.weight) return `${sets}<b>${numW(e.weight)} кг</b>`;
     return `${sets}${e.group === 'Кор' ? '' : '<b class="ai-pick">вес подбери</b>'}`;
   }
@@ -1239,7 +1300,20 @@ window.TrainingAI = (function () {
   }
   function placeOn(plan, h, dates) {
     let n = 0;
-    dates.forEach(k => { const a = load(); const i = a.queue.findIndex(q => !q.transferred); if (i < 0) return; const q = a.queue[i];
+    dates.slice().sort().forEach(k => { const a = load();
+      /* продолжаем круг: после тренировки 1 ставим 2, даже если раньше что-то переставляли вручную */
+      const N = Math.max(1, a.N || toArr(a.layout).length || 1);
+      const before = a.queue.filter(q => q.transferred && q.date && q.date < k).sort((x, y) => x.date < y.date ? -1 : 1).pop();
+      const after = a.queue.filter(q => q.transferred && q.date && q.date > k).sort((x, y) => x.date < y.date ? -1 : 1)[0];
+      /* соседние дни: не ставим ту же тренировку, что накануне или на следующий день */
+      const prevD = new Date(+fromYmdQ(k) - 864e5), nextD = new Date(+fromYmdQ(k) + 864e5);
+      const ban = new Set(a.queue.filter(q => q.transferred && (q.date === ymdQ(prevD) || q.date === ymdQ(nextD))).map(q => q.t));
+      let want = before ? (before.t + 1) % N : null;
+      if (want != null && N > 1) for (let s = 0; s < N && (ban.has(want) || (after && after.t === want && after.date === ymdQ(nextD))); s++) want = (want + 1) % N;
+      let i = want == null ? -1 : a.queue.findIndex(q => !q.transferred && q.t === want);
+      if (i < 0) i = a.queue.findIndex(q => !q.transferred && !(N > 1 && ban.has(q.t)));
+      if (i < 0) i = a.queue.findIndex(q => !q.transferred);
+      if (i < 0) return; const q = a.queue[i];
       const [y, m, d] = k.split('-').map(Number); const pd = planDayAt(plan, new Date(y, m - 1, d)); if (!pd) return;
       if (!transfer(plan, h, pd.wi, pd.di, { ...q, qid: qid(q) })) return;
       Object.assign(q, { transferred: true, date: k, wi: pd.wi, di: pd.di, ok: false }); save(a); n++; });
@@ -1271,21 +1345,20 @@ window.TrainingAI = (function () {
     const showN = window._aiShowAll ? freeIdx.length : 6;
 
     /* AI-тренировки в будущих днях Плана без живого AI-плана (план удалили, а тренировки остались) */
-    const orphans = () => { const out = []; const p = toArr(h.getPlans()).find(x => x && x.id === plan.id); if (!p) return out;
-      toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => { if (!d) return; const dt = planDayDate(p, d.date); if (!dt || dt < today) return;
-        toArr(d.sessions).forEach((x, si) => { if (x && x.ai && !x.aiOk && (!x.aiSig || x.aiSig === aiSigOf(x))) out.push({ wi, di, si }); }); })); return out; };
+    const orphans = () => orphanList(toArr(h.getPlans()).find(x => x && x.id === plan.id));
     content.innerHTML = `<div class="ai-wrap">${viewTabs()}
       <div class="ai-card">
-        <div class="ai-card-h"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div><div class="ai-hero-t">AI-тренер</div>
-          <div class="ai-hero-d">Тренировки идут по очереди: ${L.trainings.map((_, i) => i + 1).join(' → ')}${L.N > 1 ? ' → снова 1' : ''}. В какой день идти, выбираешь ты</div></div></div>
+        <div class="ai-card-h"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div class="ai-hero-t" style="flex:1">AI-тренер</div>
+          <button class="q-help" id="q-help" aria-label="Подсказки"><i class="ti ti-help"></i></button></div>
+        ${focusHtml(prefs)}${nHtml(prefs, L.N)}
         ${circleHtml(L.trainings, true)}
-        <div class="q-hint"><i class="ti ti-hand-finger"></i> Нажми на мышцу, чтобы перенести её в другую тренировку</div>
+        ${L.manual ? '<button class="ai-pref-reset" id="q-auto"><i class="ti ti-refresh"></i> Разложить мышцы заново</button>' : ''}
         <details class="ai-more"${window._aiMoreOpen ? ' open' : ''}><summary><i class="ti ti-adjustments-horizontal"></i> Настройки <i class="ti ti-chevron-down"></i></summary>
-          ${an.workouts < 3 ? focusHtml(prefs) : ''}${qSettingsHtml(prefs, L.N, L.manual)}${sourcesHtml(cp.src, cp.on, plan)}</details>
+          ${qSettingsHtml(prefs, L.N, L.manual)}${sourcesHtml(cp.src, cp.on, plan)}</details>
       </div>
       ${!ai && legacy ? '<div class="q-tip"><i class="ti ti-info-circle"></i> AI-план стал проще: тренировки идут по очереди, без привязки к дням недели. Нажми «Составить план». То, что ты уже добавил во вкладку План, останется</div>' : ''}
-      ${!ai && orphans().length ? `<div class="q-tip"><i class="ti ti-info-circle"></i><span>В Плане остались будущие тренировки от прошлого AI-плана: ${orphans().length}. <button class="q-back" id="q-orph">Убрать их</button></span></div>` : ''}
-      ${!ai ? `<button class="ai-gen" id="q-gen"><i class="ti ti-sparkles"></i> Составить план</button><div class="ai-hint" style="text-align:center">Подставлю упражнения и веса до конца плана №${plan.number || ''} и буду прибавлять вес сам</div>`
+      ${!ai && orphans().length ? `<div class="tr-orph"><i class="ti ti-sparkles"></i><div><b>${orphans().length} ${pl(orphans().length, 'тренировка', 'тренировки', 'тренировок')} от удалённого AI-плана</b><span>Сделанные и изменённые тобой останутся</span></div><button id="q-orph">Убрать</button></div>` : ''}
+      ${!ai ? `<button class="ai-gen" id="q-gen"><i class="ti ti-sparkles"></i> Составить план</button>`
       : `${askIdx >= 0 ? `<div class="q-ask"><div class="q-ask-t">${esc(fmtDayL(fromYmdQ(Q[askIdx].date)))} стояла ${esc(nameT(Q[askIdx]))}. Получилось сходить?</div>
           <div class="q-btns"><button class="ai-gen" id="q-yes">Да</button><button class="ai-regen" id="q-no">Нет, был пропуск</button></div>
           <div class="q-ask-d">При пропуске она вернётся в список AI, остальные дни не тронутся</div></div>` : ''}
@@ -1316,6 +1389,7 @@ window.TrainingAI = (function () {
 
     /* настройки */
     content.querySelectorAll('.q-n [data-n]').forEach(b => b.onclick = () => apply({ ...prefs, n: +b.dataset.n, layout: null }, 'Разных тренировок: ' + b.dataset.n, true));
+    if ($('#q-help')) $('#q-help').onclick = () => { if (window.Tour && Tour.play) Tour.play(AI_TIPS.filter(x => document.querySelector(x.sel)), 'tab:training.ai'); };
     content.querySelectorAll('.q-focus [data-f]').forEach(b => b.onclick = () => apply({ ...prefs, focus: b.dataset.f, layout: null }, b.dataset.f === 'lower' ? 'Упор на ноги и ягодицы' : 'Всё тело ровно', true));
     if ($('#q-auto')) $('#q-auto').onclick = () => apply({ ...prefs, layout: null }, 'Мышцы разложены как по истории', true);
     content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => apply({ ...prefs, goal: b.dataset.v }, 'Цель обновлена'));
@@ -1324,7 +1398,9 @@ window.TrainingAI = (function () {
     content.querySelectorAll('.ai-stp input').forEach(inp => inp.addEventListener('change', () => applyStep(inp.dataset.eq, inp.value)));
     content.querySelectorAll('.ai-stp button').forEach(b => b.addEventListener('click', () => {
       const cur = +String(content.querySelector(`.ai-stp input[data-eq="${b.dataset.eq}"]`).value).replace(',', '.') || 1, d = +b.dataset.d;
-      const nx = d > 0 ? (STEPS.find(x => x > cur + 1e-9) || cur) : ([...STEPS].reverse().find(x => x < cur - 1e-9) || cur);
+      /* шаг ходит по реальным вариантам этого оборудования (штанга 2,5 / 5 / 10), а не по общему списку */
+      const L2 = (EQUIP[b.dataset.eq] && EQUIP[b.dataset.eq].opts) || STEPS;
+      const nx = d > 0 ? (L2.find(x => x > cur + 1e-9) || cur) : ([...L2].reverse().find(x => x < cur - 1e-9) || cur);
       if (nx !== cur) applyStep(b.dataset.eq, nx);
     }));
 
@@ -1349,17 +1425,17 @@ window.TrainingAI = (function () {
     /* составить, пересобрать, удалить */
     if ($('#q-orph')) $('#q-orph').onclick = () => { const list = orphans(); if (!confirm(`Убрать из Плана ${list.length} ${pl(list.length, 'тренировку', 'тренировки', 'тренировок')} от прошлого AI-плана? Сделанные и изменённые тобой останутся.`)) return;
       const plans = h.getPlans(); const p = plans.find(x => x && x.id === plan.id);
-      list.slice().reverse().forEach(o => { const d = toArr(p.weeks)[o.wi].days[o.di]; const ss = toArr(d.sessions); ss.splice(o.si, 1); d.sessions = ss; });
+      dropOrphans(plans, plan.id);
       h.savePlans(plans); h.afterTransfer && h.afterTransfer(); render(content, plan, h); qToast('Убрал ' + list.length); };
     if ($('#q-gen')) $('#q-gen').onclick = () => { window.Analytics && Analytics.ev('ai'); const res = generate(plans, plan, {}); if (res.error) { alert('Не получилось составить план'); return; } save(res); render(content, plan, h); qToast('План готов'); };
     if ($('#q-regen')) $('#q-regen').onclick = () => { if (!confirm('Пересобрать с учётом последних тренировок? То, что уже стоит в плане, не тронется.')) return; regenKeep(plans, plan, prefs); render(content, plan, h); qToast('План пересобран'); };
     /* будущие AI-тренировки, которые ты ещё не менял: их можно снять из Плана */
-    const removable = () => { const a = load(); const tk = todayK; return a ? a.queue.map((q, i) => i).filter(i => { const q = a.queue[i]; return q.transferred && q.date && q.date >= tk && !q.ok && !qEdited(plan, h, q); }) : []; };
+    const removable = (withToday) => { const a = load(); const tk = todayK; return a ? a.queue.map((q, i) => i).filter(i => { const q = a.queue[i]; return q.transferred && q.date && (withToday ? q.date >= tk : q.date > tk) && !q.ok && !qEdited(plan, h, q); }) : []; };
     const unplace = (idxs) => { const a = load(); idxs.forEach(i => { const q = a.queue[i]; untransfer(plan, h, q); Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); }); save(a); h.afterTransfer && h.afterTransfer(); return idxs.length; };
     if ($('#q-unall')) $('#q-unall').onclick = () => { const ids = removable(); if (!ids.length) { qToast('Убирать нечего: в будущих днях AI-тренировок нет'); return; }
       if (!confirm(`Убрать из Плана ${ids.length} ${pl(ids.length, 'тренировку', 'тренировки', 'тренировок')} от AI? Сделанные и те, где ты менял веса, останутся.`)) return;
       const n = unplace(ids); render(content, plan, h); qToast(`Убрал ${n} ${pl(n, 'тренировку', 'тренировки', 'тренировок')}, они снова в списке AI`); };
-    if ($('#q-reset')) $('#q-reset').onclick = () => { const ids = removable();
+    if ($('#q-reset')) $('#q-reset').onclick = () => { const ids = removable(true);
       if (!confirm('Удалить AI-план?' + (ids.length ? ` Будущие AI-тренировки (${ids.length}) уберу из Плана.` : '') + ' Сделанные тренировки останутся.')) return;
       if (ids.length) unplace(ids); Store.set('training.ai', null); render(content, plan, h); qToast('AI-план удалён'); };
     if ($('#q-open')) $('#q-open').onclick = () => { if (h.openPlan) h.openPlan(); };
@@ -1378,7 +1454,7 @@ window.TrainingAI = (function () {
     /* выбрать день для конкретной тренировки (новой из списка AI или уже стоящей в плане) */
     const pickDay = (i, move) => {
       const q = Q[i];
-      const ov = modal(`<p class="tr-modal-title">В какой день ${esc(nameT(q))}?</p><div class="q-days">${daysAhead(14).map(d => `<button data-d="${ymdQ(d)}" class="${q.date === ymdQ(d) ? 'on' : ''}">${esc(fmtDay(d))}${ymdQ(d) === todayK ? '<em>сегодня</em>' : dayBusy(d) ? '<em>есть тренировка</em>' : ''}</button>`).join('')}</div>
+      const ov = modal(`<p class="tr-modal-title">В какой день ${esc(nameT(q).replace(/^Т/, 'т'))}?</p><div class="q-days">${daysAhead(14).map(d => `<button data-d="${ymdQ(d)}" class="${q.date === ymdQ(d) ? 'on' : ''}">${esc(fmtDay(d))}${ymdQ(d) === todayK ? '<em>сегодня</em>' : dayBusy(d) ? '<em>есть тренировка</em>' : ''}</button>`).join('')}</div>
         <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" data-x>Отмена</button></div>`);
       ov.querySelector('[data-x]').onclick = () => ov.remove();
       ov.querySelectorAll('[data-d]').forEach(x => x.onclick = () => { const d = fromYmdQ(x.dataset.d);
@@ -1396,26 +1472,34 @@ window.TrainingAI = (function () {
     if ($('#q-restore')) $('#q-restore').onclick = () => { const a = load(); a.removed = []; save(a); regenKeep(plans, plan, prefs); render(content, plan, h); qToast('Убранные тренировки вернулись'); };
     /* расписать наперёд: отмечаешь дни, тренировки встают по очереди */
     if ($('#q-week')) $('#q-week').onclick = () => {
-      /* твои записанные и сегодняшняя остаются на месте, остальные будущие можно переставить */
-      /* уже стоящие в плане не трогаем, новые встают на отмеченные дни по очереди списка */
+      /* выбираешь дни недели (выходные просто не отмечаешь), и весь список AI встаёт по очереди до конца плана.
+         уже стоящие в плане тренировки не трогаем */
       const fixed = {};
-      Q.forEach(q => { if (q.transferred && q.date) fixed[q.date] = q.t + 1; });
-      const days = daysAhead(14);
-      const sel = [];
+      Q.forEach(q => { if (q.transferred && q.date) fixed[q.date] = 1; });
       const order = freeIdx.slice();
+      const DW = [[1, 'Пн'], [2, 'Вт'], [3, 'Ср'], [4, 'Чт'], [5, 'Пт'], [6, 'Сб'], [0, 'Вс']];
+      const PRESET = { 1: [3], 2: [1, 4], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 3, 4, 5], 6: [1, 2, 3, 4, 5, 6], 7: [0, 1, 2, 3, 4, 5, 6] };
+      /* по умолчанию дни, в которые ты реально ходишь (по истории), если их столько же, сколько тренировок в круге */
+      const hist = toArr(an && an.trainDays).map(i => (i + 1) % 7);
+      let on = new Set(hist.length === L.N ? hist : PRESET[Math.min(7, Math.max(1, L.N))]);
+      /* все дни от сегодня до конца плана */
+      const all = []; for (let i = 0; i < 400; i++) { const d = new Date(today); d.setDate(today.getDate() + i); if (!planDayAt(plan, d)) { if (i > 7) break; continue; } all.push(d); }
+      const pickDates = () => { const out = []; all.forEach(d => { const k = ymdQ(d); if (!fixed[k] && on.has(d.getDay()) && out.length < order.length) out.push(k); }); return out; };
       const ov = modal('');
       const box = ov.querySelector('.tr-modal');
       const draw = () => {
+        const sel = pickDates();
+        const last = sel.length ? fromYmdQ(sel[sel.length - 1]) : null;
+        const left = order.length - sel.length;
         box.innerHTML = `<p class="tr-modal-title">Всё в план</p>
-          <div class="q-ask-d" style="text-align:left;margin-top:0">Отметь дни на 2 недели, тренировки из списка встанут по очереди</div>
-          <div class="q-quick">${[['Пн Ср Пт', [1, 3, 5]], ['Вт Чт Сб', [2, 4, 6]], ['Пн Чт', [1, 4]]].map(([t, dw], k) => `<button data-q="${k}" data-dw="${dw.join(',')}">${t}</button>`).join('')}</div>
-          <div class="q-days">${days.map(d => { const k = ymdQ(d), i = sel.indexOf(k); return fixed[k]
-            ? `<button disabled class="busy">${esc(fmtDay(d))}<em>уже тренировка ${fixed[k]}</em></button>`
-            : `<button data-d="${k}" class="${i >= 0 ? 'on' : ''}">${esc(fmtDay(d))}${i >= 0 && order[i] != null ? `<em>тренировка ${Q[order[i]].t + 1}</em>` : k === todayK ? '<em>сегодня</em>' : ''}</button>`; }).join('')}</div>
-          <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" data-x>Отмена</button><button class="tr-modal-btn-primary" id="q-ok"${sel.length ? '' : ' disabled'}>${sel.length ? 'Поставить на ' + sel.length + ' ' + pl(sel.length, 'день', 'дня', 'дней') : 'Отметь дни'}</button></div>`;
+          <div class="q-ask-d" style="text-align:left;margin-top:0">${window.__coachMode ? 'Отметьте дни, когда клиент ходит в зал' : 'Отметь дни, когда ходишь в зал'}</div>
+          <div class="q-dw">${DW.map(([d, t]) => `<button data-dw="${d}" class="${on.has(d) ? 'on' : ''}">${t}</button>`).join('')}</div>
+          <div class="q-sum">${sel.length
+            ? `<b>${sel.length} ${pl(sel.length, 'тренировка', 'тренировки', 'тренировок')}</b><span>с ${esc(fmtDay(fromYmdQ(sel[0])))} по ${esc(fmtDay(last))}, ${on.size} ${pl(on.size, 'день', 'дня', 'дней')} в неделю</span>${left > 0 ? `<span class="q-sum-w">Ещё ${left} не влезут до конца плана, останутся в списке AI</span>` : ''}`
+            : '<span>Отметь хотя бы один день</span>'}</div>
+          <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" data-x>Отмена</button><button class="tr-modal-btn-primary" id="q-ok"${sel.length ? '' : ' disabled'}>${sel.length ? 'Поставить ' + sel.length : 'Отметь дни'}</button></div>`;
         box.querySelector('[data-x]').onclick = () => ov.remove();
-        box.querySelectorAll('[data-d]').forEach(x => x.onclick = () => { const i = sel.indexOf(x.dataset.d); if (i >= 0) sel.splice(i, 1); else if (sel.length < order.length) sel.push(x.dataset.d); sel.sort(); draw(); });
-        box.querySelectorAll('[data-q]').forEach(x => x.onclick = () => { const dw = x.dataset.dw.split(',').map(Number); sel.length = 0; days.forEach(d => { const k = ymdQ(d); if (!fixed[k] && k >= todayK && dw.includes(d.getDay()) && sel.length < order.length) sel.push(k); }); sel.sort(); draw(); });
+        box.querySelectorAll('[data-dw]').forEach(x => x.onclick = () => { const d = +x.dataset.dw; if (on.has(d)) on.delete(d); else on.add(d); draw(); });
         box.querySelector('#q-ok').onclick = () => {
           if (!sel.length) { ov.remove(); return; }
           const n = placeOn(plan, h, sel.slice());
@@ -1735,6 +1819,6 @@ window.TrainingAI = (function () {
   }
 
   function rerender(content, plan, h) { render(content, plan, h); }
-  return { render, generate, regenKeep, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
+  return { orphanList, dropOrphans, toast: qToast, render, generate, regenKeep, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
     GOALS, EQUIP, equipOf, stepFor, SLOTS, REGION_LABEL, DOW, toArr, esc, currentWeekIdx, planDayDate, weekKey, _progression: progression };
 })();

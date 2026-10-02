@@ -74,6 +74,9 @@ const FirebaseSync = (() => {
   function setStatus(text, isError) {
     const el = document.getElementById('sync-status');
     if (!el) return;
+    /* обычные «Сохранение / Сохранено / Данные загружены» не показываем: плашка мешала кнопкам и тостам.
+       Показываем только то, что требует внимания */
+    if (!isError && /^(Сохранение|Сохранено|Данные загружены)/.test(text)) { el.style.opacity = '0'; return; }
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     el.textContent = text;
     el.style.color = isError ? '#FF5C5C' : '#9D9A92';

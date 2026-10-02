@@ -1848,7 +1848,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-rm-back{border-color:transparent;background:none;padding-left:4px}
 .tr-rm-back{margin:12px 16px 0}
 /* v156 упор: всё тело / ноги и ягодицы */
-.q-focus{margin-top:12px}
+.q-focus{margin-top:2px}
 .q-focus-b{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .q-focus-b button{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid rgba(127,127,127,.18);border-radius:14px;padding:10px 12px;background:rgba(127,127,127,.06);color:inherit;font:inherit;cursor:pointer}
 .q-focus-b button b{font-size:14px}
@@ -2032,3 +2032,84 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-1rm-what { font-family: inherit !important; font-size: 13px !important; line-height: 1.5 !important; color: #A9B3CE !important; max-width: 420px; margin: 8px auto 0 !important; letter-spacing: 0 !important; }
 .tr-1rm-what b { color: #fff; }
 .tr-1rm-formula { font-size: 11px !important; margin-top: 8px !important; opacity: .7; }
+
+/* v180 AI-тренер: упор и число тренировок сразу на виду, пояснения в подсказках */
+.ai-card-h .ai-hero-t{margin:0}
+.q-help{width:34px;height:34px;flex:0 0 34px;border-radius:50%;border:1px solid rgba(110,139,255,.28);background:rgba(110,139,255,.08);color:#A9B8FF;display:inline-flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+.q-focus,.q-nrow{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin-top:12px}
+.q-lbl{font-size:13px;font-weight:700;color:#A7B1CF;white-space:nowrap}
+.q-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;padding:3px;border-radius:12px;background:rgba(110,139,255,.08);border:1px solid rgba(110,139,255,.16);min-width:0}
+.q-seg button{border:0;background:none;color:#8E98B8;font:inherit;font-size:13px;font-weight:700;padding:7px 11px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.q-n button{padding:7px 0}
+.q-seg button.on{background:linear-gradient(135deg,#2C4FA8,#3A62C9);color:#fff}
+.q-focus+.q-nrow+.q-circle{margin-top:14px}
+#q-auto{margin-top:8px}
+
+
+/* «вес подбери» в строке упражнения: тем же шрифтом, что и цифры, но спокойнее */
+.tr-ex-pick{font-family:Montserrat,sans-serif;font-size:13px;font-weight:700;color:#F2C14E;letter-spacing:0;white-space:nowrap}
+/* «Всё в план»: дни недели + итог */
+.q-dw{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:12px 0 4px}
+.q-dw button{border:1px solid rgba(110,139,255,.2);background:rgba(110,139,255,.06);color:#8E98B8;border-radius:12px;padding:12px 0;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.q-dw button.on{background:linear-gradient(135deg,#2C4FA8,#3A62C9);border-color:transparent;color:#fff}
+.q-sum{display:flex;flex-direction:column;gap:4px;margin:12px 0 4px;padding:12px 14px;border-radius:14px;background:rgba(110,139,255,.07);font-size:13px;color:#A7B1CF;line-height:1.4}
+.q-sum b{font-size:15px;color:#E8ECF8}
+.q-sum-w{color:#F2C14E}
+/* строки упражнений ровно по правому краю: тоннаж сверху, прирост под ним */
+.tr-ex-bottom{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tr-ex-bottom .tr-progress{font-size:12px;white-space:nowrap;flex-shrink:0}
+.tr-ex-name{min-width:0}
+/* тренировки от удалённого AI-плана: заметная плашка с кнопкой */
+.tr-orph{display:flex;align-items:center;gap:12px;margin:12px 0;padding:12px 12px 12px 14px;border-radius:16px;background:linear-gradient(135deg,rgba(44,79,168,.35),rgba(58,98,201,.18));border:1px solid rgba(110,139,255,.35)}
+.tr-orph>i{font-size:20px;color:#A9B8FF;flex-shrink:0}
+.tr-orph>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tr-orph b{font-size:14px;color:#fff;line-height:1.3}
+.tr-orph span{font-size:12px;color:#A7B1CF}
+.tr-orph button{flex-shrink:0;border:0;border-radius:12px;padding:10px 14px;background:#E5484D;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.tr-body>.tr-orph{margin:12px 16px}
+/* метки тренировки ярче */
+.theme-dark .tr-day-tag.has-session{font-weight:700!important;letter-spacing:.01em}
+/* модалка упражнения: удаление иконкой в заголовке, внизу «Отмена» */
+.tr-modal-head{display:flex;align-items:flex-start;gap:10px}
+.tr-modal-head .tr-modal-title{flex:1;min-width:0}
+.tr-modal-del{flex:0 0 36px;width:36px;height:36px;border-radius:10px;border:1px solid rgba(229,72,77,.35);background:rgba(229,72,77,.1);color:#FF7B7F;font-size:17px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.tr-progress.plan{color:#8EA8FF;font-weight:700;text-transform:lowercase}
+/* окно заметки */
+.tr-ask-hint{font-size:12.5px;color:#9AA3BD;margin:-4px 0 10px}
+.tr-ask textarea{width:100%;box-sizing:border-box;min-height:110px;resize:vertical;border-radius:12px;border:1px solid rgba(110,139,255,.25);background:rgba(255,255,255,.04);color:#E8ECF8;font:inherit;font-size:15px;line-height:1.45;padding:12px}
+.tr-ask textarea:focus{outline:none;border-color:#4A7CFF}
+/* перенос тренировки: сетка дней от сегодня */
+.tr-move-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 6px}
+.tr-move-day-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid rgba(110,139,255,.16);background:rgba(110,139,255,.05);color:#E8ECF8;font:inherit;cursor:pointer;min-width:0}
+.tr-move-day-opt b{font-size:13.5px}
+.tr-move-day-opt span{font-size:11.5px;color:#8E98B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tr-move-day-opt.busy span{color:#C9A266}
+.tr-move-day-opt.today{border-color:#4A7CFF;background:rgba(74,124,255,.14)}
+.tr-move-day-opt:active{transform:scale(.98)}
+/* десктоп: план не растягивается на весь экран */
+@media (min-width:900px){.tr-body,.tr-tabs,.tr-plan-bar{max-width:760px;margin-left:auto!important;margin-right:auto!important}}
+/* настройки AI на телефоне: подсказка заголовка переносится, а не наезжает */
+.ai-pref-t{flex-wrap:wrap;row-gap:2px}
+@media (max-width:440px){.ai-pref-t em{margin-left:0;flex-basis:100%}.ai-src-chips{grid-template-columns:1fr!important}}
+/* чат: поле 16px (iOS не увеличивает страницу), разметка ответов */
+.ch-input textarea{font-size:16px}
+.ch-msg .ch-h{font-weight:800;color:#fff;margin:8px 0 4px}
+.ch-msg ol{margin:4px 0 6px;padding-left:20px}
+.ch-msg li.sub{margin-left:14px;opacity:.9}
+.ch-msg code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:rgba(110,139,255,.14);padding:1px 5px;border-radius:5px}
+.ch-msg i{font-style:italic}
+/* счётчик «План от AI 18» не растягивается на телефоне */
+@media (max-width:440px){.q-sec-h .ai-pref-t em{flex-basis:auto;margin-left:4px}}
+/* поля в окнах тем же шрифтом */
+.tr-modal input,.tr-modal select,.tr-modal textarea,.tr-modal button{font-family:inherit}
+/* «Веса»: таблица не шире экрана, колонки одинаковые во всех группах */
+.tr-ww-table{width:100%;table-layout:fixed}
+.tr-ww-table td,.tr-ww-table th{overflow:hidden;text-overflow:ellipsis}
+.tr-ww-table td.tr-ww-name,.tr-ww-table th:first-child{width:auto;white-space:normal;overflow-wrap:anywhere}
+.tr-ww-table tr>:nth-child(2),.tr-ww-table tr>:nth-child(3){width:11%}
+.tr-ww-table tr>:nth-child(4){width:20%;white-space:nowrap}
+.tr-ww-table tr>:nth-child(5){width:22%;white-space:nowrap}
+.tr-ww-table th{font-size:9.5px!important;letter-spacing:.02em!important;text-overflow:clip!important}
+@media (max-width:400px){.tr-ww-table{font-size:12px}.tr-ww-table tr>:nth-child(5){width:24%}}
+:has(> .tr-rm-open){flex-wrap:wrap;row-gap:8px}
+.tr-ww-table th:not(:first-child){padding-left:2px!important;padding-right:2px!important;text-align:center}

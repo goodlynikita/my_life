@@ -17,23 +17,33 @@ window.TrainingChat = (function () {
     'Сегодня мало времени, 40 минут. Как сократить тренировку?',
     'Как понять, что пора разгрузочная неделя?',
   ];
-  let usage = null, busy = false;
+  let usage = null, busy = false, draft = '', focusInput = false, toAnswer = false;
 
   function msgs() { return toArr((Store.get().training || {}).aiChat).filter(m => m && m.text); }
   function saveMsgs(list) { Store.set('training.aiChat', list.slice(-40)); }
 
-  /* Простое форматирование ответа: абзацы, списки, жирный */
+  /* Форматирование ответа: заголовки, списки (маркированные и нумерованные), жирный, курсив, код */
   function fmt(t) {
     const lines = esc(t).split(/\n/);
-    let html = '', inList = false;
+    let html = '', list = null;
+    const close = () => { if (list) { html += '</' + list + '>'; list = null; } };
+    const inline = (x) => x.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<i>$2</i>').replace(/`([^`]+)`/g, '<code>$1</code>');
     lines.forEach(l => {
-      const li = l.match(/^\s*(?:[-•*]|\d+[.)])\s+(.*)/);
-      if (li) { if (!inList) { html += '<ul>'; inList = true; } html += '<li>' + li[1] + '</li>'; return; }
-      if (inList) { html += '</ul>'; inList = false; }
-      if (l.trim()) html += '<p>' + l + '</p>';
+      const h = l.match(/^\s*#{1,6}\s+(.*)/);
+      if (h) { close(); html += '<p class="ch-h">' + inline(h[1]) + '</p>'; return; }
+      const ol = l.match(/^\s*\d+[.)]\s+(.*)/);
+      const ul = !ol && l.match(/^\s*[-•*]\s+(.*)/);
+      if (ol || ul) {
+        const kind = ol ? 'ol' : 'ul';
+        if (list !== kind) { close(); html += '<' + kind + '>'; list = kind; }
+        html += '<li' + (/^\s{2,}/.test(l) ? ' class="sub"' : '') + '>' + inline((ol || ul)[1]) + '</li>';
+        return;
+      }
+      close();
+      if (l.trim()) html += '<p>' + inline(l) + '</p>';
     });
-    if (inList) html += '</ul>';
-    return html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    close();
+    return html;
   }
 
   async function call(payload) {
@@ -47,6 +57,7 @@ window.TrainingChat = (function () {
     } catch (e) { throw { code: 'net' }; }
     let d = {}; try { d = await r.json(); } catch (e) {}
     if (!r.ok) throw { code: d.error || 'server', used: d.used, limit: d.limit };
+    if (!payload.check && !String(d.text || '').trim()) throw { code: 'server' }; /* пустой ответ не теряем молча */
     return d;
   }
 
@@ -102,11 +113,24 @@ window.TrainingChat = (function () {
       </div>
     </div>`;
     bindTabs && bindTabs();
-    const box = content.querySelector('#ch-list'); if (box) box.scrollTop = box.scrollHeight;
+    const box = content.querySelector('#ch-list');
+    if (box) {
+      /* новый ответ тренера показываем с начала, остальное прокручиваем вниз */
+      const bots = box.querySelectorAll('.ch-msg.bot:not(.ch-typing)');
+      const last = bots[bots.length - 1];
+      if (toAnswer && last) box.scrollTop = Math.max(0, last.offsetTop - box.offsetTop - 8); else box.scrollTop = box.scrollHeight;
+      toAnswer = false;
+    }
     const ta = content.querySelector('#ch-text');
-    const again = () => render(content, plan, h, tabsHtml, bindTabs);
+    /* перерисовываем только если чат всё ещё открыт: иначе ответ лёг бы поверх другой вкладки */
+    const again = () => { if (content.querySelector('#ch-list') && content.isConnected) render(content, plan, h, tabsHtml, bindTabs); };
     if (ta) {
-      ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; });
+      /* черновик и фокус переживают перерисовку */
+      if (draft) { ta.value = draft; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; }
+      if (focusInput && !ta.disabled) setTimeout(() => ta.focus(), 0);
+      ta.addEventListener('focus', () => { focusInput = true; });
+      ta.addEventListener('blur', () => { setTimeout(() => { if (document.activeElement !== ta) focusInput = false; }, 0); });
+      ta.addEventListener('input', () => { draft = ta.value; ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; });
       ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(ta.value); } });
     }
     const sb = content.querySelector('#ch-send'); if (sb) sb.addEventListener('click', () => send(ta.value));
@@ -116,18 +140,18 @@ window.TrainingChat = (function () {
     async function send(text) {
       text = String(text || '').trim();
       if (!text || busy || off) return;
-      const l = msgs().filter(m => !m.err); l.push({ role: 'user', text, at: Date.now() }); saveMsgs(l);
-      busy = true; again();
+      const l = msgs(); l.push({ role: 'user', text, at: Date.now() }); saveMsgs(l);
+      draft = ''; busy = true; again();
       try {
         const context = TrainingAI.buildContext(h.getPlans(), plan);
-        const d = await call({ context, messages: l.slice(-8).map(m => ({ role: m.role, text: m.text })) });
+        const d = await call({ context, messages: l.filter(m => !m.err).slice(-8).map(m => ({ role: m.role, text: m.text })) });
         usage = { used: d.used, limit: d.limit };
         l.push({ role: 'assistant', text: d.text, at: Date.now() });
       } catch (e) {
         if (e && e.code === 'limit') usage = { used: e.used || LIMIT(), limit: e.limit || LIMIT() };
         l.push({ role: 'assistant', text: errText(e), err: true, at: Date.now() });
       }
-      saveMsgs(l); busy = false; again();
+      saveMsgs(l); busy = false; toAnswer = true; again();
     }
 
     /* узнаём остаток лимита один раз */

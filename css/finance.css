@@ -1027,3 +1027,6 @@
 @media (max-width: 380px) { .plan-cats { margin-left: 0; } }
 
 /* ═══ ТЁМНЫЕ ФИНАНСЫ: теперь отдельные стили в css/tochka.css (v97), без инверсии ═══ */
+/* v185: «Обнулить» иконкой, чтобы не обрезалась на телефоне */
+.pg-actions { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 44px; }
+.pg-btn-ghost { padding: 0; width: 44px; }

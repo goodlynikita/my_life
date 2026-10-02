@@ -17,7 +17,7 @@ window.TrainerClient = (function () {
     const dt = window.TrainingAI ? TrainingAI.planDayDate(plan, day.date) : null; if (!dt) return '';
     const t0 = new Date(); t0.setHours(0, 0, 0, 0); if (dt > t0) return '';
     const dn = day.done;
-    return `<button class="tr-day-done${dn ? ' on' : ''}" data-done="${w}:${d}" title="${dn ? (dn.by === 'coach' ? 'Отметил тренер' : 'Сделано') + '. Нажми, чтобы снять' : 'Отметить: тренировка сделана'}"><i class="ti ti-${dn ? 'circle-check-filled' : 'circle-check'}"></i>${dn ? '<span>' + (dn.by === 'coach' ? (coach() ? 'провёл' : 'тренер') : 'сделал') + '</span>' : ''}</button>`;
+    return `<button class="tr-day-done${dn ? ' on' : ''}" data-done="${w}:${d}" title="${dn ? (dn.by === 'coach' ? 'Отметил тренер' : 'Сделано') + '. Нажми, чтобы снять' : 'Отметить: тренировка сделана'}"><i class="ti ti-${dn ? 'circle-check-filled' : 'circle-check'}"></i>${dn ? '<span>' + (dn.by === 'coach' ? (coach() ? 'с вами' : 'тренер') : 'сделано') + '</span>' : ''}</button>`;
   }
 
   /* ── Итоги недели от тренера ── */

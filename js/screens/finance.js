@@ -54,7 +54,7 @@ function finPct(cur, prev) {
 }
 
 function finPctBadge(pct, size) {
-  if (pct===null) return '<span style="color:#555;">—</span>';
+  if (pct===null) return '<span style="color:#555;">0%</span>';
   const sign = pct>0?'+':'';
   const color = pct>0?'#A8C97F':pct<0?'#FF5C5C':'#9D9A92';
   const arrow = pct>0?'▲':pct<0?'▼':'';

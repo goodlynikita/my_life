@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v91';
+const CACHE = 'nik-system-v100';
 
 const STATIC = [
   './',
@@ -24,6 +24,7 @@ const STATIC = [
   './css/tour.css',
   './css/light.css',
   './js/theme.js',
+  './js/palette.js',
   './js/config.js',
   './js/store.js',
   './js/auth.js',

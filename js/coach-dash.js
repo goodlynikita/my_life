@@ -95,9 +95,9 @@ window.CoachDash = (function () {
         if (d.isDone(x)) {
           const hs = d.hist.filter(h => +h.date === +x.date).flatMap(h => h.exercises);
           const top = hs.sort((a, b) => e1(b) - e1(a))[0];
-          ev.push({ t: +x.date, k: 'done', c, html: `<b>${esc(who)}</b> ${x.day.done && x.day.done.by === 'coach' ? 'тренировка с вами' : 'сделал тренировку'}: ${esc(groupsOf(x))}${top && top.weight > 0 ? `, ${esc(top.name)} ${kg(top.weight)}×${top.reps}` : ''}` });
+          ev.push({ t: +x.date, k: 'done', c, html: `<b>${esc(who)}</b>: ${x.day.done && x.day.done.by === 'coach' ? 'тренировка с вами' : 'тренировка сделана'}, ${esc(groupsOf(x))}${top && top.weight > 0 ? `, ${esc(top.name)} ${kg(top.weight)}×${top.reps}` : ''}` });
         } else if (+x.date < +today) ev.push({ t: +x.date, k: 'miss', c, html: `<b>${esc(who)}</b>: тренировка не отмечена (${esc(groupsOf(x))})` });
-        if (x.day.comment) ev.push({ t: +x.date + 1, k: 'comment', c, html: `<b>${esc(who)}</b> написал: «${esc(x.day.comment)}»` });
+        if (x.day.comment) ev.push({ t: +x.date + 1, k: 'comment', c, html: `<b>${esc(who)}</b>, заметка: «${esc(x.day.comment)}»` });
       });
       /* рекорды */
       Object.values(d.an.ex).forEach(x => {
@@ -245,6 +245,7 @@ window.CoachDash = (function () {
       <div class="cd-feels">${d.comments.map(x => `<div class="cd-feel"><span class="cd-feel-d">${fmtD(x.date)}</span><span class="cd-feel-t">${esc(x.text)}</span></div>`).join('')}</div></div>` : '';
     return `
     ${reportHtml(r)}
+    ${weekly}
     <div class="card"><div class="card-h"><div><b>Тренировки</b></div></div>
       ${attHtml(d.weeks)}</div>
     ${lifts}
@@ -254,8 +255,7 @@ window.CoachDash = (function () {
       <div class="more-b"><div class="more-t">Сколько поднято за неделю <span>в тоннах</span></div>${tonsHtml(d.weeks)}</div>
       ${setsHtml(r.spw)}
       ${comments}
-    </details>
-    ${weekly}`;
+    </details>`;
   }
 
   /* ═══ Итоги недели ═══ */
@@ -267,10 +267,10 @@ window.CoachDash = (function () {
     return { body, range: fmtD(wc.from) + ' – ' + fmtD(wc.to), count: wk.done || wc.count, planned: wk.planned, tons: Math.round(wc.tL / 100) / 10, delta: wc.delta, grew: wc.grew.slice(0, 4), lag: wc.lag};
   }
   function weeklyFormHtml(s, sent) {
-    return `<details class="card more" id="cw-card"${sent ? '' : ''}><summary><b>Итоги недели для клиента</b><span>${esc(s.range)}${sent ? ' · отправлено ' + fmtD(new Date(sent.at)) : ' · ещё не отправлено'}</span><i class="ti ti-chevron-down"></i></summary>
-      <div class="cd-kpis three"><div class="cd-kpi"><b>${s.count}${s.planned ? '<small>/' + s.planned + '</small>' : ''}</b><span>тренировок</span></div>
+    return `<details class="card more" id="cw-card"${sent ? '' : ' open'}><summary><b>Итоги недели для клиента</b><span>${esc(s.range)}${sent ? ' · отправлено ' + fmtD(new Date(sent.at)) : ' · ещё не отправлено'}</span><i class="ti ti-chevron-down"></i></summary>
+      <div class="cd-kpis three"><div class="cd-kpi"><b>${s.count}${s.planned ? '<small>/' + s.planned + '</small>' : ''}</b><span>${(() => { const n = s.planned || s.count, x = n % 10, y = n % 100; return x === 1 && y !== 11 ? 'тренировка' : x >= 2 && x <= 4 && (y < 12 || y > 14) ? 'тренировки' : 'тренировок'; })()}</span></div>
         <div class="cd-kpi"><b>${String(s.tons).replace('.', ',')}</b><span>тонн</span></div>
-        <div class="cd-kpi"><b>${s.delta == null ? '–' : (s.delta > 0 ? '+' : '') + s.delta + '%'}</b><span>к прошлой</span></div></div>
+        <div class="cd-kpi"><b style="color:${s.delta == null ? 'inherit' : s.delta >= 0 ? '#4ADE80' : '#F87171'}">${s.delta == null ? '0%' : (s.delta > 0 ? '+' : s.delta < 0 ? '−' : '') + Math.abs(s.delta) + '%'}</b><span>к прошлой</span></div></div>
       ${s.grew.length ? `<div class="cd-grew">${s.grew.map(g => `<div><i class="ti ti-trending-up"></i>${esc(g)}</div>`).join('')}</div>` : ''}
       ${s.body && s.body.length ? `<div class="cd-grew body">${s.body.map(g => `<div><i class="ti ti-ruler-measure"></i>${esc(g)}</div>`).join('')}</div>` : ''}
       <textarea class="field" id="cw-text" placeholder="Ваш комментарий: что получилось, на что обратить внимание на следующей неделе">${esc(sent && sent.text || '')}</textarea>

@@ -118,7 +118,7 @@ window.FinPiggy = (function () {
         <div class="pg-actions">
           <button class="pg-btn pg-btn-out" id="pg-withdraw"><i class="ti ti-arrow-down-right"></i> Снять</button>
           <button class="pg-btn" id="pg-deposit"><i class="ti ti-plus"></i> Пополнить</button>
-          <button class="pg-btn pg-btn-ghost" id="pg-reset" aria-label="Обнулить"><i class="ti ti-refresh"></i> Обнулить</button>
+          <button class="pg-btn pg-btn-ghost" id="pg-reset" aria-label="Обнулить копилку" title="Обнулить копилку"><i class="ti ti-refresh"></i></button>
         </div>
       </div>
       <div class="pg-list-card">
@@ -195,7 +195,7 @@ window.FinPiggy = (function () {
           <label class="pg-check"><input type="checkbox" class="pg-q"><span>Это <b>нужно</b>, а не просто «хочу»</span></label>
           <label class="pg-check"><input type="checkbox" class="pg-q"><span>Если не потратить, будут <b>проблемы</b> (здоровье, работа, поломка, штраф)</span></label>
           <label class="pg-check"><input type="checkbox" class="pg-q"><span>Это <b>не импульс</b>: я бы купил это и через неделю</span></label>
-          <div class="pg-impulse" id="pg-impulse">Похоже на желание, а не на срочную трату. Копилка — для непредвиденного. Лучше поставь это в цели и накопи отдельно.</div>
+          <div class="pg-impulse" id="pg-impulse">Похоже на желание, а не на срочную трату. Копилка для непредвиденного. Лучше поставь это в цели и накопи отдельно.</div>
           <div class="pg-sheet-actions pg-col">
             <button class="pg-sbtn pg-sbtn-danger" id="pg-confirm" disabled>Снять ${finFmtFull(amount)}</button>
             <button class="pg-sbtn pg-sbtn-soft" id="pg-to-goal"><i class="ti ti-target-arrow"></i> Не снимать, добавить в цели</button>

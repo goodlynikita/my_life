@@ -140,12 +140,12 @@ function goalsMonthsLeft(season) {
     if (curMonth === 1)  return 1; // фев — 1
     return 3; // вне зимы — показываем полный сезон
   }
-  const left = sMths.filter(m => m >= curMonth).length;
-  return Math.max(1, left);
+  /* прошедший сезон: 0, тогда вместо «Месяцев / В месяц» пишем «Сезон прошёл» */
+  return sMths.filter(m => m >= curMonth).length;
 }
 
 function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
-  const isEdit = !!existing;
+  const isEdit = !!(existing && (existing.id || existing.name)); /* «+» передаёт только сезон и категорию: это новая цель */
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay modal-goals';
   const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
@@ -404,10 +404,10 @@ window.Screens.goals = function(mount) {
       const otherTotal = otherItems.reduce((s,g)=>s+((g.done||g.maybe)?0:g.amount),0);
       /* grandTotal = все незакрытые (Цель + сезонные) */
       const grandTotal = goalTotal + otherTotal;
-      /* На год = всё включая Цель */
-      const naGodTotal = grandTotal;
       /* Закрыто = все закрытые с суммой */
       const doneTotal = all.filter(g=>g.done&&g.amount>0).reduce((s,g)=>s+g.amount,0);
+      /* На год = открытые + закрытые, Осталось = открытые */
+      const naGodTotal = grandTotal + doneTotal;
       const remainTotal = Math.max(0, grandTotal);
       const allDone = all.filter(g=>g.done).length;
       const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
@@ -425,11 +425,13 @@ window.Screens.goals = function(mount) {
         </div>`;
     } else if (activeSeason==='spring') {
       {
-        const stats1 = monthsLeft
+        const stats1 = monthsLeft != null
           ? '<div class="goals-season-stats">'
             + '<div class="goals-season-stat"><div class="goals-sstat-label">Осталось</div><div class="goals-sstat-val goals-remain-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+            + (monthsLeft > 0
+              ? '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+              + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+              : '<div class="goals-season-stat"><div class="goals-sstat-label">Сезон</div><div class="goals-sstat-val" style="color:#9D9A92;">прошёл</div></div>')
             + '</div><div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
           : '';
         heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
@@ -439,11 +441,13 @@ window.Screens.goals = function(mount) {
     } else {
       
       {
-        const stats2 = monthsLeft
+        const stats2 = monthsLeft != null
           ? '<div class="goals-season-stats">'
             + '<div class="goals-season-stat"><div class="goals-sstat-label">Осталось</div><div class="goals-sstat-val" style="color:#F0EDE5;">'+goalsFmt(remainAmt)+'</div></div>'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
-            + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+            + (monthsLeft > 0
+              ? '<div class="goals-season-stat"><div class="goals-sstat-label">Месяцев</div><div class="goals-sstat-val" style="color:'+color+';">'+monthsLeft+'</div></div>'
+              + '<div class="goals-season-stat"><div class="goals-sstat-label">В месяц</div><div class="goals-sstat-val" style="color:'+color+';">'+goalsFmt(perMonth)+'</div></div>'
+              : '<div class="goals-season-stat"><div class="goals-sstat-label">Сезон</div><div class="goals-sstat-val" style="color:#9D9A92;">прошёл</div></div>')
             + '</div><div class="goals-season-bar-track"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width 0.5s;"></div></div>'
           : '';
         heroHtml = '<div class="goals-hero-season" style="--season-bg:'+bg+';background:'+bg+';border-color:'+color+'55;">'
@@ -471,8 +475,9 @@ window.Screens.goals = function(mount) {
             const idx = goalsGet().findIndex(x=>x.id===g.id);
             const sInfo = GOALS_SEASONS.find(s=>s.key===g.season)||GOALS_SEASONS[0];
             const itemColor = activeSeason==='all' ? sInfo.color : catColor;
-            const seasonDot = activeSeason==='all' && g.season!=='all'
-              ? '<span style="width:6px;height:6px;border-radius:50%;background:'+sInfo.color+';flex-shrink:0;display:inline-block;margin-right:2px;"></span>' : '';
+            /* без сезона точка прозрачная: названия стоят ровно в одну линию */
+            const seasonDot = activeSeason==='all'
+              ? '<span style="width:6px;height:6px;border-radius:50%;background:'+(g.season!=='all'?sInfo.color:'transparent')+';flex-shrink:0;display:inline-block;margin-right:2px;"></span>' : '';
             const MS=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
             const mt = g.month ? ' · ' + MS[g.month] : '';
             const gStatus = g.done?'done':g.maybe?'maybe':'active';
@@ -563,7 +568,7 @@ window.Screens.goals = function(mount) {
       });
     });
 
-    document.getElementById('goals-new').addEventListener('click',()=>{
+    document.getElementById('goals-new').onclick = (()=>{
       goalsOpenModal({season:activeSeason==='all'?'all':activeSeason},result=>{
         if(!result)return;
         /* При первом сохранении своей цели — инициализируем пустой список (сбрасываем демо) */

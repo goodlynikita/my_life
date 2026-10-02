@@ -54,8 +54,8 @@
   --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
   /* training section uses its own sport-grotesk type, see below */
-  --tr-font-display: 'Archivo', 'Inter', -apple-system, sans-serif;
-  --tr-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --tr-font-display: 'Montserrat', -apple-system, sans-serif;
+  --tr-font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* ---- layout ---- */
   --radius-sm: 6px;

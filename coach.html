@@ -41,6 +41,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="js/theme.js"></script>
+<script src="js/palette.js"></script>
 <link rel="stylesheet" href="css/coach-home.css">
 <link rel="stylesheet" href="css/slides-kit.css">
 <link rel="stylesheet" href="css/winter-arc.css">
@@ -577,8 +578,28 @@ body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,15
 @media(max-width:420px){.qr{width:110px;height:110px}}
 /* план клиента = экран тренировок из YOU */
 .coach-tr .tr-header,.coach-tr .tr-tabs,.coach-tr .tr-plan-bar{display:none!important}
-.coach-tr .theme-dark{background:none}
+.coach-tr .theme-dark,.coach-tr .theme-dark:has(> .tr-header){background:none!important}
+.coach-ai>.ai-wrap,.coach-ai .ai-wrap{padding-left:0!important;padding-right:0!important;margin-left:0!important;margin-right:0!important}
 .coach-tr .tr-body{padding:0}
+
+/* ═══ Единый вид с YOU: кнопки, поля, окна и карточки кабинета в тех же размерах, что в приложении ═══ */
+.btn{height:48px;border-radius:12px;font-weight:700}
+.btn-sm{height:36px;border-radius:10px;font-weight:700}
+.btn-ghost{background:transparent;border:1px solid rgba(74,124,255,.16)}
+.field{height:44px;border-radius:10px;font-size:15px;background:#2A2D35;border:1px solid rgba(255,255,255,.1);margin-bottom:10px}
+textarea.field{height:auto;min-height:96px;padding:12px 14px}
+.field:focus{border-color:#4A7CFF}
+.lbl{font-size:11px;font-weight:600;color:#8E98B8;margin:6px 0 5px}
+/* окна по центру, как в плане и в YOU */
+.ov{align-items:center;padding:16px}
+.sheet{max-width:440px;border-radius:16px;background:#1E2028;border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 40px rgba(0,0,0,.6);padding:24px 20px;max-height:86vh}
+.sheet h3{font-size:17px;font-weight:800;margin:0 0 16px}
+.acts{gap:10px;margin-top:16px}
+.cl,.tpl{border-radius:18px}
+.mini{background:#1F2840}
+.toast{max-width:calc(100vw - 32px);white-space:normal;text-align:center;box-sizing:border-box}
+@media (min-width:900px){.coach-tr .pl-top{max-width:760px;margin-left:auto;margin-right:auto}}
+.c-head b{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -778,6 +799,7 @@ $('#menu').onclick = () => {
     <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
     <a href="index.html" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-apps" style="font-size:18px;color:#8EA8FF;"></i>Приложение YOU</a>
     <button data-m="wa" ${R}><i class="ti ti-snowflake" ${I}></i>Дизайн Winter Arc</button>
+    ${window.Palette ? Palette.rowHtml() : ''}
     <button data-m="help" ${R}><i class="ti ti-help-circle" ${I}></i>Подсказки по кабинету</button>
     <button data-m="out" ${R.replace('color:#E8E5DC', 'color:#F87171')}><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button></div>`;
   document.body.appendChild(ov);
@@ -786,6 +808,7 @@ $('#menu').onclick = () => {
   ov.querySelector('[data-m="slides"]').onclick = go(openSlidesEditor);
   ov.querySelector('[data-m="tiles"]').onclick = go(openTilesEditor);
   ov.querySelector('[data-m="slider"]').onclick = go(openSliderSettings);
+  if (window.Palette) Palette.bind(ov);
   ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
   ov.querySelector('[data-m="wa"]').onclick = () => { ov.remove(); if (window.WinterArc && WinterArc.start) WinterArc.start(); };
   ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
@@ -917,7 +940,7 @@ async function loadClients() {
   const s = await get(ref(db, 'trainerClients/' + trainer.uid));
   const list = s.exists() ? Object.entries(s.val()).map(([k, v]) => ({ k, ...v })) : [];
   clients = await Promise.all(list.map(async c => {
-    try { const t = await get(ref(db, c.root + '/training')); c.training = t.exists() ? t.val() : { plans: [] }; c.ok = true; }
+    try { const t = await get(ref(db, c.root + '/training')); c.training = t.exists() ? t.val() : { plans: [] }; c.ok = true; c._synced = clean(toArr(c.training.plans)); }
     catch (e) { c.training = { plans: [] }; c.ok = false; }
     c.stat = stats(c); return c;
   }));
@@ -978,6 +1001,7 @@ const SEC_COL = { clients: 'blue', add: 'blue', feed: 'green', tpl: 'violet', sc
 const goAdd = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
 const SEC_ACT = { clients: ['ti-user-plus', 'Добавить клиента', goAdd], sched: ['ti-plus', 'Новая запись', () => { const b = $('#sc-add'); if (b) b.click(); else { schedSel = null; schedWeek = 0; render(); setTimeout(() => { const x = $('#sc-add'); if (x) x.click(); }, 50); } }] };
 function render() {
+  if (view.name !== 'client') liveStop();
   const atHub = view.name === 'list' && (!view.tab || view.tab === 'hub');
   $('#main').classList.toggle('hub-w', atHub);
   document.body.classList.remove('sec-blue', 'sec-green', 'sec-violet', 'sec-amber');
@@ -1611,9 +1635,9 @@ const CT = {
     { sel: '#cw-card', t: 'Итоги недели', d: 'Цифры считаются сами. Допишите пару слов и отправьте: клиент увидит карточку в приложении. Или сохраните картинкой для мессенджера.' },
   ],
   plan: [
-    { sel: '.dn', t: 'Отметка тренировки', d: 'Тренировка считается сделанной, когда клиент или вы поставили галочку. Тренировали в зале? Отметьте сами.' },
-    { sel: '.mini[data-act="note"]', t: 'Заметка к дню', d: 'Клиент увидит её над тренировкой: техника, самочувствие, на что обратить внимание.' },
-    { sel: '.ex', t: 'Упражнение', d: 'Нажмите, чтобы поменять подходы, повторы и вес. У клиента план обновится сам.' },
+    { sel: '.tr-day-done', t: 'Отметка тренировки', d: 'Тренировка считается сделанной, когда клиент или вы поставили галочку. Тренировали в зале? Отметьте сами.' },
+    { sel: '.tr-day-comment-btn', t: 'Заметка к дню', d: 'Клиент увидит её над тренировкой: техника, самочувствие, на что обратить внимание.' },
+    { sel: '.tr-exercise', t: 'Упражнение', d: 'Нажмите, чтобы поменять подходы, повторы и вес. У клиента план обновится сам.' },
     { sel: '#st', t: 'В шаблоны', d: 'Сохраните удачную программу и назначайте её другим клиентам. Веса подставятся из их истории.' },
     { sel: '#np', t: 'Новый план', d: 'Пустой на 8 недель или из шаблона. Старый уйдёт в архив, записи клиента сохранятся.' },
   ],
@@ -1653,7 +1677,7 @@ function renderTemplates(body) {
       <div class="cl-m"><b>${esc(t.name)}</b><span>${tplMeta(t)}${t.from ? ' · из плана ' + esc(t.from) : ''}</span></div>
       <button class="mini" data-use="${t.id}" title="Назначить клиенту"><i class="ti ti-user-share"></i></button>
       <button class="mini" data-del="${t.id}" title="Удалить"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`
-    : `<div class="empty"><i class="ti ti-template"></i>Шаблонов пока нет.<br>Откройте клиента → «План» → «Сохранить как шаблон». Удобно для типовых программ: новичок, набор массы, подготовка к старту.</div>`}</div>`;
+    : `<div class="empty"><i class="ti ti-template"></i>Шаблонов пока нет.<br>Откройте клиента → «План» → «В шаблоны». Удобно для типовых программ: новичок, набор массы, подготовка к старту.</div>`}</div>`;
   coachTips('tpl');
   body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
     const t = templates.find(x => x.id === b.dataset.del); if (!t || !confirm('Удалить шаблон «' + t.name + '»? У клиентов планы останутся.')) return;
@@ -1758,6 +1782,9 @@ async function openClient(i, tab) {
       if (!_planSaveQ) _planSaveQ = Promise.resolve().then(async () => { _planSaveQ = null; await savePlans(c, plansOf(c)); CoachStore.cur.training = c.training; });
       return;
     }
+    /* свои упражнения и типы, которые тренер добавил клиенту, сохраняем клиенту */
+    const cm = path.match(/^training\.catalog\.(types|exercises)$/);
+    if (cm) { c.training.catalog = c.training.catalog || {}; c.training.catalog[cm[1]] = clean(val); if (!c.demo) set(ref(db, c.root + '/training/catalog/' + cm[1]), clean(val)).catch(() => {}); return; }
     const m = path.match(/^training\.(ai|aiPrefs|aiSources)$/);
     if (m) { CoachStore.cur.tai[m[1]] = val; if (!c.demo) set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
   };
@@ -1775,6 +1802,10 @@ function h() {
     openPlan: () => { const b = document.querySelector('.ctabs button[data-t="plan"]'); if (b) b.click(); },
   };
 }
+/* стабильная строка для сравнения: порядок ключей не важен */
+const stableStr = (v) => JSON.stringify(v, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, kk) => { o[kk] = x[kk]; return o; }, {}) : x);
+/* Сохранение плана клиента. Пишем ТОЛЬКО изменённые дни и поля, а не весь список планов:
+   если клиент в это же время записал тренировку или комментарий в другой день, его запись не пропадёт */
 async function savePlans(c, plans) {
   const rev = Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
   /* всё, что тренер вписал на сегодня и вперёд, помечаем как план тренера:
@@ -1782,11 +1813,63 @@ async function savePlans(c, plans) {
   plans.forEach(p => { if (!p) return; toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = window.TrainingAI.planDayDate(p, d.date);
     /* снимок плана тренера: если клиент потом поменяет веса или повторы, тренировка засчитается как сделанная */
     if (dt && dt >= t0) toArr(d.sessions).forEach(s => { if (!s) return; if (!s.byCoach) s.byCoach = true; toArr(s.exercises).forEach(e => { if (e) e.pv = window.CoachDash.sig(e); }); }); })); });
-  c.training.plans = clean(plans); c.training.coachRev = rev;
-  if (c.demo) { c.stat = stats(c); return; }
-  try { await update(ref(db, c.root + '/training'), { plans: clean(plans), coachRev: rev }); c.stat = stats(c); }
+  const next = clean(plans);
+  const prev = c._synced || [];
+  c.training.plans = next; c.training.coachRev = rev;
+  if (c.demo) { c._synced = clean(next); c.stat = stats(c); return; }
+  /* точечные пути: plans/i/поле, plans/i/weeks/w/поле, plans/i/weeks/w/days/d */
+  const up = {};
+  const holes = prev.some(x => !x);
+  if (holes) up['plans'] = next;
+  else next.forEach((p, i) => {
+    const o = prev[i];
+    if (!o) { up['plans/' + i] = p; return; }
+    Object.keys(Object.assign({}, o, p)).forEach(k => { if (k !== 'weeks' && stableStr(o[k]) !== stableStr(p[k])) up['plans/' + i + '/' + k] = p[k] === undefined ? null : p[k]; });
+    const pw = toArr(p.weeks), ow = toArr(o.weeks);
+    for (let w = 0; w < Math.max(pw.length, ow.length); w++) {
+      const a = pw[w], b = ow[w];
+      if (!a || !b) { up['plans/' + i + '/weeks/' + w] = a || null; continue; }
+      Object.keys(Object.assign({}, a, b)).forEach(k => { if (k !== 'days' && stableStr(a[k]) !== stableStr(b[k])) up['plans/' + i + '/weeks/' + w + '/' + k] = a[k] === undefined ? null : a[k]; });
+      const ad = toArr(a.days), bd = toArr(b.days);
+      for (let d = 0; d < Math.max(ad.length, bd.length); d++) if (stableStr(ad[d] || null) !== stableStr(bd[d] || null)) up['plans/' + i + '/weeks/' + w + '/days/' + d] = ad[d] || null;
+    }
+  });
+  if (!Object.keys(up).length) return;
+  up.coachRev = rev;
+  try { await update(ref(db, c.root + '/training'), up); c._synced = clean(next); c.stat = stats(c); }
   catch (e) { alert('Не получилось сохранить. Возможно, клиент отключился от вас.'); }
 }
+/* пока открыт клиент, его план обновляется вживую: тренер видит свежие записи клиента */
+let _liveUnsub = null, _liveK = null;
+function liveClient(c) {
+  if (_liveK === c.k) return;
+  if (_liveUnsub) { try { _liveUnsub(); } catch (e) {} _liveUnsub = null; _liveK = null; }
+  if (c.demo || !c.root) return;
+  _liveK = c.k;
+  const isBusy = () => document.querySelector('.tr-modal-overlay, .ov, .tour-root') || /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '');
+  const applyFresh = (fresh) => {
+    c._pending = null;
+    c._synced = clean(fresh);
+    c.training.plans = clean(fresh); c.stat = stats(c);
+    if (view.name === 'client' && clients[view.i] === c && view.tab === 'plan') renderClient();
+  };
+  _liveUnsub = onValue(ref(db, c.root + '/training/plans'), (snap) => {
+    const fresh = toArr(snap.val());
+    if (stableStr(fresh) === stableStr(c._synced || [])) { c._pending = null; return; } /* это наша же запись */
+    /* пока у тренера открыто окно, свежие данные откладываем: окно сохранит свою правку поверх старой версии,
+       а сравнение пойдёт с тем, что тренер видел, поэтому запись клиента в другом дне не затрётся */
+    if (isBusy()) {
+      c._pending = fresh;
+      if (!c._pendT) c._pendT = setInterval(() => {
+        if (!c._pending) { clearInterval(c._pendT); c._pendT = null; return; }
+        if (!isBusy()) { const f = c._pending; clearInterval(c._pendT); c._pendT = null; applyFresh(f); }
+      }, 400);
+      return;
+    }
+    applyFresh(fresh);
+  }, () => {});
+}
+function liveStop() { if (_liveUnsub) { try { _liveUnsub(); } catch (e) {} } _liveUnsub = null; _liveK = null; }
 
 function renderClient() {
   const c = clients[view.i]; if (!c) { view = { name: 'list' }; return render(); }
@@ -1796,6 +1879,7 @@ function renderClient() {
     $('#rm').onclick = async () => { await set(ref(db, 'trainerClients/' + trainer.uid + '/' + c.k), null).catch(() => {}); await set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k), null).catch(() => {}); view = { name: 'list' }; await loadClients(); render(); };
     return;
   }
+  liveClient(c);
   const tabs = [['dash', 'ti-layout-dashboard', 'Обзор'], ['plan', 'ti-calendar', 'План'], ['ai', 'ti-sparkles', 'AI'], ['note', 'ti-notes', 'Заметки']];
   $('#main').innerHTML = `
     <div class="c-head"><div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>

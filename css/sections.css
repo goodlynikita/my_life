@@ -1758,3 +1758,17 @@ input.wheel-slider::-webkit-slider-thumb {-webkit-appearance:none;appearance:non
 input.wheel-slider::-moz-range-track {height:6px;border-radius:3px;background:#2A2D35}
 input.wheel-slider::-moz-range-progress {height:6px;border-radius:3px;background:#16A34A}
 input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.45)}
+
+/* v185: длинное название привычки не растягивает таблицу */
+.hab-nm-td{max-width:150px}
+.hab-nm{display:inline-block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.hab-nm-td > div{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.sec-metric .sec-metric-value{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* цели: плавающая «+» не закрывает суммы последних строк */
+.goals-body{padding-bottom:140px!important}
+/* выход только из меню на главной: в шапках разделов кнопка стояла рядом с «назад» и выкидывала одним тапом */
+#fl, #gl, #hab-logout, #tr-logout { display: none !important; }
+#hab-best,#hab-worst{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:normal!important;overflow-wrap:anywhere}
+/* колесо жизни: подписи не обрезаются, разделители спокойные */
+.wheel-current-card{overflow:visible}
+.wheel-card-head,.wheel-hist-row,.wheel-history-title{border-bottom-color:rgba(255,255,255,.06)!important}

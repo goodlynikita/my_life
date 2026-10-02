@@ -120,3 +120,17 @@ html[data-theme="light"] .tr-modal, html[data-theme="light"] .se-panel, html[dat
 html[data-theme="light"] html.fin-dark-on .modal-finance .tr-modal, html[data-theme="light"].fin-dark-on .modal-finance .tr-modal { box-shadow: 0 10px 34px rgba(255,255,255,0.16) !important; }
 /* переключатель темы как в кабинете тренера: в светлой плотный белый кружок */
 html[data-theme="light"] .theme-toggle .tt-knob{background:rgba(0,0,0,.92);border-color:rgba(0,0,0,.4);box-shadow:0 2px 6px rgba(255,255,255,.25)}
+
+/* ═══ Палитра «Пастельные» для YOU: те же цвета, только мягче (как в кабинете тренера) ═══ */
+html[data-pal="soft"]:not([data-app="coach"]) { filter: saturate(.68) brightness(.98); }
+html[data-theme="light"][data-pal="soft"]:not([data-app="coach"]) { filter: invert(1) hue-rotate(180deg) contrast(1.08) brightness(0.93) saturate(.68); }
+
+/* ═══ Палитра «Яркие» для кабинета тренера: цвета разделов как в YOU ═══ */
+html[data-app="coach"][data-pal="bright"] body.sec-blue { --acc: #4A7CFF; --acc2: #6D5CF6; }
+html[data-app="coach"][data-pal="bright"] body.sec-green { --acc: #22C55E; --acc2: #15803D; --line: rgba(34,197,94,.14); --line2: rgba(34,197,94,.24); }
+html[data-app="coach"][data-pal="bright"] body.sec-violet { --acc: #8B5CF6; --acc2: #6D28D9; --line: rgba(139,92,246,.14); --line2: rgba(139,92,246,.24); }
+html[data-app="coach"][data-pal="bright"] body.sec-amber { --acc: #F59E0B; --acc2: #B45309; --line: rgba(245,158,11,.14); --line2: rgba(245,158,11,.24); }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-blue { background: linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%) !important; }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-green { background: linear-gradient(135deg,#14532D 0%,#16A34A 100%) !important; }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-violet { background: linear-gradient(135deg,#4C1D95 0%,#7C3AED 100%) !important; }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-amber { background: linear-gradient(135deg,#78350F 0%,#B45309 100%) !important; }

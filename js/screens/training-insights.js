@@ -43,6 +43,10 @@ window.TrainingInsights = (function () {
       const b3 = Math.max(...last3.map(e1)), bb = before.length ? Math.max(...before.map(e1)) : 0;
       const flat = before.length ? b3 <= bb * 1.005 : (e1(last3[2]) <= e1(last3[0]) * 1.005);
       if (!flat || e1(last3[2]) > e1(last3[0]) * 1.005) return;
+      /* дошёл до верха диапазона повторов: это не плато, программа сама прибавит вес */
+      { const g = (A.GOALS || {})[(((Store.get().training || {}).aiPrefs) || {}).goal || 'mass'] || { hi: 12 };
+        let hi = g.hi; if (x.cls.kind === 'iso' && hi <= 6) hi = 12; if (/отведени|махи|разведени/i.test(x.name || '')) hi = Math.max(hi, 20);
+        if ((last3[2].reps || 0) >= hi) return; }
       /* замены: сначала твои упражнения на ту же зону, потом база */
       /* упражнения, которые уже делаешь вместе с этим, в замену не предлагаем */
       const together = new Set(an.combos.flatMap(c => c.sessions).filter(ss => ss.exercises.some(e => e.key === x.key)).flatMap(ss => ss.exercises.map(e => e.key)));

@@ -569,7 +569,7 @@ window.Screens.finance = function(mount) {
             <div class="plan-cat plan-once${p.done ? ' done' : ''}" data-once="${escH(p.id)}" role="button" tabindex="0">
               <span class="plan-dot" style="background:#977FE9;"></span>
               <span class="plan-cat-name"><span class="plan-cat-nm">${escH(p.name)}</span><em class="plan-day"><i class="ti ti-calendar-event"></i>${d.getDate()} ${FIN_MONTHS_GEN[d.getMonth()]}${later && mo < p.amt ? ` · по ${finFmtFull(mo)} в мес` : ''}</em></span>
-              <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em>' : paidP > 0 ? `<em>${finFmtFull(paidP)}</em> из ` : ''}${finFmtFull(p.amt)}</span>
+              <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em>' + finFmtFull(p.amt) : paidP > 0 ? `${finFmtFull(p.amt - paidP)}<small>из ${finFmtFull(p.amt)}</small>` : finFmtFull(p.amt)}</span>
               <span class="plan-cat-pct">${later ? '' : pctOf(p.amt) + '%'}</span>
             </div>`; }).join('')}
         </div>` : ''}

@@ -176,9 +176,11 @@ window.FinSpend = (function () {
     const sp = {}; items.forEach(x => { const k = x.once ? '_once' : (x.cat || '_other'); sp[k] = (sp[k] || 0) + x.amt; });
     const spent = Object.values(sp).reduce((s, v) => s + v, 0);
     /* план, который ещё предстоит оплатить: по каждой категории остаток плана */
-    const planOf = {}; b.cats.forEach(c => { planOf[c.id] = Math.max(0, +c.amt || 0); });
+    /* бюджет-пример (категории ещё не настраивали) в расчёт не идёт, кроме режима примера: иначе «Свободно» уходит в минус на чужие цифры */
+    const planCats = b.demo && !demoOn() ? [] : b.cats;
+    const planOf = {}; planCats.forEach(c => { planOf[c.id] = Math.max(0, +c.amt || 0); });
     const planTotal = Object.values(planOf).reduce((s, v) => s + v, 0);
-    const planLeft = b.cats.reduce((s, c) => s + Math.max(0, planOf[c.id] - (sp[c.id] || 0)), 0);
+    const planLeft = planCats.reduce((s, c) => s + Math.max(0, planOf[c.id] - (sp[c.id] || 0)), 0);
     /* разовые платежи этого периода и просроченные: резервируем целиком, пока не оплачены */
     const paidO = oncePaid();
     const onceLeft = planned().filter(p => !p.done && pDate(p.date) < per.end).reduce((s, p) => s + Math.max(0, p.amt - (paidO[p.id] || 0)), 0);
@@ -193,7 +195,7 @@ window.FinSpend = (function () {
     /* норма на день считается от свободного на утро: сегодняшние траты не уменьшают сегодняшнюю норму */
     const perDay = Math.max(0, Math.floor((free + todaySpent) / daysLeft));
     /* сколько ушло именно в плановые категории (для кольца в «Балансе») */
-    const planSpent = b.cats.reduce((s, c) => s + (sp[c.id] || 0), 0);
+    const planSpent = planCats.reduce((s, c) => s + (sp[c.id] || 0), 0);
     return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, onceLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo, sample: demoOn() };
   }
 

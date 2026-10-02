@@ -518,3 +518,4 @@ html.fin-dark-on .modal-finance .ce-bot select{height:38px !important;padding-to
 .plan-once .plan-cat-nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plan-once .plan-day{margin:0!important}
 #se-del{color:#EF4444!important}
+.plan-once .plan-cat-amt small{display:block;color:var(--tk-faint,#8A8A8A)}

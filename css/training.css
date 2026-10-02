@@ -2148,3 +2148,4 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-day-head .tr-day-date{white-space:nowrap}
 .tr-day-head .tr-day-tag{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr-day-head>span[style*="margin-left:auto"]{flex-shrink:0}
+@media (max-width:400px){.tr-day-today .tr-day-tag{display:none}}

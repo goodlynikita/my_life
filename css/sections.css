@@ -1772,3 +1772,16 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 /* колесо жизни: подписи не обрезаются, разделители спокойные */
 .wheel-current-card{overflow:visible}
 .wheel-card-head,.wheel-hist-row,.wheel-history-title{border-bottom-color:rgba(255,255,255,.06)!important}
+
+/* ── Зона нажатия не меньше 44px: кнопки выглядят как раньше, а попасть пальцем проще ── */
+.tr-back, .tr-day-add, .tr-day-comment-btn, .tr-session-move, .goals-back, .hab-back-btn, .tochka-back-btn, .tochka-nav-btn,
+.sec-back, .wheel-nav-btn, .wh-x, #hab-grid-prev, #hab-grid-next, .q-help, .sp-help, .pg-gear, .ds-b, .q-u, .sp-per,
+.goals-add-v3, .wheel-fill-btn, .tr-rm-open, .tr-measure-add-inline, .pg-seg-btn, .tr-measure-edit, .tr-measure-delete { position: relative; }
+.tr-back::after, .tr-day-add::after, .tr-day-comment-btn::after, .tr-session-move::after, .goals-back::after, .hab-back-btn::after,
+.tochka-back-btn::after, .sec-back::after, .wheel-nav-btn::after, .wh-x::after, #hab-grid-prev::after, #hab-grid-next::after,
+.q-help::after, .ds-b::after, .q-u::after, .sp-per::after, .goals-add-v3::after, .wheel-fill-btn::after, .tr-rm-open::after,
+.tr-measure-add-inline::after, .pg-seg-btn::after { content: ''; position: absolute; inset: -6px; }
+.tochka-nav-btn::after, .sp-help::after, .pg-gear::after { content: ''; position: absolute; inset: -4px; }
+/* правка и удаление замера были 22px: делаем видимо крупнее */
+.tr-measure-edit, .tr-measure-delete { min-width: 36px !important; min-height: 36px !important; display: inline-flex !important; align-items: center; justify-content: center; }
+.tr-measure-edit::after, .tr-measure-delete::after { content: ''; position: absolute; inset: -4px; }

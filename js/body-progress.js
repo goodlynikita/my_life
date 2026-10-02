@@ -213,7 +213,6 @@ window.BodyProgress = (function () {
       <label class="mf-date"><i class="ti ti-calendar"></i><span>Дата замера</span><input type="date" data-mf-date value="${toISO(dateStr)}"></label>
       ${GROUPS.map(([t, fs]) => `<div class="mf-g"><div class="mf-h">${t}</div><div class="mf-row c${fs.length}">${fs.map(f => field(f, values[f], prevValues[f])).join('')}</div></div>`).join('')}
       <details class="mf-g mf-x"${hasExtra ? ' open' : ''}><summary class="mf-h">InBody и мышцы <i class="ti ti-chevron-down"></i></summary><div class="mf-row c2">${EXTRA.map(f => field(f, values[f], prevValues[f])).join('')}</div></details>
-      <div class="mf-hint">Только то, что меряли, остальное можно пропустить. Лучше утром натощак, в одно и то же время.</div>
     </div>`;
   }
   function readForm(root) {

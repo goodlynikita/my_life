@@ -469,11 +469,11 @@ window.Screens.habits = function(mount) {
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Лучшая</div>
-            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;" id="hab-best">${bestIdx>=0&&!habSame?habEsc(habits[bestIdx]?.name):'нет лидера'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;" id="hab-best">${bestIdx>=0&&!habSame?habEsc(habits[bestIdx]?.name):(progresses.every(p=>!p.pct)?'пока нет отметок':'нет лидера')}</div>
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Подтянуть</div>
-            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;" id="hab-worst">${worstIdx>=0&&!habSame?habEsc(habits[worstIdx]?.name):'нет отстающих'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;" id="hab-worst">${worstIdx>=0&&!habSame?habEsc(habits[worstIdx]?.name):(progresses.every(p=>!p.pct)?'пока нет отметок':'нет отстающих')}</div>
           </div>
         </div>
       </div>
@@ -593,8 +593,8 @@ window.Screens.habits = function(mount) {
         const same = allPcts.length < 2 || allPcts.every(p => p === allPcts[0]);
         const bi = allPcts.indexOf(Math.max(...allPcts)), wi = allPcts.indexOf(Math.min(...allPcts));
         const bEl = content.querySelector('#hab-best'), wEl = content.querySelector('#hab-worst');
-        if (bEl) bEl.innerHTML = !same && habList[bi] ? habEsc(habList[bi].name) : 'нет лидера';
-        if (wEl) wEl.innerHTML = !same && habList[wi] ? habEsc(habList[wi].name) : 'нет отстающих';
+        if (bEl) bEl.innerHTML = !same && habList[bi] ? habEsc(habList[bi].name) : (allPcts.every(p => !p) ? 'пока нет отметок' : 'нет лидера');
+        if (wEl) wEl.innerHTML = !same && habList[wi] ? habEsc(habList[wi].name) : (allPcts.every(p => !p) ? 'пока нет отметок' : 'нет отстающих');
       });
     });
 
@@ -813,7 +813,7 @@ window.Screens.habits = function(mount) {
       ${dots}${labels}
       <circle cx="${cx}" cy="${cy}" r="28" fill="#1C1E24" stroke="#16A34A33" stroke-width="1"/>
       <text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="20" font-weight="900" fill="${avgColor}" font-family="Montserrat,sans-serif">${avg}</text>
-      <text x="${cx}" y="${cy+11}" text-anchor="middle" font-size="8" fill="#16A34A99" font-family="Montserrat,sans-serif">avg</text>
+      <text x="${cx}" y="${cy+11}" text-anchor="middle" font-size="8" fill="#16A34A99" font-family="Montserrat,sans-serif">среднее</text>
     </svg>`;
   }
 
@@ -1039,7 +1039,7 @@ window.Screens.habits = function(mount) {
     if (tabBtn) tabBtn.classList.toggle('hab-tab-dot', need);
     if (!need || dismissed) { box.innerHTML = ''; return; }
     const name = HAB_MONTHS_RU[pm.getMonth()];
-    box.innerHTML = `<div class="wh-remind"><i class="ti ti-calendar-check"></i><div><b>${name} закончился</b><span>Оцени его по сферам жизни, это минута</span></div>
+    box.innerHTML = `<div class="wh-remind"><i class="ti ti-calendar-check"></i><div><b>${name} закончился</b><span>Оцени месяц, это минута</span></div>
       <button class="wh-go" id="wh-go">Оценить</button><button class="wh-x" id="wh-x" aria-label="Скрыть"><i class="ti ti-x"></i></button></div>`;
     box.querySelector('#wh-go').onclick = () => wheelOpenForm(pmk, null, () => { renderRemind(); if (activeTab === 'wheel') { wheelSelMk = pmk; renderWheel(); } });
     box.querySelector('#wh-x').onclick = () => { try { localStorage.setItem('wh_dismiss_' + pmk, '1'); } catch (e) {} renderRemind(); };

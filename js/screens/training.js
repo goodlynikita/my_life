@@ -282,7 +282,7 @@ function trOpenExerciseEditor() {
         </div>
       </div>`
     ).join('');
-    return modal('Редактор · Тип', `<div style="padding:4px 0 8px;font-size:13px;color:#9D9A92;">Выбери тип тренировки</div>${html}`,
+    return modal('Виды тренировок', `<div style="padding:4px 0 8px;font-size:13px;color:#9D9A92;">Выбери тип тренировки</div>${html}`,
       `<button id="ed-close" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">Закрыть</button>`);
   }
 
@@ -291,7 +291,7 @@ function trOpenExerciseEditor() {
     const html = groups.map(g => {
       const count = (MUSCLE_BLOCK_EXERCISES[g]||[]).length;
       const c = COLOR_MAP[g]||'#9D9A92';
-      return `<button class="tr-grp-sel-btn" data-group="${trEsc(g)}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid ${c}22;background:${c}10;cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;"><div style="display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></span><span style="font-size:14px;font-weight:700;color:#E8E5DC;">${trEsc(g)}</span></div><span style="font-size:12px;color:${c};">${count} упр.</span></button>`;
+      return `<button class="tr-grp-sel-btn" data-group="${trEsc(g)}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid ${c}22;background:${c}10;cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;"><div style="display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></span><span style="font-size:14px;font-weight:700;color:#E8E5DC;">${trEsc(trGL(g))}</span></div><span style="font-size:12px;color:${c};">${count} упр.</span></button>`;
     }).join('');
     return modal(`Зал → Группа мышц`, html,
       `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">← Назад</button>
@@ -766,7 +766,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'last',
       html: `<div class="tr-prog-hint tr-prog-hold">
-        <div class="tr-prog-last">Крайний раз: ${trEsc(last.sets)} × ${trEsc(last.reps)} × ${trEsc(last.weight)} кг${whereLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${trEsc(last.sets)} × ${trEsc(last.reps)} × ${trEsc(last.weight)} кг${whereLine}</div>
       </div>`
     };
   }
@@ -790,7 +790,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'reps',
       html: `<div class="tr-prog-hint tr-prog-ok">
-        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-target"></i> Цель сегодня: ${target}</div>
       </div>`
     };
@@ -802,7 +802,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'increase',
       html: `<div class="tr-prog-hint tr-prog-up">
-        <div class="tr-prog-last">Крайний раз: ${lastLine} ✅</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine} ✅</div>
         <div class="tr-prog-target"><i class="ti ti-trending-up"></i> Поднимай до <strong>${newWeight} кг</strong>, цель ${trEsc(sets)} × ${prog.min}</div>
       </div>`
     };
@@ -811,7 +811,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'hold',
       html: `<div class="tr-prog-hint tr-prog-hold">
-        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${trEsc(weight)} кг</strong>, цель: дойти до ${trEsc(sets)} × ${prog.max}</div>
       </div>`
     };
@@ -820,7 +820,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'work',
       html: `<div class="tr-prog-hint tr-prog-low">
-        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-refresh"></i> Оставь <strong>${trEsc(weight)} кг</strong>, работай над повторами (цель ${prog.min}–${prog.max})</div>
       </div>`
     };
@@ -919,6 +919,8 @@ function trMigrateDayToSessions(day) {
 /* числа из полей ввода: запятая как точка, без минуса, NaN и бесконечности, с разумным потолком */
 function trNum(v, max) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.').replace(/\s/g, '')); return isFinite(n) && n > 0 ? Math.min(n, max || 100000) : 0; }
 function trInt(v, max) { return Math.round(trNum(v, max)); }
+/* подпись группы: ключ данных «FULL BODY» не меняем (старые записи), а показываем по-русски */
+function trGL(g) { return g === 'FULL BODY' ? 'Всё тело' : g; }
 function trEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* окно ввода текста вместо системного prompt(): несколько строк, кнопки в стиле приложения.
@@ -974,7 +976,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     const typeColor = trBadgeColor(TRAINING_TYPES, session.type);
     const groupTags = (session.groups || []).map(g => {
       const c = trBadgeColor(MUSCLE_GROUPS, g);
-      return `<span class="tr-day-tag has-session" style="${trTagStyle(c)}">${trEsc(g)}</span>`;
+      return `<span class="tr-day-tag has-session" style="${trTagStyle(c)}">${trEsc(trGL(g))}</span>`;
     }).join('');
     const exercisesHtml = session.exercises.map((ex, exIdx) => trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx)).join('');
 
@@ -1046,7 +1048,7 @@ function trAnimateBars(scope) {
 
 function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave) {
   const ex = plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises[exIdx];
-  window._trEditingEx = ex; /* подсказка «Крайний раз» не должна брать эту же запись */
+  window._trEditingEx = ex; /* подсказка «Прошлый раз» не должна брать эту же запись */
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
 
@@ -1273,7 +1275,7 @@ function trMuscleImageHtml(groups) {
 }
 
 function trMuscleBtn(name, active) {
-  const label = name === 'FULL BODY' ? 'FULL<br>BODY' : name;
+  const label = name === 'FULL BODY' ? 'Всё<br>тело' : trEsc(name);
   return `<label class="m-group-label${name === 'FULL BODY' ? ' m-group-full' : ''}${active ? ' is-on' : ''}" data-group="${name}" style="--mc:${MUSCLE_COLOR[name] || '#8A8F9C'};">
       <input type="checkbox" class="m-group-cb m-group-check" value="${name}" ${active ? 'checked' : ''} style="display:none;">
       <span>${label}</span>
@@ -1698,6 +1700,7 @@ function trRender1RMCalc() {
 }
 
 window.Screens.training = function (mount) {
+  window._trJumpToday = true; /* при входе в раздел план прокручивается к сегодняшнему дню */
   try { trSyncCatalogFromStore(); } catch (e) { console.warn('catalog sync', e); }
   const role = Auth.role();
   const activeId = trEnsureSeedPlan();
@@ -2183,43 +2186,6 @@ window.Screens.training = function (mount) {
           </div>
           <div style="margin-bottom:22px;">          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#2C4FA8,#3A62C9);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
           <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:13px;background:none;border:1px solid rgba(96,165,250,0.35);border-radius:12px;color:#93C5FD;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Заполнить вручную</button></div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-calendar-plus" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тренировки по дням</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Нажми «+» у дня, выбери тип: зал, бег, теннис и другие. Потом добавь упражнения.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-sparkles" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">План от AI</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке AI расскажи цель, и он соберёт программу с весами под тебя.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-barbell" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Веса и рекорды</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Веса» рабочие веса по каждому упражнению и калькулятор максимума.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-ruler-measure" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Итоги и замеры</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Статистика за период, вес и объёмы тела с выводами, что меняется.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-user-star" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Есть тренер?</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Подключи его значком тренера сверху. Он будет вести план, а ты тренироваться.</div>
-              </div>
-            </div>
-          </div>
 
         </div>`;
         return;
@@ -2245,6 +2211,9 @@ window.Screens.training = function (mount) {
       if (orphBtn) orphBtn.onclick = () => { if (!confirm('Убрать из Плана будущие тренировки от удалённого AI-плана? Сделанные и изменённые тобой останутся.')) return; trSnapshotBeforeChange(); const n = TrainingAI.dropOrphans(trGetPlans(), plan.id); trSavePlans(trGetPlans()); renderTab('plan'); if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Убрал ' + n); };
       trAnimateBars(content);
       bindPlanEvents(plan);
+      if (window._trJumpToday) { window._trJumpToday = false;
+        const td = content.querySelector('.tr-day-today');
+        if (td && td.getBoundingClientRect().top > innerHeight * 0.6) setTimeout(() => td.scrollIntoView({ block: 'center' }), 60); }
       if (window.TrainerClient) TrainerClient.bind(content, plan, () => renderTab('plan'));
     } else if (tab === 'working-weight') {
       let _baseWkIdx = 0;
@@ -2413,7 +2382,7 @@ window.Screens.training = function (mount) {
         <p class="tr-modal-title" style="text-align:center;margin-bottom:8px;">${isFirst ? 'Создать первый план' : 'Начать новый план'}</p>
         <p style="font-size:13px;color:#9D9A92;text-align:center;line-height:1.6;margin-bottom:20px;">${isFirst
           ? 'Создаётся 8-недельная сетка. Заполняй её под себя: тип тренировки, группы мышц, упражнения.'
-          : 'Текущий план уйдёт в архив, тренировки этой недели переедут в новый. Прошлые веса подставятся сами, когда выберешь упражнение.'
+          : 'Текущий план уйдёт в историю, тренировки этой недели переедут в новый. Прошлые веса подставятся сами, когда выберешь упражнение.'
         }</p>
         <div class="tr-modal-actions">
           <button class="tr-modal-btn-secondary" id="tr-new-plan-cancel">Отмена</button>
@@ -2665,7 +2634,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
 
     return `
       <div class="tr-ww-group">
-        <div class="tr-ww-group-label fb-accent">${trEsc(cat)}</div>
+        <div class="tr-ww-group-label fb-accent">${trEsc(trGL(cat))}</div>
         <table class="tr-ww-table">
           <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th>Рост</th></tr></thead>
           <tbody>${exerciseRows}</tbody>
@@ -3245,8 +3214,8 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
       </div>
       <div class="tr-ex-bottom">
         <div class="tr-ex-meta num" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          ${n < 2 ? `<span style="color:#E8E5DC;">Нед.${last.wi + 1}: ${lbl(last.ex)}</span>`
-            : `<span style="color:#9D9A92;">Нед.${first.wi + 1}: ${lbl(first.ex)}</span><span style="color:#555;">→</span><span style="color:#E8E5DC;">Нед.${last.wi + 1}: ${lbl(last.ex)}</span>`}
+          ${n < 2 ? `<span style="color:#E8E5DC;">Неделя ${last.wi + 1}: ${lbl(last.ex)}</span>`
+            : `<span style="color:#9D9A92;">Неделя ${first.wi + 1}: ${lbl(first.ex)}</span><span style="color:#555;">→</span><span style="color:#E8E5DC;">Неделя ${last.wi + 1}: ${lbl(last.ex)}</span>`}
         </div>
       </div>
       ${bar}
@@ -3287,7 +3256,7 @@ function trRenderSummary(plan) {
     if (!rows) return '';
     return `
       <div class="tr-group-card">
-        <div class="tr-group-title">${trEsc(g)} <span class="tr-group-range">· прогрессия веса</span></div>
+        <div class="tr-group-title">${trEsc(trGL(g))} <span class="tr-group-range">· прогрессия веса</span></div>
         <div class="tr-day">${rows}</div>
       </div>`;
   }).filter(Boolean).join('');

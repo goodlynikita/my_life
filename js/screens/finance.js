@@ -117,7 +117,7 @@ function finOpenModal(existing, year, month, onSave) {
   overlay.className = 'tr-modal-overlay modal-finance';
   overlay.innerHTML = `
     <div class="tr-modal">
-      <p class="tr-modal-title" style="margin-bottom:16px;">${isEdit?'Редактировать приход':'Новый приход'}</p>
+      <p class="tr-modal-title" style="margin-bottom:16px;">${isEdit?'Изменить доход':'Новый доход'}</p>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Сумма, ₽
           <input type="text" id="fin-amount" value="${finEsc(existing?.amount||'')}" inputmode="decimal" placeholder="0" style="font-size:18px;font-weight:600;">
@@ -148,7 +148,7 @@ function finOpenModal(existing, year, month, onSave) {
   const cb=overlay.querySelector('#fin-cancel');
   if(cb)cb.addEventListener('click',()=>overlay.remove());
   const db=overlay.querySelector('#fin-del');
-  if(db)db.addEventListener('click',()=>{ if(!confirm('Удалить приход '+finFmtFull(+existing.amount||0)+'?'))return; onSave(null);overlay.remove();});
+  if(db)db.addEventListener('click',()=>{ if(!confirm('Удалить доход '+finFmtFull(+existing.amount||0)+'?'))return; onSave(null);overlay.remove();});
 
   overlay.querySelector('#fin-save').addEventListener('click',()=>{
     const err = (t) => { overlay.querySelector('#fin-err').textContent = t; };
@@ -169,7 +169,7 @@ window.Screens.finance = function(mount) {
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
-  let activeTab = 'month';
+  let activeTab = 'expenses'; /* чаще всего нужно «сколько можно потратить», поэтому открываемся на «Расходах» */
 
   mount.innerHTML = `
     <div class="tochka-screen">
@@ -184,8 +184,8 @@ window.Screens.finance = function(mount) {
         </div>
       </div>
       <div class="tochka-tabs" style="position:sticky;top:0;z-index:10;">
-        <button class="tochka-tab active" data-tab="month">Месяц</button>
-        <button class="tochka-tab" data-tab="expenses">Расходы</button>
+        <button class="tochka-tab" data-tab="month">Месяц</button>
+        <button class="tochka-tab active" data-tab="expenses">Расходы</button>
         <button class="tochka-tab" data-tab="balance">Баланс</button>
         <button class="tochka-tab" data-tab="year">Год</button>
         <button class="tochka-tab" data-tab="all">Всё время</button>
@@ -267,7 +267,7 @@ window.Screens.finance = function(mount) {
 
       <div class="tochka-list">
         <div class="tochka-list-head">
-          <span class="tochka-list-title">Приходы</span>
+          <span class="tochka-list-title">Доходы</span>
           <button id="fin-add" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>
         </div>
         ${(()=>{
@@ -340,18 +340,18 @@ window.Screens.finance = function(mount) {
           : '<div class="tochka-hero-pct neu">Нет данных за прошлый год</div>'}
       </div>
 
-      <div class="tochka-stats-row">
+      ${months.some(m=>m.income>0) ? `<div class="tochka-stats-row">
         <div class="tochka-stat">
-          <div class="tochka-stat-label">Средняя / мес</div>
+          <div class="tochka-stat-label">В среднем за месяц</div>
           <div class="tochka-stat-val">${finFmtFull(avgIncome)}</div>
-          <div class="tochka-stat-sub">за ${passedMonths.length} мес.</div>
+          <div class="tochka-stat-sub">за ${passedMonths.length} ${passedMonths.length%10===1&&passedMonths.length%100!==11?'месяц':passedMonths.length%10>=2&&passedMonths.length%10<=4&&(passedMonths.length%100<12||passedMonths.length%100>14)?'месяца':'месяцев'}</div>
         </div>
         <div class="tochka-stat">
           <div class="tochka-stat-label">Лучший месяц</div>
-          <div class="tochka-stat-val">${months.reduce((a,b)=>a.income>b.income?a:b).short}</div>
+          <div class="tochka-stat-val">${months.reduce((a,b)=>a.income>b.income?a:b).label||months.reduce((a,b)=>a.income>b.income?a:b).short}</div>
           <div class="tochka-stat-sub">${finFmt(Math.max(...months.map(m=>m.income)))}</div>
         </div>
-      </div>
+      </div>` : '<div class="tochka-empty">Доходов за этот год пока нет</div>'}
 
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${months.filter(m=>m.income>0).map(m=>`
@@ -524,7 +524,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-ico" style="--c:#16A34A;"><i class="ti ti-pig-money"></i></div>
           <div class="plan-main">
             <div class="plan-name">Сразу в копилку</div>
-            <div class="plan-desc">${SAVE_PCT}% с каждого поступления, без исключений</div>
           </div>
           <div class="plan-val"><b style="color:#16A34A;">${finFmtFull(savingsAmt)}</b><span>${SAVE_PCT}%</span></div>
         </div>
@@ -533,7 +532,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-ico" style="--c:#6366F1;"><i class="ti ti-home-dollar"></i></div>
           <div class="plan-main">
             <div class="plan-name">Базовые расходы</div>
-            <div class="plan-desc">Оплачиваются в первую очередь</div>
           </div>
           <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctOf(totalBase)}%</span></div>
         </div>
@@ -552,8 +550,8 @@ window.Screens.finance = function(mount) {
         <div class="plan-step">
           <div class="plan-ico" style="--c:${shortAmt ? '#DC2626' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-alert-triangle' : 'ti-target-arrow'}"></i></div>
           <div class="plan-main">
-            <div class="plan-name">${shortAmt ? 'Не хватает на базу' : 'Свободно на цели'}</div>
-            <div class="plan-desc">${shortAmt ? 'Доход меньше, чем копилка и базовые расходы' : 'Цели, желания, удовольствия'}</div>
+            <div class="plan-name">${shortAmt ? 'Доход меньше обязательных трат' : 'Свободно на цели'}</div>
+            <div class="plan-desc">${shortAmt ? 'Доход меньше, чем копилка и базовые расходы' : ''}</div>
           </div>
           <div class="plan-val"><b style="color:${shortAmt ? '#DC2626' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctOf(freeAmt) + '%'}</span></div>
         </div>
@@ -562,7 +560,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-ico" style="--c:#F59E0B;"><i class="ti ti-umbrella"></i></div>
           <div class="plan-main">
             <div class="plan-name">Внеплановая трата</div>
-            <div class="plan-desc">Берёшь из копилки, а не из свободного остатка</div>
           </div>
         </div>
       </div>

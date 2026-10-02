@@ -152,7 +152,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   overlay.className = 'tr-modal-overlay modal-goals';
   const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
   const catOpts = existingCats.map(c=>`<option value="${goalsEsc(c)}"${existing?.cat===c?' selected':''}>${goalsEsc(c)}</option>`).join('');
-  const isNewCat = existing?.cat && !existingCats.includes(existing.cat);
+  const isNewCat = (existing?.cat && !existingCats.includes(existing.cat)) || !!existing?.newCat;
   overlay.innerHTML = `
     <div class="goals-modal">
       <div class="goals-modal-header">
@@ -210,7 +210,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
         <div class="goals-modal-statuses">
           <button class="gm-status ${!existing?.done&&!existing?.maybe?'sel':''}" data-val="active">☐ Активная</button>
           <button class="gm-status ${existing?.done?'sel':''}" data-val="done">✓ Закрыта</button>
-          <button class="gm-status ${existing?.maybe?'sel':''}" data-val="maybe">? Вопрос</button>
+          <button class="gm-status ${existing?.maybe?'sel':''}" data-val="maybe">Под вопросом</button>
         </div>
       </div>
       <div class="goals-modal-actions">
@@ -262,7 +262,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
     const cat = selCat==='_new'?(newCat||'Разное'):selCat;
     onSave({
       id:existing?.id||'g_'+Date.now(), name,
-      amount:parseFloat(overlay.querySelector('#g-amount').value)||0,
+      amount:Math.min(1e10, Math.max(0, parseFloat(String(overlay.querySelector('#g-amount').value).replace(/\s/g,'').replace(',','.'))||0)),
       cat, season:overlay.querySelector('#g-season').value,
       month: parseInt(overlay.querySelector('#g-month').value)||null,
       done:selStatus==='done', maybe:selStatus==='maybe'
@@ -281,7 +281,7 @@ window.Screens.goals = function(mount) {
       <div class="goals-header" style="position:sticky;top:0;z-index:100;">
         <div style="display:flex;align-items:center;gap:10px;">
           <button class="goals-back" id="gb"><i class="ti ti-arrow-left"></i></button>
-          <p class="goals-screen-title">Цели 2026</p>
+          <p class="goals-screen-title">Цели ${new Date().getFullYear()}</p>
         </div>
         <button class="goals-back" id="gl"><i class="ti ti-logout"></i></button>
       </div>
@@ -415,10 +415,10 @@ window.Screens.goals = function(mount) {
       const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};--season-hero-bg:${bg};background:${bg};">
-          <div class="goals-hero-eyebrow">ЦЕЛИ 2026</div>
+          <div class="goals-hero-eyebrow">ЦЕЛИ ${new Date().getFullYear()}</div>
           <div class="goals-hero-big">${goalsFmt(grandTotal)}</div>
           <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
-            <span>На год: ${goalsFmt(naGodTotal)}</span>
+            ${naGodTotal !== grandTotal ? `<span>На год: ${goalsFmt(naGodTotal)}</span>` : ''}
             <span style="color:#A8C97F;">Закрыто: ${goalsFmt(doneTotal)}</span>
             <span style="color:#9D9A92;">Осталось: ${goalsFmt(remainTotal)}</span>
           </div>
@@ -512,7 +512,7 @@ window.Screens.goals = function(mount) {
     });
 
     /* ── Рендер HTML ── */
-    const addNewCatBtn = '<div style="padding:16px;"><button class="goals-add-v3" data-cat="" data-season="'+activeSeason+'" style="width:100%;">+ новая категория</button></div>';
+    const addNewCatBtn = '<div style="padding:16px 16px 140px;"><button class="goals-add-v3" data-cat="" data-season="'+activeSeason+'" style="width:100%;">+ новая категория</button></div>';
     const isDemoMode = goalsIsDemo();
     const demoBanner = isDemoMode ? `
       <div id="goals-demo-banner" style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:12px 14px;margin:12px 0;display:flex;align-items:flex-start;gap:10px;">
@@ -563,7 +563,8 @@ window.Screens.goals = function(mount) {
 
     content.querySelectorAll('.goals-add-v3').forEach(btn=>{
       btn.addEventListener('click',()=>{
-        goalsOpenModal({cat:btn.dataset.cat,season:btn.dataset.season==='all'?'all':btn.dataset.season},result=>{
+        /* «+ новая категория»: сразу поле для названия категории */
+        goalsOpenModal({cat:btn.dataset.cat,newCat:!btn.dataset.cat,season:btn.dataset.season==='all'?'all':btn.dataset.season},result=>{
           if(!result)return;
           const list=goalsGet();list.push(result);goalsSave(list);render();
         });

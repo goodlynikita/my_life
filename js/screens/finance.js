@@ -25,6 +25,33 @@ var FIN_MONTHS = window.FIN_MONTHS;
 var FIN_MONTHS_SHORT = window.FIN_MONTHS_SHORT;
 var FIN_LABEL_COLORS = window.FIN_LABEL_COLORS;
 
+/* пример бюджета по категориям (для «Баланса» и «Расходов») */
+window.FIN_DEFAULT_CATS = [
+    /* Жильё */
+    { id:'b1',  name:'Аренда / ипотека',          amt:30000, color:'#14B8A6', day:5 },
+    { id:'b2',  name:'Коммунальные услуги',        amt:5000,  color:'#06B6D4', day:10 },
+    /* Еда */
+    { id:'b3',  name:'Продукты',                   amt:15000, color:'#10B981' },
+    { id:'b4',  name:'Кафе и рестораны',           amt:8000,  color:'#34D399' },
+    /* Транспорт */
+    { id:'b5',  name:'Автомобиль (бензин, обсл.)', amt:8000,  color:'#6B7280' },
+    { id:'b6',  name:'Такси / общественный транспорт', amt:3000, color:'#9CA3AF' },
+    /* Здоровье */
+    { id:'b7',  name:'Спорт / фитнес',             amt:5000,  color:'#16A34A' },
+    { id:'b8',  name:'Медицина / аптека',           amt:3000,  color:'#F87171' },
+    /* Развлечения */
+    { id:'b9',  name:'Развлечения / хобби',         amt:5000,  color:'#F59E0B' },
+    { id:'b10', name:'Подписки (стриминг, ПО)',     amt:2000,  color:'#8B5CF6', day:12 },
+    /* Одежда и уход */
+    { id:'b11', name:'Одежда и обувь',              amt:5000,  color:'#EC4899' },
+    { id:'b12', name:'Красота / уход за собой',     amt:3000,  color:'#F472B6' },
+    /* Связь */
+    { id:'b13', name:'Телефон / интернет',          amt:1500,  color:'#60A5FA', day:15 },
+    /* Прочее */
+    { id:'b14', name:'Подарки',                     amt:3000,  color:'#FBBF24' },
+    { id:'b15', name:'Непредвиденные расходы',      amt:5000,  color:'#EF4444' },
+  ];
+
 function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
   return ((Store.get().finance||{}).years||{})[year] && (((Store.get().finance.years||{})[year]||{})[mm]||{}).entries || [];
@@ -388,48 +415,24 @@ window.Screens.finance = function(mount) {
     const now = new Date();
     const monthEntries = finEntries(now.getFullYear(), now.getMonth());
     const monthIncome = finSum(monthEntries);
+    const FS = window.FinSpend;
 
     /* Настройки из Store */
     const stored = Store.get().finance?.balance || {};
     const GOAL_INCOME = stored.goalIncome || 291500;
-    const SAVE_PCT = stored.savePct || 30;
+    /* 0% в копилку тоже осознанный выбор, поэтому не «|| 30» */
+    const SAVE_PCT = stored.savePct != null && isFinite(+stored.savePct) ? +stored.savePct : 30;
+    const escH = FS ? FS.esc : (x => String(x == null ? '' : x).replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';'));
+    const colH = FS ? FS.col : (x => x || '#9CA3AF');
 
-    const DEFAULT_CATS = [
-      /* Жильё */
-      { id:'b1',  name:'Аренда / ипотека',          amt:30000, color:'#14B8A6' },
-      { id:'b2',  name:'Коммунальные услуги',        amt:5000,  color:'#06B6D4' },
-      /* Еда */
-      { id:'b3',  name:'Продукты',                   amt:15000, color:'#10B981' },
-      { id:'b4',  name:'Кафе и рестораны',           amt:8000,  color:'#34D399' },
-      /* Транспорт */
-      { id:'b5',  name:'Автомобиль (бензин, обсл.)', amt:8000,  color:'#6B7280' },
-      { id:'b6',  name:'Такси / общественный транспорт', amt:3000, color:'#9CA3AF' },
-      /* Здоровье */
-      { id:'b7',  name:'Спорт / фитнес',             amt:5000,  color:'#16A34A' },
-      { id:'b8',  name:'Медицина / аптека',           amt:3000,  color:'#F87171' },
-      /* Развлечения */
-      { id:'b9',  name:'Развлечения / хобби',         amt:5000,  color:'#F59E0B' },
-      { id:'b10', name:'Подписки (стриминг, ПО)',     amt:2000,  color:'#8B5CF6' },
-      /* Одежда и уход */
-      { id:'b11', name:'Одежда и обувь',              amt:5000,  color:'#EC4899' },
-      { id:'b12', name:'Красота / уход за собой',     amt:3000,  color:'#F472B6' },
-      /* Связь */
-      { id:'b13', name:'Телефон / интернет',          amt:1500,  color:'#60A5FA' },
-      /* Прочее */
-      { id:'b14', name:'Подарки',                     amt:3000,  color:'#FBBF24' },
-      { id:'b15', name:'Непредвиденные расходы',      amt:5000,  color:'#EF4444' },
-    ];
-    const cats = stored.categories || (stored.demoOff ? [] : DEFAULT_CATS);
-    const totalBase = cats.reduce((s,c)=>s+(c.amt||0),0);
+    /* копии категорий с id: правки не портят Store и демо-набор, пока не нажали «Сохранить» */
+    const cats = FS ? FS.budget().cats : (stored.categories || (stored.demoOff ? [] : window.FIN_DEFAULT_CATS)).map(c => Object.assign({}, c));
+    const totalBase = cats.reduce((s,c)=>s+(+c.amt||0),0);
 
     /* Расчёт от реального дохода */
     const savingsAmt = Math.round(monthIncome * SAVE_PCT / 100);
     const afterSavings = monthIncome - savingsAmt;
     const freeAfterBase = afterSavings - totalBase;
-
-    /* Цель: идеальный расклад */
-    const goalSavings = Math.round(GOAL_INCOME * SAVE_PCT / 100);
-    const goalForLife = GOAL_INCOME - goalSavings;
 
     /* Раскладка дохода: копилка / базовые / свободно */
     const inc = monthIncome || 0;
@@ -437,10 +440,23 @@ window.Screens.finance = function(mount) {
     const freeAmt = Math.max(0, freeAfterBase);
     const shortAmt = freeAfterBase < 0 ? -freeAfterBase : 0;
     const segs = inc > 0
-      ? [{ w: savingsAmt, c: '#16A34A' }].concat(cats.map(c => ({ w: c.amt || 0, c: c.color || '#9CA3AF' }))).concat([{ w: freeAmt, c: '#CBD5E1' }])
+      ? [{ w: savingsAmt, c: '#16A34A' }].concat(cats.map(c => ({ w: +c.amt || 0, c: colH(c.color) }))).concat([{ w: freeAmt, c: '#CBD5E1' }])
       : [];
     const segTotal = segs.reduce((s, x) => s + x.w, 0) || 1;
     const monthName = FIN_MONTHS[now.getMonth()];
+    /* траты по категориям за месяц и где мы в месяце (для отметки «сегодня» на полосках) */
+    const spentBy = FS ? FS.catSpent(FS.ymKey(now)) : {};
+    const dimB = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const monthPos = Math.round(now.getDate() / dimB * 100);
+    /* кольцо месяца: сколько плана уже потрачено против того, сколько месяца прошло */
+    const planSpent = cats.reduce((s, c) => s + (spentBy[c.id] || 0), 0);
+    const spentPct = totalBase > 0 ? Math.round(planSpent / totalBase * 100) : 0;
+    /* «по плану» к сегодняшнему дню: платежи с датой, которая уже прошла, ожидаемы целиком, остальное равномерно по дням.
+       Иначе оплаченная 5-го аренда каждый месяц выглядела бы как «быстрее плана» */
+    const expectedNow = cats.reduce((s, c) => { const amt = +c.amt || 0, d = +c.day; return s + (d >= 1 && d <= 31 ? (Math.min(d, dimB) <= now.getDate() ? amt : Math.min(amt, spentBy[c.id] || 0)) : amt * monthPos / 100); }, 0); /* платёж, внесённый заранее, тоже по плану */
+    const pace = spentPct > 100 ? 'over' : planSpent > expectedNow + Math.max(500, totalBase * 0.05) ? 'fast' : 'ok';
+    const R1 = 32, R2 = 22, C1 = +(2 * Math.PI * R1).toFixed(1), C2 = +(2 * Math.PI * R2).toFixed(1);
+    const off = (C, p) => +(C * (1 - Math.min(100, Math.max(0, p)) / 100)).toFixed(1);
 
     content.innerHTML = `
       <!-- Копилка -->
@@ -455,6 +471,23 @@ window.Screens.finance = function(mount) {
           </div>
           <button class="plan-gear" id="bal2-edit" aria-label="Настроить расходы"><i class="ti ti-adjustments-horizontal"></i></button>
         </div>
+
+        ${totalBase > 0 ? `<div class="bal-ring bal-${pace}">
+          <div class="bal-ring-g">
+            <svg viewBox="0 0 80 80" width="80" height="80" aria-hidden="true">
+              <circle cx="40" cy="40" r="${R1}" class="bal-ring-bg"/>
+              <circle cx="40" cy="40" r="${R1}" class="bal-ring-fg" stroke-dasharray="${C1}" data-full="${C1}" data-off="${off(C1, spentPct)}" style="stroke-dashoffset:${C1}"/>
+              <circle cx="40" cy="40" r="${R2}" class="bal-ring-bg2"/>
+              <circle cx="40" cy="40" r="${R2}" class="bal-ring-m" stroke-dasharray="${C2}" data-full="${C2}" data-off="${off(C2, monthPos)}" style="stroke-dashoffset:${C2}"/>
+            </svg>
+            <b>${spentPct}%</b>
+          </div>
+          <div class="bal-ring-t">
+            <div class="bal-ring-l">Потрачено из плана</div>
+            <div class="bal-ring-v">${finFmtFull(planSpent)} <em>из ${finFmtFull(totalBase)}</em></div>
+            <div class="bal-ring-s"><span class="bal-pill">${pace === 'over' ? 'сверх плана' : pace === 'fast' ? 'быстрее плана' : 'по плану'}</span>месяц прошёл ${monthPos}%</div>
+          </div>
+        </div>` : ''}
 
         ${inc > 0 ? `<div class="plan-bar">${segs.filter(x => x.w > 0).map(x => `<span style="flex:${x.w / segTotal};background:${x.c};"></span>`).join('')}</div>` : ''}
 
@@ -489,13 +522,15 @@ window.Screens.finance = function(mount) {
           <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctOf(totalBase)}%</span></div>
         </div>
         <div class="plan-cats">
-          ${cats.length ? cats.map(c => `
-            <div class="plan-cat">
-              <span class="plan-dot" style="background:${c.color || '#9CA3AF'};"></span>
-              <span class="plan-cat-name">${c.name}</span>
-              <span class="plan-cat-amt">${finFmtFull(c.amt || 0)}</span>
-              <span class="plan-cat-pct">${pctOf(c.amt || 0)}%</span>
-            </div>`).join('') : '<div class="plan-empty">Категорий нет. Добавь их в настройках</div>'}
+          ${cats.length ? cats.map(c => { const sp = spentBy[c.id] || 0, amt = +c.amt || 0, over = amt > 0 && sp > amt, fill = amt > 0 ? Math.min(100, Math.round(sp / amt * 100)) : (sp ? 100 : 0), day = +c.day >= 1 && +c.day <= 31 ? Math.round(+c.day) : 0; return `
+            <div class="plan-cat plan-cat-sp" data-id="${escH(c.id)}" role="button" tabindex="0">
+              <span class="plan-dot" style="background:${colH(c.color)};"></span>
+              <span class="plan-cat-name"><span class="plan-cat-nm">${escH(c.name)}</span>${day ? `<em class="plan-day" title="платёж ${day} числа"><i class="ti ti-calendar-event"></i>${day}</em>` : ''}</span>
+              <span class="plan-cat-amt">${sp ? `<em class="${over ? 'over' : ''}">${finFmtFull(sp)}</em> из ` : ''}${finFmtFull(amt)}</span>
+              <span class="plan-cat-pct">${pctOf(amt)}%</span>
+              ${amt > 0 ? `<span class="plan-cat-bar"><span data-k="bal:${escH(c.id)}" data-w="${fill}" style="width:0;background:${over ? '#EB5850' : colH(c.color)}"></span><i style="left:${monthPos}%" title="где должен быть сегодня"></i></span>` : ''}
+            </div>`; }).join('') : '<div class="plan-empty">Категорий нет. Добавь их в настройках</div>'}
+
         </div>
 
         <div class="plan-step">
@@ -518,78 +553,66 @@ window.Screens.finance = function(mount) {
     `;
 
     if (window.FinPiggy) FinPiggy.bind(content, SAVE_PCT, renderBalance);
+    if (FS) FS.animate(content);
     document.getElementById('bal2-edit').addEventListener('click', ()=>{
       openBudgetEdit();
+    });
+    /* нажатие на категорию: быстрая правка суммы, цвета и дня платежа */
+    content.querySelectorAll('.plan-cat-sp[data-id]').forEach(el => {
+      const go = () => { if (FS) FS.catModal(el.dataset.id, renderBalance); };
+      el.addEventListener('click', go);
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     });
     const demoCatsBtn = document.getElementById('fin-edit-demo-cats');
     if (demoCatsBtn) demoCatsBtn.addEventListener('click', () => openBudgetEdit());
     const clearDemoCatsBtn = document.getElementById('fin-clear-demo-cats');
     if (clearDemoCatsBtn) clearDemoCatsBtn.addEventListener('click', () => {
       if (!confirm('Удалить все демо-категории и начать с нуля?')) return;
-      Store.set('finance.balance', { categories: [], goalIncome: GOAL_INCOME, savePct: SAVE_PCT, demoOff: true });
+      Store.set('finance.balance', Object.assign({}, stored, { categories: [], goalIncome: GOAL_INCOME, savePct: SAVE_PCT, demoOff: true }));
       renderBalance();
     });
 
+    /* общие настройки: цель, копилка и все категории (цвет, план, день платежа) */
     function openBudgetEdit() {
+      if (!FS) return;
+      const work = cats.map(c => Object.assign({}, c));
       const ov = document.createElement('div');
       ov.className = 'tr-modal-overlay modal-finance';
-      ov.innerHTML = `<div class="tr-modal" style="max-height:85vh;overflow-y:auto;">
+      ov.innerHTML = `<div class="tr-modal sp-edit" style="max-height:85vh;overflow-y:auto;">
         <p class="tr-modal-title">Настройки баланса</p>
         <div class="tr-modal-row">
-          <label style="flex:1">Цель дохода, ₽<input type="number" id="bi-goal" value="${GOAL_INCOME}" inputmode="numeric"></label>
-          <label style="width:80px;">Копилка %<input type="number" id="bi-pct" value="${SAVE_PCT}" min="0" max="100" inputmode="numeric"></label>
+          <label style="flex:1">Цель дохода, ₽<input type="text" id="bi-goal" value="${GOAL_INCOME}" inputmode="numeric"></label>
+          <label style="width:96px;">Копилка, %<input type="number" id="bi-pct" value="${SAVE_PCT}" min="0" max="100" inputmode="numeric"></label>
         </div>
-        <p style="font-size:12px;color:#9CA3AF;margin:12px 0 6px;">Базовые расходы:</p>
-        <div id="bi-cats-list">
-        ${cats.map((c,i)=>`
-          <div class="tr-modal-row" style="gap:8px;align-items:flex-end;">
-            <label style="flex:1;">Категория<input type="text" class="bi-name" data-i="${i}" value="${c.name}"></label>
-            <label style="width:110px;">Сумма, ₽<input type="number" class="bi-amt" data-i="${i}" value="${c.amt}" inputmode="numeric"></label>
-            <button class="bi-del-cat" data-i="${i}" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px;padding:0 4px;margin-bottom:2px;">✕</button>
-          </div>`).join('')}
-        </div>
-        <button id="bi-add-cat" style="background:none;border:1px dashed #D1D5DB;border-radius:8px;width:100%;padding:8px;color:#9CA3AF;cursor:pointer;margin-bottom:8px;">+ Добавить категорию</button>
+        <p class="ce-h">Категории расходов</p>
+        <div id="bi-cats-list">${work.map(c => FS.catRowHtml(c, spentBy[c.id] || 0)).join('')}</div>
+        <button id="bi-add-cat">+ Добавить категорию</button>
+        <div class="sp-err" id="bi-err"></div>
         <div class="tr-modal-actions">
           <button class="tr-modal-btn-secondary" id="bi-cancel">Отмена</button>
           <button class="tr-modal-btn-primary" id="bi-save">Сохранить</button>
         </div>
       </div>`;
       document.body.appendChild(ov);
+      const listEl = ov.querySelector('#bi-cats-list');
+      FS.bindCatRows(listEl);
       ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
       ov.querySelector('#bi-cancel').addEventListener('click',()=>ov.remove());
 
-      /* Удалить категорию */
-      ov.addEventListener('click', e=>{
-        if(e.target.classList.contains('bi-del-cat')){
-          const i = parseInt(e.target.dataset.i);
-          cats.splice(i,1);
-          // Перерисовываем список
-          const list = ov.querySelector('#bi-cats-list');
-          list.querySelectorAll('.tr-modal-row').forEach((r,idx)=>{
-            r.querySelectorAll('[data-i]').forEach(el=>el.dataset.i=idx);
-          });
-          e.target.closest('.tr-modal-row').remove();
-        }
-      });
-
-      /* Добавить категорию */
+      /* Добавить категорию: новый цвет из палитры по кругу */
       ov.querySelector('#bi-add-cat').addEventListener('click',()=>{
-        cats.push({id:'b_'+Date.now(),name:'Новая категория',amt:0,color:'#9CA3AF'});
-        const i = cats.length-1;
-        const row = document.createElement('div');
-        row.className = 'tr-modal-row';
-        row.style.cssText = 'gap:8px;align-items:flex-end;';
-        row.innerHTML = '<label style="flex:1;">Категория<input type="text" class="bi-name" data-i="'+i+'" value="Новая категория"></label>'
-          +'<label style="width:110px;">Сумма, ₽<input type="number" class="bi-amt" data-i="'+i+'" value="0" inputmode="numeric"></label>'
-          +'<button class="bi-del-cat" data-i="'+i+'" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px;padding:0 4px;margin-bottom:2px;">✕</button>';
-        ov.querySelector('#bi-cats-list').appendChild(row);
+        const n = listEl.querySelectorAll('.ce-row').length;
+        const t = document.createElement('template');
+        t.innerHTML = FS.catRowHtml({ id: 'b_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name: '', amt: 0, color: FS.PALETTE[n % FS.PALETTE.length] }, 0).trim();
+        const row = t.content.firstElementChild; row.dataset.color = FS.PALETTE[n % FS.PALETTE.length];
+        listEl.appendChild(row); row.querySelector('.ce-name').focus();
       });
       ov.querySelector('#bi-save').addEventListener('click',()=>{
-        ov.querySelectorAll('.bi-name').forEach(inp=>{ cats[+inp.dataset.i].name=inp.value.trim()||cats[+inp.dataset.i].name; });
-        ov.querySelectorAll('.bi-amt').forEach(inp=>{ cats[+inp.dataset.i].amt=parseFloat(inp.value)||0; });
-        const newGoal = parseFloat(ov.querySelector('#bi-goal').value)||GOAL_INCOME;
-        const newPct = parseFloat(ov.querySelector('#bi-pct').value)||SAVE_PCT;
-        Store.set('finance.balance', {categories:cats, goalIncome:newGoal, savePct:newPct, demoOff:true});
+        const pctRaw = String(ov.querySelector('#bi-pct').value).trim();
+        const newPct = pctRaw === '' ? SAVE_PCT : parseFloat(pctRaw.replace(',', '.'));
+        if (!isFinite(newPct) || newPct < 0 || newPct > 100) { ov.querySelector('#bi-err').textContent = 'Копилка: от 0 до 100%'; return; }
+        const newGoal = FS.parseAmt(ov.querySelector('#bi-goal').value) || GOAL_INCOME;
+        Store.set('finance.balance', Object.assign({}, stored, { categories: FS.readCatRows(listEl, work), goalIncome: newGoal, savePct: Math.round(newPct), demoOff: true }));
         ov.remove();
         renderBalance();
       });
@@ -639,6 +662,8 @@ window.Screens.finance = function(mount) {
   }
 
   function renderExpenses() {
+    /* новая вкладка: сколько можно потратить + запись одной строкой (js/screens/finance-spend.js) */
+    if (window.FinSpend) { FinSpend.render(content, renderExpenses); return; }
     var list = expGetList();
     var expTotal = list.reduce(function(s,e){return s+(e.amount||0);},0);
     var srcTotal = list.reduce(function(s,e){return s+(e.sourceAmt||0);},0);

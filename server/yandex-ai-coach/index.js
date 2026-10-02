@@ -94,28 +94,48 @@ module.exports.handler = async function (event, context) {
   });
   const user = who.ok && who.data && who.data.users && who.data.users[0];
   if (!user) return reply(401, { error: 'auth' });
+  if (user.disabled) return reply(403, { error: 'blocked' });
   const uid = user.localId;
+  const db = env.FIREBASE_DB_URL.replace(/\/$/, '');
+  /* заблокированный в админке не пишет тренеру */
+  const bl = await j(`${db}/userIndex/${uid}/blocked.json?auth=${env.FIREBASE_DB_SECRET}`);
+  if (bl.data === true) return reply(403, { error: 'blocked' });
 
   /* 2. Лимит на месяц */
   const month = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 7); /* по Москве */
-  const db = env.FIREBASE_DB_URL.replace(/\/$/, '');
   const usageUrl = `${db}/aiUsage/${uid}/${month}.json?auth=${env.FIREBASE_DB_SECRET}`;
-  const cur = await j(usageUrl);
-  const used = (cur.data && cur.data.count) || 0;
-  if (body.check) return reply(200, { used, limit: LIMIT });
-  if (used >= LIMIT) return reply(429, { error: 'limit', used, limit: LIMIT });
+  /* счётчик меняем условной записью (ETag): параллельные запросы не проскочат лимит */
+  async function bump(delta) {
+    for (let i = 0; i < 5; i++) {
+      const r = await fetch(usageUrl, { headers: { 'X-Firebase-ETag': 'true' } });
+      const tag = r.headers.get('etag'); let d = null; try { d = await r.json(); } catch (e) {}
+      const n = (d && +d.count) || 0;
+      if (delta > 0 && n >= LIMIT) return { over: true, used: n };
+      const next = Math.max(0, n + delta);
+      const w = await fetch(usageUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'if-match': tag },
+        body: JSON.stringify({ count: next, last: Date.now(), email: user.email || '' }) });
+      if (w.ok) return { used: next };
+      if (w.status !== 412) break;
+    }
+    return { fail: true };
+  }
+  if (body.check) { const cur = await j(usageUrl); return reply(200, { used: (cur.data && +cur.data.count) || 0, limit: LIMIT }); }
+  const res = await bump(1);
+  if (res.over) return reply(429, { error: 'limit', used: res.used, limit: LIMIT });
+  if (res.fail) return reply(503, { error: 'busy' });
+  const used = res.used - 1;
 
   /* 3. Вопрос к YandexGPT */
   const ctx = String(body.context || '').slice(0, 14000);
   const hist = (Array.isArray(body.messages) ? body.messages : []).slice(-8)
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && m.text)
     .map(m => ({ role: m.role, text: String(m.text).slice(0, 1500) }));
-  if (!hist.length || hist[hist.length - 1].role !== 'user') return reply(400, { error: 'empty' });
+  if (!hist.length || hist[hist.length - 1].role !== 'user') { await bump(-1); return reply(400, { error: 'empty' }); }
 
   /* имя из профиля: тренер иногда обращается по имени */
   const name = String(user.displayName || '').trim().slice(0, 60);
   const iam = context && context.token && context.token.access_token;
-  if (!iam) return reply(500, { error: 'no-service-account' });
+  if (!iam) { await bump(-1); return reply(500, { error: 'no-service-account' }); }
   const model = env.MODEL || 'yandexgpt';
   const gpt = await j('https://llm.api.cloud.yandex.net/foundationModels/v1/completion', {
     method: 'POST',
@@ -131,12 +151,12 @@ module.exports.handler = async function (event, context) {
     && gpt.data.result.alternatives[0].message && gpt.data.result.alternatives[0].message.text;
   if (!text) {
     const busy = gpt.status === 402 || /balance|billing|payment/i.test(gpt.text || '');
-    return reply(busy ? 503 : 502, { error: busy ? 'billing' : 'gpt', detail: (gpt.text || '').slice(0, 300) });
+    console.error('gpt', gpt.status, (gpt.text || '').slice(0, 300)); /* подробности только в лог */
+    await bump(-1); /* неудачное сообщение не засчитываем */
+    return reply(busy ? 503 : 502, { error: busy ? 'billing' : 'gpt' });
   }
 
-  /* 4. Засчитываем сообщение (только успешное) */
-  await j(usageUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ count: used + 1, last: Date.now(), email: user.email || '' }) });
+  /* 4. Сообщение уже засчитано в bump(1); неудачные откатываются выше */
   const statUrl = `${db}/aiStats/${month}.json?auth=${env.FIREBASE_DB_SECRET}`;
   const st = await j(statUrl);
   await j(statUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' },

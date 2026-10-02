@@ -1768,6 +1768,7 @@ window.Screens.training = function (mount) {
       <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
         <select class="tr-plan-select" id="tr-plan-select"></select>
         <button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>
+        ${role === 'coach' ? '' : '<button class="tr-plan-new tr-plan-share" id="tr-share-plan" title="Поделиться планом" aria-label="Поделиться планом"><i class="ti ti-share"></i></button>'}
       </div>
       <div class="tr-tabs">
         <button class="tr-tab active" data-tab="plan">План</button>
@@ -2411,6 +2412,8 @@ window.Screens.training = function (mount) {
     renderTab('plan');
   });
 
+  const sharePlanBtn = document.getElementById('tr-share-plan');
+  if (sharePlanBtn) sharePlanBtn.addEventListener('click', () => { if (window.ShareTpl) ShareTpl.shareModal(); });
   const newPlanBtn = document.getElementById('tr-new-plan');
   if (newPlanBtn) {
     newPlanBtn.addEventListener('click', () => {

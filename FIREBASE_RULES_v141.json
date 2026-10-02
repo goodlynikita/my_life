@@ -207,6 +207,28 @@
           ".write": "auth != null && $uid === auth.uid && !data.exists()"
         }
       }
+    },
+    "sharedTemplates": {
+      ".read": "auth != null",
+      "$code": {
+        ".write": "auth != null && ((!data.exists() && newData.child('authorUid').val() === auth.uid) || (data.exists() && data.child('authorUid').val() === auth.uid && (!newData.exists() || newData.child('authorUid').val() === auth.uid)) || auth.token.email === 'nedomolkin.1998@mail.ru')",
+        ".validate": "$code.matches(/^[A-Z0-9]{6,10}$/) && newData.child('name').isString() && newData.child('name').val().length <= 60 && newData.child('authorName').isString() && newData.child('authorName').val().length <= 60"
+      }
+    },
+    "sharedTemplateUses": {
+      "$code": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && $uid === auth.uid && root.child('sharedTemplates').child($code).exists()",
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    "userShared": {
+      "$uid": {
+        ".read": "auth != null && $uid === auth.uid",
+        ".write": "auth != null && $uid === auth.uid"
+      }
     }
   }
 }

@@ -510,6 +510,41 @@ const FirebaseSync = (() => {
     await set(ref(_db, 'invites/' + code), { trainerUid: u.uid, name: t.name, createdAt: Date.now() });
     return t;
   }
+  /* ════════ Общие шаблоны планов: ссылка you-app.ru/#/t/КОД ════════
+     sharedTemplates/{code}          — сам шаблон (автор, название, недели), читать может любой вошедший
+     sharedTemplateUses/{code}/{uid} — кто взял себе (по одному разу)
+     userShared/{uid}/{code}         — список ссылок автора */
+  const TPL_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const tplCode = () => Array.from({ length: 6 }, () => TPL_ABC[Math.floor(Math.random() * TPL_ABC.length)]).join('');
+  async function shareTemplate(tpl, authorName) {
+    const u = _auth.currentUser; if (!u) throw new Error('auth');
+    let code = tplCode();
+    for (let i = 0; i < 5 && (await get(ref(_db, 'sharedTemplates/' + code))).exists(); i++) code = tplCode();
+    const rec = Object.assign({}, tpl, { code, authorUid: u.uid, authorName: String(authorName || u.displayName || 'Автор').slice(0, 60), createdAt: Date.now() });
+    await set(ref(_db, 'sharedTemplates/' + code), sanitizeKeys(rec));
+    await set(ref(_db, 'userShared/' + u.uid + '/' + code), { name: rec.name, at: rec.createdAt });
+    return code;
+  }
+  async function getShared(code) {
+    code = String(code || '').trim().toUpperCase(); if (!code) return null;
+    const s = await get(ref(_db, 'sharedTemplates/' + code)); if (!s.exists()) return null;
+    let uses = 0; try { const us = await get(ref(_db, 'sharedTemplateUses/' + code)); uses = us.exists() ? Object.keys(us.val()).length : 0; } catch (e) {}
+    return Object.assign({ code }, s.val(), { uses });
+  }
+  async function markSharedUse(code) { const u = _auth.currentUser; if (!u) return; try { await set(ref(_db, 'sharedTemplateUses/' + code + '/' + u.uid), Date.now()); } catch (e) {} }
+  async function mySharedList() {
+    const u = _auth.currentUser; if (!u) return [];
+    const s = await get(ref(_db, 'userShared/' + u.uid)); if (!s.exists()) return [];
+    const list = Object.entries(s.val()).map(([code, v]) => ({ code, name: v && v.name, at: v && v.at, uses: 0 }));
+    await Promise.all(list.map(async x => { try { const us = await get(ref(_db, 'sharedTemplateUses/' + x.code)); x.uses = us.exists() ? Object.keys(us.val()).length : 0; } catch (e) {} }));
+    return list.sort((a, b) => (b.at || 0) - (a.at || 0));
+  }
+  async function removeShared(code) {
+    const u = _auth.currentUser; if (!u) return;
+    await set(ref(_db, 'sharedTemplates/' + code), null);
+    await set(ref(_db, 'userShared/' + u.uid + '/' + code), null);
+  }
+
   async function findInvite(code) {
     code = String(code || '').trim().toUpperCase(); if (!code) return null;
     const s = await get(ref(_db, 'invites/' + code)); return s.exists() ? { code, ...s.val() } : null;
@@ -605,6 +640,7 @@ const FirebaseSync = (() => {
   function stopWatch() { if (_revUnsub) { try { _revUnsub(); } catch (e) {} _revUnsub = null; } }
 
   return {
+    shareTemplate, getShared, markSharedUse, mySharedList, removeShared,
     isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer,
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,

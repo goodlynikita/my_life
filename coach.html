@@ -1721,12 +1721,32 @@ function renderTemplates(body) {
       <div class="tpl-i"><i class="ti ti-template"></i></div>
       <div class="cl-m"><b>${esc(t.name)}</b><span>${tplMeta(t)}${t.from ? ' · из плана ' + esc(t.from) : ''}</span></div>
       <button class="mini" data-use="${t.id}" title="Назначить клиенту"><i class="ti ti-user-share"></i></button>
+      <button class="mini" data-share="${t.id}" title="Поделиться ссылкой"><i class="ti ti-share"></i></button>
       <button class="mini" data-del="${t.id}" title="Удалить"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`
     : `<div class="empty"><i class="ti ti-template"></i>Шаблонов пока нет.<br>Откройте клиента → «План» → «В шаблоны». Удобно для типовых программ: новичок, набор массы, подготовка к старту.</div>`}</div>`;
   coachTips('tpl');
   body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
     const t = templates.find(x => x.id === b.dataset.del); if (!t || !confirm('Удалить шаблон «' + t.name + '»? У клиентов планы останутся.')) return;
     await set(ref(db, 'trainerTemplates/' + trainer.uid + '/' + t.id), null).catch(() => {}); await loadTemplates(); renderTemplates(body); toast('Шаблон удалён');
+  });
+  /* поделиться шаблоном ссылкой: you-app.ru/#/t/КОД, человек откроет и возьмёт план себе */
+  body.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => {
+    const t = templates.find(x => x.id === b.dataset.share); if (!t) return;
+    b.disabled = true;
+    try {
+      let code = t.shared;
+      if (!code) {
+        const ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', gen = () => Array.from({ length: 6 }, () => ABC[Math.floor(Math.random() * ABC.length)]).join('');
+        code = gen(); for (let i = 0; i < 5 && (await get(ref(db, 'sharedTemplates/' + code))).exists(); i++) code = gen();
+        const { id, ...rest } = t;
+        await set(ref(db, 'sharedTemplates/' + code), clean(Object.assign({}, rest, { code, authorUid: trainer.uid, authorName: trainer.name || 'Тренер', createdAt: Date.now() })));
+        await set(ref(db, 'userShared/' + trainer.uid + '/' + code), { name: t.name, at: Date.now() });
+        await set(ref(db, 'trainerTemplates/' + trainer.uid + '/' + t.id + '/shared'), code); t.shared = code;
+      }
+      const url = 'https://you-app.ru/#/t/' + code, text = `Программа «${t.name}» в YOU. Забирайте себе: ${url}`;
+      if (navigator.share) navigator.share({ title: t.name, text, url }).catch(() => {}); else { navigator.clipboard && navigator.clipboard.writeText(text); toast('Ссылка скопирована'); }
+    } catch (e) { toast(/PERMISSION/i.test(String(e && (e.code || e.message))) ? 'Нет доступа: не обновлены правила базы' : 'Не получилось, проверьте интернет'); }
+    b.disabled = false;
   });
   body.querySelectorAll('[data-use]').forEach(b => b.onclick = () => {
     const t = templates.find(x => x.id === b.dataset.use); const live = clients.filter(c => c.ok);

@@ -42,6 +42,12 @@ const Router = (() => {
     let path = currentPath();
     const loggedIn = Auth.isLoggedIn();
     /* Ссылка тренера: #/join/КОД → запоминаем код, после входа предложим подключиться */
+    /* Ссылка на общий план: #/t/КОД → покажем, что внутри, и «Взять себе» (после входа) */
+    if (path.indexOf('/t/') === 0) {
+      try { localStorage.setItem('you_tpl', decodeURIComponent(path.slice(3)).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10)); } catch (e) {}
+      location.hash = loggedIn ? '/training' : '/register';
+      return;
+    }
     if (path.indexOf('/join/') === 0) {
       try { localStorage.setItem('you_join', decodeURIComponent(path.slice(6)).toUpperCase()); } catch (e) {}
       location.hash = loggedIn ? '/training' : '/register';
@@ -73,6 +79,10 @@ const Router = (() => {
         if (path === '/training') TrainerLink.decorate();
         let pend = null; try { pend = localStorage.getItem('you_join'); } catch (e) {}
         if (pend && Auth.role() !== 'coach') setTimeout(() => TrainerLink.offer(), 700);
+      }
+      if (window.ShareTpl && loggedIn && Auth.role() !== 'coach') {
+        let pt = null; try { pt = localStorage.getItem('you_tpl'); } catch (e) {}
+        if (pt) setTimeout(() => ShareTpl.open(), 900);
       }
     } catch (e) {
       console.error('Screen render error on', path, e);

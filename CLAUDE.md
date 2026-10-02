@@ -16,7 +16,7 @@ PWA «YOU»: трекер жизни (тренировки, привычки, ф
 - Данные: Firebase Realtime Database, проект `nik-track`. Корень данных владельца: `nik-data`.
 - AI-тренер: облачная функция Yandex Cloud `ai-coach` (код в `server/yandex-ai-coach/index.js`) → YandexGPT. Адрес функции в `js/config.js` (`aiChatUrl`).
 - Хостинг: you-app.ru (Yandex Object Storage). Выкладка автоматически через GitHub Actions (`.github/workflows/deploy.yml`) при пуше в `main`. Папка `server`, `*.md` и `*.zip` на сайт не попадают.
-- Старый хостинг GitHub Pages (goodlynikita.github.io/my_life) ещё жив, со временем выключить.
+- Старый хостинг GitHub Pages (goodlynikita.github.io/my_life) ещё жив: `js/moved.js` в браузере переадресует на you-app.ru, в установленной иконке просит переустановить с нового адреса. Со временем выключить.
 
 ### Главные файлы
 - `js/store.js` (Store.get/set), `js/firebase-sync.js`, `js/router.js`, `js/auth.js`.

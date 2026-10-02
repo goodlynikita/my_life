@@ -272,7 +272,15 @@ window.TrainingAI = (function () {
   }
 
   /* Зоны, которые должны быть в тренировке группы */
-  const MUST = { 'Спина': ['width', 'thickness'], 'Грудь': ['upper', 'middle'], 'Ноги': ['quads', 'hams'], 'Плечи': ['side', 'rear'], 'Руки': ['biceps', 'triceps'] };
+  const MUST = { 'Спина': ['width', 'thickness'], 'Грудь': ['upper', 'middle'], 'Ноги': ['quads', 'hams'], 'Плечи': ['front', 'side', 'rear'], 'Руки': ['biceps', 'triceps'] };
+  /* обязательные движения в каждом дне группы: плечи без жима над головой и спина без вертикальной
+     и горизонтальной тяги не растут ровно. Пуловер тянет сверху, но это не тяга, его не считаем */
+  const REQ = {
+    'Плечи': [{ r: 'front', k: 'comp', fb: ['Жим гантелей сидя', 'Армейский жим'] }],
+    'Спина': [{ r: 'width', k: 'comp', no: /пуловер/i, fb: ['Подтягивания широкий хват', 'Тяга верхнего блока широкий'] },
+      { r: 'thickness', k: 'comp', fb: ['Тяга штанги в наклоне', 'Тяга гантели одной рукой', 'Тяга нижнего блока'] }],
+  };
+  const reqFits = (x, q) => x.region === q.r && x.kind === q.k && !(q.no && q.no.test(x.name));
 
   /* ── Тренировка для связки: из твоих тренировок с этой связкой ── */
   function sessionFor(combo, an) {
@@ -414,7 +422,16 @@ window.TrainingAI = (function () {
     const e1 = (ww, rr) => ww * (1 + rr / 30);
     /* сколько повторов реально сделать с новым весом по оценке максимума, в пределах цели */
     const repsAt = (nw, ow, orr) => Math.max(G.lo, Math.min(G.hi, Math.floor(30 * (e1(ow, orr) / nw - 1))));
-    if (last) {
+    /* цель сменилась после этой записи и повторы вне нового диапазона (масса 10 → рельеф 12–15):
+       вес пересчитываем по оценке максимума, а не держим старый */
+    const goalAt = +prefsGet().goalAt || 0;
+    if (last && w && goalAt && +last.date < goalAt && (last.reps < G.lo || last.reps > G.hi)) {
+      r = last.reps < G.lo ? G.lo : G.hi;
+      w = Math.max(step, Math.min(last.weight, downTo(e1(last.weight, last.reps) / (1 + r / 30), step)));
+      if (last.reps > G.hi) w = Math.max(last.weight, snap(e1(last.weight, last.reps) / (1 + r / 30), step));
+      first = w < last.weight ? 'down' : w > last.weight ? 'up' : 'hold';
+      why = 'новая цель: вес под ' + r + ' ' + pl(r, 'повтор', 'повтора', 'повторов');
+    } else if (last) {
       if (last.reps >= G.hi && w) { w = upTo(last.weight, step); r = repsAt(w, last.weight, last.reps); first = 'up'; why = 'дошёл до верха по повторам, прибавляем вес'; }
       else if (last.reps < G.lo && prev && prev.reps < G.lo && w && prev.weight >= w) { w = downTo(w * 0.925, step); r = G.lo; first = 'down'; why = 'два раза не хватило повторов, вес чуть ниже'; }
       else if (last.reps < G.lo) { r = G.lo; first = 'hold'; why = 'не хватило повторов, вес тот же'; }
@@ -472,6 +489,8 @@ window.TrainingAI = (function () {
 
   /* ── Генерация ── */
   function prefsGet() { return (Store.get().training || {}).aiPrefs || {}; }
+  /* смена цели: запоминаем момент, записи до него сделаны под старую цель */
+  const goalSet = (p, g) => g === (p.goal || 'mass') ? p : { ...p, goal: g, goalAt: Date.now() };
   /* ══ Научная методика ══
      Принципы из исследований и программ топовых тренеров:
      • каждая мышца 2 раза в неделю (Schoenfeld, мета-анализ 2016);
@@ -795,6 +814,10 @@ window.TrainingAI = (function () {
       const must = r ? [] : (MUST[g] || []);
       must.forEach(z => { if (mine.some(x => x.region === z)) return; const slot = slotsOf(u).find(sl => sl.region === z); const fb = slot && slot.fb.filter(x => !(history.length < 3 && /подтягиван|на брусьях|в висе/i.test(x)))[0];
         if (fb) { mine.push({ key: exKey(fb), name: fb, region: z, kind: slot.kind || (classify(fb) || {}).kind || 'iso', fill: true }); if (mine.length > 1) addedZones.push(zonePlain(g, z) + ' («' + fb + '»)'); } });
+      /* обязательные движения: нет своего подходящего, берём базовое */
+      if (!r) (REQ[g] || []).forEach(q => { if (mine.some(x => reqFits(x, q))) return;
+        const fb = q.fb.filter(x => !(history.length < 3 && /подтягиван/i.test(x)))[0]; if (!fb || mine.some(x => x.key === exKey(fb))) return;
+        mine.push({ key: exKey(fb), name: fb, region: q.r, kind: q.k, fill: true }); if (mine.length > 1) addedZones.push(zonePlain(g, q.r) + ' («' + fb + '»)'); });
       /* своих мало: добираем базой, чтобы было из чего выбрать */
       /* по кругу слотов: первое из каждого, потом второе, чтобы не было двух одинаковых движений подряд */
       const sls = slotsOf(u).filter(sl => !r || sl.region === r);
@@ -839,14 +862,19 @@ window.TrainingAI = (function () {
         const must = (!unitRegion(u) && j === 0) ? (MUST[unitGroup(u)] || []) : [];
         /* добор пропущенной зоны идёт сверху твоих упражнений, а не вместо них */
         if (!addedSet.has(u) && pool.some(x => x.mine)) want += must.filter(z => !pool.some(x => x.mine && x.region === z)).length;
-        must.forEach(z => { const x = rot.find(e => e.region === z && !pick.includes(e) && !used.has(e.key)); if (x && pick.length < want) pick.push(x); });
+        /* обязательные движения в каждой тренировке с этой группой: жим над головой, вертикальная и горизонтальная тяга */
+        const req = unitRegion(u) ? [] : (REQ[unitGroup(u)] || []);
+        want = Math.max(want, req.length);
+        const reqPick = new Set();
+        req.forEach(q => { const x = rot.find(e => reqFits(e, q) && !pick.includes(e) && !used.has(e.key)); if (x) { reqPick.add(x); pick.push(x); } });
+        must.forEach(z => { if (pick.some(p => p.region === z)) return; const x = rot.find(e => e.region === z && !pick.includes(e) && !used.has(e.key)); if (x && pick.length < want) pick.push(x); });
         const okPick = (x) => pick.length < want && !pick.includes(x) && !used.has(x.key) && !(units.length > 1 && x.base && pick.length >= Math.max(2, Math.ceil(want * 0.6)) && pool.some(p => p.mine));
         /* сначала разные зоны мышцы (середина, верх, низ), потом уже второе упражнение в той же зоне */
         rot.forEach(x => { if (okPick(x) && !pick.some(p => p.region && p.region === x.region)) pick.push(x); });
         rot.forEach(x => { if (okPick(x)) pick.push(x); });
         pick.sort((a, b) => (b.kind === 'comp') - (a.kind === 'comp') || (b.mine ? 1 : 0) - (a.mine ? 1 : 0));
         pick.forEach(x => { used.add(x.key); prev.add(x.key);
-          let it = { kind: x.kind, mine: !!x.mine, key: x.key, name: x.name, group: unitGroup(u), region: x.region, isNew: !an.ex[x.key], why: addedSet.has(u) ? 'новая группа, чтобы тело росло ровно' : x.fill && j === 0 ? 'подтягиваем ' + zonePlain(unitGroup(u), x.region) : '' };
+          let it = { kind: x.kind, req: reqPick.has(x), mine: !!x.mine, key: x.key, name: x.name, group: unitGroup(u), region: x.region, isNew: !an.ex[x.key], why: addedSet.has(u) ? 'новая группа, чтобы тело росло ровно' : x.fill && j === 0 ? 'подтягиваем ' + zonePlain(unitGroup(u), x.region) : '' };
           const to = swaps[it.key]; if (to) { const k2 = exKey(to); it = { ...it, swappedFrom: it.name, name: to, key: k2, isNew: !an.ex[k2], why: 'замена при плато: было «' + it.name + '»' }; }
           items.push(it); });
       });
@@ -856,7 +884,9 @@ window.TrainingAI = (function () {
         const cnt = {}; items.forEach(it => { cnt[it.group] = (cnt[it.group] || 0) + 1; });
         const g = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
         let k = -1; for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g && items[q].kind !== 'comp') { k = q; break; }
-        if (k < 0) for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g) { k = q; break; }
+        if (k < 0) for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g && !items[q].req) { k = q; break; }
+        if (k < 0) for (let q = items.length - 1; q >= 0; q--) if (!items[q].req) { k = q; break; }
+        if (k < 0) break;
         items.splice(k, 1);
       }
       /* порядок: базовые упражнения по очереди мышц (грудь, спина, ноги, грудь...), потом изоляция так же.
@@ -1266,7 +1296,7 @@ window.TrainingAI = (function () {
   }
   function bindAnketa(content, an, prefs, apply) {
     const set = (k, v) => apply({ ...prefs, [k]: v });
-    content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => set('goal', b.dataset.v));
+    content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => apply(goalSet(prefs, b.dataset.v)));
     content.querySelectorAll('.ai-day-chip').forEach(b => b.onclick = () => {
       const cur = new Set(an.trainDays), d = +b.dataset.d;
       if (cur.has(d)) { if (cur.size === 1) return; cur.delete(d); } else cur.add(d);
@@ -1442,7 +1472,7 @@ window.TrainingAI = (function () {
     if ($('#q-help')) $('#q-help').onclick = () => { if (window.Tour && Tour.play) Tour.play(AI_TIPS.filter(x => document.querySelector(x.sel)), 'tab:training.ai'); };
     content.querySelectorAll('.q-focus [data-f]').forEach(b => b.onclick = () => apply({ ...prefs, focus: b.dataset.f, layout: null }, b.dataset.f === 'lower' ? 'Упор на ноги и ягодицы' : 'Всё тело ровно', true));
     if ($('#q-auto')) $('#q-auto').onclick = () => apply({ ...prefs, layout: null }, 'Мышцы разложены как по истории', true);
-    content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => apply({ ...prefs, goal: b.dataset.v }, 'Цель обновлена'));
+    content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => apply(goalSet(prefs, b.dataset.v), 'Цель обновлена'));
     const STEPS = [0.25, 0.5, 1, 1.25, 2, 2.5, 3, 4, 5, 7.5, 10, 15, 20];
     const applyStep = (eq, val) => { val = Math.round(Math.min(50, Math.max(0.25, +String(val).replace(',', '.') || 0)) * 100) / 100; if (val) apply({ ...prefs, steps: { ...(prefs.steps || {}), [eq]: val } }, 'Шаг веса учтён'); };
     content.querySelectorAll('.ai-stp input').forEach(inp => inp.addEventListener('change', () => applyStep(inp.dataset.eq, inp.value)));

@@ -115,6 +115,20 @@ window.FinSpend = (function () {
   const isoDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   /* сколько откладывать в месяц: сумма на число месяцев до даты, текущий тоже считается */
   function perMonth(p, now) { const d = pDate(p.date); const m = Math.max(1, (d.getFullYear() - now.getFullYear()) * 12 + d.getMonth() - now.getMonth() + 1); return Math.ceil(p.amt / m / 100) * 100; }
+  /* сколько уже заплачено по каждому разовому платежу: траты с пометкой once за все месяцы */
+  function oncePaid() {
+    const sp = (Store.get().finance || {}).spend || {}, out = {};
+    Object.keys(sp).forEach(ym => toArr(sp[ym]).forEach(x => { if (x && x.once) out[x.once] = (out[x.once] || 0) + Math.max(0, +x.amt || 0); }));
+    return out;
+  }
+  /* трата похожа на разовый платёж по названию: «одежда 1385» → платёж «Одежда» */
+  function matchPlanned(note) {
+    const n = norm(note); if (!n) return null;
+    const w = words(n)[0];
+    const cand = planned().filter(p => !p.done).filter(p => { const pn = norm(p.name); const pw = words(pn)[0];
+      return n === pn || n.startsWith(pn + ' ') || pn.startsWith(n + ' ') || (w && pw && w.length >= 4 && stem(w) === stem(pw)); });
+    return cand.sort((a, b) => pDate(a.date) - pDate(b.date))[0] || null;
+  }
   function markPlanned(id, done) { savePlanned(planned().map(x => x.id === id ? Object.assign(x, done ? { done: true, doneAt: Date.now() } : { done: false, doneAt: null }) : x)); }
   /* напоминание в календарь телефона: файл .ics, событие на весь день и два напоминания (за 3 дня и накануне, в 9:00) */
   function icsDownload(p) {
@@ -154,7 +168,8 @@ window.FinSpend = (function () {
     const planTotal = Object.values(planOf).reduce((s, v) => s + v, 0);
     const planLeft = b.cats.reduce((s, c) => s + Math.max(0, planOf[c.id] - (sp[c.id] || 0)), 0);
     /* разовые платежи этого периода и просроченные: резервируем целиком, пока не оплачены */
-    const onceLeft = planned().filter(p => !p.done && pDate(p.date) < per.end).reduce((s, p) => s + p.amt, 0);
+    const paidO = oncePaid();
+    const onceLeft = planned().filter(p => !p.done && pDate(p.date) < per.end).reduce((s, p) => s + Math.max(0, p.amt - (paidO[p.id] || 0)), 0);
     const free = inc - save - planLeft - onceLeft - spent;
     const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dim = Math.round((per.end - per.start) / 864e5); /* дней в периоде */
@@ -172,6 +187,7 @@ window.FinSpend = (function () {
 
   /* плановые платежи месяца: категории с днём оплаты, оплачено = потрачено ≥ плана */
   function payments(c, now) {
+    const paidO = oncePaid();
     now = now || new Date();
     const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const start = c.start || new Date(now.getFullYear(), now.getMonth(), 1);
@@ -185,7 +201,8 @@ window.FinSpend = (function () {
       return { id: x.id, name: x.name || 'Платёж', color: col(x.color), day: date.getDate(), date, amt, left: Math.max(0, amt - sp), paid, late: !paid && diff < 0, diff, inPer: true };
     }).concat(planned().filter(p => !p.done || +p.doneAt >= +start).map(p => {
       const date = pDate(p.date), diff = Math.round((date - t0) / 864e5);
-      return { once: true, id: p.id, name: p.name, color: '#977FE9', day: date.getDate(), date, amt: p.amt, left: p.done ? 0 : p.amt, paid: !!p.done, late: !p.done && diff < 0, diff, inPer: !c.end || date < c.end, monthly: perMonth(p, now) };
+      const left = p.done ? 0 : Math.max(0, p.amt - (paidO[p.id] || 0));
+      return { once: true, id: p.id, name: p.name, color: '#977FE9', day: date.getDate(), date, amt: p.amt, left, paid: !!p.done || left <= 0, late: !p.done && diff < 0, diff, inPer: !c.end || date < c.end, monthly: perMonth(p, now) };
     })).sort((a, b) => (a.paid - b.paid) || (b.late - a.late) || (a.date - b.date));
   }
 
@@ -437,12 +454,16 @@ window.FinSpend = (function () {
       const at = Date.now(), ym = ymKey(new Date(at)); /* месяц берём в момент записи, а не отрисовки */
       const rec = { id: uid('s'), amt: p.amt, cat: p.cat, note: p.note, src: p.src || '', at };
       /* запись разового платежа из «Ближайших»: трата помечается им (не съедает дневную норму), платёж становится оплаченным */
-      const onceId = inp.dataset.once; delete inp.dataset.once;
+      /* трата по разовому платежу: из «Ближайших» или совпала по названию. Списывается с остатка платежа */
+      let onceId = inp.dataset.once; delete inp.dataset.once;
+      const auto = !onceId && matchPlanned(p.note); if (auto) onceId = auto.id;
       if (onceId) rec.once = onceId;
       const arr = rawList(ym); arr.push(rec); saveList(ym, arr);
-      if (onceId) markPlanned(onceId, true);
+      const op = onceId && planned().find(x => x.id === onceId), rest = op ? Math.max(0, op.amt - (oncePaid()[onceId] || 0)) : 0;
+      if (op && rest <= 0) markPlanned(onceId, true);
       rerender();
-      toast(`Записал ${fmt(p.amt)} · ${p.catName}`, () => { saveList(ym, rawList(ym).filter(x => x.id !== rec.id)); if (onceId) markPlanned(onceId, false); rerender(); });
+      toast(op ? (rest > 0 ? `Записал ${fmt(p.amt)} · ${op.name}, осталось ${fmt(rest)}` : `Записал ${fmt(p.amt)} · ${op.name} оплачен`) : `Записал ${fmt(p.amt)} · ${p.catName}`,
+        () => { saveList(ym, rawList(ym).filter(x => x.id !== rec.id)); if (op) markPlanned(onceId, false); rerender(); });
       const ni = document.querySelector('#sp-in'); if (ni) ni.focus({ preventScroll: true });
     };
     content.querySelector('#sp-ok').addEventListener('click', commit);
@@ -455,7 +476,7 @@ window.FinSpend = (function () {
     const pm = content.querySelector('#sp-pay-more'); if (pm) pm.onclick = () => { showPays = true; rerender(); };
     content.querySelectorAll('.sp-pay-r').forEach(b => b.addEventListener('click', () => {
       if (b.dataset.once) { onceModal(b.dataset.cat, rerender, (p) => {
-        inp.value = p.name + ' ' + p.amt; delete inp.dataset.cat; inp.dataset.once = p.id; refresh(); syncBtn(); inp.focus();
+        inp.value = p.name + ' ' + Math.max(0, p.amt - (oncePaid()[p.id] || 0)); delete inp.dataset.cat; inp.dataset.once = p.id; refresh(); syncBtn(); inp.focus();
         inp.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' }); }); return; }
       const ct = catById[b.dataset.cat]; if (!ct) return;
       if (b.classList.contains('paid')) { catModal(ct.id, rerender); return; }
@@ -750,7 +771,7 @@ window.FinSpend = (function () {
     const pb = $('#om-pay'); if (pb) pb.onclick = () => { const x = read(); if (!x) return; save(x); close();
       if (onPay) { onPay(x); return; }
       /* открыли не из «Расходов» (например, из «Баланса»): записываем трату сразу */
-      const at = Date.now(), ym = ymKey(new Date(at)), rec = { id: uid('s'), amt: x.amt, cat: null, note: x.name, src: '', at, once: x.id };
+      const at = Date.now(), ym = ymKey(new Date(at)), rec = { id: uid('s'), amt: Math.max(0, x.amt - (oncePaid()[x.id] || 0)) || x.amt, cat: null, note: x.name, src: '', at, once: x.id };
       const arr = rawList(ym); arr.push(rec); saveList(ym, arr); markPlanned(x.id, true);
       if (onDone) onDone();
       toast(`Записал ${fmt(x.amt)} · ${x.name}`, () => { saveList(ym, rawList(ym).filter(z => z.id !== rec.id)); markPlanned(x.id, false); if (onDone) onDone(); }); };

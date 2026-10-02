@@ -102,7 +102,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 /* Пришли свежие данные с другого устройства — перерисовываем экран,
    если пользователь сейчас ничего не редактирует (тренировки обновляются сами) */
-window.addEventListener('firebase-remote-update', function () {
+window.addEventListener('firebase-remote-update', function (ev) {
+  /* перерисовываем, только если поменялся раздел, который сейчас на экране (главная показывает всё) */
+  var secs = ev && ev.detail && ev.detail.sections;
+  var path = Router.currentPath().split('/')[1] || 'home';
+  if (secs && path !== 'home' && secs.indexOf(path) < 0) return;
   if (window.Theme) Theme.syncFromStore();
   var a = document.activeElement;
   var editing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT');

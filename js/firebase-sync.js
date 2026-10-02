@@ -146,12 +146,20 @@ const FirebaseSync = (() => {
   /* сравнение данных без учёта порядка ключей и пустых значений (Firebase их не хранит) */
   function _norm(v) {
     if (v === null || v === undefined) return undefined;
-    if (Array.isArray(v)) { const a = v.map(_norm); while (a.length && a[a.length - 1] === undefined) a.pop(); return a.length ? a.map(x => x === undefined ? null : x) : undefined; }
-    if (typeof v === 'object') { const o = {}; Object.keys(v).sort().forEach(k => { const x = _norm(v[k]); if (x !== undefined) o[k] = x; }); return Object.keys(o).length ? o : undefined; }
     if (typeof v === 'number' && !isFinite(v)) return undefined;
-    return v;
+    if (typeof v !== 'object') return v;
+    /* массив и объект {0:…,1:…} для Firebase одно и то же: приводим к объекту с отсортированными ключами */
+    const keys = Array.isArray(v) ? v.map((_, i) => String(i)) : Object.keys(v);
+    const o = {};
+    keys.sort().forEach(k => { const x = _norm(v[k]); if (x !== undefined) o[k.replace(/[.#$\/\[\]]/g, '_')] = x; });
+    return Object.keys(o).length ? o : undefined;
   }
   function _sameData(a, b) { try { return JSON.stringify(_norm(a)) === JSON.stringify(_norm(b)); } catch (e) { return false; } }
+  /* какие разделы (training, finance, …) реально отличаются */
+  function _changedSections(a, b) {
+    const ks = new Set(Object.keys(a || {}).concat(Object.keys(b || {})));
+    return [...ks].filter(k => !_sameData((a || {})[k], (b || {})[k]));
+  }
 
   async function _silentPull() {
     const root = userRoot();
@@ -167,9 +175,10 @@ const FirebaseSync = (() => {
       if (_queue.size > 0 || _flushing) return; /* пока ждали ответ — появились правки */
       const next = coach ? { training: snap.val() } : snap.val();
       /* ничего не изменилось на сервере: экран не перерисовываем, иначе страница «прыгает» каждые 5 минут */
-      if (_sameData(coach ? { training: Store.get().training } : Store.get(), next)) return;
+      const changed = _changedSections(coach ? { training: Store.get().training } : Store.get(), next);
+      if (!changed.length) return;
       Store.replaceAll(next);
-      window.dispatchEvent(new CustomEvent('firebase-remote-update'));
+      window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: changed } }));
     } catch(e) {}
   }
 

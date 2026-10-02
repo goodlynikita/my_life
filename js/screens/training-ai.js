@@ -1564,7 +1564,9 @@ window.TrainingAI = (function () {
       let on = new Set(hist.length === L.N ? hist : PRESET[Math.min(7, Math.max(1, L.N))]);
       /* все дни от сегодня до конца плана */
       const all = []; for (let i = 0; i < 400; i++) { const d = new Date(today); d.setDate(today.getDate() + i); if (!planDayAt(plan, d)) { if (i > 7) break; continue; } all.push(d); }
-      const pickDates = () => { const out = []; all.forEach(d => { const k = ymdQ(d); if (!fixed[k] && on.has(d.getDay()) && out.length < order.length) out.push(k); }); return out; };
+      /* дни, где уже есть своя тренировка, пропускаем: две тренировки в один день AI не ставит */
+      let busyN = 0;
+      const pickDates = () => { const out = []; busyN = 0; all.forEach(d => { const k = ymdQ(d); if (fixed[k] || !on.has(d.getDay()) || out.length >= order.length) return; if (dayBusy(d)) { busyN++; return; } out.push(k); }); return out; };
       const ov = modal('');
       const box = ov.querySelector('.tr-modal');
       const draw = () => {
@@ -1575,7 +1577,7 @@ window.TrainingAI = (function () {
           <div class="q-ask-d" style="text-align:left;margin-top:0">${window.__coachMode ? 'Отметьте дни, когда клиент ходит в зал' : 'Отметь дни, когда ходишь в зал'}</div>
           <div class="q-dw">${DW.map(([d, t]) => `<button data-dw="${d}" class="${on.has(d) ? 'on' : ''}">${t}</button>`).join('')}</div>
           <div class="q-sum">${sel.length
-            ? `<b>${sel.length} ${pl(sel.length, 'тренировка', 'тренировки', 'тренировок')}</b><span>с ${esc(fmtDay(fromYmdQ(sel[0])))} по ${esc(fmtDay(last))}, ${on.size} ${pl(on.size, 'день', 'дня', 'дней')} в неделю</span>${left > 0 ? `<span class="q-sum-w">Ещё ${left} не влезут до конца плана, останутся в списке AI</span>` : ''}`
+            ? `<b>${sel.length} ${pl(sel.length, 'тренировка', 'тренировки', 'тренировок')}</b><span>с ${esc(fmtDay(fromYmdQ(sel[0])))} по ${esc(fmtDay(last))}, ${on.size} ${pl(on.size, 'день', 'дня', 'дней')} в неделю</span>${left > 0 ? `<span class="q-sum-w">Ещё ${left} ${pl(left, 'не влезет', 'не влезут', 'не влезут')} до конца плана, ${pl(left, 'останется', 'останутся', 'останутся')} в списке AI</span>` : ''}${busyN ? `<span class="q-sum-w">${busyN} ${pl(busyN, 'день', 'дня', 'дней')} со своими тренировками пропущу</span>` : ''}`
             : '<span>Отметь хотя бы один день</span>'}</div>
           <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" data-x>Отмена</button><button class="tr-modal-btn-primary" id="q-ok"${sel.length ? '' : ' disabled'}>${sel.length ? 'Поставить ' + sel.length : 'Отметь дни'}</button></div>`;
         box.querySelector('[data-x]').onclick = () => ov.remove();
@@ -1899,6 +1901,16 @@ window.TrainingAI = (function () {
   }
 
   function rerender(content, plan, h) { render(content, plan, h); }
-  return { orphanList, dropOrphans, toast: qToast, render, generate, regenKeep, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
+  /* после «Отменить» в Плане: тренировки AI, которых в Плане больше нет, снова в списке AI */
+  function resyncQueue() {
+    const a = load(); if (!a || a.mode !== 'queue' || !Array.isArray(a.queue)) return;
+    const p = toArr((Store.get().training || {}).plans).find(x => x && x.id === a.planId); if (!p) return;
+    let ch = false;
+    a.queue.forEach(q => { if (!q || !q.transferred || q.wi == null) return;
+      const day = toArr(p.weeks)[q.wi] && toArr(toArr(p.weeks)[q.wi].days)[q.di];
+      if (!(day && toArr(day.sessions).some(s2 => s2 && s2.ai && s2.aiQ === qid(q)))) { Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); ch = true; } });
+    if (ch) save(a);
+  }
+  return { resyncQueue, orphanList, dropOrphans, toast: qToast, render, generate, regenKeep, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
     GOALS, EQUIP, equipOf, stepFor, SLOTS, REGION_LABEL, DOW, toArr, esc, currentWeekIdx, planDayDate, weekKey, _progression: progression };
 })();

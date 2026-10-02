@@ -218,10 +218,15 @@ window.BodyProgress = (function () {
   }
   function readForm(root) {
     const values = {};
-    root.querySelectorAll('input[data-field]').forEach(i => { const v = i.value.trim().replace('.', ','); if (v !== '') values[i.dataset.field] = v; });
+    const bad = [];
+    /* только числа 0–500 (см, кг, %): «80кг», «-5», «1e9» не сохраняем, а подсвечиваем */
+    root.querySelectorAll('input[data-field]').forEach(i => { const v = i.value.trim().replace(/\s/g, '').replace('.', ','); i.classList.remove('mf-bad');
+      if (v === '') return;
+      const n = +v.replace(',', '.');
+      if (/^\d{1,3}(,\d{1,2})?$/.test(v) && n > 0 && n <= 500) values[i.dataset.field] = v; else { bad.push(i.dataset.field); i.classList.add('mf-bad'); } });
     const di = root.querySelector('[data-mf-date]'); let date = '';
     if (di && di.value) { const [y, m, d] = di.value.split('-'); date = d + '.' + m + '.' + y; }
-    return { date, values };
+    return { date, values, bad };
   }
   return { html, bind, weekDelta, series, summary, formHtml, readForm, FIELDS };
 })();

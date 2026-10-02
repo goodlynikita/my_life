@@ -101,7 +101,9 @@ const FirebaseSync = (() => {
          ничего своего не выбрасываем */
       if (sections.has('training') && _myTrainer && !isCoachUser(_auth.currentUser)) {
         const tp = [...new Set(entries.map(([p]) => p).filter(p => p === 'training' || p.startsWith('training.')))];
-        const keep = tp.filter(p => !tp.some(q => q !== p && p.startsWith(q + '.')));
+        /* при загрузке из тренировок выкинули пустые элементы: индексы сдвинулись, пишем раздел целиком один раз */
+        const compacted = Store.takeTrainingCompacted ? Store.takeTrainingCompacted() : false;
+        const keep = compacted ? ['training'] : tp.filter(p => !tp.some(q => q !== p && p.startsWith(q + '.')));
         const at = (obj, keys) => keys.reduce((o, k) => (o == null ? undefined : o[k]), obj);
         const put = (obj, keys, v) => { let o = obj; keys.slice(0, -1).forEach(k => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }); o[keys[keys.length - 1]] = v; };
         let srv = 0, loc = +((Store.get().training || {}).coachRev || 0);

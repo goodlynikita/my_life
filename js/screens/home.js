@@ -18,8 +18,8 @@ window.Screens.home = function(mount) {
   var yr = now.getFullYear();
   var mm = String(now.getMonth()+1).padStart(2,'0');
   var finYears = (store.finance && store.finance.years) || {};
-  var entries = (finYears[yr] && finYears[yr][mm] && finYears[yr][mm].entries) || [];
-  var monthIncome = entries.reduce(function(s,e){return s+((e&&e.amount)||0);},0);
+  var entries = typeof finEntries === 'function' ? finEntries(yr, now.getMonth()) : [];
+  var monthIncome = entries.reduce(function(s,e){return s+(e && isFinite(+e.amount) ? +e.amount : 0);},0);
 
   /* Плановые расходы — берём из категорий финансов автоматически */
   var finCats = (store.finance && store.finance.balance && store.finance.balance.categories) || [];

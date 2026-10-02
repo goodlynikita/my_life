@@ -15,8 +15,8 @@ if (!window._finConsts) {
                       'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   window.FIN_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   window.FIN_LABEL_COLORS = {
-    '':       { hex: '#16A34A', name: 'Зелёный (осн.)' },
-    'blue':   { hex: '#16A34A', name: 'Синий (другой источник)' },
+    '':       { hex: '#16A34A', name: 'Зелёный, основной' },
+    'blue':   { hex: '#3B82F6', name: 'Синий, другой источник' },
     'purple': { hex: '#818CF8', name: 'Индиго' },
     'orange': { hex: '#F59E0B', name: 'Оранжевый' },
   };
@@ -57,7 +57,10 @@ function finEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => 
 
 function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
-  return ((Store.get().finance||{}).years||{})[year] && (((Store.get().finance.years||{})[year]||{})[mm]||{}).entries || [];
+  const raw = (((((Store.get().finance||{}).years||{})[year])||{})[mm]||{}).entries;
+  /* Firebase может отдать объект {0:…} или массив с пустыми элементами */
+  const arr = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.keys(raw).sort((a,b)=>a-b).map(k=>raw[k]) : []);
+  return arr.filter(e => e && typeof e === 'object');
 }
 
 function finSave(year, month, entries) {
@@ -66,7 +69,7 @@ function finSave(year, month, entries) {
 }
 
 function finSum(entries) {
-  return entries.reduce((s,e) => s+(e.amount||0), 0);
+  return entries.reduce((s,e) => s+(e && isFinite(+e.amount) ? +e.amount : 0), 0);
 }
 
 function finFmt(n) {
@@ -117,7 +120,7 @@ function finOpenModal(existing, year, month, onSave) {
       <p class="tr-modal-title" style="margin-bottom:16px;">${isEdit?'Редактировать приход':'Новый приход'}</p>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Сумма, ₽
-          <input type="number" id="fin-amount" value="${existing?.amount||''}" inputmode="numeric" placeholder="0" style="font-size:18px;font-weight:600;">
+          <input type="text" id="fin-amount" value="${finEsc(existing?.amount||'')}" inputmode="decimal" placeholder="0" style="font-size:18px;font-weight:600;">
         </label>
       </div>
       <div class="tr-modal-row">
@@ -133,6 +136,7 @@ function finOpenModal(existing, year, month, onSave) {
           </select>
         </label>
       </div>
+      <div class="sp-err" id="fin-err" style="color:#F87171;font-size:13px;min-height:18px;margin-top:4px;"></div>
       <div class="tr-modal-actions">
         ${isEdit?'<button class="tr-modal-btn-secondary" id="fin-del" style="color:#FF5C5C;">Удалить</button>':'<button class="tr-modal-btn-secondary" id="fin-cancel">Отмена</button>'}
         <button class="tr-modal-btn-primary" id="fin-save">Сохранить</button>
@@ -144,12 +148,15 @@ function finOpenModal(existing, year, month, onSave) {
   const cb=overlay.querySelector('#fin-cancel');
   if(cb)cb.addEventListener('click',()=>overlay.remove());
   const db=overlay.querySelector('#fin-del');
-  if(db)db.addEventListener('click',()=>{onSave(null);overlay.remove();});
+  if(db)db.addEventListener('click',()=>{ if(!confirm('Удалить приход '+finFmtFull(+existing.amount||0)+'?'))return; onSave(null);overlay.remove();});
 
   overlay.querySelector('#fin-save').addEventListener('click',()=>{
-    const amount = parseFloat(overlay.querySelector('#fin-amount').value)||0;
-    if(!amount)return;
+    const err = (t) => { overlay.querySelector('#fin-err').textContent = t; };
+    const amount = Math.round(parseFloat(String(overlay.querySelector('#fin-amount').value).replace(/\s/g,'').replace(',','.')) * 100) / 100;
+    if(!(amount > 0)) return err('Укажи сумму больше нуля');
+    if(amount > 1e9) return err('Слишком большая сумма, проверь');
     const iso = overlay.querySelector('#fin-date').value; // yyyy-mm-dd
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return err('Выбери дату');
     const [y,m,d] = iso.split('-');
     const dateStr = `${d}.${m}.${y}`;
     const color = overlay.querySelector('#fin-color').value;
@@ -273,9 +280,12 @@ window.Screens.finance = function(mount) {
     document.getElementById('fin-add').addEventListener('click',()=>{
       finOpenModal(null,vYear,vMonth,result=>{
         if(!result)return;
-        const list=finEntries(vYear,vMonth);
+        /* приход ложится в месяц своей даты; если это другой месяц, переходим туда */
+        const [,tm,ty]=result.date.split('.').map(Number);
+        const list=finEntries(ty,tm-1);
         list.push(result);
-        finSave(vYear,vMonth,list);
+        finSave(ty,tm-1,list);
+        vYear=ty; vMonth=tm-1;
         render();
       });
     });
@@ -284,9 +294,10 @@ window.Screens.finance = function(mount) {
         const list=finEntries(vYear,vMonth);
         const idx=parseInt(btn.dataset.idx);
         finOpenModal(list[idx],vYear,vMonth,result=>{
-          if(result===null)list.splice(idx,1);
-          else list[idx]=result;
-          finSave(vYear,vMonth,list);
+          if(result===null){ list.splice(idx,1); finSave(vYear,vMonth,list); render(); return; }
+          const [,tm,ty]=result.date.split('.').map(Number);
+          if(ty===vYear&&tm-1===vMonth){ list[idx]=result; finSave(vYear,vMonth,list); }
+          else { list.splice(idx,1); finSave(vYear,vMonth,list); const t=finEntries(ty,tm-1); t.push(result); finSave(ty,tm-1,t); vYear=ty; vMonth=tm-1; }
           render();
         });
       });
@@ -422,7 +433,9 @@ window.Screens.finance = function(mount) {
 
     /* Настройки из Store */
     const stored = Store.get().finance?.balance || {};
-    const GOAL_INCOME = stored.goalIncome || 291500;
+    /* цель дохода: своя, а если не задана, доход этого или прошлого месяца (раньше у всех стояло чужое число) */
+    const _gNow = new Date(), _gPrev = new Date(_gNow.getFullYear(), _gNow.getMonth() - 1, 1);
+    const GOAL_INCOME = stored.goalIncome || finSum(finEntries(_gNow.getFullYear(), _gNow.getMonth())) || finSum(finEntries(_gPrev.getFullYear(), _gPrev.getMonth())) || 0;
     /* 0% в копилку тоже осознанный выбор, поэтому не «|| 30» */
     const SAVE_PCT = stored.savePct != null && isFinite(+stored.savePct) ? +stored.savePct : 30;
     const escH = FS ? FS.esc : (x => String(x == null ? '' : x).replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';'));
@@ -584,7 +597,7 @@ window.Screens.finance = function(mount) {
       ov.innerHTML = `<div class="tr-modal sp-edit" style="max-height:85vh;overflow-y:auto;">
         <p class="tr-modal-title">Настройки баланса</p>
         <div class="tr-modal-row">
-          <label style="flex:1">Цель дохода, ₽<input type="text" id="bi-goal" value="${GOAL_INCOME}" inputmode="numeric"></label>
+          <label style="flex:1">Цель дохода, ₽<input type="text" id="bi-goal" value="${GOAL_INCOME || ''}" inputmode="numeric" placeholder="Например, 100000"></label>
           <label style="width:96px;">Копилка, %<input type="number" id="bi-pct" value="${SAVE_PCT}" min="0" max="100" inputmode="numeric"></label>
         </div>
         <p class="ce-h">Категории расходов</p>

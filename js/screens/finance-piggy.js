@@ -170,10 +170,12 @@ window.FinPiggy = (function () {
           cat = b.dataset.cat; box.querySelectorAll('.pg-cat').forEach(x => x.classList.toggle('on', x === b));
         }));
         box.querySelector('#pg-next').addEventListener('click', () => {
-          amount = Math.round(parseFloat(box.querySelector('#pg-amt').value) || 0);
+          amount = Math.round(parseFloat(String(box.querySelector('#pg-amt').value).replace(',', '.')) || 0);
           note = box.querySelector('#pg-note').value.trim();
           const err = box.querySelector('#pg-err');
-          if (amount <= 0) { err.textContent = 'Укажи сумму'; return; }
+          if (!(amount > 0)) { err.textContent = 'Укажи сумму'; return; }
+          /* копилка не уходит в минус */
+          if (amount > c.balance) { err.textContent = c.balance > 0 ? 'В копилке только ' + fmt(c.balance) : 'Копилка пока пустая'; return; }
           if (!note) { err.textContent = 'Напиши, на что именно: так проще честно оценить трату'; return; }
           step = 2; render();
         });
@@ -207,7 +209,7 @@ window.FinPiggy = (function () {
         const upd = () => {
           const n = qs.filter(q => q.checked).length;
           conf.disabled = n < qs.length;
-          imp.style.display = (n < qs.length && qs.some(q => q.dataset.touched)) ? '' : 'none';
+          imp.style.display = (n < qs.length && qs.some(q => q.dataset.touched)) ? 'block' : 'none';
         };
         qs.forEach(q => q.addEventListener('change', () => { q.dataset.touched = '1'; upd(); }));
         upd();
@@ -246,8 +248,8 @@ window.FinPiggy = (function () {
       </div>`);
     setTimeout(() => ov.querySelector('#pg-amt').focus(), 50);
     ov.querySelector('#pg-ok').addEventListener('click', () => {
-      const amount = Math.round(parseFloat(ov.querySelector('#pg-amt').value) || 0);
-      if (amount <= 0) { ov.querySelector('#pg-err').textContent = 'Укажи сумму'; return; }
+      const amount = Math.round(parseFloat(String(ov.querySelector('#pg-amt').value).replace(',', '.')) || 0);
+      if (!(amount > 0) || amount > 1e9) { ov.querySelector('#pg-err').textContent = 'Укажи сумму'; return; }
       const p = get();
       p.ops.push({ id: 'pg_' + Date.now(), type: 'deposit', amount, date: today(), note: ov.querySelector('#pg-note').value.trim() });
       save(p); ov.remove(); done();

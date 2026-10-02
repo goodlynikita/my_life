@@ -25,6 +25,17 @@ const Router = (() => {
     location.hash = path;
   }
 
+  /* окна не переживают смену экрана: «Назад» в браузере закрывает окно, а не оставляет его поверх другого раздела */
+  function closeModals() { document.querySelectorAll('.tr-modal-overlay').forEach(o => o.remove()); }
+  /* Escape закрывает верхнее окно, если само окно его не обработало */
+  let _escN = -1;
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') _escN = document.querySelectorAll('.tr-modal-overlay').length; }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented) return;
+    const all = document.querySelectorAll('.tr-modal-overlay');
+    if (all.length && all.length === _escN) all[all.length - 1].remove(); /* само окно Escape не обработало */
+  });
+  window.addEventListener('hashchange', closeModals);
   function render(opts) {
     const keepScroll = !!(opts && opts.keepScroll);
     const prevY = window.scrollY;

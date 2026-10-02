@@ -527,6 +527,7 @@ function trUndoLastChange() {
     if (cur.ai !== undefined) previous.ai = cur.ai;
     if (cur.aiPrefs !== undefined) previous.aiPrefs = cur.aiPrefs;
     Store.set('training', previous);
+    if (window.TrainingAI && TrainingAI.resyncQueue) TrainingAI.resyncQueue();
     return true;
   } catch (e) {
     return false;
@@ -562,8 +563,9 @@ function trEnsureSeedPlan() {
 function trCreateNextPlan() {
   trSnapshotBeforeChange();
   const plans = trGetPlans();
+  const wasActive = plans.filter(p => p && p.status === 'active');
   plans.forEach(p => { if (p.status === 'active') p.status = 'archived'; });
-  const maxNumber = plans.reduce((m, p) => Math.max(m, p.number), 0);
+  const maxNumber = plans.reduce((m, p) => Math.max(m, +p.number || 0), 0);
   /* Начинаем план с понедельника текущей недели */
   const _today = new Date();
   const _dow = _today.getDay(); // 0=вс, 1=пн, ..., 6=сб
@@ -572,6 +574,17 @@ function trCreateNextPlan() {
   _planStart.setDate(_today.getDate() - _daysFromMon);
   _planStart.setHours(0, 0, 0, 0);
   const newPlan = trBuildEmptyPlan(maxNumber + 1, _planStart);
+  /* тренировки текущей недели переезжают в новый план, иначе они пропадают из «Плана» и «Весов» */
+  const _wkEnd = new Date(_planStart); _wkEnd.setDate(_wkEnd.getDate() + 7);
+  const _w0 = (newPlan.weeks || [])[0];
+  wasActive.forEach(op => (op.weeks || []).forEach(w => ((w && w.days) || []).forEach(d => {
+    if (!d) return; const dt = trDayDateOf(op, d.date); if (!dt || dt < _planStart || dt >= _wkEnd) return;
+    trMigrateDayToSessions(d);
+    if (!(d.sessions || []).length && !d.comment) return;
+    const nd = _w0 && (_w0.days || []).find(x => x && x.date === d.date); if (!nd) return;
+    nd.sessions = (nd.sessions || []).concat(d.sessions || []); if (d.comment && !nd.comment) nd.comment = d.comment;
+    d.sessions = []; delete d.comment;
+  })));
   plans.push(newPlan);
   trSavePlans(plans);
   return newPlan.id;
@@ -863,7 +876,7 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
     return wrap(`${trEsc(ex.calories)} ккал`, `${trEsc(ex.duration)} мин`);
   }
   if (ex.kind === 'steps') {
-    return wrap(`${ex.steps.toLocaleString('ru-RU')} шагов`, '');
+    return wrap(`${(+ex.steps || 0).toLocaleString('ru-RU')} шагов`, '');
   }
   /* крупно тоннаж, рабочий вес строкой ниже */
   const tonnage = trTonnage(ex);
@@ -903,6 +916,9 @@ function trMigrateDayToSessions(day) {
 }
 
 /* экранирование текста пользователя (заметки, названия), чтобы HTML не исполнялся */
+/* числа из полей ввода: запятая как точка, без минуса, NaN и бесконечности, с разумным потолком */
+function trNum(v, max) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.').replace(/\s/g, '')); return isFinite(n) && n > 0 ? Math.min(n, max || 100000) : 0; }
+function trInt(v, max) { return Math.round(trNum(v, max)); }
 function trEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* окно ввода текста вместо системного prompt(): несколько строк, кнопки в стиле приложения.
@@ -1118,28 +1134,29 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
     if (ex.kind === 'cardio') {
-      ex.distance = parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0;
-      ex.duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
+      ex.distance = trNum(overlay.querySelector('#m-distance').value, 1000);
+      ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
     } else if (ex.kind === 'time_calorie') {
-      ex.duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
-      ex.calories = parseFloat(overlay.querySelector('#m-calories').value) || 0;
+      ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
+      ex.calories = trNum(overlay.querySelector('#m-calories').value, 20000);
     } else if (ex.kind === 'steps') {
-      ex.steps = parseInt(overlay.querySelector('#m-steps').value, 10) || 0;
+      ex.steps = trInt(overlay.querySelector('#m-steps').value, 200000);
     } else {
       const detailRows = overlay.querySelectorAll('.tr-set-detail-row');
       if (detailRows.length > 0) {
         const setDetails = Array.from(detailRows).map(row => ({
-          reps: parseInt(row.querySelector('.m-set-reps').value, 10) || 0,
-          weight: parseFloat(String(row.querySelector('.m-set-weight').value).replace(',', '.')) || 0
+          reps: trInt(row.querySelector('.m-set-reps').value, 1000),
+          weight: trNum(row.querySelector('.m-set-weight').value, 1000)
         }));
         ex.setDetails = setDetails;
         ex.sets = setDetails.length;
         ex.reps = Math.round(setDetails.reduce((s, d) => s + d.reps, 0) / setDetails.length) || 0;
-        ex.weight = Math.round((setDetails.reduce((s, d) => s + d.weight, 0) / setDetails.length) * 10) / 10 || 0;
+        /* рабочий вес: самый тяжёлый подход, а не среднее (среднего веса на штанге не было) */
+        ex.weight = Math.max(0, ...setDetails.map(d => d.weight));
       } else {
-        ex.sets = parseInt(overlay.querySelector('#m-sets').value, 10) || 0;
-        ex.reps = parseInt(overlay.querySelector('#m-reps').value, 10) || 0;
-        ex.weight = parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0;
+        ex.sets = trInt(overlay.querySelector('#m-sets').value, 50);
+        ex.reps = trInt(overlay.querySelector('#m-reps').value, 1000);
+        ex.weight = trNum(overlay.querySelector('#m-weight').value, 1000);
         delete ex.setDetails;
       }
     }
@@ -1440,27 +1457,27 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
       session.exercises.push({
         kind: 'strength',
         name,
-        sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
-        reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-        weight: parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0
+        sets: trInt(overlay.querySelector('#m-sets').value, 50),
+        reps: trInt(overlay.querySelector('#m-reps').value, 1000),
+        weight: trNum(overlay.querySelector('#m-weight').value, 1000)
       });
     } else if (trIsCardioType(type)) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
       session.exercises.push({
         kind: 'cardio', name: direction,
-        distance: parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0,
-        duration: parseFloat(overlay.querySelector('#m-duration').value) || 0
+        distance: trNum(overlay.querySelector('#m-distance').value, 1000),
+        duration: trNum(overlay.querySelector('#m-duration').value, 1440)
       });
     } else if (trIsTimeCalorieType(type)) {
       session.exercises.push({
         kind: 'time_calorie', name: type,
-        duration: parseFloat(overlay.querySelector('#m-duration').value) || 0,
-        calories: parseFloat(overlay.querySelector('#m-calories').value) || 0
+        duration: trNum(overlay.querySelector('#m-duration').value, 1440),
+        calories: trNum(overlay.querySelector('#m-calories').value, 20000)
       });
     } else if (trIsStepsType(type)) {
       session.exercises.push({
         kind: 'steps', name: type,
-        steps: parseInt(overlay.querySelector('#m-steps').value, 10) || 0
+        steps: trInt(overlay.querySelector('#m-steps').value, 200000)
       });
     }
     overlay.remove();
@@ -1575,9 +1592,9 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
         exercises: [{
           kind: 'strength',
           name,
-          sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
-          reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-          weight: parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0
+          sets: trInt(overlay.querySelector('#m-sets').value, 50),
+          reps: trInt(overlay.querySelector('#m-reps').value, 1000),
+          weight: trNum(overlay.querySelector('#m-weight').value, 1000)
         }]
       });
       overlay.remove();
@@ -1587,8 +1604,8 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
 
     if (trIsCardioType(type)) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
-      const distance = parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0;
-      const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
+      const distance = trNum(overlay.querySelector('#m-distance').value, 1000);
+      const duration = trNum(overlay.querySelector('#m-duration').value, 1440);
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'cardio', name: direction, distance, duration }] });
       overlay.remove();
       onSave();
@@ -1596,16 +1613,18 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     }
 
     if (trIsTimeCalorieType(type)) {
-      const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
-      const calories = parseFloat(overlay.querySelector('#m-calories').value) || 0;
-      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: type, duration, calories }] });
+      const duration = trNum(overlay.querySelector('#m-duration').value, 1440);
+      const calories = trNum(overlay.querySelector('#m-calories').value, 20000);
+      /* «Спорт»: название берём из выбранного вида (Бокс, Теннис…), а не просто «Спорт» */
+      const sp = overlay.querySelector('#m-sport-name'), spName = sp && sp.value ? sp.value : type;
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: spName, duration, calories }] });
       overlay.remove();
       onSave();
       return;
     }
 
     if (trIsStepsType(type)) {
-      const steps = parseInt(overlay.querySelector('#m-steps').value, 10) || 0;
+      const steps = trInt(overlay.querySelector('#m-steps').value, 200000);
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'steps', name: type, steps }] });
       overlay.remove();
       onSave();
@@ -1615,8 +1634,8 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     if (trIsFitnessType(type)) {
       const nameEl = overlay.querySelector('#m-fitness-name');
       const name = nameEl ? (nameEl.value || type) : type;
-      const duration = parseFloat(overlay.querySelector('#m-duration')?.value) || 0;
-      const calories = parseFloat(overlay.querySelector('#m-calories')?.value) || 0;
+      const duration = trNum(overlay.querySelector('#m-duration')?.value, 1440);
+      const calories = trNum(overlay.querySelector('#m-calories')?.value, 20000);
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name, duration, calories }] });
       overlay.remove();
       onSave();
@@ -1626,8 +1645,8 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     // Фолбэк — сохраняем с duration/calories
     const _sportSel = overlay.querySelector('#m-sport-name');
     const _sportName = _sportSel ? _sportSel.value : type;
-    const duration = parseFloat(overlay.querySelector('#m-duration')?.value) || 0;
-    const calories = parseFloat(overlay.querySelector('#m-calories')?.value) || 0;
+    const duration = trNum(overlay.querySelector('#m-duration')?.value, 1440);
+    const calories = trNum(overlay.querySelector('#m-calories')?.value, 20000);
     day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: _sportName, duration, calories }] });
     overlay.remove();
     onSave();
@@ -1665,7 +1684,7 @@ function trRender1RMCalc() {
     <div class="tr-1rm-inputs">
       <label class="tr-1rm-label">
         <span>Вес, кг</span>
-        <input id="rm-weight" type="number" inputmode="decimal" placeholder="100" min="1" max="500" step="0.5" class="tr-1rm-input">
+        <input id="rm-weight" type="text" inputmode="decimal" placeholder="100" class="tr-1rm-input">
       </label>
       <div class="tr-1rm-x">×</div>
       <label class="tr-1rm-label">
@@ -2262,9 +2281,10 @@ window.Screens.training = function (mount) {
 
       if (calcBtn) {
         const doCalc = () => {
-          const w = parseFloat(wEl.value);
-          const r = parseInt(rEl.value);
-          if (!w || !r || w <= 0 || r <= 0) return;
+          /* запятая как точка: «62,5» это 62,5 кг, а не 625 */
+          const w = trNum(wEl.value, 1000), r = trInt(rEl.value, 30);
+          const resultEl0 = document.getElementById('rm-result');
+          if (!w || !r || +String(rEl.value).replace(',', '.') > 30) { resultEl0.innerHTML = '<div class="tr-1rm-answer"><div class="tr-1rm-answer-sub">Вес больше нуля, повторы от 1 до 30</div></div>'; resultEl0.style.display = 'block'; return; }
           window._last1rmState = { w, r, ts: Date.now() };
           const rm = calc1RM(w, r);
           const zones = get1RMZones(rm);
@@ -2281,8 +2301,8 @@ window.Screens.training = function (mount) {
           resultEl.innerHTML = `
             <div class="tr-1rm-answer">
               <div class="tr-1rm-answer-label">Расчётный максимум</div>
-              <div class="tr-1rm-answer-num">${rm}<span> кг</span></div>
-              <div class="tr-1rm-answer-sub">${w} кг × ${r} повт.</div>
+              <div class="tr-1rm-answer-num">${String(rm).replace('.', ',')}<span> кг</span></div>
+              <div class="tr-1rm-answer-sub">${String(w).replace('.', ',')} кг × ${r} повт.</div>
             </div>
             <div class="tr-1rm-zones-title">Зоны нагрузки</div>
             <div class="tr-1rm-zones">${zonesHtml}</div>`;
@@ -2393,7 +2413,7 @@ window.Screens.training = function (mount) {
         <p class="tr-modal-title" style="text-align:center;margin-bottom:8px;">${isFirst ? 'Создать первый план' : 'Начать новый план'}</p>
         <p style="font-size:13px;color:#9D9A92;text-align:center;line-height:1.6;margin-bottom:20px;">${isFirst
           ? 'Создаётся 8-недельная сетка. Заполняй её под себя: тип тренировки, группы мышц, упражнения.'
-          : 'Текущий план перейдёт в архив. Рабочие веса и упражнения сохранятся в новом плане.'
+          : 'Текущий план уйдёт в архив, тренировки этой недели переедут в новый. Прошлые веса подставятся сами, когда выберешь упражнение.'
         }</p>
         <div class="tr-modal-actions">
           <button class="tr-modal-btn-secondary" id="tr-new-plan-cancel">Отмена</button>
@@ -3104,7 +3124,7 @@ function trCollectExerciseHistory(plan, exerciseName) {
 function trWasNowLabel(ex, metricLabelFn) {
   if (ex.kind === 'cardio') return `${trEsc(ex.distance)} км`;
   if (ex.kind === 'time_calorie') return `${trEsc(ex.calories)} ккал`;
-  if (ex.kind === 'steps') return `${ex.steps.toLocaleString('ru-RU')} шагов`;
+  if (ex.kind === 'steps') return `${(+ex.steps || 0).toLocaleString('ru-RU')} шагов`;
   return `${trTonnage(ex).toLocaleString('ru-RU')} кг`;
 }
 
@@ -3377,7 +3397,7 @@ function trOpenMeasureModal(onSave, existingIdx) {
   });
   overlay.querySelector('#m-save').addEventListener('click', () => {
     let newValues = {}, newDate = '';
-    if (window.BodyProgress && BodyProgress.readForm && overlay.querySelector('.mf')) { const r = BodyProgress.readForm(overlay); newValues = r.values; newDate = r.date; }
+    if (window.BodyProgress && BodyProgress.readForm && overlay.querySelector('.mf')) { const r = BodyProgress.readForm(overlay); if (r.bad && r.bad.length) { alert('Нужно число: ' + r.bad.join(', ')); return; } newValues = r.values; newDate = r.date; }
     else { overlay.querySelectorAll('input[data-field]').forEach(input => { if (input.value.trim() !== '') newValues[input.dataset.field] = input.value.trim(); }); newDate = overlay.querySelector('#m-measure-date').value.trim(); }
     newDate = newDate || defaultDate;
     if (!Object.keys(newValues).length) { alert('Заполни хотя бы один замер'); return; }

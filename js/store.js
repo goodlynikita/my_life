@@ -84,26 +84,28 @@ const Store = (() => {
     return [];
   }
 
+  /* пустые элементы (null) Firebase оставляет, когда из середины массива пропала запись.
+     Экраны на них падают, поэтому выкидываем; если что-то выкинули, индексы сдвинулись,
+     и раздел тренировок при следующем сохранении пишется целиком (см. firebase-sync) */
+  let _trCompacted = false;
+  const isObj = (x) => !!x && typeof x === 'object';
+  function objs(v) { const a = toArr(v); const out = a.filter(isObj); if (out.length !== a.length) _trCompacted = true; return out; }
   function fixExercise(ex) {
-    if (ex && typeof ex === 'object' && ('setDetails' in ex)) ex.setDetails = toArr(ex.setDetails);
+    if (ex && typeof ex === 'object' && ('setDetails' in ex)) ex.setDetails = toArr(ex.setDetails).filter(isObj);
     return ex;
   }
 
   function normalizeTraining(t, base) {
     if (!t || typeof t !== 'object') return base.training;
-    t.plans = toArr(t.plans).map(p => {
-      if (!p || typeof p !== 'object') return p;
-      p.weeks = toArr(p.weeks).map(w => {
-        if (!w || typeof w !== 'object') return w;
-        w.days = toArr(w.days).map(d => {
-          if (!d || typeof d !== 'object') return d;
-          if ('sessions' in d) d.sessions = toArr(d.sessions).map(s => {
-            if (!s || typeof s !== 'object') return s;
-            s.exercises = toArr(s.exercises).map(fixExercise);
+    t.plans = objs(t.plans).map(p => {
+      p.weeks = objs(p.weeks).map(w => {
+        w.days = objs(w.days).map(d => {
+          if ('sessions' in d) d.sessions = objs(d.sessions).map(s => {
+            s.exercises = objs(s.exercises).map(fixExercise);
             s.groups = toArr(s.groups);
             return s;
           });
-          if ('exercises' in d) d.exercises = toArr(d.exercises).map(fixExercise);
+          if ('exercises' in d) d.exercises = objs(d.exercises).map(fixExercise);
           if ('groups' in d) d.groups = toArr(d.groups);
           return d;
         });
@@ -111,7 +113,7 @@ const Store = (() => {
       });
       return p;
     });
-    t.measurements = toArr(t.measurements);
+    t.measurements = objs(t.measurements).map(m => { if (!isObj(m.values)) m.values = {}; return m; });
     return t;
   }
 
@@ -120,15 +122,20 @@ const Store = (() => {
     if (!d || typeof d !== 'object') return base;
     d.meta = d.meta || base.meta;
     d.training = normalizeTraining(d.training, base);
-    d.habits = d.habits || base.habits;
-    d.finance = d.finance || base.finance;
-    if (!d.finance.years) d.finance.years = {};
-    d.goals = d.goals || base.goals;
+    d.habits = isObj(d.habits) ? d.habits : base.habits;
+    d.habits.list = toArr(d.habits.list).filter(isObj);
+    if (!isObj(d.habits.months)) d.habits.months = {};
+    d.finance = isObj(d.finance) ? d.finance : base.finance;
+    if (!isObj(d.finance.years)) d.finance.years = {};
+    /* доходы месяца: массив без пустых элементов */
+    Object.values(d.finance.years).forEach(y => { if (isObj(y)) Object.values(y).forEach(m => { if (isObj(m) && 'entries' in m) m.entries = toArr(m.entries).filter(isObj); }); });
+    d.goals = isObj(d.goals) ? d.goals : base.goals;
     /* Normalize goals.directions — Firebase может вернуть объект {0:..} вместо массива */
     if (d.goals.directions && !Array.isArray(d.goals.directions)) {
       d.goals.directions = toArr(d.goals.directions);
     }
     if (!Array.isArray(d.goals.directions)) d.goals.directions = [];
+    d.goals.directions = d.goals.directions.filter(isObj);
     d.nutrition = d.nutrition || base.nutrition;
     d.nutritionFoods = d.nutritionFoods || base.nutritionFoods;
     return d;
@@ -170,5 +177,7 @@ const Store = (() => {
     _origReplaceAll(incoming);
     _listeners.forEach(function(fn){try{fn();}catch(e){}});
   }
-  return { get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, loadFromLocalBackup, subscribe };
+  /* были ли выкинуты пустые элементы в тренировках при последней загрузке (один раз) */
+  function takeTrainingCompacted() { const v = _trCompacted; _trCompacted = false; return v; }
+  return { takeTrainingCompacted, get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, loadFromLocalBackup, subscribe };
 })();

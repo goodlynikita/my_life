@@ -1951,6 +1951,7 @@ function measureModal(c, done) {
   ov.querySelector('#x').onclick = () => ov.remove();
   ov.querySelector('#ok').onclick = async () => {
     const r = window.BodyProgress.readForm(ov);
+    if (r.bad && r.bad.length) { toast('Нужно число: ' + r.bad.join(', ')); return; }
     if (!Object.keys(r.values).length) { toast('Заполните хотя бы одно поле'); return; }
     const rec = { date: r.date || def, values: r.values, byCoach: true };
     if (c.demo) { c.training.measurements = ms.concat([rec]); c.stat = stats(c); ov.remove(); toast('Замер сохранён в демо'); done && done(); return; }

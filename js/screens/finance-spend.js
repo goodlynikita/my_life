@@ -138,8 +138,8 @@ window.FinSpend = (function () {
     [/такси|метро|автобус|электрич|кикшер|каршер|тройк|проезд|трамва/i, [/такси|транспорт|проезд/i, /авто|машин/i]],
     [/бензин|азс|заправк|мойк|шиномон|сто(?![а-яё])|автосервис|парковк|штраф/i, [/автомоб|бензин|машин|авто/i, /транспорт/i]],
     [/аренд|ипотек|квартплат/i, [/аренд|ипотек|жиль/i]],
-    [/жкх|коммунал|свет(?![а-яё])|газ(?![а-яё])|вода(?![а-яё])/i, [/коммунал|жкх/i, /жиль|аренд/i]],
-    [/зал(?![а-яё])|фитнес|спорт|абонемент|тренер|бассейн|протеин/i, [/спорт|фитнес|здоров/i]],
+    [/жкх|коммунал|свет(?![а-яё])|газ(?![а-яё])|водоснаб/i, [/коммунал|жкх/i, /жиль|аренд/i]],
+    [/зал(?![а-яё])|фитнес|спорт|абонемент|тренер|бассейн|протеин/i, [/(^|[^а-яё])спорт|фитнес|здоров/i]], /* не «транс-порт» */
     [/аптек|врач|клиник|анализ|стоматол|лекарств/i, [/медицин|аптек|здоров/i]],
     [/кино|театр|концерт|игр|steam|боулинг|хобби|развлеч/i, [/развлеч|хобби|отдых/i]],
     [/подписк|spotify|netflix|icloud|яндекс плюс|youtube|кинопоиск|chatgpt|claude/i, [/подписк|сервис/i]],
@@ -148,7 +148,7 @@ window.FinSpend = (function () {
     [/связь|интернет|телефон|мобильн|сотов/i, [/телефон|интернет|связь/i]],
     [/подар/i, [/подар/i]],
   ];
-  const SRC = [[/тинько|т-банк|тбанк|tinkoff/i, 'Т-Банк'], [/сбер/i, 'Сбер'], [/альфа/i, 'Альфа'], [/втб/i, 'ВТБ'], [/озон банк|ozon банк/i, 'Озон Банк'], [/налич|нал(?:ом|ик\S*)?(?![а-яё])|кэш|кеш/i, 'Наличные'], [/кредитк/i, 'Кредитка']];
+  const SRC = [[/тинько|т-банк|тбанк|tinkoff/i, 'Т-Банк'], [/сбер/i, 'Сбер'], [/альф/i, 'Альфа'], [/втб/i, 'ВТБ'], [/озон банк|ozon банк/i, 'Озон Банк'], [/налич|нал(?:ом|ик\S*)?(?![а-яё])|кэш|кеш/i, 'Наличные'], [/кредитк/i, 'Кредитка']];
   const STOP = new Set(['для', 'это', 'еще', 'ещё', 'все', 'всё', 'как', 'что', 'над', 'под', 'при', 'про', 'без']);
   const LET = /[a-zа-яё]/i;
   const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[.#$[\]/]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -360,7 +360,8 @@ window.FinSpend = (function () {
     const cats = c.cats;
     /* живой разбор строки; ручной выбор категории из «платежей» сбрасывается, если стёрли название */
     const refresh = (warn) => { const p = parse(inp.value, cats, inp.dataset.cat); setChips(chips, chipList(p), warn != null ? warn : (p && p.multi && !p.err ? 'Взял ' + fmt(p.amt) + ', остальные числа оставил в названии' : '')); };
-    inp.addEventListener('input', () => { if (inp.dataset.cat && !inp.value.trim()) delete inp.dataset.cat; refresh(); });
+    /* категория платежа держится, пока строка начинается с его названия: перепечатал строку, категория снова подбирается сама */
+    inp.addEventListener('input', () => { if (inp.dataset.cat && (!inp.value.trim() || !norm(inp.value).startsWith(norm(inp.dataset.pref || '')))) { delete inp.dataset.cat; delete inp.dataset.pref; } refresh(); });
     const commit = () => {
       const p = parse(inp.value, cats, inp.dataset.cat);
       if (!p) { inp.focus(); return; }
@@ -386,7 +387,7 @@ window.FinSpend = (function () {
       const ct = catById[b.dataset.cat]; if (!ct) return;
       if (b.classList.contains('paid')) { catModal(ct.id, rerender); return; }
       const short = String(ct.name || '').split(/\s*[/(,]\s*/)[0].trim() || 'Платёж';
-      inp.value = short + ' ' + (+b.dataset.left || ''); inp.dataset.cat = ct.id; refresh(); syncBtn(); inp.focus();
+      inp.value = short + ' ' + (+b.dataset.left || ''); inp.dataset.cat = ct.id; inp.dataset.pref = short; refresh(); syncBtn(); inp.focus();
       inp.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
     }));
     content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender)));

@@ -620,13 +620,13 @@ window.FinSpend = (function () {
      Платёж = плановая трата, поэтому он живёт в бюджете («Баланс») и сразу учитывается в «Свободно» */
   /* запись трат с рабочего стола: команда «Трата» на iPhone, ярлык на иконке на Android */
   /* команда «Трата»: ссылка iCloud (Команды открывают её сами); пока её нет, отдаём файл с сайта */
-  const SHORTCUT_URL = 'https://you-app.ru/dl/trata.shortcut';
+  const SHORTCUT_URL = 'https://www.icloud.com/shortcuts/a6036dc0a0a64ddbb226dfe672c9f69b';
   function quickModal() {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
     const iosBox = `<div class="sp-q-box"><b><i class="ti ti-brand-apple"></i>iPhone</b>
         <a class="sp-q-btn" href="${SHORTCUT_URL}" target="_blank" rel="noopener">Добавить команду «Трата»</a>
-        <ol><li>Нажми «Добавить команду»</li><li>Удерживай пустое место на экране → «+» → «Команды» → «Трата»</li><li>Один раз войди в YOU в Safari: команда открывает его</li></ol></div>`;
+        <ol><li>Нажми «Добавить быструю команду»</li><li>Удерживай пустое место на экране → «+» → «Команды» → «Трата»</li><li>Один раз войди в YOU в Safari: команда открывает его</li></ol></div>`;
     const andBox = `<div class="sp-q-box"><b><i class="ti ti-brand-android"></i>Android</b>
         <ol><li>Удерживай иконку YOU на экране</li><li>Выбери «Записать трату» или перетащи этот пункт на экран</li></ol></div>`;
     ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Запись с рабочего стола"><p class="tr-modal-title">Записывать с рабочего стола</p>

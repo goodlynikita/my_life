@@ -291,6 +291,7 @@ window.Tour = (function () {
     if (e.target.closest && e.target.closest('#tr-rm-open')) { setTimeout(() => onTab('training', 'one-rm'), 450); return; }
     const b = e.target.closest && e.target.closest('.tochka-tab, .hab-tab, .tr-tab, .goals-season-tab');
     if (!b) return;
+    if (typeof Router === 'undefined') return; /* в кабинете тренера роутера нет */
     const path = Router.currentPath().replace('/', '');
     let tab = b.dataset.tab || '';
     if (b.classList.contains('goals-season-tab')) tab = (b.dataset.season && b.dataset.season !== 'all') || !/Всё/.test(b.textContent) ? 'season' : '';

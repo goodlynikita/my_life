@@ -517,7 +517,7 @@ window.Screens.habits = function(mount) {
                   const mark = hMarks[d]||'';
                   const isToday = isNow && d===today.getDate();
                   return `<td style="text-align:center;padding:2px 1px;">
-                    <span class="hab-cell ${active?'hab-active':''} ${mark} ${isToday?'hab-today':''}"
+                    <span class="hab-cell ${active?'hab-active':''} ${['done','missed'].includes(mark)?mark:''} ${isToday?'hab-today':''}"
                       data-hid="${habEsc(h.id)}" data-day="${d}" data-active="${active}">
                       ${habMarkHtml(mark, active)}
                     </span>

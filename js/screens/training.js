@@ -62,7 +62,9 @@ const TR_GROUP_COLORS = {
   'Шаги':   '#8E89C6',
   'Отдых':  '#7C818D',
 };
-function trTypeColor(t) { return TR_GROUP_COLORS[t.group] || t.color || '#8A8F9C'; }
+/* цвет идёт в style="…": только #hex, иначе через него можно подсунуть разметку */
+function trSafeColor(c, d) { return (typeof c === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.trim())) ? c.trim() : (d || '#8A8F9C'); }
+function trTypeColor(t) { return TR_GROUP_COLORS[t.group] || trSafeColor(t.color); }
 function trNormalizeTypes(arr) {
   return (Array.isArray(arr) ? arr : Object.values(arr || {}))
     .filter(t => t && t.name)
@@ -426,7 +428,7 @@ function trExercisesForGroups(groupNames) {
 
 function trBadgeColor(list, name) {
   const found = list.find(x => x.name === name);
-  return found ? found.color : '#8A8985';
+  return found ? trSafeColor(found.color, '#8A8985') : '#8A8985';
 }
 
 function trBuildSelect(id, list, current) {
@@ -482,8 +484,13 @@ function trBuildEmptyPlan(number, startDate) {
   };
 }
 
+/* Снимок планов до правки: с ним trSavePlans пишет только изменённые дни.
+   Обновляется, когда данные пришли заново (новый массив) и после каждого сохранения */
+let _trBase = null, _trBaseRef = null;
 function trGetPlans() {
-  return Store.get().training.plans || [];
+  const plans = Store.get().training.plans || [];
+  if (plans !== _trBaseRef) { _trBaseRef = plans; try { _trBase = JSON.parse(JSON.stringify(plans)); } catch (e) { _trBase = null; } }
+  return plans;
 }
 
 const TR_UNDO_KEY = 'nik_tr_undo_stack';
@@ -538,9 +545,24 @@ function trSavePlans(plans) {
   /* Пишем каждый план отдельным путём — не перезаписываем весь массив.
      Это гарантирует что одновременные правки двух пользователей
      не затирают друг друга в Firebase. */
+  /* Пишем только изменённые дни (точечные пути): если тренер в это время поправил другой день,
+     его правка не затрётся. Новый план или изменённая структура недель пишутся целиком */
+  const same = (a, b) => { try { return JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b); } catch (e) { return false; } };
+  const base = Array.isArray(_trBase) && _trBaseRef === Store.get().training.plans ? _trBase : null;
   plans.forEach((plan, idx) => {
-    if (plan) Store.set('training.plans.' + idx, plan);
+    if (!plan) return;
+    const old = base && base[idx];
+    const pw = plan.weeks || [], ow = (old && old.weeks) || [];
+    if (!old || old.id !== plan.id || pw.length !== ow.length) { Store.set('training.plans.' + idx, plan); return; }
+    Object.keys(Object.assign({}, old, plan)).forEach(k => { if (k !== 'weeks' && !same(old[k], plan[k])) Store.set('training.plans.' + idx + '.' + k, plan[k] === undefined ? null : plan[k]); });
+    pw.forEach((w, wi) => {
+      const o = ow[wi], wd = (w && w.days) || [], od = (o && o.days) || [];
+      if (!w || !o || wd.length !== od.length) { if (!same(w, o)) Store.set('training.plans.' + idx + '.weeks.' + wi, w); return; }
+      Object.keys(Object.assign({}, o, w)).forEach(k => { if (k !== 'days' && !same(o[k], w[k])) Store.set('training.plans.' + idx + '.weeks.' + wi + '.' + k, w[k] === undefined ? null : w[k]); });
+      wd.forEach((d, di) => { if (!same(d, od[di])) Store.set('training.plans.' + idx + '.weeks.' + wi + '.days.' + di, d); });
+    });
   });
+  try { _trBase = JSON.parse(JSON.stringify(Store.get().training.plans || [])); _trBaseRef = Store.get().training.plans; } catch (e) {}
 }
 
 function trActivePlan() {
@@ -952,6 +974,7 @@ function trAskText(o) {
 
 /* метки тренировки: насыщенный фон и светлый текст своего цвета */
 function trTagStyle(c) {
+  c = trSafeColor(c, '#8A8985');
   return `background:${c}33; color:color-mix(in srgb, ${c} 55%, #fff); border-color:${c}55; box-shadow:inset 0 0 0 1px ${c}40;`;
 }
 
@@ -1028,7 +1051,7 @@ function trRenderWeek(week, plan, weekIndex, collapsed) {
     <div class="tr-week">
       <button class="tr-week-head tr-week-toggle" data-week="${weekIndex}">
         <i class="ti ti-chevron-${collapsed ? 'right' : 'down'}"></i>
-        <span class="tr-week-label">Неделя ${week.weekNum}</span>
+        <span class="tr-week-label">Неделя ${trEsc(week.weekNum)}</span>
         <span class="tr-week-range">${trEsc(week.range)}</span>
       </button>
       <div class="tr-week-body" style="${collapsed ? 'display:none;' : ''}">${days}</div>
@@ -2331,7 +2354,7 @@ window.Screens.training = function (mount) {
           goalBtn.style.display = 'none';
         } else {
           goalBtn.addEventListener('click', () => {
-            trOpenNutritionModal(plan, () => {
+            if (typeof window.trOpenNutritionModal === "function") window.trOpenNutritionModal(plan, () => {
               const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
               Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
               renderTab('nutrition');
@@ -2346,7 +2369,7 @@ window.Screens.training = function (mount) {
         } else {
           editBtn.addEventListener('click', () => {
             trSnapshotBeforeChange();
-            trOpenNutritionModal(plan, () => {
+            if (typeof window.trOpenNutritionModal === "function") window.trOpenNutritionModal(plan, () => {
               trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
               renderTab('nutrition');
             });
@@ -3054,10 +3077,10 @@ function trRenderNutrition(plan) {
         <button class="nutr-edit-goal-btn" style="margin-left:auto; background:none; border:0.5px solid #2A2D35; border-radius:6px; color:#9D9A92; cursor:pointer; font-size:12px; padding:3px 8px;"><i class="ti ti-edit"></i> Изменить</button>
       </div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
-        <span style="font-size:13px; color:#2E7FD4;">${n.totalKcal} ккал</span>
-        <span style="font-size:13px; color:#A8C97F;">Б ${n.protein}г</span>
-        <span style="font-size:13px; color:#E0B873;">Ж ${n.fat}г</span>
-        <span style="font-size:13px; color:#B6A4D9;">У ${n.carbs}г</span>
+        <span style="font-size:13px; color:#2E7FD4;">${trEsc(n.totalKcal)} ккал</span>
+        <span style="font-size:13px; color:#A8C97F;">Б ${trEsc(n.protein)}г</span>
+        <span style="font-size:13px; color:#E0B873;">Ж ${trEsc(n.fat)}г</span>
+        <span style="font-size:13px; color:#B6A4D9;">У ${trEsc(n.carbs)}г</span>
       </div>
     </div>
     <div id="nutr-wrap"></div>`;

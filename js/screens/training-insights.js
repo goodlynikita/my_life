@@ -120,7 +120,7 @@ window.TrainingInsights = (function () {
     const fmtD = d => d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
     const few = history.length < 3;
     wc.lag = few ? [] : Object.keys(NORM).filter(g => groups.includes(g) && Math.round((sets[g] || 0) / wks) < NORM[g][0]).map(g => `${g}: ${Math.round((sets[g] || 0) / wks)} подх. в неделю`);
-    const focus = few ? 'Записать 2–3 тренировки, и я покажу, что подтянуть' : pls[0] ? `Сменить стимул в «${pls[0].name}»: оно стоит на месте` : wc.lag[0] ? `Добавить подходов на ${wc.lag[0].split(':')[0].toLowerCase()}: пока меньше нормы` : wc.count ? 'Держать темп и добирать повторы до верха диапазона' : 'Вернуться в режим: хотя бы 2 тренировки';
+    const focus = few ? 'Записать 2–3 тренировки, и я покажу, что подтянуть' : pls[0] ? `Сменить упражнение «${pls[0].name}»: вес стоит на месте` : wc.lag[0] ? `Добавить подходов на ${wc.lag[0].split(':')[0].toLowerCase()}: пока меньше нормы` : wc.count ? 'Держать темп и добирать повторы до верха диапазона' : 'Вернуться в режим: хотя бы 2 тренировки';
 
     content.innerHTML = `<div class="ai-wrap">${tabsHtml}
       <div class="in-card in-week">
@@ -147,7 +147,7 @@ window.TrainingInsights = (function () {
       </div>
 
       ${recs.length ? `<div class="in-card">
-        <div class="in-h"><div><b>Рекорды и прогноз</b><span>1ПМ, расчётный максимум на один раз</span></div></div>
+        <div class="in-h"><div><b>Рекорды и прогноз</b><span>Сколько поднимешь на один раз</span></div></div>
         ${recs.map(r => `<div class="in-rec" data-k="${esc(r.key)}">
           <div class="in-rec-l"><b>${esc(r.name)}${r.pr ? '<em class="in-pr">рекорд</em>' : ''}</b><span>${r.slope > 0.15 ? `+${kg(r.slope)} кг в неделю` : r.slope < -0.15 ? 'снижается' : 'без роста'}${r.weeks ? ` · до ${r.target} кг ≈ ${r.weeks} ${pl(r.weeks, 'неделя', 'недели', 'недель')}` : r.best >= r.target ? ` · цель ${r.target} кг взята` : ` · цель ${r.target} кг`}</span></div>
           <div class="in-rec-r"><b>${kg(r.best)}</b><span>кг</span></div>
@@ -157,11 +157,11 @@ window.TrainingInsights = (function () {
 
       <div class="in-card">
         <div class="in-h"><div><b>Плато</b><span>3 тренировки подряд без роста</span></div></div>
+        ${pls.length ? '<div class="in-pl-why">Мышца привыкла. Возьми замену на 3–4 недели, потом вернись к упражнению, и вес снова пойдёт.</div>' : ''}
         ${pls.length ? pls.slice(0, 3).map(p => {
           const sw = (prefs.swaps || {})[p.key];
           return `<div class="in-pl">
             <div class="in-pl-t"><b>${esc(p.name)}</b><span>${esc(p.seq)}</span></div>
-            <div class="in-pl-why">Мышца привыкла к нагрузке. Смени снаряд или угол на 3–4 недели, потом вернись: вес снова пойдёт.</div>
             ${sw ? `<div class="in-pl-done"><i class="ti ti-check"></i> В AI-плане заменено на «${esc(sw)}» <button class="in-undo" data-k="${esc(p.key)}">вернуть</button></div>`
               : `<div class="in-alts">${p.alts.map(a => `<button class="in-alt" data-k="${esc(p.key)}" data-to="${esc(a)}"><i class="ti ti-arrows-exchange"></i> ${esc(a)}</button>`).join('')}</div>`}
           </div>`;

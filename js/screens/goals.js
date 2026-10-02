@@ -517,7 +517,7 @@ window.Screens.goals = function(mount) {
         <span style="font-size:18px;flex-shrink:0;">💡</span>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:700;color:#86EFAC;margin-bottom:3px;">Это демо-цели</div>
-          <div style="font-size:12px;color:rgba(134,239,172,0.7);line-height:1.4;">Популярные желания по сезонам для примера. Замените их своими.</div>
+          <div style="font-size:12px;color:rgba(134,239,172,0.7);line-height:1.4;">Пример желаний по сезонам. Замени их своими.</div>
           <button id="goals-clear-demo" style="margin-top:8px;padding:6px 14px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);border-radius:8px;color:#4ADE80;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">✏️ Заполнить своё</button>
         </div>
       </div>` : '';

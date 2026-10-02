@@ -623,7 +623,7 @@ window.FinSpend = (function () {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
     const iosBox = `<div class="sp-q-box"><b><i class="ti ti-brand-apple"></i>iPhone</b>
-        <a class="sp-q-btn" href="dl/${encodeURIComponent('Трата')}.shortcut" target="_blank" rel="noopener">Добавить команду «Трата»</a>
+        <a class="sp-q-btn" href="shortcuts://import-shortcut?url=${encodeURIComponent(new URL('dl/trata.shortcut', location.href).href)}&name=${encodeURIComponent('Трата')}">Добавить команду «Трата»</a>
         <ol><li>Нажми «Добавить команду»</li><li>Удерживай пустое место на экране → «+» → «Команды» → «Трата»</li><li>Один раз войди в YOU в Safari: команда открывает его</li></ol></div>`;
     const andBox = `<div class="sp-q-box"><b><i class="ti ti-brand-android"></i>Android</b>
         <ol><li>Удерживай иконку YOU на экране</li><li>Выбери «Записать трату» или перетащи этот пункт на экран</li></ol></div>`;

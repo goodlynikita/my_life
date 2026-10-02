@@ -39,6 +39,8 @@ jobs:
             --exclude "*" --include "*.html" --include "*.js" --include "*.css" --include "*.json"
           $S3 cp dist/coach.webmanifest s3://you-app.ru/coach.webmanifest --cache-control "no-cache" --content-type "application/manifest+json"
           $S3 cp dist/manifest.json s3://you-app.ru/manifest.json --cache-control "no-cache" --content-type "application/manifest+json"
+          # команды для iPhone: отдаём как файл, иначе Safari покажет их текстом
+          $S3 cp dist/dl s3://you-app.ru/dl --recursive --cache-control "no-cache" --content-type "application/octet-stream" --content-disposition "attachment"
           # служебные файлы и старые копии, которых не должно быть на сайте
           for f in FIREBASE_RULES_v139.json FIREBASE_RULES_v140.json generate-hash.html clean-goals.html js/index.html js/clean-goals.html js/generate-hash.html js/screens/home.js.bak; do $S3 rm "s3://you-app.ru/$f" || true; done
           $S3 rm s3://you-app.ru/js/js --recursive || true

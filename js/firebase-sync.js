@@ -143,6 +143,16 @@ const FirebaseSync = (() => {
     _flushTimer = setTimeout(_flushQueue, 600);
   }
 
+  /* сравнение данных без учёта порядка ключей и пустых значений (Firebase их не хранит) */
+  function _norm(v) {
+    if (v === null || v === undefined) return undefined;
+    if (Array.isArray(v)) { const a = v.map(_norm); while (a.length && a[a.length - 1] === undefined) a.pop(); return a.length ? a.map(x => x === undefined ? null : x) : undefined; }
+    if (typeof v === 'object') { const o = {}; Object.keys(v).sort().forEach(k => { const x = _norm(v[k]); if (x !== undefined) o[k] = x; }); return Object.keys(o).length ? o : undefined; }
+    if (typeof v === 'number' && !isFinite(v)) return undefined;
+    return v;
+  }
+  function _sameData(a, b) { try { return JSON.stringify(_norm(a)) === JSON.stringify(_norm(b)); } catch (e) { return false; } }
+
   async function _silentPull() {
     const root = userRoot();
     if (!_loaded || !root) return;
@@ -155,7 +165,10 @@ const FirebaseSync = (() => {
       const snap = await get(ref(_db, coach ? root + '/training' : root));
       if (!snap.exists()) return;
       if (_queue.size > 0 || _flushing) return; /* пока ждали ответ — появились правки */
-      Store.replaceAll(coach ? { training: snap.val() } : snap.val());
+      const next = coach ? { training: snap.val() } : snap.val();
+      /* ничего не изменилось на сервере: экран не перерисовываем, иначе страница «прыгает» каждые 5 минут */
+      if (_sameData(coach ? { training: Store.get().training } : Store.get(), next)) return;
+      Store.replaceAll(next);
       window.dispatchEvent(new CustomEvent('firebase-remote-update'));
     } catch(e) {}
   }

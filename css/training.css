@@ -2087,7 +2087,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-move-day-opt.today{border-color:#4A7CFF;background:rgba(74,124,255,.14)}
 .tr-move-day-opt:active{transform:scale(.98)}
 /* десктоп: план не растягивается на весь экран */
-@media (min-width:900px){.tr-body,.tr-tabs,.tr-plan-bar{max-width:760px;margin-left:auto!important;margin-right:auto!important}}
+
 /* настройки AI на телефоне: подсказка заголовка переносится, а не наезжает */
 .ai-pref-t{flex-wrap:wrap;row-gap:2px}
 @media (max-width:440px){.ai-pref-t em{margin-left:0;flex-basis:100%}.ai-src-chips{grid-template-columns:1fr!important}}
@@ -2113,3 +2113,4 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 @media (max-width:400px){.tr-ww-table{font-size:12px}.tr-ww-table tr>:nth-child(5){width:24%}}
 :has(> .tr-rm-open){flex-wrap:wrap;row-gap:8px}
 .tr-ww-table th:not(:first-child){padding-left:2px!important;padding-right:2px!important;text-align:center}
+.ch-msg a.ch-link{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:6px 12px;border-radius:999px;background:rgba(74,124,255,.16);color:#BFD0FF;text-decoration:none;font-weight:700;font-size:13px}.ch-msg a.ch-link i{color:#FF5C5C;font-size:16px}

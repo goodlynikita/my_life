@@ -1077,6 +1077,56 @@ window.TrainingAI = (function () {
       const rm = x.best1rm ? `, 1ПМ ~${Math.round(x.best1rm)} кг` : '';
       L.push(`- ${x.name}${x.cls ? ' [' + x.cls.group + ', ' + (REGION_LABEL[x.cls.region] || '') + ']' : ''}: ${last.sets || '?'}×${last.reps || '?'}${last.weight ? '×' + last.weight + 'кг' : ''}; ${h}${rm}${flat ? '; ПЛАТО' : ''}`);
     });
+    /* КАЛЕНДАРЬ: что было по дням и неделям, что пропущено, что впереди. Без этого тренер не может ответить «сколько раз я был на этой неделе» */
+    try {
+      const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+      const DW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+      const dd = (d) => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0');
+      const kgS = (v) => String(v).replace('.', ',');
+      const exS = (e) => e.kind === 'cardio' ? `${e.name || 'кардио'} ${e.distance ? kgS(e.distance) + ' км ' : ''}${e.duration || 0} мин`
+        : e.kind === 'steps' ? `${e.steps || 0} шагов` : e.kind === 'time_calorie' ? `${e.name || ''} ${e.duration || 0} мин`
+        : `${e.name} ${e.sets || '?'}×${e.reps || '?'}${+e.weight ? '×' + kgS(e.weight) + ' кг' : ''}`;
+      const doneDates = new Set(history.map(h => +h.date));
+      const days = [];
+      cp.on.map(x => x.p).concat(cp.on.some(x => x.p.id === plan.id) ? [] : [plan]).forEach(p => toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => {
+        if (!d) return; const dt = planDayDate(p, d.date); if (!dt) return;
+        const ss = toArr(d.sessions).filter(x => x && x.type !== 'Отдых');
+        if (!ss.length && !d.comment) return;
+        days.push({ dt, d, ss });
+      })));
+      days.sort((a, b) => a.dt - b.dt);
+      const mon = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+      const thisMon = mon(t0);
+      L.push('');
+      L.push(`СЕГОДНЯ: ${DW[t0.getDay()]}, ${dd(t0)}.${t0.getFullYear()}.`);
+      L.push('КАЛЕНДАРЬ ПО НЕДЕЛЯМ (пн–вс), последние 5 недель:');
+      for (let k = 4; k >= 0; k--) {
+        const a = new Date(thisMon); a.setDate(a.getDate() - 7 * k); const b = new Date(a); b.setDate(b.getDate() + 6);
+        const inW = days.filter(x => x.dt >= a && x.dt <= b && x.dt <= t0);
+        const done = [], miss = [];
+        inW.forEach(x => {
+          const work = x.ss.filter(s => toArr(s.exercises).some(e => e && (+e.weight || +e.reps || +e.distance || +e.duration || +e.steps)));
+          const strengthDone = doneDates.has(+x.dt);
+          const other = work.filter(s => toArr(s.exercises).some(e => e && e.kind && e.kind !== 'strength'));
+          const label = (s) => (toArr(s.groups).length ? toArr(s.groups).join('+') : s.type);
+          if (strengthDone || other.length || (x.d.done)) done.push(`${DW[x.dt.getDay()]} ${dd(x.dt)} ${work.map(s => label(s) + ': ' + toArr(s.exercises).filter(Boolean).slice(0, 6).map(exS).join('; ')).join(' | ')}${x.d.comment ? ' (заметка: «' + String(x.d.comment).slice(0, 120) + '»)' : ''}`);
+          else if (x.ss.length && +x.dt < +t0) miss.push(`${DW[x.dt.getDay()]} ${dd(x.dt)} ${x.ss.map(label).join('+')}`);
+        });
+        const head = `Неделя ${dd(a)}–${dd(b)}${k === 0 ? ' (ЭТА неделя, по сегодня)' : ''}: тренировок ${done.length}`;
+        L.push(head + (done.length ? ':' : '.'));
+        done.forEach(x => L.push('  + ' + x));
+        if (miss.length) L.push('  пропущено по плану: ' + miss.join(', '));
+      }
+      const end = new Date(t0); end.setDate(end.getDate() + 7);
+      const ahead = days.filter(x => x.dt > t0 && x.dt <= end && x.ss.length);
+      L.push('ВПЕРЕДИ ПО ПЛАНУ (7 дней): ' + (ahead.length ? ahead.map(x => `${DW[x.dt.getDay()]} ${dd(x.dt)} ${x.ss.map(s => (toArr(s.groups).length ? toArr(s.groups).join('+') : s.type) + ' (' + toArr(s.exercises).filter(Boolean).map(exS).slice(0, 5).join('; ') + ')').join(' | ')}`).join('; ') : 'ничего не запланировано') + '.');
+      const todayX = days.find(x => +x.dt === +t0);
+      if (todayX) L.push('НА СЕГОДНЯ: ' + todayX.ss.map(s => (toArr(s.groups).join('+') || s.type) + ': ' + toArr(s.exercises).filter(Boolean).map(exS).join('; ')).join(' | ') + (doneDates.has(+t0) ? ' (уже записано)' : ''));
+      const pr = prefsGet(); const g = GOALS[pr.goal] || GOALS.mass;
+      L.push(`ЦЕЛЬ: ${g.label}, ${g.lo}–${g.hi} повторов, отдых ${g.rest}.`);
+      const ms = toArr((Store.get().training || {}).measurements).filter(Boolean);
+      if (ms.length) { const m = ms[ms.length - 1]; const v = m.values || {}; L.push(`ПОСЛЕДНИЙ ЗАМЕР ${m.date}: ` + Object.entries(v).filter(([k2, x]) => x).slice(0, 8).map(([k2, x]) => k2 + ' ' + x).join(', ') + '.'); }
+    } catch (e) { /* календарь не обязателен */ }
     const ai = load();
     if (ai && ai.planId === plan.id && ai.mode === 'queue') L.push('AI-план: тренировки по очереди: ' + toArr(ai.layout).map((t, i) => (i + 1) + ') ' + toArr(t).join('+')).join(', ') + '.');
     else if (ai && ai.planId === plan.id) L.push('AI-план уже составлен с недели ' + (ai.fromWeek + 1) + '.');

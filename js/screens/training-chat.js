@@ -27,7 +27,9 @@ window.TrainingChat = (function () {
     const lines = esc(t).split(/\n/);
     let html = '', list = null;
     const close = () => { if (list) { html += '</' + list + '>'; list = null; } };
-    const inline = (x) => x.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<i>$2</i>').replace(/`([^`]+)`/g, '<code>$1</code>');
+    /* ссылки кликабельные: видео-поиск показываем коротко */
+    const links = (x) => x.replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)»])/g, (u) => `<a class="ch-link" href="${u}" target="_blank" rel="noopener">${/youtube\.com\/results/.test(u) ? '<i class="ti ti-brand-youtube"></i> Видео по технике' : u.replace(/^https?:\/\//, '').slice(0, 40)}</a>`);
+    const inline = (x) => links(x).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<i>$2</i>').replace(/`([^`]+)`/g, '<code>$1</code>');
     lines.forEach(l => {
       const h = l.match(/^\s*#{1,6}\s+(.*)/);
       if (h) { close(); html += '<p class="ch-h">' + inline(h[1]) + '</p>'; return; }

@@ -188,7 +188,7 @@ button,input,select,textarea{font-family:inherit}
 .db-goals{background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(124,58,237,.08));border-color:rgba(110,139,255,.25)}
 .db-goal{margin-top:10px}.db-goal-t,.db-fn-t{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--soft);margin-bottom:6px}.db-goal-t b,.db-fn-t b{color:var(--txt)}.db-goal-t em,.db-fn-t em{font-style:normal;color:var(--faint);font-weight:600}
 .db-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}.db-bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#4A7CFF,#8B5CF6)}
-.db-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.db-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .db-k{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}.db-k small{display:block;font-size:10.5px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}.db-k b{display:block;font-size:24px;margin-top:4px}.db-k span{font-size:11px;color:var(--soft)}
 .db-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .db-fn{margin-bottom:12px}.db-fn small{font-size:10.5px;color:var(--faint)}
@@ -200,6 +200,59 @@ button,input,select,textarea{font-family:inherit}
 @media(max-width:760px){.db-grid{grid-template-columns:1fr}.db-kpis{grid-template-columns:1fr 1fr}}
 .goal-in{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.goal-in label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--soft)}.goal-in .set-in{width:100%}
 @media(max-width:620px){.goal-in{grid-template-columns:1fr 1fr}}
+/* ── Удобство: вкладки в две строки на телефоне, цифры сверху только на дашборде ── */
+@media (max-width:760px){
+  .tabs{display:grid;grid-template-columns:repeat(3,1fr);width:100%;gap:4px}
+  .tab{justify-content:center;padding:0 4px;font-size:12px;height:42px}
+  .tab>i{display:none}
+  .btn-sm{height:40px} .chip{height:38px}
+  .urow{grid-template-columns:auto 1fr auto}
+  .urow>div:last-child{display:none}
+  .trow{grid-template-columns:auto 1fr auto;row-gap:10px}
+  .trow .u-col{text-align:right}
+  .tr-act{grid-column:1/-1}
+  .tr-act .tr-tier{flex:1}
+}
+.kpis.only-dash{display:none}
+/* ── Экономика ── */
+.ec{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+.ec-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.ec-side{position:sticky;top:84px}
+#ec-out{display:flex;flex-direction:column;gap:12px}
+.ec-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.ec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.ec-h b{font-size:14px;display:flex;align-items:center;gap:6px}.ec-h b i{color:var(--acc)}
+.ec-presets{display:flex;flex-wrap:wrap;gap:6px}
+.ec-f{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.ec-f:first-of-type{border-top:none}
+.ec-f label{font-size:13px;color:var(--soft);font-weight:600}
+.ec-f input[type=text]{height:40px;border-radius:10px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--txt);padding:0 10px;font-size:14px;font-weight:800;text-align:right;outline:none;width:100%}
+.ec-f input[type=text]:focus{border-color:rgba(110,139,255,.6)}
+.ec-f input[type=range]{grid-column:1/-1;width:100%;accent-color:#6E8BFF;height:22px;margin:0}
+.ec-big{font-size:36px;font-weight:800;letter-spacing:-1px}
+.ec-big.neg{color:var(--bad)} .ec-big.pos{color:var(--ok)}
+.ec-sub{font-size:12.5px;color:var(--soft);margin-top:2px}
+.ec-stack{display:flex;height:14px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.06);margin:14px 0 10px}
+.ec-stack span{height:100%}
+.ec-leg{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--soft)}
+.ec-leg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0}
+.ec-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.ec-row:first-child{border-top:none}
+.ec-row span{color:var(--soft)} .ec-row b{white-space:nowrap}
+.ec-row.t{font-size:14px} .ec-row.t span{color:var(--txt);font-weight:700}
+.ec-minus{color:#FCA5A5} .ec-plus{color:var(--ok)}
+.ec-kp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ec-kp div{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.ec-kp small{display:block;font-size:10.5px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.ec-kp b{display:block;font-size:17px;margin-top:3px}
+.ec-fact{font-size:12.5px;color:var(--soft);line-height:1.6}
+.ec-fact b{color:var(--txt)}
+@media (max-width:860px){.ec{grid-template-columns:1fr}.ec-side{position:static}.ec-big{font-size:32px}
+  #p-econ{padding-bottom:70px}
+  .ec-mini{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(23,27,36,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line2);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--soft);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .ec-mini b{font-size:18px}
+}
+@media (min-width:861px){.ec-mini{display:none}}
 </style>
 </head>
 <body>
@@ -228,13 +281,13 @@ button,input,select,textarea{font-family:inherit}
     <div class="sp"></div>
     <span class="top-email" id="a-me" style="font-size:12px;color:var(--soft)"></span>
     <a class="btn btn-ghost btn-sm" href="./" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Приложение</a>
-    <button class="btn btn-ghost btn-sm" id="a-logout"><i class="ti ti-logout"></i></button>
+    <button class="btn btn-ghost btn-sm" id="a-logout" title="Выйти" aria-label="Выйти"><i class="ti ti-logout"></i></button>
   </div></div>
 
   <div class="wrap">
     <div class="note hidden" id="a-rules"><i class="ti ti-alert-triangle"></i><div id="a-rules-txt"></div></div>
 
-    <div class="kpis">
+    <div class="kpis" id="kpis">
       <div class="kpi"><div class="kpi-l"><i class="ti ti-users"></i> Пользователи</div><div class="kpi-v" id="k-users">…</div><div class="kpi-s" id="k-users-s"></div><div class="bar"><span id="k-bar" style="width:0"></span></div></div>
       <div class="kpi"><div class="kpi-l"><i class="ti ti-user-plus"></i> Новых за 7 дней</div><div class="kpi-v" id="k-new">…</div><div class="kpi-s">по реестру</div></div>
       <div class="kpi"><div class="kpi-l"><i class="ti ti-activity"></i> Активны за 7 дней</div><div class="kpi-v" id="k-active">…</div><div class="kpi-s">открывали приложение</div></div>
@@ -246,6 +299,7 @@ button,input,select,textarea{font-family:inherit}
       <button class="tab" data-tab="msgs"><i class="ti ti-inbox"></i> Сообщения <span class="cnt hidden" id="t-cnt"></span></button>
       <button class="tab" data-tab="users"><i class="ti ti-users"></i> Пользователи</button>
       <button class="tab" data-tab="trainers"><i class="ti ti-user-star"></i> Тренеры <span class="cnt hidden" id="t-tr"></span></button>
+      <button class="tab" data-tab="econ"><i class="ti ti-calculator"></i> Экономика</button>
       <button class="tab" data-tab="settings"><i class="ti ti-settings"></i> Настройки</button>
     </div>
 
@@ -278,11 +332,14 @@ button,input,select,textarea{font-family:inherit}
       <div id="tr-list"></div>
     </div>
 
+    <!-- Экономика -->
+    <div class="hidden" id="p-econ"></div>
+
     <!-- Настройки -->
     <div class="panel hidden" id="p-settings">
       <div class="set">
         <div class="set-row">
-          <div><div class="set-t">Регистрация открыта</div><div class="set-d">Выключи, и на экране входа вместо формы регистрации будет кнопка «Получить инвайт».</div></div>
+          <div><div class="set-t">Регистрация открыта</div><div class="set-d">Выключи, и на экране входа вместо формы регистрации будет кнопка «Получить приглашение».</div></div>
           <button class="tgl on" id="s-open"></button>
         </div>
         <div class="set-row">
@@ -313,7 +370,7 @@ button,input,select,textarea{font-family:inherit}
             </div></div>
         </div>
         <div class="set-row">
-          <div><div class="set-t">Ссылка на поддержку</div><div class="set-d">Куда ведут кнопки «Написать в Telegram» и «Получить инвайт».</div></div>
+          <div><div class="set-t">Ссылка на поддержку</div><div class="set-d">Куда ведут кнопки «Написать в Telegram» и «Получить приглашение».</div></div>
           <input class="set-in wide" id="s-support" type="url" placeholder="https://t.me/…">
         </div>
       </div>
@@ -352,7 +409,7 @@ function dt(iso){ const d=new Date(iso); return isNaN(d)?'':d.toLocaleString('ru
 const isOwner = (u) => !!u && !!u.email && u.email.toLowerCase() === OWNER;
 function denied(e){ return e && (e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message||'')); }
 function rulesWarn(){ $('#a-rules').classList.remove('hidden');
-  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы (Realtime Database → Rules) на версию с блоками <b>userIndex</b>, <b>settings</b> и <b>feedback</b>.'; }
+  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы: Firebase → Realtime Database → Rules, вставь текст из файла <b>FIREBASE_RULES_v140.json</b>.'; }
 
 /* ── Вход ── */
 async function doLogin(){
@@ -379,7 +436,7 @@ onAuthStateChanged(auth, async (u) => {
 /* ── Данные ── */
 let FEED={}, USERS={}, SETTINGS={}, COUNT=0;
 let mFilter='all', uFilter='all', uQuery='';
-const TYPES={ nps:{l:'Оценка',i:'ti-heart-handshake'}, idea:{l:'Идея',i:'ti-bulb'}, bug:{l:'Ошибка',i:'ti-bug'}, question:{l:'Вопрос',i:'ti-help-circle'}, invite:{l:'Инвайт',i:'ti-ticket'}, other:{l:'Другое',i:'ti-message'} };
+const TYPES={ nps:{l:'Оценка',i:'ti-heart-handshake'}, idea:{l:'Идея',i:'ti-bulb'}, bug:{l:'Ошибка',i:'ti-bug'}, question:{l:'Вопрос',i:'ti-help-circle'}, invite:{l:'Приглашение',i:'ti-ticket'}, other:{l:'Другое',i:'ti-message'} };
 
 function start(){
   const sub=(path,cb)=>{ const off=onValue(ref(db,path), s=>cb(s.val()), e=>{ console.error(path,e); if(denied(e)) rulesWarn(); }); unsub.push(off); };
@@ -389,7 +446,10 @@ function start(){
   sub('refs', v=>{ REFS=v||{}; renderDash(); });
   sub('stats/usersCount', v=>{ COUNT=Number(v)||0; fillSettings(); renderKpi(); });
   sub('trainers', v=>{ TRAINERS=v||{}; renderTrainers(); renderDash(); });
-  sub('trainerClients', v=>{ TCL=v||{}; renderTrainers(); renderDash(); });
+  sub('trainerClients', v=>{ TCL=v||{}; renderTrainers(); renderDash(); renderEcon(); });
+  sub('aiStats', v=>{ AISTATS=v||{}; renderEcon(); });
+  /* настройки калькулятора лежат в nik-data: читать и писать их может только владелец */
+  sub('nik-data/adminEconomics', v=>{ if(v && typeof v==='object' && !econTyping()){ E=Object.assign({},ECON_DEF,v); econFill(); renderEcon(); } });
 }
 
 /* ── Дашборд: цели, воронка, активность, рефки, ошибки ── */
@@ -448,8 +508,6 @@ function renderDash() {
     </div>
     <div class="db-kpis">
       <div class="db-k"><small>Записывают за 7 дней</small><b>${M.writes7.length}</b><span>из ${M.list.length} · главная цифра</span></div>
-      <div class="db-k"><small>Заходили за 7 дней</small><b>${M.visits7.length}</b><span>открывали приложение</span></div>
-      <div class="db-k"><small>Новых за 7 дней</small><b>${M.new7.length}</b><span>регистраций</span></div>
       <div class="db-k"><small>На главном экране</small><b>${M.pwa.length}</b><span>поставили как приложение</span></div>
       <div class="db-k"><small>Оценка «посоветуешь?»</small><b>${npsAvg}</b><span>${M.nps.length ? `ответов ${M.nps.length}${npsScore != null ? ' · NPS ' + npsScore : ''}` : 'пока нет ответов'}</span></div>
       <div class="db-k"><small>Пришли по ссылкам</small><b>${refTot}</b><span>друзья, тренеры, клиенты</span></div>
@@ -493,7 +551,7 @@ function renderKpi(){
 function renderMsgs(){
   const list=Object.entries(FEED).filter(([,m])=>m).map(([id,m])=>({...m,id})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   const cnt=(f)=>list.filter(f).length;
-  const filters=[['all','Все',list.length],['new','Новые',cnt(m=>(m.status||'new')==='new')],['idea','Идеи',cnt(m=>m.type==='idea')],['bug','Ошибки',cnt(m=>m.type==='bug')],['question','Вопросы',cnt(m=>m.type==='question')],['invite','Инвайты',cnt(m=>m.type==='invite')],['nps','Оценки',cnt(m=>m.type==='nps')],['done','Отвечено',cnt(m=>m.status==='done')]];
+  const filters=[['all','Все',list.length],['new','Новые',cnt(m=>(m.status||'new')==='new')],['idea','Идеи',cnt(m=>m.type==='idea')],['bug','Ошибки',cnt(m=>m.type==='bug')],['question','Вопросы',cnt(m=>m.type==='question')],['invite','Приглашения',cnt(m=>m.type==='invite')],['nps','Оценки',cnt(m=>m.type==='nps')],['done','Отвечено',cnt(m=>m.status==='done')]];
   $('#m-filters').innerHTML=filters.map(([k,l,n])=>`<button class="chip${mFilter===k?' on':''}" data-mf="${k}">${l} · ${n}</button>`).join('');
   $('#m-filters').querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{ mFilter=b.dataset.mf; renderMsgs(); });
   const vis=list.filter(m=> mFilter==='all' ? true : mFilter==='new' ? (m.status||'new')==='new' : mFilter==='done' ? m.status==='done' : m.type===mFilter);
@@ -544,7 +602,7 @@ function renderUsers(){
       <div class="u-col hide-m"><b>${(()=>{ const l7=daysBack(7).map(dk); return wDays(u).filter(d=>l7.includes(d)).length; })()} из 7</b>дней записей</div>
       <div class="u-col"><b>${ago(u.lastSeen)}</b>был(а)</div>
       <div>${me?'':(u.blocked
-        ?`<button class="btn btn-okc btn-sm" data-ub="0" data-uid="${esc(u.uid)}"><i class="ti ti-lock-open"></i> Разблок.</button>`
+        ?`<button class="btn btn-okc btn-sm" data-ub="0" data-uid="${esc(u.uid)}"><i class="ti ti-lock-open"></i> Разблокировать</button>`
         :`<button class="btn btn-bad btn-sm" data-ub="1" data-uid="${esc(u.uid)}" title="Заблокировать"><i class="ti ti-lock"></i></button>`)}</div>
     </div>`;
   }).join('');
@@ -637,7 +695,7 @@ $('#s-save').onclick=async()=>{
 
 /* ── Карточка пользователя ── */
 let openUid=null;
-const TAGS=['VIP','Тестер','Друг','Инвайт','Клиент'];
+const TAGS=['VIP','Тестер','Друг','Приглашение','Клиент'];
 function device(ua){ ua=ua||''; if(!ua) return '—';
   const os=/iPhone|iPad/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Mac OS/.test(ua)?'macOS':/Windows/.test(ua)?'Windows':'Другое';
   const br=/CriOS|Chrome\//.test(ua)&&!/Edg/.test(ua)?'Chrome':/Safari/.test(ua)&&!/Chrome|CriOS/.test(ua)?'Safari':/Firefox|FxiOS/.test(ua)?'Firefox':/Edg/.test(ua)?'Edge':'';
@@ -755,11 +813,160 @@ function openUser(uid, silent){
 function closeUser(){ openUid=null; const ov=document.getElementById('dr-ov'); if(ov) ov.remove(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUser(); });
 
+
+/* ── Экономика: калькулятор подписок ──
+   Все суммы в месяц. Настройки сохраняются в nik-data/adminEconomics. */
+let AISTATS={};
+const ECON_DEF={ trainers:100, perTrainer:7.5, clientPayPct:30, solo:300, soloPayPct:5,
+  priceUser:199, priceTrainer:999, kassaPct:3, taxPct:6, aiPrice1k:1.2, tokPerMsg:4000,
+  msgClient:10, msgTrainer:50, msgFree:5, server:3000, refPct:10, marketing:0 };
+let E=Object.assign({},ECON_DEF), econBuilt=false, econT=null;
+const ECON_F=[
+  ['Кто платит', 'ti-users', [
+    ['trainers','Тренеров',0,2000,1],
+    ['perTrainer','Клиентов у тренера, в среднем',0,50,0.5],
+    ['clientPayPct','Клиенты с подпиской, %',0,100,1],
+    ['solo','Пользователей без тренера',0,50000,10],
+    ['soloPayPct','Из них платят, %',0,100,0.5],
+  ]],
+  ['Цены', 'ti-tag', [
+    ['priceUser','Подписка пользователя, ₽',0,2000,1],
+    ['priceTrainer','Подписка тренера, ₽',0,10000,10],
+  ]],
+  ['Расходы', 'ti-receipt', [
+    ['kassaPct','Касса, % от оплат',0,10,0.1],
+    ['taxPct','Налог, % от выручки',0,20,0.5],
+    ['refPct','Рефералка, % от выручки',0,50,1],
+    ['server','Сервер, хостинг, бот, ₽ в месяц',0,100000,500],
+    ['marketing','Реклама, ₽ в месяц',0,1000000,1000],
+  ]],
+  ['AI-тренер', 'ti-sparkles', [
+    ['aiPrice1k','Цена 1000 токенов, ₽',0,10,0.05],
+    ['tokPerMsg','Токенов на одно сообщение',0,20000,100],
+    ['msgClient','Сообщений в месяц у клиента',0,200,1],
+    ['msgTrainer','Сообщений в месяц у тренера',0,500,5],
+    ['msgFree','Сообщений у бесплатного',0,100,1],
+  ]],
+];
+const ECON_PRESETS={
+  start:{l:'Старт',v:{trainers:30,perTrainer:5,clientPayPct:20,solo:100,soloPayPct:3}},
+  goal:{l:'Цель',v:{trainers:100,perTrainer:7.5,clientPayPct:30,solo:300,soloPayPct:5}},
+  scale:{l:'Масштаб',v:{trainers:1000,perTrainer:10,clientPayPct:35,solo:5000,soloPayPct:6}},
+};
+const rub=(n)=>(n<0?'−':'')+Math.round(Math.abs(n)).toLocaleString('ru-RU')+' ₽';
+const num=(n,d)=>(Math.round(n*(d||1))/(d||1)).toLocaleString('ru-RU');
+function econTyping(){ const a=document.activeElement; return !!(a && a.closest && a.closest('#p-econ') && /INPUT/.test(a.tagName)); }
+/* факт из базы: тренеры, клиенты, пользователи, AI за текущий месяц */
+function econFact(){
+  const trs=Object.keys(TRAINERS).filter(k=>TRAINERS[k]);
+  const withCl=trs.filter(k=>Object.keys(TCL[k]||{}).length);
+  const clients=trs.reduce((s,k)=>s+Object.keys(TCL[k]||{}).length,0);
+  const users=Object.keys(USERS).length;
+  const months=Object.keys(AISTATS||{}).sort(), m=months[months.length-1], a=m?AISTATS[m]||{}:{};
+  const msgs=+a.messages||0, tok=+a.tokens||0;
+  return { trainers:trs.length, withCl:withCl.length, clients, users, solo:Math.max(0,users-clients-trs.length), month:m, msgs, tok, tokPerMsg:msgs?Math.round(tok/msgs):0 };
+}
+function econCalc(e){
+  const clients=e.trainers*e.perTrainer, payClients=clients*e.clientPayPct/100, paySolo=e.solo*e.soloPayPct/100;
+  const revT=e.trainers*e.priceTrainer, revC=payClients*e.priceUser, revS=paySolo*e.priceUser, rev=revT+revC+revS;
+  const kassa=rev*e.kassaPct/100, tax=rev*e.taxPct/100, ref=rev*e.refPct/100;
+  const msgCost=e.tokPerMsg/1000*e.aiPrice1k;
+  const msgs=clients*e.msgClient+e.trainers*e.msgTrainer+paySolo*e.msgClient+(e.solo-paySolo)*e.msgFree;
+  const ai=msgs*msgCost, fixed=e.server+e.marketing;
+  const cost=kassa+tax+ref+ai+fixed, profit=rev-cost;
+  /* один тренер вместе со своими клиентами: что приносит и сколько стоит */
+  const pct=(e.kassaPct+e.taxPct+e.refPct)/100;
+  const tRev=e.priceTrainer+e.perTrainer*e.clientPayPct/100*e.priceUser;
+  const tCost=tRev*pct+(e.msgTrainer+e.perTrainer*e.msgClient)*msgCost;
+  const tProfit=tRev-tCost;
+  const soloProfit=e.solo*(e.soloPayPct/100*(e.priceUser*(1-pct)-e.msgClient*msgCost)-(1-e.soloPayPct/100)*e.msgFree*msgCost);
+  const breakeven=tProfit>0?Math.max(0,Math.ceil((fixed-soloProfit)/tProfit)):null;
+  return {clients,payClients,paySolo,revT,revC,revS,rev,kassa,tax,ref,ai,fixed,cost,profit,msgCost,msgs,tRev,tCost,tProfit,breakeven,margin:rev?profit/rev*100:0,aiPerUser:msgCost*e.msgClient};
+}
+function econFill(){ if(!econBuilt) return; Object.keys(ECON_DEF).forEach(k=>{ const t=$('#ec-'+k), r=$('#ecr-'+k); if(t&&document.activeElement!==t) t.value=String(E[k]).replace('.',','); if(r) r.value=E[k]; }); }
+function econSave(){ clearTimeout(econT); econT=setTimeout(async()=>{ try{ await set(ref(db,'nik-data/adminEconomics'),E); }catch(e){ console.error(e); if(denied(e)) rulesWarn(); } },700); }
+function econSet(k,v,from){ const f=ECON_F.flatMap(g=>g[2]).find(x=>x[0]===k); v=+String(v).replace(',','.').replace(/\s/g,''); if(!isFinite(v)) return;
+  v=Math.max(f[2],Math.min(f[3]*10,v)); E[k]=v;
+  if(from!=='text'){ const t=$('#ec-'+k); if(t) t.value=String(v).replace('.',','); }
+  if(from!=='range'){ const r=$('#ecr-'+k); if(r) r.value=v; }
+  econResults(); econSave(); }
+function renderEcon(){
+  const box=$('#p-econ'); if(!box||box.classList.contains('hidden')) return;
+  if(!econBuilt){
+    box.innerHTML=`<div class="ec">
+      <div class="ec-col">
+        <div class="ec-card"><div class="ec-h"><b><i class="ti ti-adjustments"></i> Сценарий</b></div>
+          <div class="ec-presets">${Object.entries(ECON_PRESETS).map(([k,p])=>`<button class="chip" data-ep="${k}">${p.l}</button>`).join('')}<button class="chip" data-ep="fact" title="Тренеры, клиенты, пользователи и расход AI из базы">Как сейчас</button><button class="chip" data-ep="reset">Сбросить</button></div></div>
+        ${ECON_F.map(([t,ic,fs])=>`<div class="ec-card"><div class="ec-h"><b><i class="ti ${ic}"></i> ${t}</b></div>
+          ${fs.map(([k,l,mn,mx,st])=>`<div class="ec-f"><label for="ec-${k}">${l}</label><input type="text" inputmode="decimal" id="ec-${k}" data-k="${k}"><input type="range" id="ecr-${k}" data-k="${k}" min="${mn}" max="${mx}" step="${st}"></div>`).join('')}
+        </div>`).join('')}
+      </div>
+      <div class="ec-col ec-side"><div id="ec-out"></div></div>
+    </div><div class="ec-mini" id="ec-mini"></div>`;
+    econBuilt=true; econFill();
+    box.querySelectorAll('input[type=text][data-k]').forEach(i=>{ i.oninput=()=>econSet(i.dataset.k,i.value,'text'); i.onblur=()=>{ i.value=String(E[i.dataset.k]).replace('.',','); }; });
+    box.querySelectorAll('input[type=range][data-k]').forEach(i=>{ i.oninput=()=>econSet(i.dataset.k,i.value,'range'); });
+    box.querySelectorAll('[data-ep]').forEach(b=>b.onclick=()=>{ const k=b.dataset.ep;
+      if(k==='reset') E=Object.assign({},ECON_DEF);
+      else if(k==='fact'){ const f=econFact(); Object.assign(E,{trainers:f.trainers,perTrainer:f.trainers?Math.round(f.clients/f.trainers*10)/10:0,solo:f.solo}); if(f.tokPerMsg) E.tokPerMsg=f.tokPerMsg; toast('Подставил данные из базы'); }
+      else Object.assign(E,ECON_PRESETS[k].v);
+      econFill(); econResults(); econSave(); });
+  }
+  econResults();
+}
+function econResults(){
+  const out=$('#ec-out'); if(!out) return;
+  const r=econCalc(E), f=econFact();
+  const parts=[['Касса',r.kassa,'#F59E0B'],['Налог',r.tax,'#EF4444'],['AI',r.ai,'#EC4899'],['Рефералка',r.ref,'#14B8A6'],['Сервер и реклама',r.fixed,'#64748B'],['Прибыль',Math.max(0,r.profit),'#4ADE80']];
+  const tot=Math.max(1,r.rev,parts.reduce((s,p)=>s+p[1],0));
+  const mini=$('#ec-mini'); if(mini) mini.innerHTML=`<span>Прибыль в месяц${r.margin?' · '+num(r.margin)+'%':''}</span><b style="color:${r.profit<0?'var(--bad)':'var(--ok)'}">${rub(r.profit)}</b>`;
+  out.innerHTML=`<div class="ec-card">
+      <div class="ec-h"><b><i class="ti ti-coin"></i> Прибыль в месяц</b><span class="ec-sub">${r.margin?'маржа '+num(r.margin)+'%':''}</span></div>
+      <div class="ec-big ${r.profit<0?'neg':'pos'}">${rub(r.profit)}</div>
+      <div class="ec-sub">в год ${rub(r.profit*12)} · выручка ${rub(r.rev)} в месяц</div>
+      <div class="ec-stack">${parts.map(([l,v,c])=>v>0?`<span style="width:${v/tot*100}%;background:${c}" title="${l}: ${rub(v)}"></span>`:'').join('')}</div>
+      <div class="ec-leg">${parts.map(([l,v,c])=>`<span><i style="background:${c}"></i>${l} ${rub(v)}</span>`).join('')}</div>
+    </div>
+    <div class="ec-card"><div class="ec-h"><b><i class="ti ti-list-details"></i> Разбивка</b></div>
+      <div class="ec-row"><span>Тренеры: ${num(E.trainers)} × ${rub(E.priceTrainer)}</span><b class="ec-plus">${rub(r.revT)}</b></div>
+      <div class="ec-row"><span>Клиенты с подпиской: ${num(r.payClients,10)} из ${num(r.clients,10)}</span><b class="ec-plus">${rub(r.revC)}</b></div>
+      <div class="ec-row"><span>Без тренера с подпиской: ${num(r.paySolo,10)} из ${num(E.solo)}</span><b class="ec-plus">${rub(r.revS)}</b></div>
+      <div class="ec-row t"><span>Выручка</span><b>${rub(r.rev)}</b></div>
+      <div class="ec-row"><span>Касса ${num(E.kassaPct,10)}%</span><b class="ec-minus">−${rub(r.kassa)}</b></div>
+      <div class="ec-row"><span>Налог ${num(E.taxPct,10)}%</span><b class="ec-minus">−${rub(r.tax)}</b></div>
+      <div class="ec-row"><span>AI: ${num(r.msgs)} сообщений × ${num(r.msgCost,100)} ₽</span><b class="ec-minus">−${rub(r.ai)}</b></div>
+      <div class="ec-row"><span>Рефералка ${num(E.refPct)}%</span><b class="ec-minus">−${rub(r.ref)}</b></div>
+      <div class="ec-row"><span>Сервер, бот, реклама</span><b class="ec-minus">−${rub(r.fixed)}</b></div>
+      <div class="ec-row t"><span>Остаётся</span><b class="${r.profit<0?'ec-minus':'ec-plus'}">${rub(r.profit)}</b></div>
+    </div>
+    <div class="ec-card"><div class="ec-h"><b><i class="ti ti-user-star"></i> Один тренер с клиентами</b></div>
+      <div class="ec-kp">
+        <div><small>Приносит</small><b>${rub(r.tRev)}</b></div>
+        <div><small>Стоит</small><b>${rub(r.tCost)}</b></div>
+        <div><small>Остаётся</small><b style="color:${r.tProfit<0?'var(--bad)':'var(--ok)'}">${rub(r.tProfit)}</b></div>
+        <div><small>Окупаемость</small><b>${r.breakeven==null?'не окупается':r.breakeven+' '+(r.breakeven%10===1&&r.breakeven%100!==11?'тренер':r.breakeven%10>=2&&r.breakeven%10<=4&&(r.breakeven%100<12||r.breakeven%100>14)?'тренера':'тренеров')}</b></div>
+        <div><small>1 сообщение AI</small><b>${num(r.msgCost,100)} ₽</b></div>
+        <div><small>AI на клиента в месяц</small><b>${rub(r.aiPerUser)}</b></div>
+      </div>
+    </div>
+    <div class="ec-card"><div class="ec-h"><b><i class="ti ti-database"></i> Сейчас в базе</b></div>
+      <div class="ec-fact">Тренеров <b>${f.trainers}</b>, с клиентами <b>${f.withCl}</b>, клиентов у тренеров <b>${f.clients}</b>, всего пользователей <b>${f.users}</b>.<br>
+      ${f.month?`AI за ${f.month}: <b>${num(f.msgs)}</b> сообщений, <b>${num(f.tok)}</b> токенов, в среднем <b>${num(f.tokPerMsg)}</b> на сообщение.`:'Расхода AI пока нет.'}</div>
+    </div>`;
+}
+
 /* ── Вкладки ── */
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
-  ['dash','msgs','users','trainers','settings'].forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==t.dataset.tab));
-});
+const PANELS=['dash','msgs','users','trainers','econ','settings'];
+function openTab(name){
+  if(!PANELS.includes(name)) name='dash';
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab===name));
+  PANELS.forEach(p=>$('#p-'+p).classList.toggle('hidden',p!==name));
+  $('#kpis').classList.toggle('only-dash',name!=='dash');
+  if(name==='econ') renderEcon();
+  try{ localStorage.setItem('adm_tab',name); }catch(e){}
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>openTab(t.dataset.tab));
+try{ openTab(localStorage.getItem('adm_tab')||'dash'); }catch(e){ openTab('dash'); }
 </script>
 <script src="js/hi.js"></script>
 </body>

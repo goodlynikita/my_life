@@ -55,8 +55,8 @@ window.Screens.login = function(mount, opts) {
         <div id="form-reg-closed" class="reg-closed" style="display:none;">
           <div class="reg-closed-ico"><i class="ti ti-lock"></i></div>
           <div class="reg-closed-title">Бесплатные места закончились</div>
-          <div class="reg-closed-txt">Все <b class="seats-limit-copy">1000</b> мест заняты. Напиши в поддержку, и мы пришлём личный инвайт.</div>
-          <button class="reg-closed-btn" id="reg-invite"><i class="ti ti-brand-telegram"></i> Получить инвайт</button>
+          <div class="reg-closed-txt">Все <b class="seats-limit-copy">1000</b> мест заняты. Напиши в поддержку, и мы пришлём личное приглашение.</div>
+          <button class="reg-closed-btn" id="reg-invite"><i class="ti ti-brand-telegram"></i> Получить приглашение</button>
         </div>
         <div id="form-reg" style="display:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;">
           <div id="reg-hint" style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px;line-height:1.5;"></div>
@@ -155,7 +155,7 @@ window.Screens.login = function(mount, opts) {
     document.getElementById('seats-fill').style.width = Math.max(2, pct) + '%';
     document.getElementById('seats-sub').textContent = left > 0
       ? (count >= 10 ? 'Уже с нами: ' + count.toLocaleString('ru-RU') + ' ' + plural(count, 'человек', 'человека', 'человек') : 'Регистрация открыта, успей занять место')
-      : 'Регистрация по личным инвайтам через поддержку';
+      : 'Регистрация по личным приглашениям через поддержку';
     box.style.display = '';
     box.classList.toggle('is-full', left === 0);
     if (left === 0) {
@@ -179,7 +179,7 @@ window.Screens.login = function(mount, opts) {
   if (window.FirebaseSync && FirebaseSync.loadSettings) {
     FirebaseSync.loadSettings().then(function(cfg){
       LIMIT = cfg.freeUsersLimit || LIMIT;
-      if (cfg.registrationOpen === false) applyClosed('Регистрация временно закрыта', 'Новых пользователей сейчас добавляем по личным инвайтам. Напиши в поддержку.');
+      if (cfg.registrationOpen === false) applyClosed('Регистрация временно закрыта', 'Новых пользователей сейчас добавляем по личным приглашениям. Напиши в поддержку.');
       return FirebaseSync.getUsersCount();
     }).then(showSeats);
   } else if (window.FirebaseSync && FirebaseSync.getUsersCount) FirebaseSync.getUsersCount().then(showSeats);
@@ -240,7 +240,7 @@ window.Screens.login = function(mount, opts) {
       Router.go('/home');
     } catch(e) {
       if (e.code === 'app/limit-reached') { showSeats(LIMIT); document.getElementById('tab-reg').click(); return; }
-      if (e.code === 'app/registration-closed') { applyClosed('Регистрация временно закрыта', 'Новых пользователей сейчас добавляем по личным инвайтам. Напиши в поддержку.'); document.getElementById('tab-reg').click(); return; }
+      if (e.code === 'app/registration-closed') { applyClosed('Регистрация временно закрыта', 'Новых пользователей сейчас добавляем по личным приглашениям. Напиши в поддержку.'); document.getElementById('tab-reg').click(); return; }
       var msg = e.code === 'auth/email-already-in-use' ? 'Этот email уже зарегистрирован'
               : e.code === 'auth/invalid-email'        ? 'Некорректный email'
               : 'Ошибка регистрации. Попробуй ещё раз.';

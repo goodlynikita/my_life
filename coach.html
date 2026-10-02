@@ -1750,7 +1750,7 @@ async function createPlan(c, tpl, start, keep) {
 
 /* ═══ Подключение по ключу клиента ═══
    Клиент сам создал ключ (фамилия и имя внутри), значит согласие есть.
-   Порядок записей важен для правил базы: связь → список → ключ сгорает. */
+   Связь, список и сгорание ключа пишутся одной атомарной записью. */
 async function useKey(raw) {
   const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (code.length !== 8) throw { code: 'bad' };
@@ -1764,9 +1764,12 @@ async function useKey(raw) {
   const now = Date.now();
   const link = { trainerUid: trainer.uid, name: trainer.name, code: trainer.code, since: now, uid: k.uid, akey: code };
   if (k.prev && k.prev !== trainer.uid) link.prev = k.prev;
-  await set(ref(db, 'clientTrainer/' + k.key), link);
-  await set(ref(db, 'trainerClients/' + trainer.uid + '/' + k.key), { uid: k.uid, email: k.email || '', name: k.name || '', code, since: now, root: k.root, via: 'key' });
-  try { await set(ref(db, 'accessKeys/' + code), null); } catch (e) {}
+  /* одной записью: связь, список и сгорание ключа (правила базы требуют, чтобы ключ сгорел вместе с подключением) */
+  await update(ref(db), {
+    ['clientTrainer/' + k.key]: link,
+    ['trainerClients/' + trainer.uid + '/' + k.key]: { uid: k.uid, email: k.email || '', name: k.name || '', code, since: now, root: k.root, via: 'key' },
+    ['accessKeys/' + code]: null,
+  });
   return k.name || 'Клиент';
 }
 

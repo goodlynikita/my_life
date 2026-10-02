@@ -520,7 +520,7 @@ const FirebaseSync = (() => {
   /* ── Ключ доступа: клиент выдаёт его тренеру сам ──
      accessKeys/{KEY} = { key, uid, root, name, email, createdAt, expiresAt, prev } */
   const KEY_TTL = 24 * 3600 * 1000;
-  function genKey() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 8; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
+  function genKey() { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', r = new Uint32Array(8); crypto.getRandomValues(r); let c = ''; for (let i = 0; i < 8; i++) c += a[r[i] % a.length]; return c; }
   async function createAccessKey(fullName) {
     const u = _auth.currentUser; if (!u) throw { code: 'auth' };
     await revokeAccessKey();

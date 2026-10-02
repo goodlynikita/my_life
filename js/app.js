@@ -113,5 +113,8 @@ window.addEventListener('firebase-remote-update', function (ev) {
   var modalOpen = !!document.querySelector('.tr-modal-overlay');
   if (editing || modalOpen) return;
   if (Router.currentPath() === '/training') return;
-  Router.render({ keepScroll: true });
+  window.__keepUi = true;
+  /* без анимаций появления: иначе экран заметно «дёргается» */
+  document.documentElement.classList.add('no-anim');
+  try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; setTimeout(function () { document.documentElement.classList.remove('no-anim'); }, 400); }
 });

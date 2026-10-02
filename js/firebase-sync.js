@@ -175,7 +175,10 @@ const FirebaseSync = (() => {
       if (_queue.size > 0 || _flushing) return; /* пока ждали ответ — появились правки */
       const next = coach ? { training: snap.val() } : snap.val();
       /* ничего не изменилось на сервере: экран не перерисовываем, иначе страница «прыгает» каждые 5 минут */
-      const changed = _changedSections(coach ? { training: Store.get().training } : Store.get(), next);
+      /* сравниваем с данными в том же виде, в каком их держит Store (ensureShape чинит дыры, типы и т.п.), иначе экран «прыгает» каждые 5 минут */
+      let shaped = next;
+      try { if (Store.shape) { const sh = Store.shape(JSON.parse(JSON.stringify(coach ? { training: next.training } : next))); shaped = coach ? { training: sh.training } : sh; } } catch (e) {}
+      const changed = _changedSections(coach ? { training: Store.get().training } : Store.get(), shaped).filter(k => k !== 'meta');
       if (!changed.length) return;
       Store.replaceAll(next);
       window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: changed } }));

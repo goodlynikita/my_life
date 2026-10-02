@@ -1541,3 +1541,5 @@ button.tl-key { display: block; width: 100%; cursor: pointer; font: inherit; col
 button.tl-key:active { transform: scale(.98); }
 .tl-copy { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; padding: 6px 12px; border-radius: 99px; background: rgba(255,255,255,.1); color: #C7D2FE; font-style: normal; font-size: 12.5px; font-weight: 700; }
 .tl-copy.ok { background: rgba(92,184,140,.22); color: #A7F3D0; }
+/* фоновая перерисовка: анимации появления проигрываются мгновенно */
+html.no-anim *, html.no-anim *::before, html.no-anim *::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}

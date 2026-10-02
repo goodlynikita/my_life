@@ -169,7 +169,7 @@ window.Screens.finance = function(mount) {
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
-  let activeTab = 'expenses'; /* чаще всего нужно «сколько можно потратить», поэтому открываемся на «Расходах» */
+  let activeTab = (window.__keepUi && window.__ui && window.__ui.fin) || 'expenses'; /* чаще всего нужно «сколько можно потратить», поэтому открываемся на «Расходах» */
 
   mount.innerHTML = `
     <div class="tochka-screen">
@@ -837,6 +837,8 @@ window.Screens.finance = function(mount) {
   }
 
   function render(){
+    window.__ui = Object.assign(window.__ui || {}, { fin: activeTab }); /* вкладка переживает фоновую перерисовку */
+    mount.querySelectorAll('.tochka-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
     if(activeTab==='month')renderMonth();
     else if(activeTab==='expenses')renderExpenses();
     else if(activeTab==='balance')renderBalance();

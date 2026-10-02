@@ -190,5 +190,5 @@ const Store = (() => {
   }
   /* были ли выкинуты пустые элементы в тренировках при последней загрузке (один раз) */
   function takeTrainingCompacted() { const v = _trCompacted; _trCompacted = false; return v; }
-  return { takeTrainingCompacted, get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, loadFromLocalBackup, subscribe };
+  return { shape: ensureShape, takeTrainingCompacted, get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, loadFromLocalBackup, subscribe };
 })();

@@ -272,9 +272,9 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
 }
 
 window.Screens.goals = function(mount) {
-  let activeSeason = 'all';
-  window._goalsActiveSeason = 'all';
-  let activeMonth = 0;
+  let activeSeason = (window.__keepUi && window.__ui && window.__ui.gs) || 'all';
+  window._goalsActiveSeason = activeSeason;
+  let activeMonth = (window.__keepUi && window.__ui && window.__ui.gm) || 0;
 
   mount.innerHTML = `
     <div class="goals-screen" style="min-height:100vh;background:#0F1117;">
@@ -297,7 +297,7 @@ window.Screens.goals = function(mount) {
   const tabsEl = document.getElementById('goals-tabs');
   GOALS_SEASONS.forEach(s=>{
     const btn = document.createElement('button');
-    btn.className = 'goals-season-tab' + (s.key==='all'?' active':'');
+    btn.className = 'goals-season-tab' + (s.key===activeSeason?' active':'');
     btn.dataset.season = s.key;
     btn.setAttribute('data-season-color', s.color); btn.style.setProperty('--season-color', s.color);
     if (s.key === activeSeason) { btn.style.color = s.color; btn.style.borderBottomColor = s.color; }
@@ -313,7 +313,7 @@ window.Screens.goals = function(mount) {
       btn.style.borderBottomColor = s.color;
       activeSeason = s.key;
       window._goalsActiveSeason = s.key;
-      activeMonth = 0;
+      activeMonth = 0; window.__ui = Object.assign(window.__ui || {}, { gs: activeSeason, gm: 0 });
       render();
     });
     tabsEl.appendChild(btn);
@@ -346,7 +346,7 @@ window.Screens.goals = function(mount) {
     bar.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:2px;">'+btns+'</div>';
     bar.querySelectorAll('.goals-mbar-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        activeMonth = parseInt(btn.dataset.m);
+        activeMonth = parseInt(btn.dataset.m); window.__ui = Object.assign(window.__ui || {}, { gm: activeMonth });
         renderMonthBar();
         render();
       });

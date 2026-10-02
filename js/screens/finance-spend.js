@@ -349,7 +349,7 @@ window.FinSpend = (function () {
 
   function render(content, rerenderOuter) {
     /* перерисовка после записи/правки «мягкая»: без вылета карточек, цифры едут от прошлых значений */
-    const first = !soft; soft = false;
+    const first = !soft && !window.__keepUi; soft = false; /* фоновая перерисовка без анимации появления */
     const rerender = () => { soft = true; rerenderOuter(); };
     const now = new Date();
     const c = calc(now);

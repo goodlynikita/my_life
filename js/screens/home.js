@@ -476,9 +476,9 @@ window.Screens.home = function(mount) {
   var slidesEl = document.getElementById('hero-slides');
   var dotsEls  = mount.querySelectorAll('.hero-dot');
   if (slidesEl) {
-    var cur=0, autoTimer=null;
+    var cur=0, autoTimer=null, keepSlide=(window.__keepUi && window.__ui && window.__ui.slide) || 0;
     var interval = (sliderCfg.interval)||4500;
-    function goTo(idx){ cur=((idx%n)+n)%n; slidesEl.style.transform='translateX(-'+(cur*(100/n))+'%)'; dotsEls.forEach(function(d,i){d.classList.toggle('active',i===cur);}); }
+    function goTo(idx){ cur=((idx%n)+n)%n; window.__ui = Object.assign(window.__ui || {}, { slide: cur }); slidesEl.style.transform='translateX(-'+(cur*(100/n))+'%)'; dotsEls.forEach(function(d,i){d.classList.toggle('active',i===cur);}); }
     /* Таймер один на всё приложение: при каждой перерисовке главной старый
        раньше не останавливался, и таймеры копились */
     function startAuto(){
@@ -493,6 +493,8 @@ window.Screens.home = function(mount) {
     var sx=0;
     slidesEl.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{passive:true});
     slidesEl.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40){goTo(dx<0?cur+1:cur-1);startAuto();}});
+    /* фоновая перерисовка: остаёмся на том же слайде, без анимации */
+    if (keepSlide && keepSlide < n) { var tr = slidesEl.style.transition; slidesEl.style.transition = 'none'; goTo(keepSlide); void slidesEl.offsetWidth; slidesEl.style.transition = tr; }
     startAuto();
   }
 

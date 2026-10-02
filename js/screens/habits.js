@@ -309,7 +309,7 @@ window.Screens.habits = function(mount) {
   const today = new Date();
   let viewYear = today.getFullYear();
   let viewMonth = today.getMonth();
-  let activeTab = 'grid';
+  let activeTab = (window.__keepUi && window.__ui && window.__ui.hab) || 'grid';
 
   mount.innerHTML = `
     <div class="hab-screen hab-dark">
@@ -1047,6 +1047,8 @@ window.Screens.habits = function(mount) {
 
   function render() {
     renderRemind();
+    window.__ui = Object.assign(window.__ui || {}, { hab: activeTab });
+    mount.querySelectorAll('.hab-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
     if (activeTab==='grid') renderGrid();
     else if (activeTab==='wheel') renderWheel();
     else renderHistory();

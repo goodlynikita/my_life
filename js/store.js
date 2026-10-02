@@ -99,6 +99,17 @@ const Store = (() => {
     if (!t || typeof t !== 'object') return base.training;
     t.plans = objs(t.plans).map(p => {
       p.weeks = objs(p.weeks).map(w => {
+        /* пустой день не выкидываем (в неделе должно остаться 7 дней), а восстанавливаем по соседнему */
+        const rawDays = toArr(w.days);
+        const ref = rawDays.findIndex(isObj);
+        if (ref >= 0 && rawDays.some(d => !isObj(d))) {
+          const [rd, rm] = String(rawDays[ref].date || '').split('.').map(Number);
+          const yr = p.startDate ? new Date(p.startDate).getFullYear() : new Date().getFullYear();
+          const DW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+          w.days = rawDays.map((d, i) => { if (isObj(d)) return d; if (!rd || !rm) return d;
+            const dt = new Date(yr, rm - 1, rd + (i - ref));
+            return { date: String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0'), dow: DW[dt.getDay()], sessions: [] }; });
+        }
         w.days = objs(w.days).map(d => {
           if ('sessions' in d) d.sessions = objs(d.sessions).map(s => {
             s.exercises = objs(s.exercises).map(fixExercise);
@@ -123,7 +134,7 @@ const Store = (() => {
     d.meta = d.meta || base.meta;
     d.training = normalizeTraining(d.training, base);
     d.habits = isObj(d.habits) ? d.habits : base.habits;
-    d.habits.list = toArr(d.habits.list).filter(isObj);
+    d.habits.list = toArr(d.habits.list).filter(isObj).map(h => { if ('customDays' in h) h.customDays = toArr(h.customDays).map(Number).filter(n => n >= 1 && n <= 7); return h; });
     if (!isObj(d.habits.months)) d.habits.months = {};
     d.finance = isObj(d.finance) ? d.finance : base.finance;
     if (!isObj(d.finance.years)) d.finance.years = {};

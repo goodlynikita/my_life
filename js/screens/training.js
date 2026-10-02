@@ -585,8 +585,10 @@ function trEnsureSeedPlan() {
 function trCreateNextPlan() {
   trSnapshotBeforeChange();
   const plans = trGetPlans();
-  const wasActive = plans.filter(p => p && p.status === 'active');
-  plans.forEach(p => { if (p.status === 'active') p.status = 'archived'; });
+  /* текущий план: со status 'active', а у старых планов без статуса последний */
+  let wasActive = plans.filter(p => p && p.status === 'active');
+  if (!wasActive.length) { const cur = trActivePlan(); if (cur) wasActive = [cur]; }
+  wasActive.forEach(p => { p.status = 'archived'; });
   const maxNumber = plans.reduce((m, p) => Math.max(m, +p.number || 0), 0);
   /* Начинаем план с понедельника текущей недели */
   const _today = new Date();
@@ -941,6 +943,18 @@ function trMigrateDayToSessions(day) {
 /* числа из полей ввода: запятая как точка, без минуса, NaN и бесконечности, с разумным потолком */
 function trNum(v, max) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.').replace(/\s/g, '')); return isFinite(n) && n > 0 ? Math.min(n, max || 100000) : 0; }
 function trInt(v, max) { return Math.round(trNum(v, max)); }
+/* перед сохранением: заполненное поле с минусом, не числом или слишком большим числом не превращаем молча в 0 */
+const TR_NUM_MAX = { 'm-sets': 50, 'm-reps': 1000, 'm-weight': 1000, 'm-distance': 1000, 'm-duration': 1440, 'm-calories': 20000, 'm-steps': 200000, 'm-set-reps': 1000, 'm-set-weight': 1000 };
+function trNumsBad(root) {
+  const bad = [];
+  root.querySelectorAll('#m-sets, #m-reps, #m-weight, #m-distance, #m-duration, #m-calories, #m-steps, .m-set-reps, .m-set-weight').forEach(i => {
+    const raw = String(i.value || '').trim(); if (!raw) return;
+    const n = +raw.replace(',', '.').replace(/\s/g, ''), max = TR_NUM_MAX[i.id] || TR_NUM_MAX[[...i.classList].find(c => TR_NUM_MAX[c])] || 100000;
+    if (!isFinite(n) || n < 0 || n > max) bad.push(((i.closest('label') || {}).textContent || 'число').replace(/\s+/g, ' ').trim().split(/[ ,]/)[0].toLowerCase());
+  });
+  if (bad.length) alert('Проверь: ' + [...new Set(bad)].join(', ') + '. Нужно положительное число в разумных пределах');
+  return bad.length > 0;
+}
 /* подпись группы: ключ данных «FULL BODY» не меняем (старые записи), а показываем по-русски */
 function trGL(g) { return g === 'FULL BODY' ? 'Всё тело' : g; }
 function trEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -1158,6 +1172,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
   });
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
+    if (trNumsBad(overlay)) return;
     if (ex.kind === 'cardio') {
       ex.distance = trNum(overlay.querySelector('#m-distance').value, 1000);
       ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
@@ -1473,6 +1488,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
   bindNameSelect();
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
+    if (trNumsBad(overlay)) return;
     const type = session.type;
     if (trIsGymType(type)) {
       const groups = selectedGroupsNow();
@@ -1599,6 +1615,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
   overlay.querySelector('#m-type').addEventListener('change', refreshFields);
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
+    if (trNumsBad(overlay)) return;
     const type = currentType();
 
     if (trIsRestType(type)) {

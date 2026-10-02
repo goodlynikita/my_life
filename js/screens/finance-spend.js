@@ -402,7 +402,7 @@ window.FinSpend = (function () {
           <button id="sp-ok" aria-label="Записать"><i class="ti ti-check"></i></button>
         </div>
         <div class="sp-chips" id="sp-chips"></div>
-        <button class="sp-quick" id="sp-quick"><i class="ti ti-device-mobile-plus"></i>Записывать с рабочего стола</button>
+        ${QUICK_ON ? '<button class="sp-quick" id="sp-quick"><i class="ti ti-device-mobile-plus"></i>Записывать с рабочего стола</button>' : ''}
       </div>
 
       <div class="sp-card sp-list">
@@ -620,6 +620,8 @@ window.FinSpend = (function () {
      Платёж = плановая трата, поэтому он живёт в бюджете («Баланс») и сразу учитывается в «Свободно» */
   /* запись трат с рабочего стола: команда «Трата» на iPhone, ярлык на иконке на Android */
   /* команда «Трата»: ссылка iCloud (Команды открывают её сами); пока её нет, отдаём файл с сайта */
+  /* кнопка «Записывать с рабочего стола» пока скрыта (решение Ника); включить: true */
+  const QUICK_ON = false;
   const SHORTCUT_URL = 'https://www.icloud.com/shortcuts/a6036dc0a0a64ddbb226dfe672c9f69b';
   function quickModal() {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -745,7 +747,13 @@ window.FinSpend = (function () {
       toast(`Удалил ${p.name}`, () => { savePlanned(all); if (onDone) onDone(); });
     };
     const cb = $('#om-cal'); if (cb) cb.onclick = () => { const x = read(); if (!x) return; save(x); icsDownload(x); };
-    const pb = $('#om-pay'); if (pb) pb.onclick = () => { const x = read(); if (!x) return; save(x); close(); if (onPay) onPay(x); };
+    const pb = $('#om-pay'); if (pb) pb.onclick = () => { const x = read(); if (!x) return; save(x); close();
+      if (onPay) { onPay(x); return; }
+      /* открыли не из «Расходов» (например, из «Баланса»): записываем трату сразу */
+      const at = Date.now(), ym = ymKey(new Date(at)), rec = { id: uid('s'), amt: x.amt, cat: null, note: x.name, src: '', at, once: x.id };
+      const arr = rawList(ym); arr.push(rec); saveList(ym, arr); markPlanned(x.id, true);
+      if (onDone) onDone();
+      toast(`Записал ${fmt(x.amt)} · ${x.name}`, () => { saveList(ym, rawList(ym).filter(z => z.id !== rec.id)); markPlanned(x.id, false); if (onDone) onDone(); }); };
   }
 
   /* до конца месяца или до зарплаты N-го числа */
@@ -784,5 +792,5 @@ window.FinSpend = (function () {
     setTimeout(() => t.classList.add('out'), 4200); setTimeout(() => t.remove(), 4600);
   }
 
-  return { render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS };
+  return { planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS };
 })();

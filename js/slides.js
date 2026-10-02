@@ -29,6 +29,11 @@ function todayWorkoutInfo(store) {
 }
 window.todayWorkoutInfo = todayWorkoutInfo;
 /* траты месяца из вкладки «Расходы» (finance.spend), а не старые поля categories.spent */
+/* платежи из «Расходов»: ежемесячные по дням и разовые к дате */
+function finPays() { try { return window.FinSpend ? FinSpend.payments(FinSpend.calc(), new Date()) : []; } catch (e) { return []; } }
+function finRub(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + '₽'; }
+function finWhen(p) { const M = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']; const d = p.date.getDate() + ' ' + M[p.date.getMonth()];
+  return p.late ? d + ', просрочен' : p.diff === 0 ? 'сегодня' : p.diff === 1 ? 'завтра' : d + ', через ' + p.diff + ' дн'; }
 function finSpentMonth() { try { return window.FinSpend ? Object.values(FinSpend.catSpent(FinSpend.ymKey(new Date()))).reduce((a, b) => a + b, 0) : 0; } catch (e) { return 0; } }
 
 var Slides = (() => {
@@ -314,6 +319,27 @@ var Slides = (() => {
         return `<div class="hero-stat-num" style="color:${c}">${pct}%</div><div class="hero-stat-lbl">накоплений</div>`;
       },
     },
+    /* ── Финансы: ближайшие платежи из «Расходов» ── */
+    {
+      id: 'fin_pay_next', section: 'Финансы',
+      name: 'Ближайший платёж',
+      desc: 'Следующий неоплаченный платёж из «Расходов»',
+      render: () => {
+        const p = finPays().find(x => !x.paid);
+        if (!p) return `<div class="hero-stat-num">✓</div><div class="hero-stat-lbl">платежей нет</div>`;
+        return `<div class="hero-stat-num">${finRub(p.left)}</div><div class="hero-stat-lbl">${SlideKit.esc(p.name)} · ${finWhen(p)}</div>`;
+      },
+    },
+    {
+      id: 'fin_pay_list', section: 'Финансы',
+      name: 'Ближайшие платежи',
+      desc: 'Три ближайших платежа и сколько ещё платить',
+      render: () => {
+        const all = finPays().filter(x => !x.paid), left = all.filter(x => x.inPer).reduce((s, x) => s + x.left, 0);
+        if (!all.length) return `<div class="hero-stat-num">✓</div><div class="hero-stat-lbl">всё оплачено</div>`;
+        return `<div class="hero-pays">${all.slice(0, 3).map(p => `<div class="hero-pay"><b>${p.day}</b><span>${SlideKit.esc(p.name)}</span><em>${finRub(p.left)}</em></div>`).join('')}</div>${left ? `<div class="hero-stat-lbl">ещё ${finRub(left)} до конца месяца</div>` : ''}`;
+      },
+    },
     /* ── Цели: доп блоки ── */
     {
       id: 'goals_done_count', section: 'Цели',
@@ -431,6 +457,7 @@ var Slides = (() => {
     { id: 'gym', name: 'Неделя в зале', desc: 'тренировки и тоннаж по дням', slide: { label: 'НЕДЕЛЯ В ЗАЛЕ', icon: 'ti-barbell', cssClass: 'slide-indigo', glowColor: '#818CF8', route: '/training', layout: 'cols', blocks: ['workout_week_count', 'workout_volume'], views: { workout_week_count: 'ring', workout_volume: 'spark' } } },
     { id: 'money', name: 'Деньги месяца', desc: 'доход, расходы, накопления', slide: { label: 'ДЕНЬГИ МЕСЯЦА', icon: 'ti-wallet', cssClass: 'slide-finance', glowClass: 'slide-glow-green', route: '/finance', layout: 'list', blocks: ['finance_income', 'finance_expenses', 'finance_balance', 'finance_savings_pct'], views: {} } },
     { id: 'goals', name: 'Цели сезона', desc: 'прогресс и сколько осталось', slide: { label: 'ЦЕЛИ СЕЗОНА', icon: 'ti-target-arrow', cssClass: 'slide-goals', glowClass: 'slide-glow-purple', route: '/goals', layout: 'center', blocks: ['goals_season_pct', 'goals_season_left', 'goals_done_count'], views: { goals_season_pct: 'ring' } } },
+    { id: 'pays', name: 'Платежи', desc: 'ближайший платёж и что ещё платить', slide: { label: 'БЛИЖАЙШИЕ ПЛАТЕЖИ', icon: 'ti-calendar-dollar', cssClass: 'slide-indigo', glowColor: '#977FE9', route: '/finance', layout: 'auto', blocks: ['fin_pay_list'], views: {} } },
     { id: 'mind', name: 'Настрой', desc: 'дата и фраза дня', slide: { label: 'НАСТРОЙ', icon: 'ti-bolt', cssClass: 'slide-amber', glowColor: '#F59E0B', layout: 'center', blocks: ['motivational_quote', 'day_of_week'], views: {} } },
     { id: 'empty', name: 'Пустой', desc: 'соберу сам', slide: { label: 'НОВЫЙ СЛАЙД', cssClass: 'slide-slate', glowColor: '#64748B', layout: 'auto', blocks: [], views: {} } },
   ];

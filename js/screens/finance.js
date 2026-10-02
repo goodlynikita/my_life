@@ -425,6 +425,7 @@ window.Screens.finance = function(mount) {
   }
 
   /* ═══ БАЛАНС ══════════════════════════════════ */
+  const FIN_MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   function renderBalance() {
     const now = new Date();
     const monthEntries = finEntries(now.getFullYear(), now.getMonth());
@@ -448,7 +449,13 @@ window.Screens.finance = function(mount) {
     /* Расчёт от реального дохода */
     const savingsAmt = Math.round(monthIncome * SAVE_PCT / 100);
     const afterSavings = monthIncome - savingsAmt;
-    const freeAfterBase = afterSavings - totalBase;
+    /* разовые платежи и цели по дате (из «Расходов»): этого месяца входят в план, будущие показываем с суммой «по N в месяц» */
+    const onceAll = FS && FS.planned ? FS.planned() : [];
+    const mEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const onceNow = onceAll.filter(p => FS.pDate(p.date) < mEnd && (!p.done || +p.doneAt >= +new Date(now.getFullYear(), now.getMonth(), 1)));
+    const onceNext = onceAll.filter(p => !p.done && FS.pDate(p.date) >= mEnd).sort((a, b) => FS.pDate(a.date) - FS.pDate(b.date));
+    const onceSum = onceNow.reduce((s, p) => s + p.amt, 0);
+    const freeAfterBase = afterSavings - totalBase - onceSum;
 
     /* Раскладка дохода: копилка / базовые / свободно */
     const inc = monthIncome || 0;
@@ -456,7 +463,7 @@ window.Screens.finance = function(mount) {
     const freeAmt = Math.max(0, freeAfterBase);
     const shortAmt = freeAfterBase < 0 ? -freeAfterBase : 0;
     const segs = inc > 0
-      ? [{ w: savingsAmt, c: '#16A34A' }].concat(cats.map(c => ({ w: +c.amt || 0, c: colH(c.color) }))).concat([{ w: freeAmt, c: '#CBD5E1' }])
+      ? [{ w: savingsAmt, c: '#16A34A' }].concat(cats.map(c => ({ w: +c.amt || 0, c: colH(c.color) }))).concat([{ w: onceSum, c: '#977FE9' }, { w: freeAmt, c: '#CBD5E1' }])
       : [];
     const segTotal = segs.reduce((s, x) => s + x.w, 0) || 1;
     const monthName = FIN_MONTHS[now.getMonth()];
@@ -547,6 +554,23 @@ window.Screens.finance = function(mount) {
 
         </div>
 
+        ${onceNow.length || onceNext.length ? `<div class="plan-step plan-step-open">
+          <div class="plan-ico" style="--c:#977FE9;"><i class="ti ti-calendar-dollar"></i></div>
+          <div class="plan-main">
+            <div class="plan-name">Разовые платежи и цели</div>
+          </div>
+          <div class="plan-val"><b>${finFmtFull(onceSum)}</b><span>${pctOf(onceSum)}%</span></div>
+        </div>
+        <div class="plan-cats">
+          ${onceNow.concat(onceNext).map(p => { const d = FS.pDate(p.date), later = d >= mEnd, mo = later ? FS.perMonth(p, now) : 0; return `
+            <div class="plan-cat plan-once${p.done ? ' done' : ''}" data-once="${escH(p.id)}" role="button" tabindex="0">
+              <span class="plan-dot" style="background:#977FE9;"></span>
+              <span class="plan-cat-name"><span class="plan-cat-nm">${escH(p.name)}</span><em class="plan-day"><i class="ti ti-calendar-event"></i>${d.getDate()} ${FIN_MONTHS_GEN[d.getMonth()]}</em></span>
+              <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em> ' : ''}${finFmtFull(p.amt)}${later && mo < p.amt ? `<small>по ${finFmtFull(mo)} в мес</small>` : ''}</span>
+              <span class="plan-cat-pct">${later ? '' : pctOf(p.amt) + '%'}</span>
+            </div>`; }).join('')}
+        </div>` : ''}
+
         <div class="plan-step">
           <div class="plan-ico" style="--c:${shortAmt ? '#DC2626' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-alert-triangle' : 'ti-target-arrow'}"></i></div>
           <div class="plan-main">
@@ -571,6 +595,10 @@ window.Screens.finance = function(mount) {
       openBudgetEdit();
     });
     /* нажатие на категорию: быстрая правка суммы, цвета и дня платежа */
+    content.querySelectorAll('.plan-once[data-once]').forEach(el => {
+      const go = () => { if (FS && FS.onceModal) FS.onceModal(el.dataset.once, renderBalance); };
+      el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
     content.querySelectorAll('.plan-cat-sp[data-id]').forEach(el => {
       const go = () => { if (FS) FS.catModal(el.dataset.id, renderBalance); };
       el.addEventListener('click', go);

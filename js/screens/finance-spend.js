@@ -47,13 +47,38 @@ window.FinSpend = (function () {
     return { cats, savePct: st.savePct != null && isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 30, demo: !st.categories && !st.demoOff };
   }
   /* траты месяца, мусорные записи отбрасываем, суммы приводим к числу */
-  function list(ym) {
+  function rawList(ym) {
     return toArr(((Store.get().finance || {}).spend || {})[ym]).filter(x => x && typeof x === 'object').map(x => Object.assign({}, x, { amt: Math.max(0, +x.amt || 0), at: isFinite(+x.at) && +x.at > 0 ? +x.at : monthStart(ym) }));
   }
+  /* ── Пример для новичка ──
+     Пока нет ни одной траты и ни одного дохода за последние месяцы, экран показывает пример:
+     доход и несколько трат текущего месяца. В базу пример не пишется. Исчезает сам после первой
+     настоящей траты или дохода, либо по кнопке «Убрать пример». */
+  function demoOn() {
+    const f = Store.get().finance || {};
+    if (f.spendDemoOff) return false;
+    const sp = f.spend || {}; if (Object.keys(sp).some(k => toArr(sp[k]).some(Boolean))) return false;
+    const now = new Date();
+    for (let i = 0; i <= 3; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); if (realIncome(d)) return false; }
+    return true;
+  }
+  function demoItems(ym) {
+    const now = new Date(); if (ym !== ymKey(now)) return [];
+    const day = now.getDate(); const at = (dAgo, h) => { const d = new Date(now.getFullYear(), now.getMonth(), Math.max(1, day - dAgo), h, 10); return d.getTime(); };
+    const R = [[0, 'Кофе', 'b4', 290, 'Т-Банк', 9], [0, 'Такси', 'b6', 420, '', 19], [1, 'Пятёрочка', 'b3', 2340, 'Сбер', 20], [1, 'Обед', 'b4', 650, '', 13],
+      [2, 'Кино', 'b9', 900, '', 21], [3, 'Аптека', 'b8', 760, '', 18], [4, 'ВкусВилл', 'b3', 1870, 'Т-Банк', 19], [5, 'Яндекс Плюс', 'b10', 399, '', 10]];
+    return R.filter(r => r[0] < day).map((r, i) => ({ id: 'demo' + i, note: r[1], cat: r[2], amt: r[3], src: r[4], at: at(r[0], r[5]), demo: true }));
+  }
+  function list(ym) { return demoOn() ? demoItems(ym) : rawList(ym); }
+
   /* запись без времени попадает на первое число своего месяца */
   function monthStart(ym) { const [y, m] = String(ym).split('-').map(Number); return new Date(y || 1970, (m || 1) - 1, 1, 12).getTime(); }
   function saveList(ym, arr) { Store.set('finance.spend.' + ym, arr.filter(Boolean)); }
   function income(d) {
+    if (demoOn()) { const n = new Date(); return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() ? 180000 : 0; }
+    return realIncome(d);
+  }
+  function realIncome(d) {
     try { return typeof finEntries === 'function' ? toArr(finEntries(d.getFullYear(), d.getMonth())).reduce((s, e) => s + ((e && +e.amount) || 0), 0) : 0; } catch (e) { return 0; }
   }
   /* сколько потрачено по каждой категории за месяц */
@@ -112,7 +137,7 @@ window.FinSpend = (function () {
     const perDay = Math.max(0, Math.floor((free + todaySpent) / daysLeft));
     /* сколько ушло именно в плановые категории (для кольца в «Балансе») */
     const planSpent = b.cats.reduce((s, c) => s + (sp[c.id] || 0), 0);
-    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo };
+    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo, sample: demoOn() };
   }
 
   /* плановые платежи месяца: категории с днём оплаты, оплачено = потрачено ≥ плана */
@@ -295,7 +320,8 @@ window.FinSpend = (function () {
     const bigTxt = (c.est ? '≈ ' : '') + fmt(noInc ? 0 : c.free);
 
     content.classList.toggle('sp-first', first);
-    content.innerHTML = `
+    content.innerHTML = `${c.sample ? `
+      <div class="sp-card sp-demo"><i class="ti ti-sparkles"></i><div><b>Это пример</b><span>Так будет выглядеть, когда запишешь доход и траты</span></div><button id="sp-demo-off">Убрать</button></div>` : ''}
       <div class="sp-card sp-hero">
         <div class="sp-hero-top">
           <div class="sp-hero-m">
@@ -325,13 +351,14 @@ window.FinSpend = (function () {
         </details>
       </div>
 
-      ${pays.length ? `<div class="sp-card sp-pay">
-        <div class="sp-sec-h">Ближайшие платежи${payLeft ? `<b>ещё ${fmt(payLeft)}</b>` : '<b class="ok">всё оплачено</b>'}</div>
+      <div class="sp-card sp-pay">
+        <div class="sp-sec-h">Ближайшие платежи<span class="sp-sec-r">${pays.length ? (payLeft ? `<b>ещё ${fmt(payLeft)}</b>` : '<b class="ok">всё оплачено</b>') : ''}<button class="sp-pay-add" id="sp-pay-add" aria-label="Добавить платёж"><i class="ti ti-plus"></i></button></span></div>
+        ${!pays.length ? '<button class="sp-pay-empty" id="sp-pay-empty"><i class="ti ti-calendar-plus"></i>Добавь платёж по дате: аренда, кредит, подписка</button>' : ''}
         ${pays.slice(0, 3).map(p => `<button class="sp-pay-r${p.paid ? ' paid' : ''}${p.late ? ' late' : ''}" data-cat="${esc(p.id)}" data-left="${p.left}">
           <i class="sp-cal" style="--c:${p.color}">${p.day}</i>
           <span class="sp-row-m"><b>${esc(p.name)}</b><em>${esc(payWhen(p, now))}</em></span>
           <span class="sp-row-a">${p.paid ? '<span class="sp-paid"><i class="ti ti-check"></i>оплачено</span>' : fmt(p.left)}</span></button>`).join('')}
-      </div>` : ''}
+      </div>
 
       <div class="sp-card sp-add">
         <div class="sp-add-row">
@@ -372,9 +399,9 @@ window.FinSpend = (function () {
       lastCommit = { sig, t: Date.now() };
       const at = Date.now(), ym = ymKey(new Date(at)); /* месяц берём в момент записи, а не отрисовки */
       const rec = { id: uid('s'), amt: p.amt, cat: p.cat, note: p.note, src: p.src || '', at };
-      const arr = list(ym); arr.push(rec); saveList(ym, arr);
+      const arr = rawList(ym); arr.push(rec); saveList(ym, arr);
       rerender();
-      toast(`Записал ${fmt(p.amt)} · ${p.catName}`, () => { saveList(ym, list(ym).filter(x => x.id !== rec.id)); rerender(); });
+      toast(`Записал ${fmt(p.amt)} · ${p.catName}`, () => { saveList(ym, rawList(ym).filter(x => x.id !== rec.id)); rerender(); });
       const ni = document.querySelector('#sp-in'); if (ni) ni.focus({ preventScroll: true });
     };
     content.querySelector('#sp-ok').addEventListener('click', commit);
@@ -382,6 +409,7 @@ window.FinSpend = (function () {
     const hb = content.querySelector('#sp-help'); if (hb) hb.onclick = () => { if (window.Tour && Tour.play) Tour.play(TIPS.filter(t => document.querySelector(t.sel)), 'tab:finance.expenses'); };
     const tm = content.querySelector('#sp-to-month'); if (tm) tm.onclick = () => { const t = document.querySelector('.tochka-tab[data-tab="month"]'); if (t) t.click(); };
     const more = content.querySelector('#sp-more'); if (more) more.onclick = () => { showAll = true; rerender(); };
+    ['#sp-pay-add', '#sp-pay-empty'].forEach(q => { const el = content.querySelector(q); if (el) el.onclick = () => payModal(rerender); });
     /* платёж из списка: подставляем строку с суммой остатка, Enter запишет его в нужную категорию */
     content.querySelectorAll('.sp-pay-r').forEach(b => b.addEventListener('click', () => {
       const ct = catById[b.dataset.cat]; if (!ct) return;
@@ -390,7 +418,9 @@ window.FinSpend = (function () {
       inp.value = short + ' ' + (+b.dataset.left || ''); inp.dataset.cat = ct.id; inp.dataset.pref = short; refresh(); syncBtn(); inp.focus();
       inp.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
     }));
-    content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender)));
+    /* в примере траты не редактируются: подсказываем, как начать по-настоящему */
+    content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => { if (c.sample) { toast('Это пример. Запиши свою трату строкой выше'); return; } editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender); }));
+    const dOff = content.querySelector('#sp-demo-off'); if (dOff) dOff.onclick = () => { Store.set('finance.spendDemoOff', true); rerender(); };
     const pb = content.querySelector('#sp-per'); if (pb) pb.onclick = () => periodModal(rerender);
 
     animate(content, !first);
@@ -404,18 +434,18 @@ window.FinSpend = (function () {
     { sel: '.sp-per', t: 'До конца месяца или до зарплаты', d: 'Нажми, чтобы выбрать, до какого дня считать деньги.' },
     { sel: '.sp-big', t: 'Свободно', d: 'Доход минус копилка, минус обязательные платежи и уже потраченное. Знак ≈: доходов в этом месяце ещё нет, считаю по прошлому. Красная цифра: трат больше, чем дохода.' },
     { sel: '.sp-today', t: 'Сегодня', d: 'Сколько можно потратить сегодня, чтобы хватило до конца. Покупки по плану (продукты, аренда) сюда не входят.' },
-    { sel: '.sp-pay', t: 'Ближайшие платежи', d: 'Категории с днём оплаты. Нажми на платёж, и строка для записи заполнится сама.' },
+    { sel: '.sp-pay', t: 'Ближайшие платежи', d: 'Платежи по датам: аренда, кредит, подписки. «+» добавляет свой платёж с днём и суммой. Нажми на платёж, и строка для записи заполнится сама.' },
     { sel: '#sp-in', t: 'Запись одной строкой', d: 'Пиши как есть: «кофе 420», «такси 350 тинькофф», «продукты 2,3к». Поменяешь категорию у траты, в следующий раз такая строка попадёт туда сама.' },
     { sel: '.sp-row, .sp-empty', t: 'Траты', d: 'Нажми на трату, чтобы поменять сумму, категорию или дату либо удалить.' },
   ];
 
   /* снимок месяцев до изменения: на нём держится «Отменить» */
-  function snapshot(yms) { const s = {}; yms.forEach(y => { s[y] = list(y); }); return () => Object.keys(s).forEach(y => saveList(y, s[y])); }
+  function snapshot(yms) { const s = {}; yms.forEach(y => { s[y] = rawList(y); }); return () => Object.keys(s).forEach(y => saveList(y, s[y])); }
   const isoDay = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 
   /* правка или удаление записи, в том числе перенос на другой день (и месяц) */
   function editModal(ym, id, cats, rerender) {
-    const arr = list(ym); const x = arr.find(z => z.id === id); if (!x) return;
+    const arr = rawList(ym); const x = arr.find(z => z.id === id); if (!x) return;
     const d0 = new Date(x.at), t = new Date(); t.setHours(0, 0, 0, 0);
     const dd = new Date(d0); dd.setHours(0, 0, 0, 0); const ago = Math.round((t - dd) / 864e5);
     const known = cats.some(ct => ct.id === x.cat);
@@ -447,7 +477,7 @@ window.FinSpend = (function () {
     const selCat0 = $('#se-c').value;
     $('#se-del').onclick = () => {
       const undo = snapshot([ym]);
-      saveList(ym, list(ym).filter(z => z.id !== id)); close(); rerender();
+      saveList(ym, rawList(ym).filter(z => z.id !== id)); close(); rerender();
       toast(`Удалил ${fmt(x.amt)}`, () => { undo(); rerender(); });
     };
     $('#se-ok').onclick = () => {
@@ -468,8 +498,8 @@ window.FinSpend = (function () {
       const ym2 = ymKey(new Date(rec.at));
       const undo = snapshot(ym2 === ym ? [ym] : [ym, ym2]);
       if (catChanged) learn(note, sel || '_other'); /* учимся только на ручной смене категории */
-      if (ym2 === ym) saveList(ym, list(ym).map(z => z.id === id ? rec : z));
-      else { saveList(ym, list(ym).filter(z => z.id !== id)); const a2 = list(ym2); a2.push(rec); saveList(ym2, a2); }
+      if (ym2 === ym) saveList(ym, rawList(ym).map(z => z.id === id ? rec : z));
+      else { saveList(ym, rawList(ym).filter(z => z.id !== id)); const a2 = rawList(ym2); a2.push(rec); saveList(ym2, a2); }
       close(); rerender();
       const cn = (cats.find(ct => ct.id === rec.cat) || {}).name || 'Другое';
       toast(ym2 !== ym ? `Перенёс в ${MON_NOM[new Date(rec.at).getMonth()]}` : catChanged ? `Запомнил: «${note}» → ${cn}` : 'Сохранил', () => { undo(); rerender(); });
@@ -533,6 +563,43 @@ window.FinSpend = (function () {
       const edited = readCatRows(box, b.cats); /* строка удалена → категории нет */
       saveCats(b.cats.map(x => x.id === id ? edited[0] : x).filter(Boolean));
       close(); if (onDone) onDone();
+    };
+  }
+
+  /* свой платёж по дате: новая категория с днём оплаты или день для существующей.
+     Платёж = плановая трата, поэтому он живёт в бюджете («Баланс») и сразу учитывается в «Свободно» */
+  function payModal(onDone) {
+    const b = budget();
+    const free = b.cats.filter(c => !c.day);
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
+    ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Новый платёж"><p class="tr-modal-title">Новый платёж</p>
+      <div class="tr-modal-row"><label style="flex:1 1 100%">Что за платёж<select id="pm-cat"><option value="">Новый: впишу название</option>${free.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label></div>
+      <div class="tr-modal-row" id="pm-name-row"><label style="flex:1 1 100%">Название<input type="text" id="pm-name" maxlength="40" placeholder="Кредит, абонемент, iCloud"></label></div>
+      <div class="tr-modal-row"><label style="flex:1">Сумма в месяц, ₽<input type="text" inputmode="decimal" id="pm-amt" placeholder="0"></label>
+        <label style="flex:0 0 130px">Каждый месяц<select id="pm-day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${i + 1 === new Date().getDate() ? ' selected' : ''}>${i + 1} числа</option>`).join('')}</select></label></div>
+      <p class="sp-pm-err" id="pm-err"></p>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="pm-cancel">Отмена</button><button class="tr-modal-btn-primary" id="pm-ok">Добавить</button></div></div>`;
+    document.body.appendChild(ov);
+    const $ = (q) => ov.querySelector(q);
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    $('#pm-cat').onchange = () => { const c = free.find(x => x.id === $('#pm-cat').value); $('#pm-name-row').style.display = c ? 'none' : ''; if (c && c.amt) $('#pm-amt').value = String(c.amt); };
+    $('#pm-cancel').onclick = close;
+    setTimeout(() => { const n = $('#pm-name'); if (n) n.focus(); }, 60);
+    $('#pm-ok').onclick = () => {
+      const catId = $('#pm-cat').value, day = +$('#pm-day').value;
+      const amt = Math.round(parseFloat(String($('#pm-amt').value).replace(/\s/g, '').replace(',', '.')) || 0);
+      const name = String($('#pm-name').value || '').trim();
+      if (!catId && !name) { $('#pm-err').textContent = 'Впиши название платежа'; return; }
+      if (!(amt > 0)) { $('#pm-err').textContent = 'Укажи сумму'; return; }
+      const cats = budget().cats.map(c => Object.assign({}, c));
+      if (catId) { const c = cats.find(x => x.id === catId); if (c) { c.day = day; c.amt = amt; } }
+      else cats.push({ id: 'p' + Date.now().toString(36), name, amt, day, color: PALETTE[cats.length % PALETTE.length] });
+      saveCats(cats);
+      close(); if (onDone) onDone();
+      toast(`Платёж ${catId ? (cats.find(x => x.id === catId) || {}).name || '' : name}: ${day} числа, ${fmt(amt)}`);
     };
   }
 

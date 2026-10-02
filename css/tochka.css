@@ -464,3 +464,20 @@ html.fin-dark-on .modal-finance .ce-bot select{height:38px !important;padding-to
 .fin-dark .plan-demo>i{color:#C9BDF7!important}
 .fin-dark .plan-demo-btns button{background:#977FE9!important;color:#fff!important;border:none!important}
 .fin-dark .plan-demo-btns button.danger{background:transparent!important;color:#C9BDF7!important;border:1px solid rgba(151,127,233,.4)!important}
+/* плашка «Это пример» в «Расходах» */
+.sp-demo{display:flex;align-items:center;gap:12px;padding:14px 16px!important;background:rgba(151,127,233,.12)!important;border:1px solid rgba(151,127,233,.28)}
+.sp-demo>i{font-size:20px;color:#C9BDF7}
+.sp-demo>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sp-demo b{font-size:14px;color:#fff}
+.sp-demo span{font-size:12px;color:var(--tk-soft,#ADADAD)}
+.sp-demo button{border:none;border-radius:10px;padding:8px 12px;background:rgba(151,127,233,.25);color:#E4DCFF;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+/* «Ближайшие платежи»: кнопка добавить свой платёж */
+.sp-sec-r{display:inline-flex;align-items:center;gap:10px}
+.sp-pay-add{width:30px;height:30px;border-radius:50%;border:none;background:rgba(151,127,233,.22);color:#E4DCFF;font-size:16px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.sp-pay-empty{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;padding:12px;border-radius:14px;border:1px dashed rgba(151,127,233,.35);background:none;color:var(--tk-soft,#ADADAD);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+.sp-pay-empty i{font-size:18px;color:#C9BDF7}
+.sp-pm-err{color:#FF9D97;font-size:12.5px;min-height:16px;margin:2px 0 0}
+.sp-pay .sp-sec-h{white-space:nowrap;gap:8px;align-items:center}
+.sp-pay .sp-sec-h b{white-space:nowrap}
+@media (max-width:400px){.sp-pay .sp-sec-h{font-size:12px;letter-spacing:.04em}}
+.sp-edit #pm-day{min-width:120px}

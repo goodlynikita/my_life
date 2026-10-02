@@ -797,13 +797,14 @@ $('#menu').onclick = () => {
   const R = 'style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none;box-sizing:border-box;"', I = 'style="font-size:18px;color:#9D9A92;"';
   const ov = document.createElement('div'); ov.className = 'tr-modal-overlay';
   ov.innerHTML = `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:340px;overflow:hidden;">
-    <div style="padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase;">Меню</div>
-    <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Редактор слайдов</button>
-    <button data-m="tiles" ${R}><i class="ti ti-layout-grid" ${I}></i>Настройка плиток</button>
-    <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
-    <a href="index.html" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-apps" style="font-size:18px;color:#8EA8FF;"></i>Приложение YOU</a>
-    <button data-m="wa" ${R}><i class="ti ti-snowflake" ${I}></i>Дизайн Winter Arc</button>
+    <div style="padding:16px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;">Внешний вид</div>
     ${window.Palette ? Palette.rowHtml() : ''}
+    <button data-m="wa" ${R}><i class="ti ti-snowflake" ${I}></i>Дизайн Winter Arc</button>
+    <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Редактор слайдов</button>
+    <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
+    <button data-m="tiles" ${R}><i class="ti ti-layout-grid" ${I}></i>Настройка плиток</button>
+    <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Ещё</div>
+    <a href="index.html" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-apps" style="font-size:18px;color:#8EA8FF;"></i>Приложение YOU</a>
     <button data-m="help" ${R}><i class="ti ti-help-circle" ${I}></i>Подсказки по кабинету</button>
     <button data-m="out" ${R.replace('color:#E8E5DC', 'color:#F87171')}><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button></div>`;
   document.body.appendChild(ov);

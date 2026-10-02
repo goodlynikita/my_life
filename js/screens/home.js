@@ -105,14 +105,17 @@ window.Screens.home = function(mount) {
     var ov = document.createElement('div');
     ov.className = 'tr-modal-overlay';
     ov.innerHTML = '<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:340px;overflow:hidden;">'
-      + '<div style="padding:16px 18px 8px;font-size:11px;font-weight:700;color:#555;letter-spacing:.08em;text-transform:uppercase;">Меню</div>'
-      + '<button id="hm-slides" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout" style="font-size:18px;color:#9D9A92;"></i>Редактор слайдов</button>'
-      + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
-      + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-adjustments-horizontal" style="font-size:18px;color:#9D9A92;"></i>Настройки слайдера</button>'
+      /* порядок по смыслу: люди → вид главной → помощь и выход */
+      + '<div style="padding:16px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;">Тренер и друзья</div>'
       + (window._isTrainer ? '<button id="hm-coach" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#C7D2FE;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-users" style="font-size:18px;color:#8EA8FF;"></i>Кабинет тренера</button>' : '')
       + '<button id="hm-trainer" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-user-star" style="font-size:18px;color:#9D9A92;"></i>' + (window.FirebaseSync && FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached() ? 'Мой тренер' : 'Подключить тренера') + '</button>'
       + '<button id="hm-friend" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#C7D2FE;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-gift" style="font-size:18px;color:#8EA8FF;"></i>Позови друга</button>'
+      + '<div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Внешний вид</div>'
       + (window.Palette ? Palette.rowHtml() : '')
+      + '<button id="hm-slides" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout" style="font-size:18px;color:#9D9A92;"></i>Редактор слайдов</button>'
+      + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-adjustments-horizontal" style="font-size:18px;color:#9D9A92;"></i>Настройки слайдера</button>'
+      + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
+      + '<div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Ещё</div>'
       + '<button id="hm-tour" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-help-circle" style="font-size:18px;color:#9D9A92;"></i>Подсказки по приложению</button>'
       + '<button id="hm-logout" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#F87171;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button>'
       + '</div>';
@@ -126,7 +129,7 @@ window.Screens.home = function(mount) {
     ov.querySelector('#hm-friend').addEventListener('click', function(){ ov.remove(); window.Analytics && Analytics.inviteFriend(); });
     if (window.Palette) Palette.bind(ov);
     ov.querySelector('#hm-tour').addEventListener('click', function(){ ov.remove(); window.Tour && Tour.restart(); });
-    ov.querySelector('#hm-logout').addEventListener('click', function(){ ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
+    ov.querySelector('#hm-logout').addEventListener('click', function(){ if (!confirm('Выйти из аккаунта?')) return; ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
   });
 
   /* ── Подушка считается автоматически из финансов ── */

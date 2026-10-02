@@ -1660,7 +1660,7 @@ function trRender1RMCalc() {
   return `<div class="tr-1rm-wrap">
     <div class="tr-1rm-hero">
       <div class="tr-1rm-title">Калькулятор максимума</div>
-      <div class="tr-1rm-sub tr-1rm-what">Максимальный вес, который ты поднимешь <b>один раз</b>. Введи вес и сколько раз его сделал, а я посчитаю твой максимум и рабочие веса под силу, массу и выносливость.</div><div class="tr-1rm-sub tr-1rm-formula">Формула Эпли: вес × (1 + повторы / 30)</div>
+      <div class="tr-1rm-sub tr-1rm-what">Сколько ты поднимешь <b>один раз</b> и какие веса брать под силу, массу и выносливость.</div>
     </div>
     <div class="tr-1rm-inputs">
       <label class="tr-1rm-label">

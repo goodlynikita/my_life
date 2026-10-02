@@ -103,7 +103,7 @@ window.TrainingChat = (function () {
         </div>
         <div class="ch-list" id="ch-list">
           ${list.length ? list.map(m => `<div class="ch-msg ${m.role === 'user' ? 'me' : 'bot'}${m.err ? ' err' : ''}">${m.role === 'user' ? esc(m.text).replace(/\n/g, '<br>') : fmt(m.text)}</div>`).join('')
-            : `<div class="ch-empty"><i class="ti ti-sparkles"></i><b>Спроси о своих тренировках</b><span>Почему встал вес, чем заменить упражнение, как перестроить тренировку под самочувствие. Тренер видит твою историю и отвечает по ней.</span></div>`}
+            : `<div class="ch-empty"><i class="ti ti-sparkles"></i><b>Спроси о своих тренировках</b></div>`}
           ${busy ? '<div class="ch-msg bot ch-typing"><span></span><span></span><span></span></div>' : ''}
         </div>
         ${list.length < 2 ? `<div class="ch-quick">${QUICK.map(q => `<button class="ch-q">${esc(q)}</button>`).join('')}</div>` : ''}

@@ -467,11 +467,11 @@ window.Screens.habits = function(mount) {
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Лучшая</div>
-            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;" id="hab-best">${bestIdx>=0&&!habSame?habEsc(habits[bestIdx]?.name):'поровну'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#A8C97F;line-height:1.3;word-break:break-word;" id="hab-best">${bestIdx>=0&&!habSame?habEsc(habits[bestIdx]?.name):'нет лидера'}</div>
           </div>
           <div class="sec-metric" style="background:#1C1E24;border-radius:14px;padding:14px 10px;text-align:center;">
             <div class="sec-metric-label" style="font-size:9px;color:#9D9A92;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Подтянуть</div>
-            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;" id="hab-worst">${worstIdx>=0&&!habSame?habEsc(habits[worstIdx]?.name):'поровну'}</div>
+            <div class="sec-metric-value" style="font-size:clamp(10px,2.8vw,13px);font-weight:700;color:#E0B873;line-height:1.3;word-break:break-word;" id="hab-worst">${worstIdx>=0&&!habSame?habEsc(habits[worstIdx]?.name):'нет отстающих'}</div>
           </div>
         </div>
       </div>
@@ -591,8 +591,8 @@ window.Screens.habits = function(mount) {
         const same = allPcts.length < 2 || allPcts.every(p => p === allPcts[0]);
         const bi = allPcts.indexOf(Math.max(...allPcts)), wi = allPcts.indexOf(Math.min(...allPcts));
         const bEl = content.querySelector('#hab-best'), wEl = content.querySelector('#hab-worst');
-        if (bEl) bEl.innerHTML = !same && habList[bi] ? habEsc(habList[bi].name) : 'поровну';
-        if (wEl) wEl.innerHTML = !same && habList[wi] ? habEsc(habList[wi].name) : 'поровну';
+        if (bEl) bEl.innerHTML = !same && habList[bi] ? habEsc(habList[bi].name) : 'нет лидера';
+        if (wEl) wEl.innerHTML = !same && habList[wi] ? habEsc(habList[wi].name) : 'нет отстающих';
       });
     });
 
@@ -655,7 +655,7 @@ window.Screens.habits = function(mount) {
     const keys = Object.keys(allMonths).sort((a,b)=>b.localeCompare(a));
 
     if (!keys.length) {
-      content.innerHTML = '<div style="padding:40px;text-align:center;color:#555;font-size:13px;">История появится после первого месяца</div>';
+      content.innerHTML = '<div class="hh-empty" style="padding:40px;text-align:center;color:#555;font-size:13px;">История появится после первого месяца</div>';
       return;
     }
 

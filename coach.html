@@ -734,6 +734,11 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const toArr = (v) => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : []);
 const clean = (v) => JSON.parse(JSON.stringify(v === undefined ? null : v));
+/* настоящие индексы планов в базе: Firebase может отдать {0:…, 2:…} или массив с дыркой,
+   а экран работает со сжатым списком. Пишем всегда по исходному ключу */
+const planKeys = (v) => Array.isArray(v) ? v.map((x, i) => x ? i : -1).filter(i => i >= 0)
+  : (v && typeof v === 'object' ? Object.keys(v).filter(k => v[k] && /^\d+$/.test(k)).map(Number).sort((a, b) => a - b) : []);
+function setPlansRaw(c, raw) { c._planKeys = planKeys(raw); const list = clean(toArr(raw).filter(Boolean)); c._synced = clean(list); c.training.plans = list; }
 const DAY = 864e5;
 const APP_URL = location.href.replace(/coach\.html.*$/, '');
 const pl = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
@@ -939,7 +944,7 @@ async function loadClients() {
   const s = await get(ref(db, 'trainerClients/' + trainer.uid));
   const list = s.exists() ? Object.entries(s.val()).map(([k, v]) => ({ k, ...v })) : [];
   clients = await Promise.all(list.map(async c => {
-    try { const t = await get(ref(db, c.root + '/training')); c.training = t.exists() ? t.val() : { plans: [] }; c.ok = true; c._synced = clean(toArr(c.training.plans)); }
+    try { const t = await get(ref(db, c.root + '/training')); c.training = t.exists() ? t.val() : { plans: [] }; c.ok = true; setPlansRaw(c, c.training.plans); }
     catch (e) { c.training = { plans: [] }; c.ok = false; }
     c.stat = stats(c); return c;
   }));
@@ -1750,7 +1755,7 @@ async function createPlan(c, tpl, start, keep) {
 
 /* ═══ Подключение по ключу клиента ═══
    Клиент сам создал ключ (фамилия и имя внутри), значит согласие есть.
-   Порядок записей важен для правил базы: связь → список → ключ сгорает. */
+   Связь, список и сгорание ключа пишутся одной атомарной записью. */
 async function useKey(raw) {
   const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (code.length !== 8) throw { code: 'bad' };
@@ -1764,9 +1769,12 @@ async function useKey(raw) {
   const now = Date.now();
   const link = { trainerUid: trainer.uid, name: trainer.name, code: trainer.code, since: now, uid: k.uid, akey: code };
   if (k.prev && k.prev !== trainer.uid) link.prev = k.prev;
-  await set(ref(db, 'clientTrainer/' + k.key), link);
-  await set(ref(db, 'trainerClients/' + trainer.uid + '/' + k.key), { uid: k.uid, email: k.email || '', name: k.name || '', code, since: now, root: k.root, via: 'key' });
-  try { await set(ref(db, 'accessKeys/' + code), null); } catch (e) {}
+  /* одной записью: связь, список и сгорание ключа (правила базы требуют, чтобы ключ сгорел вместе с подключением) */
+  await update(ref(db), {
+    ['clientTrainer/' + k.key]: link,
+    ['trainerClients/' + trainer.uid + '/' + k.key]: { uid: k.uid, email: k.email || '', name: k.name || '', code, since: now, root: k.root, via: 'key' },
+    ['accessKeys/' + code]: null,
+  });
   return k.name || 'Клиент';
 }
 
@@ -1807,35 +1815,41 @@ const stableStr = (v) => JSON.stringify(v, (k, x) => x && typeof x === 'object' 
    если клиент в это же время записал тренировку или комментарий в другой день, его запись не пропадёт */
 async function savePlans(c, plans) {
   const rev = Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
-  /* всё, что тренер вписал на сегодня и вперёд, помечаем как план тренера:
-     такие тренировки считаются сделанными только с галочкой */
-  plans.forEach(p => { if (!p) return; toArr(p.weeks).forEach(w => toArr(w && w.days).forEach(d => { if (!d) return; const dt = window.TrainingAI.planDayDate(p, d.date);
-    /* снимок плана тренера: если клиент потом поменяет веса или повторы, тренировка засчитается как сделанная */
+  plans = toArr(plans).filter(Boolean);
+  const prev = c._synced || [];
+  const dayKey = (i, w, d) => i + '/' + w + '/' + d;
+  /* какие дни тренер реально изменил (до меток): только их пишем и только их помечаем */
+  const changed = new Set();
+  plans.forEach((p, i) => { const o = prev[i]; toArr(p.weeks).forEach((w, wi) => { const ow = o && toArr(o.weeks)[wi]; toArr(w && w.days).forEach((d, di) => {
+    const od = ow && toArr(ow.days)[di]; if (stableStr(clean(d || null)) !== stableStr(od || null)) changed.add(dayKey(i, wi, di)); }); }); });
+  /* изменённое на сегодня и вперёд помечаем как план тренера: такие тренировки считаются сделанными только с галочкой.
+     pv: снимок плана тренера, если клиент потом поменяет веса или повторы, тренировка засчитается как сделанная */
+  plans.forEach((p, i) => { toArr(p.weeks).forEach((w, wi) => toArr(w && w.days).forEach((d, di) => { if (!d || !changed.has(dayKey(i, wi, di))) return;
+    const dt = window.TrainingAI.planDayDate(p, d.date);
     if (dt && dt >= t0) toArr(d.sessions).forEach(s => { if (!s) return; if (!s.byCoach) s.byCoach = true; toArr(s.exercises).forEach(e => { if (e) e.pv = window.CoachDash.sig(e); }); }); })); });
   const next = clean(plans);
-  const prev = c._synced || [];
   c.training.plans = next; c.training.coachRev = rev;
   if (c.demo) { c._synced = clean(next); c.stat = stats(c); return; }
-  /* точечные пути: plans/i/поле, plans/i/weeks/w/поле, plans/i/weeks/w/days/d */
+  /* точечные пути по настоящим ключам базы: plans/K/поле, plans/K/weeks/w/поле, plans/K/weeks/w/days/d */
+  const keys = (c._planKeys || []).slice();
+  const keyOf = (i) => { while (keys.length <= i) keys.push(keys.length ? Math.max(...keys) + 1 : 0); return keys[i]; };
   const up = {};
-  const holes = prev.some(x => !x);
-  if (holes) up['plans'] = next;
-  else next.forEach((p, i) => {
-    const o = prev[i];
-    if (!o) { up['plans/' + i] = p; return; }
-    Object.keys(Object.assign({}, o, p)).forEach(k => { if (k !== 'weeks' && stableStr(o[k]) !== stableStr(p[k])) up['plans/' + i + '/' + k] = p[k] === undefined ? null : p[k]; });
+  next.forEach((p, i) => {
+    const o = prev[i], K = keyOf(i);
+    if (!o) { up['plans/' + K] = p; return; }
+    Object.keys(Object.assign({}, o, p)).forEach(k => { if (k !== 'weeks' && stableStr(o[k]) !== stableStr(p[k])) up['plans/' + K + '/' + k] = p[k] === undefined ? null : p[k]; });
     const pw = toArr(p.weeks), ow = toArr(o.weeks);
     for (let w = 0; w < Math.max(pw.length, ow.length); w++) {
       const a = pw[w], b = ow[w];
-      if (!a || !b) { up['plans/' + i + '/weeks/' + w] = a || null; continue; }
-      Object.keys(Object.assign({}, a, b)).forEach(k => { if (k !== 'days' && stableStr(a[k]) !== stableStr(b[k])) up['plans/' + i + '/weeks/' + w + '/' + k] = a[k] === undefined ? null : a[k]; });
+      if (!a || !b) { if (a || b) up['plans/' + K + '/weeks/' + w] = a || null; continue; }
+      Object.keys(Object.assign({}, a, b)).forEach(k => { if (k !== 'days' && stableStr(a[k]) !== stableStr(b[k])) up['plans/' + K + '/weeks/' + w + '/' + k] = a[k] === undefined ? null : a[k]; });
       const ad = toArr(a.days), bd = toArr(b.days);
-      for (let d = 0; d < Math.max(ad.length, bd.length); d++) if (stableStr(ad[d] || null) !== stableStr(bd[d] || null)) up['plans/' + i + '/weeks/' + w + '/days/' + d] = ad[d] || null;
+      for (let d = 0; d < Math.max(ad.length, bd.length); d++) if (stableStr(ad[d] || null) !== stableStr(bd[d] || null)) up['plans/' + K + '/weeks/' + w + '/days/' + d] = ad[d] || null;
     }
   });
   if (!Object.keys(up).length) return;
   up.coachRev = rev;
-  try { await update(ref(db, c.root + '/training'), up); c._synced = clean(next); c.stat = stats(c); }
+  try { await update(ref(db, c.root + '/training'), up); c._synced = clean(next); c._planKeys = keys.slice(0, next.length); c.stat = stats(c); }
   catch (e) { alert('Не получилось сохранить. Возможно, клиент отключился от вас.'); }
 }
 /* пока открыт клиент, его план обновляется вживую: тренер видит свежие записи клиента */
@@ -1846,15 +1860,14 @@ function liveClient(c) {
   if (c.demo || !c.root) return;
   _liveK = c.k;
   const isBusy = () => document.querySelector('.tr-modal-overlay, .ov, .tour-root') || /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '');
-  const applyFresh = (fresh) => {
+  const applyFresh = (raw) => {
     c._pending = null;
-    c._synced = clean(fresh);
-    c.training.plans = clean(fresh); c.stat = stats(c);
+    setPlansRaw(c, raw); c.stat = stats(c);
     if (view.name === 'client' && clients[view.i] === c && view.tab === 'plan') renderClient();
   };
   _liveUnsub = onValue(ref(db, c.root + '/training/plans'), (snap) => {
-    const fresh = toArr(snap.val());
-    if (stableStr(fresh) === stableStr(c._synced || [])) { c._pending = null; return; } /* это наша же запись */
+    const fresh = snap.val();
+    if (stableStr(toArr(fresh).filter(Boolean)) === stableStr(c._synced || [])) { c._pending = null; c._planKeys = planKeys(fresh); return; } /* это наша же запись */
     /* пока у тренера открыто окно, свежие данные откладываем: окно сохранит свою правку поверх старой версии,
        а сравнение пойдёт с тем, что тренер видел, поэтому запись клиента в другом дне не затрётся */
     if (isBusy()) {
@@ -1938,10 +1951,14 @@ function measureModal(c, done) {
   ov.querySelector('#x').onclick = () => ov.remove();
   ov.querySelector('#ok').onclick = async () => {
     const r = window.BodyProgress.readForm(ov);
+    if (r.bad && r.bad.length) { toast('Нужно число: ' + r.bad.join(', ')); return; }
     if (!Object.keys(r.values).length) { toast('Заполните хотя бы одно поле'); return; }
-    const list = ms.concat([{ date: r.date || def, values: r.values, byCoach: true }]);
-    if (c.demo) { c.training.measurements = list; c.stat = stats(c); ov.remove(); toast('Замер сохранён в демо'); done && done(); return; }
-    try { await update(ref(db, c.root + '/training'), { measurements: clean(list), coachRev: Date.now() }); c.training.measurements = list; c.stat = stats(c); ov.remove(); toast('Замер сохранён'); done && done(); }
+    const rec = { date: r.date || def, values: r.values, byCoach: true };
+    if (c.demo) { c.training.measurements = ms.concat([rec]); c.stat = stats(c); ov.remove(); toast('Замер сохранён в демо'); done && done(); return; }
+    /* дописываем в свободную ячейку по свежим данным: замер, который клиент внёс только что, не затрётся */
+    try { const fr = (await get(ref(db, c.root + '/training/measurements'))).val(); const ks = planKeys(fr), k = ks.length ? Math.max(...ks) + 1 : 0;
+      await update(ref(db, c.root + '/training'), { ['measurements/' + k]: clean(rec), coachRev: Date.now() });
+      c.training.measurements = toArr(fr).filter(Boolean).concat([rec]); c.stat = stats(c); ov.remove(); toast('Замер сохранён'); done && done(); }
     catch (e) { alert('Не получилось сохранить.'); }
   };
 }

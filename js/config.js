@@ -1,16 +1,10 @@
 /* ============================================================
    AUTH CONFIG
-   Owner password: 2603199
-   Coach password: 1234
-   To change a password later: open generate-hash.html, type the
-   new password, copy the hash, paste it here instead of the old
-   one, then save this file back to the repo.
+   Вход через Firebase Auth. Пароли и их хэши здесь не хранятся.
    ============================================================ */
 
 window.AUTH_CONFIG = {
-  ownerEmail: 'nedomolkin.1998@mail.ru', /* твой email для Firebase Auth */
-  ownerHash: 'c7330ec97ead741e884e1b9ea992a4d041bf45fb3bd6ef1208a139728f677e71',
-  coachHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'
+  ownerEmail: 'nedomolkin.1998@mail.ru' /* твой email для Firebase Auth */
 };
 
 /* ============================================================

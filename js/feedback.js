@@ -8,7 +8,7 @@ window.Feedback = (function () {
     { id: 'idea',     label: 'Идея',        icon: 'ti-bulb' },
     { id: 'bug',      label: 'Ошибка',      icon: 'ti-bug' },
     { id: 'question', label: 'Вопрос',      icon: 'ti-help-circle' },
-    { id: 'invite',   label: 'Нужен инвайт', icon: 'ti-ticket' },
+    { id: 'invite',   label: 'Нужно приглашение', icon: 'ti-ticket' },
   ];
   const supportUrl = () => (window.APP_CONFIG && window.APP_CONFIG.supportUrl) || 'https://t.me/help_youvsyou';
   const esc = (s) => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

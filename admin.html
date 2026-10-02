@@ -491,7 +491,7 @@ function renderKpi(){
 
 /* ── Сообщения ── */
 function renderMsgs(){
-  const list=Object.entries(FEED).filter(([,m])=>m).map(([id,m])=>({id,...m})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const list=Object.entries(FEED).filter(([,m])=>m).map(([id,m])=>({...m,id})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   const cnt=(f)=>list.filter(f).length;
   const filters=[['all','Все',list.length],['new','Новые',cnt(m=>(m.status||'new')==='new')],['idea','Идеи',cnt(m=>m.type==='idea')],['bug','Ошибки',cnt(m=>m.type==='bug')],['question','Вопросы',cnt(m=>m.type==='question')],['invite','Инвайты',cnt(m=>m.type==='invite')],['nps','Оценки',cnt(m=>m.type==='nps')],['done','Отвечено',cnt(m=>m.status==='done')]];
   $('#m-filters').innerHTML=filters.map(([k,l,n])=>`<button class="chip${mFilter===k?' on':''}" data-mf="${k}">${l} · ${n}</button>`).join('');
@@ -509,9 +509,9 @@ function renderMsgs(){
         <div class="msg-text">${esc(m.text)}</div>
         <div class="msg-meta">${m.telegram?`<span><i class="ti ti-brand-telegram"></i> <a href="https://t.me/${esc(String(m.telegram).replace(/^@/,''))}" target="_blank" rel="noopener">@${esc(String(m.telegram).replace(/^@/,''))}</a></span>`:''}${cl?`<span><i class="ti ti-address-book"></i> ${cl}</span>`:''}${m.email?`<span><i class="ti ti-user"></i> ${esc(m.email)}</span>`:'<span><i class="ti ti-user-question"></i> без входа</span>'}</div>
         <div class="msg-actions">
-          ${st==='new'?`<button class="btn btn-ghost btn-sm" data-act="read" data-id="${m.id}"><i class="ti ti-eye-check"></i> Прочитано</button>`:`<button class="btn btn-ghost btn-sm" data-act="new" data-id="${m.id}"><i class="ti ti-mail"></i> Непрочитано</button>`}
-          ${st!=='done'?`<button class="btn btn-okc btn-sm" data-act="done" data-id="${m.id}"><i class="ti ti-check"></i> Ответил</button>`:''}
-          <button class="btn btn-bad btn-sm" data-act="del" data-id="${m.id}"><i class="ti ti-trash"></i></button>
+          ${st==='new'?`<button class="btn btn-ghost btn-sm" data-act="read" data-id="${esc(m.id)}"><i class="ti ti-eye-check"></i> Прочитано</button>`:`<button class="btn btn-ghost btn-sm" data-act="new" data-id="${esc(m.id)}"><i class="ti ti-mail"></i> Непрочитано</button>`}
+          ${st!=='done'?`<button class="btn btn-okc btn-sm" data-act="done" data-id="${esc(m.id)}"><i class="ti ti-check"></i> Ответил</button>`:''}
+          <button class="btn btn-bad btn-sm" data-act="del" data-id="${esc(m.id)}"><i class="ti ti-trash"></i></button>
         </div>
       </div></div>`;
   }).join('');
@@ -528,7 +528,7 @@ function renderMsgs(){
 const COLORS=['#4A7CFF','#7C3AED','#16A34A','#F59E0B','#EC4899','#0EA5E9','#EF4444','#14B8A6'];
 function renderUsers(){
   const now=Date.now(), q=uQuery.toLowerCase();
-  let list=Object.entries(USERS).filter(([,u])=>u).map(([uid,u])=>({uid,...u}))
+  let list=Object.entries(USERS).filter(([,u])=>u).map(([uid,u])=>({...u,uid}))
     .sort((a,b)=>String(b.lastSeen||'').localeCompare(String(a.lastSeen||'')));
   if(q) list=list.filter(u=>(u.email||'').toLowerCase().includes(q)||(u.name||'').toLowerCase().includes(q));
   if(uFilter==='active') list=list.filter(u=>u.lastSeen&&now-new Date(u.lastSeen)<7*DAY);
@@ -537,15 +537,15 @@ function renderUsers(){
   $('#u-list').innerHTML=list.map(u=>{
     const me=(u.email||'').toLowerCase()===OWNER, letter=(u.name||u.email||'?').trim()[0].toUpperCase();
     const col=COLORS[[...u.uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
-    return `<div class="urow${u.blocked?' blocked':''}" data-open="${u.uid}">
+    return `<div class="urow${u.blocked?' blocked':''}" data-open="${esc(u.uid)}">
       <div class="ava" style="background:${col}">${esc(letter)}</div>
       <div style="min-width:0"><div class="u-name">${esc(u.name||u.email||'Без имени')}${me?'<span class="tag tag-me">ты</span>':''}${u.tag?`<span class="tag tag-t">${esc(u.tag)}</span>`:''}${u.blocked?'<span class="tag tag-bl">заблокирован</span>':''}</div>${u.name?`<div class="u-mail">${esc(u.email||u.uid)}</div>`:''}</div>
       <div class="u-col hide-m"><b>${u.createdAt?new Date(u.createdAt).toLocaleDateString('ru-RU'):'—'}</b>регистрация</div>
       <div class="u-col hide-m"><b>${(()=>{ const l7=daysBack(7).map(dk); return wDays(u).filter(d=>l7.includes(d)).length; })()} из 7</b>дней записей</div>
       <div class="u-col"><b>${ago(u.lastSeen)}</b>был(а)</div>
       <div>${me?'':(u.blocked
-        ?`<button class="btn btn-okc btn-sm" data-ub="0" data-uid="${u.uid}"><i class="ti ti-lock-open"></i> Разблок.</button>`
-        :`<button class="btn btn-bad btn-sm" data-ub="1" data-uid="${u.uid}" title="Заблокировать"><i class="ti ti-lock"></i></button>`)}</div>
+        ?`<button class="btn btn-okc btn-sm" data-ub="0" data-uid="${esc(u.uid)}"><i class="ti ti-lock-open"></i> Разблок.</button>`
+        :`<button class="btn btn-bad btn-sm" data-ub="1" data-uid="${esc(u.uid)}" title="Заблокировать"><i class="ti ti-lock"></i></button>`)}</div>
     </div>`;
   }).join('');
   $('#u-list').querySelectorAll('[data-open]').forEach(r=>r.onclick=(e)=>{ if(e.target.closest('[data-ub]')) return; openUser(r.dataset.open); });
@@ -564,7 +564,7 @@ let TRAINERS={}, TCL={}, trQuery='';
 const TIERS={ free:'Ранний доступ', pro:'Про', studio:'Студия' };
 function renderTrainers(){
   const q=trQuery.toLowerCase();
-  let list=Object.entries(TRAINERS).filter(([,t])=>t).map(([uid,t])=>({uid,...t,clients:Object.values(TCL[uid]||{}).filter(Boolean)}))
+  let list=Object.entries(TRAINERS).filter(([,t])=>t).map(([uid,t])=>({...t,uid,clients:Object.values(TCL[uid]||{}).filter(Boolean)}))
     .sort((a,b)=>b.clients.length-a.clients.length||(b.createdAt||0)-(a.createdAt||0));
   const c=$('#t-tr'); c.textContent=list.length; c.classList.toggle('hidden',!list.length);
   const total=list.reduce((s,t)=>s+t.clients.length,0);
@@ -581,9 +581,9 @@ function renderTrainers(){
         ${n?`<div class="tr-cl">${t.clients.slice(0,6).map(x=>`<span>${esc(x.name||x.email||'клиент')}</span>`).join('')}${n>6?`<span>+${n-6}</span>`:''}</div>`:''}</div>
       <div class="u-col"><b style="color:${full?'var(--warn)':'var(--txt)'}">${n} / ${lim}</b>клиентов</div>
       <div class="tr-act">
-        <select class="set-in tr-tier" data-uid="${t.uid}">${Object.entries(TIERS).map(([k,l])=>`<option value="${k}" ${(t.tier||'free')===k?'selected':''}>${l}</option>`).join('')}</select>
-        <input class="set-in tr-lim" data-uid="${t.uid}" type="number" inputmode="numeric" value="${lim}" title="Лимит клиентов">
-        <button class="btn btn-${t.blocked?'okc':'bad'} btn-sm" data-tb="${t.blocked?0:1}" data-uid="${t.uid}" title="${t.blocked?'Разблокировать':'Заблокировать кабинет'}"><i class="ti ti-${t.blocked?'lock-open':'lock'}"></i></button>
+        <select class="set-in tr-tier" data-uid="${esc(t.uid)}">${Object.entries(TIERS).map(([k,l])=>`<option value="${k}" ${(t.tier||'free')===k?'selected':''}>${l}</option>`).join('')}</select>
+        <input class="set-in tr-lim" data-uid="${esc(t.uid)}" type="number" inputmode="numeric" value="${lim}" title="Лимит клиентов">
+        <button class="btn btn-${t.blocked?'okc':'bad'} btn-sm" data-tb="${t.blocked?0:1}" data-uid="${esc(t.uid)}" title="${t.blocked?'Разблокировать':'Заблокировать кабинет'}"><i class="ti ti-${t.blocked?'lock-open':'lock'}"></i></button>
       </div>
     </div>`;
   }).join('');
@@ -648,7 +648,7 @@ function openUser(uid, silent){
   const me=(u.email||'').toLowerCase()===OWNER;
   const letter=(u.name||u.email||'?').trim()[0].toUpperCase();
   const col=COLORS[[...uid].reduce((s,c)=>s+c.charCodeAt(0),0)%COLORS.length];
-  const msgs=Object.entries(FEED).filter(([,m])=>m&&(m.uid===uid||(u.email&&m.email===u.email))).map(([id,m])=>({id,...m})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const msgs=Object.entries(FEED).filter(([,m])=>m&&(m.uid===uid||(u.email&&m.email===u.email))).map(([id,m])=>({...m,id})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   const tg=(msgs.find(m=>m.telegram)||{}).telegram;
   let ov=document.getElementById('dr-ov');
   const keepNote = ov && document.activeElement && ['u-note','u-notice'].includes(document.activeElement.id);

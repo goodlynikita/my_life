@@ -31,7 +31,7 @@ window.TrainerClient = (function () {
     return `<div class="tr-cweek">
       <div class="tr-cweek-h"><i class="ti ti-user-star"></i><div><b>Итоги недели от тренера</b><span>${esc(cw.trainer || '')} · ${esc(cw.range || '')}</span></div>
         <button class="tr-cweek-x" aria-label="Скрыть"><i class="ti ti-x"></i></button></div>
-      <div class="tr-cweek-k"><div><b>${cw.count || 0}</b><span>тренировок</span></div><div><b>${cw.tons != null ? String(cw.tons).replace('.', ',') : '–'}</b><span>тонн поднято</span></div><div><b>${cw.delta == null ? '–' : (cw.delta > 0 ? '+' : '') + cw.delta + '%'}</b><span>к прошлой</span></div></div>
+      <div class="tr-cweek-k"><div><b>${esc(+cw.count || 0)}</b><span>тренировок</span></div><div><b>${cw.tons != null ? esc(String(cw.tons).replace('.', ',')) : '–'}</b><span>тонн поднято</span></div><div><b>${cw.delta == null ? '–' : (+cw.delta > 0 ? '+' : '') + esc(+cw.delta || 0) + '%'}</b><span>к прошлой</span></div></div>
       ${grew.length ? `<div class="tr-cweek-g">${grew.map(g => `<div><i class="ti ti-trending-up"></i>${esc(g)}</div>`).join('')}</div>` : ''}
       ${(cw.body || []).length ? `<div class="tr-cweek-g">${cw.body.map(g => `<div><i class="ti ti-ruler-measure" style="color:#67E8F9"></i>${esc(g)}</div>`).join('')}</div>` : ''}
       ${cw.text ? `<div class="tr-cweek-t">${esc(cw.text).replace(/\n/g, '<br>')}</div>` : ''}

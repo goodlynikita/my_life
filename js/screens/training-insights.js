@@ -127,8 +127,8 @@ window.TrainingInsights = (function () {
         <div class="in-h"><div><b>${wc.cur ? 'Эта неделя' : 'Итоги недели'}</b><span>${fmtD(wc.from)} – ${fmtD(wc.to)}</span></div>${isMon ? '<em class="in-new">новый отчёт</em>' : ''}</div>
         <div class="in-kpis">
           <div><b>${wc.count}</b><span>${pl(wc.count, 'тренировка', 'тренировки', 'тренировок')}</span></div>
-          <div><b>${ton(wc.tL)}</b><span>тоннаж</span></div>
-          <div><b class="${wc.delta > 0 ? 'up' : wc.delta < 0 ? 'down' : ''}">${wc.delta == null ? '–' : (wc.delta > 0 ? '+' : '') + wc.delta + '%'}</b><span>к прошлой</span></div>
+          <div><b>${ton(wc.tL)}</b><span>поднято</span></div>
+          <div><b class="${wc.delta > 0 ? 'up' : wc.delta < 0 ? 'down' : ''}">${wc.delta == null ? '–' : (wc.delta > 0 ? '+' : '') + wc.delta + '%'}</b><span>к прошлой неделе</span></div>
         </div>
         ${wc.grew.length ? `<div class="in-row"><i class="ti ti-trending-up up"></i><div><b>Выросло</b><span>${wc.grew.slice(0, 4).map(esc).join('<br>')}</span></div></div>` : ''}
         ${wc.lag.length ? `<div class="in-row"><i class="ti ti-alert-triangle warn"></i><div><b>Отстаёт</b><span>${wc.lag.slice(0, 3).map(esc).join(' · ')}</span></div></div>` : ''}
@@ -157,7 +157,6 @@ window.TrainingInsights = (function () {
 
       <div class="in-card">
         <div class="in-h"><div><b>Плато</b><span>3 тренировки подряд без роста</span></div></div>
-        ${pls.length ? '<div class="in-pl-why">Мышца привыкла. Возьми замену на 3–4 недели, потом вернись к упражнению, и вес снова пойдёт.</div>' : ''}
         ${pls.length ? pls.slice(0, 3).map(p => {
           const sw = (prefs.swaps || {})[p.key];
           return `<div class="in-pl">

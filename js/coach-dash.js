@@ -102,7 +102,7 @@ window.CoachDash = (function () {
       /* рекорды */
       Object.values(d.an.ex).forEach(x => {
         const h = toArr(x.hist).filter(r => r.weight > 0 && r.reps > 0); if (h.length < 3 || !x.cls || x.cls.kind !== 'comp') return;
-        let best = 0; h.forEach((r, i) => { const v = e1(r); if (i >= 2 && v > best + 0.01 && r.date >= from) ev.push({ t: +r.date + 2, k: 'pr', c, html: `<b>${esc(who)}</b> рекорд: ${esc(x.name)} ${kg(r.weight)}×${r.reps} (1ПМ ≈ ${kg(Math.round(v))} кг)` }); best = Math.max(best, v); });
+        let best = 0; h.forEach((r, i) => { const v = e1(r); if (i >= 2 && v > best + 0.01 && r.date >= from) ev.push({ t: +r.date + 2, k: 'pr', c, html: `<b>${esc(who)}</b> рекорд: ${esc(x.name)} ${kg(r.weight)}×${esc(r.reps)} (1ПМ ≈ ${kg(Math.round(v))} кг)` }); best = Math.max(best, v); });
       });
       d.ms.filter(m => m.d && m.d >= from).forEach(m => { const w = parseFloat(String(m.values['Вес'] || '').replace(',', '.'));
         ev.push({ t: +m.d, k: 'measure', c, html: `<b>${esc(who)}</b> внёс замеры${w ? ': вес ' + kg(w) + ' кг' : ''}` }); });

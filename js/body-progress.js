@@ -213,15 +213,19 @@ window.BodyProgress = (function () {
       <label class="mf-date"><i class="ti ti-calendar"></i><span>Дата замера</span><input type="date" data-mf-date value="${toISO(dateStr)}"></label>
       ${GROUPS.map(([t, fs]) => `<div class="mf-g"><div class="mf-h">${t}</div><div class="mf-row c${fs.length}">${fs.map(f => field(f, values[f], prevValues[f])).join('')}</div></div>`).join('')}
       <details class="mf-g mf-x"${hasExtra ? ' open' : ''}><summary class="mf-h">InBody и мышцы <i class="ti ti-chevron-down"></i></summary><div class="mf-row c2">${EXTRA.map(f => field(f, values[f], prevValues[f])).join('')}</div></details>
-      <div class="mf-hint">Только то, что меряли, остальное можно пропустить. Лучше утром натощак, в одно и то же время.</div>
     </div>`;
   }
   function readForm(root) {
     const values = {};
-    root.querySelectorAll('input[data-field]').forEach(i => { const v = i.value.trim().replace('.', ','); if (v !== '') values[i.dataset.field] = v; });
+    const bad = [];
+    /* только числа 0–500 (см, кг, %): «80кг», «-5», «1e9» не сохраняем, а подсвечиваем */
+    root.querySelectorAll('input[data-field]').forEach(i => { const v = i.value.trim().replace(/\s/g, '').replace('.', ','); i.classList.remove('mf-bad');
+      if (v === '') return;
+      const n = +v.replace(',', '.');
+      if (/^\d{1,3}(,\d{1,2})?$/.test(v) && n > 0 && n <= 500) values[i.dataset.field] = v; else { bad.push(i.dataset.field); i.classList.add('mf-bad'); } });
     const di = root.querySelector('[data-mf-date]'); let date = '';
     if (di && di.value) { const [y, m, d] = di.value.split('-'); date = d + '.' + m + '.' + y; }
-    return { date, values };
+    return { date, values, bad };
   }
   return { html, bind, weekDelta, series, summary, formHtml, readForm, FIELDS };
 })();

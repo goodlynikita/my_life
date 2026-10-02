@@ -24,8 +24,8 @@ window.addEventListener('error', function(e) {
   if (app && app.innerHTML.trim() === '') {
     app.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#F87171;font-family:monospace;font-size:12px;line-height:1.8;background:#1A1C22;min-height:100vh;">'
       + '<div style="font-size:16px;margin-bottom:16px;">⚠️ Ошибка загрузки</div>'
-      + '<div>' + e.message + '</div>'
-      + '<div style="color:#555;margin-top:8px;">' + (e.filename||'').split('/').pop() + ':' + e.lineno + '</div>'
+      + '<div>' + String(e.message || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }) + '</div>'
+      + '<div style="color:#555;margin-top:8px;">' + String(e.filename||'').split('/').pop().replace(/[<>&"']/g, '') + ':' + (+e.lineno || 0) + '</div>'
       + '<button onclick="location.reload(true)" style="margin-top:20px;padding:10px 20px;background:#4A7CFF;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;">Перезагрузить</button>'
       + '</div>';
   }

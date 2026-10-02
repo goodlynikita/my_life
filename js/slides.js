@@ -28,6 +28,8 @@ function todayWorkoutInfo(store) {
   return { text: 'Не задано', empty: true };
 }
 window.todayWorkoutInfo = todayWorkoutInfo;
+/* траты месяца из вкладки «Расходы» (finance.spend), а не старые поля categories.spent */
+function finSpentMonth() { try { return window.FinSpend ? Object.values(FinSpend.catSpent(FinSpend.ymKey(new Date()))).reduce((a, b) => a + b, 0) : 0; } catch (e) { return 0; } }
 
 var Slides = (() => {
 
@@ -41,7 +43,7 @@ var Slides = (() => {
       desc: 'Группы мышц / тип тренировки на сегодня',
       render: (store) => {
         const t = todayWorkoutInfo(store);
-        return `<div class="hero-big-text${t.empty ? ' hero-dim' : ''}">${t.text}</div>`;
+        return `<div class="hero-big-text${t.empty ? ' hero-dim' : ''}">${SlideKit.esc(t.text)}</div>`;
       },
     },
     {
@@ -122,8 +124,8 @@ var Slides = (() => {
         const cushion = income - expenses;
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const color = cushion>=0?'#4ADE80':'#F87171';
-        /* если записываются траты: та же цифра и тот же «≈», что во вкладке «Расходы» */
-        try { if (window.FinSpend && Object.values((store.finance || {}).spend || {}).some(a => a && Object.keys(a).length)) { const c = FinSpend.calc(); if (c.inc) return `<div class="hero-stat-num" style="color:${c.free >= 0 ? '#4ADE80' : '#F87171'}">${c.est ? '≈ ' : ''}${c.free < 0 ? '−' : ''}${fmt(c.free)}</div><div class="hero-stat-lbl">свободно, ~${fmt(c.perDay)} в день</div>`; } } catch (e) {}
+        /* та же цифра и тот же «≈», что во вкладке «Расходы» */
+        try { if (window.FinSpend) { const c = FinSpend.calc(); if (!c.inc) return `<div class="hero-stat-num">0₽</div><div class="hero-stat-lbl">добавь доход месяца</div>`; return `<div class="hero-stat-num" style="color:${c.free >= 0 ? '#4ADE80' : '#F87171'}">${c.est ? '≈ ' : ''}${c.free < 0 ? '−' : ''}${fmt(c.free)}</div><div class="hero-stat-lbl">свободно, ~${fmt(c.perDay)} в день</div>`; } } catch (e) {}
         /* доходов в этом месяце ещё нет: показываем ожидаемые расходы, а не красный «дефицит» */
         if (!income) return `<div class="hero-stat-num">${fmt(expenses)}</div><div class="hero-stat-lbl">расходы месяца</div>`;
         return `<div class="hero-stat-num" style="color:${color}">${cushion<0?'−':''}${fmt(cushion)}</div><div class="hero-stat-lbl">${cushion>=0?'свободно':'не хватает'}</div>`;
@@ -170,7 +172,7 @@ var Slides = (() => {
       id: 'custom_text', section: 'Кастом',
       name: 'Свой текст',
       desc: 'Любой заголовок и подпись, вводишь сам',
-      render: (store, cfg) => `<div class="hero-big-text">${cfg?.text||'Твой текст'}</div>${cfg?.sub?`<div class="hero-sub-text">${cfg.sub}</div>`:''}`,
+      render: (store, cfg) => `<div class="hero-big-text">${SlideKit.esc(cfg?.text||'Твой текст')}</div>${cfg?.sub?`<div class="hero-sub-text">${SlideKit.esc(cfg.sub)}</div>`:''}`,
     },
     {
       id: 'custom_goal', section: 'Кастом',
@@ -182,7 +184,7 @@ var Slides = (() => {
         if (!g) return `<div class="hero-big-text">Нет цели</div>`;
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const num = g.done ? '✓ ' + (g.amount ? fmt(g.amount) : 'готово') : (g.amount ? fmt(g.amount) : 'без суммы');
-        return `<div class="hero-stat-num"${g.done?' style="opacity:.55"':''}>${num}</div><div class="hero-stat-lbl">${g.name}</div>`;
+        return `<div class="hero-stat-num"${g.done?' style="opacity:.55"':''}>${num}</div><div class="hero-stat-lbl">${SlideKit.esc(g.name)}</div>`;
       },
     },
     /* ── Тренировки: доп блоки ── */
@@ -275,8 +277,7 @@ var Slides = (() => {
       render: (store) => {
         const now = new Date();
         const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
-        const data = store.finance?.years?.[yr]?.[mm];
-        const expenses = (data?.cats||[]).reduce((s,c)=>s+(c?.spent||0),0);
+        const expenses = finSpentMonth();
         const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         return `<div class="hero-big-text">${expenses>0?fmt(expenses):'0'}</div>`;
       },
@@ -290,8 +291,7 @@ var Slides = (() => {
         const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income = entries.reduce((s,e)=>s+((e?.amount)||0),0);
-        const cats = store.finance?.years?.[yr]?.[mm]?.cats || [];
-        const expenses = cats.reduce((s,c)=>s+(c?.spent||0),0);
+        const expenses = finSpentMonth();
         const bal = income - expenses;
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const c = bal>=0?'#4ADE80':'#F87171';
@@ -307,10 +307,8 @@ var Slides = (() => {
         const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income = entries.reduce((s,e)=>s+((e?.amount)||0),0);
-        const cats = store.finance?.balance?.categories || [];
-        const spent = cats.reduce((s,c)=>s+(c?.spent||0), 0);
-        const expenses = spent > 0 ? spent : cats.reduce((s,c)=>s+(c?.amt||0), 0);
-        const saved = Math.max(0, income - expenses);
+        /* накоплено: копилка плюс то, что от дохода ещё не потрачено */
+        const saved = Math.max(0, income - finSpentMonth());
         const pct = income > 0 ? Math.round(saved / income * 100) : 0;
         const c = pct>=30?'#4ADE80':pct>=15?'#F59E0B':'#F87171';
         return `<div class="hero-stat-num" style="color:${c}">${pct}%</div><div class="hero-stat-lbl">накоплений</div>`;
@@ -403,8 +401,8 @@ var Slides = (() => {
   const _fmtT = (n) => n>=1000 ? (n/1000).toFixed(1).replace('.', ',')+' т' : Math.round(n)+' кг';
   const _rub = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽';
   const _fin = (store) => { const now=new Date(); const yr=now.getFullYear(), mm=String(now.getMonth()+1).padStart(2,'0'); const m=store.finance?.years?.[yr]?.[mm]||{};
-    const income=(m.entries||[]).reduce((s,e)=>s+((e?.amount)||0),0); const cats=store.finance?.balance?.categories||[]; const spent=cats.reduce((s,c)=>s+(c?.spent||0),0);
-    const expenses = spent>0 ? spent : cats.reduce((s,c)=>s+(c?.amt||0),0); return { income, expenses }; };
+    const income=(m.entries||[]).reduce((s,e)=>s+((e?.amount)||0),0); 
+    return { income, expenses: finSpentMonth() }; };
   const BLOCK_DATA = {
     habits_today: (st) => { const t = _habDone(st, new Date()); return { v: t.done, max: t.total || 1, text: `${t.done}/${t.total}`, lbl: 'привычек сегодня', series: _last7().map(d=>_habDone(st,d).done) }; },
     habits_month_pct: (st) => { const now=new Date(); const list=(st.habits?.list||[]).filter(Boolean); const marks=(st.habits?.months||{})[_ym(now)]||{}; let tot=0,dn=0;
@@ -542,7 +540,7 @@ var Slides = (() => {
             <button class="se-up" data-idx="${idx}" ${idx===0?'disabled':''} aria-label="Выше"><i class="ti ti-chevron-up"></i></button>
             <button class="se-down" data-idx="${idx}" ${idx===total-1?'disabled':''} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button>
           </div>
-          <span class="se-card-title">${s.label||'Без названия'}</span>
+          <span class="se-card-title">${SlideKit.esc(s.label||'Без названия')}</span>
           <button class="se-toggle-slide${s.enabled!==false?' on':''}" data-idx="${idx}">${s.enabled!==false?'Вкл':'Выкл'}</button>
           <button class="se-edit-slide" data-idx="${idx}" aria-label="Изменить"><i class="ti ti-edit"></i></button>
           ${total>1?`<button class="se-del-slide" data-idx="${idx}" aria-label="Удалить"><i class="ti ti-trash"></i></button>`:''}
@@ -563,7 +561,7 @@ var Slides = (() => {
         preview: (d) => renderSlide(d, Store.get()), views: viewsOf,
         cfgHtml: (bid, c) => {
           if (bid === 'custom_text') return `<div class="sf-cfg"><input type="text" class="sf-in" data-cfg="text" data-bid="${bid}" placeholder="Заголовок" value="${escT(c.text)}"><input type="text" class="sf-in" data-cfg="sub" data-bid="${bid}" placeholder="Подпись" value="${escT(c.sub)}"></div>`;
-          if (bid === 'custom_goal') return `<div class="sf-cfg"><select class="sf-in" data-cfg="goalId" data-bid="${bid}">${goals.map(g => `<option value="${g.id}" ${g.id === c.goalId ? 'selected' : ''}>${escT(g.name)}</option>`).join('')}</select></div>`;
+          if (bid === 'custom_goal') return `<div class="sf-cfg"><select class="sf-in" data-cfg="goalId" data-bid="${bid}">${goals.map(g => `<option value="${escT(g.id)}" ${g.id === c.goalId ? 'selected' : ''}>${escT(g.name)}</option>`).join('')}</select></div>`;
           if (bid === 'motivational_quote') return `<div class="sf-cfg"><textarea class="sf-in" data-cfg="quotes" data-bid="${bid}" rows="3" placeholder="Свои фразы, каждая с новой строки. Пусто: стандартные">${escT(c.quotes)}</textarea></div>`;
           return '';
         },

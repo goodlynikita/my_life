@@ -62,7 +62,9 @@ const TR_GROUP_COLORS = {
   'Шаги':   '#8E89C6',
   'Отдых':  '#7C818D',
 };
-function trTypeColor(t) { return TR_GROUP_COLORS[t.group] || t.color || '#8A8F9C'; }
+/* цвет идёт в style="…": только #hex, иначе через него можно подсунуть разметку */
+function trSafeColor(c, d) { return (typeof c === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.trim())) ? c.trim() : (d || '#8A8F9C'); }
+function trTypeColor(t) { return TR_GROUP_COLORS[t.group] || trSafeColor(t.color); }
 function trNormalizeTypes(arr) {
   return (Array.isArray(arr) ? arr : Object.values(arr || {}))
     .filter(t => t && t.name)
@@ -269,20 +271,20 @@ function trOpenExerciseEditor() {
     });
     const html = Object.entries(typeGroups).map(([grp, types]) =>
       `<div style="margin-bottom:16px;">
-        <div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">${grp}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;" data-group="${grp}">
+        <div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">${trEsc(grp)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" data-group="${trEsc(grp)}">
           ${types.map(t => `
             <div style="position:relative;display:inline-flex;">
-              <button class="tr-type-sel-btn" data-type="${t.name}" style="padding:8px 14px 8px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:${trTypeColor(t)};flex-shrink:0;"></span>${t.name}
+              <button class="tr-type-sel-btn" data-type="${trEsc(t.name)}" style="padding:8px 14px 8px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${trTypeColor(t)};flex-shrink:0;"></span>${trEsc(t.name)}
               </button>
-              <button class="tr-type-del-btn" data-type="${t.name}" title="Удалить" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:#F87171;border:none;color:#fff;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">×</button>
+              <button class="tr-type-del-btn" data-type="${trEsc(t.name)}" title="Удалить" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:#F87171;border:none;color:#fff;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">×</button>
             </div>`).join('')}
-          <button class="tr-type-add-btn" data-group="${grp}" style="padding:8px 12px;border-radius:10px;border:1.5px dashed rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:18px;font-family:inherit;line-height:1;">+</button>
+          <button class="tr-type-add-btn" data-group="${trEsc(grp)}" style="padding:8px 12px;border-radius:10px;border:1.5px dashed rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:18px;font-family:inherit;line-height:1;">+</button>
         </div>
       </div>`
     ).join('');
-    return modal('Редактор · Тип', `<div style="padding:4px 0 8px;font-size:13px;color:#9D9A92;">Выбери тип тренировки</div>${html}`,
+    return modal('Виды тренировок', `<div style="padding:4px 0 8px;font-size:13px;color:#9D9A92;">Выбери тип тренировки</div>${html}`,
       `<button id="ed-close" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">Закрыть</button>`);
   }
 
@@ -291,7 +293,7 @@ function trOpenExerciseEditor() {
     const html = groups.map(g => {
       const count = (MUSCLE_BLOCK_EXERCISES[g]||[]).length;
       const c = COLOR_MAP[g]||'#9D9A92';
-      return `<button class="tr-grp-sel-btn" data-group="${g}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid ${c}22;background:${c}10;cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;"><div style="display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></span><span style="font-size:14px;font-weight:700;color:#E8E5DC;">${g}</span></div><span style="font-size:12px;color:${c};">${count} упр.</span></button>`;
+      return `<button class="tr-grp-sel-btn" data-group="${trEsc(g)}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid ${c}22;background:${c}10;cursor:pointer;font-family:inherit;margin-bottom:8px;box-sizing:border-box;"><div style="display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></span><span style="font-size:14px;font-weight:700;color:#E8E5DC;">${trEsc(trGL(g))}</span></div><span style="font-size:12px;color:${c};">${count} упр.</span></button>`;
     }).join('');
     return modal(`Зал → Группа мышц`, html,
       `<button id="ed-back" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:none;color:#9D9A92;cursor:pointer;font-size:13px;font-family:inherit;">← Назад</button>
@@ -301,7 +303,7 @@ function trOpenExerciseEditor() {
   function buildExStep() {
     const exercises = MUSCLE_BLOCK_EXERCISES[selGroup]||[];
     const items = exercises.length
-      ? exercises.map((ex,i) => `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);min-width:0;"><span style="flex:1;font-size:13px;color:#E8E5DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ex}</span><button class="tr-ex-ren" data-idx="${i}" style="background:none;border:none;color:#9D9A92;cursor:pointer;padding:4px;"><i class="ti ti-pencil" style="font-size:14px;"></i></button><button class="tr-ex-del" data-idx="${i}" style="background:none;border:none;color:#F87171;cursor:pointer;padding:4px;"><i class="ti ti-trash" style="font-size:14px;"></i></button></div>`).join('')
+      ? exercises.map((ex,i) => `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);min-width:0;"><span style="flex:1;font-size:13px;color:#E8E5DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${trEsc(ex)}</span><button class="tr-ex-ren" data-idx="${i}" style="background:none;border:none;color:#9D9A92;cursor:pointer;padding:4px;"><i class="ti ti-pencil" style="font-size:14px;"></i></button><button class="tr-ex-del" data-idx="${i}" style="background:none;border:none;color:#F87171;cursor:pointer;padding:4px;"><i class="ti ti-trash" style="font-size:14px;"></i></button></div>`).join('')
       : '<div style="color:#555;font-size:13px;padding:16px 0;text-align:center;">Список пуст, добавь упражнения</div>';
     const isGym = GYM_TYPES.includes(selType);
     return modal(`${selType} → ${selGroup}`,
@@ -318,7 +320,7 @@ function trOpenExerciseEditor() {
   function modal(title, body, footer) {
     return `<div style="background:#1C1E26;border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
       <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:15px;font-weight:800;color:#E8E5DC;">${title}</span>
+        <span style="font-size:15px;font-weight:800;color:#E8E5DC;">${trEsc(title)}</span>
         <button id="ed-x" style="background:none;border:none;color:#9D9A92;cursor:pointer;font-size:24px;line-height:1;padding:0;">×</button>
       </div>
       <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;">${body}</div>
@@ -426,7 +428,7 @@ function trExercisesForGroups(groupNames) {
 
 function trBadgeColor(list, name) {
   const found = list.find(x => x.name === name);
-  return found ? found.color : '#8A8985';
+  return found ? trSafeColor(found.color, '#8A8985') : '#8A8985';
 }
 
 function trBuildSelect(id, list, current) {
@@ -438,11 +440,11 @@ function trBuildSelect(id, list, current) {
     const groupLabels = { 'Зал': 'Тренажерный зал', 'Кардио': 'Кардио', 'Шаги': 'Шаги', 'Спорт': 'Спорт', 'Зима': 'Зима', 'Прочее': 'Прочее' };
     options = groups.map(g => {
       const items = list.filter(i => i.group === g);
-      return `<optgroup label="${groupLabels[g]||g}">${items.map(i => `<option value="${i.name}" ${i.name===current?'selected':''}>${i.name}</option>`).join('')}</optgroup>`;
+      return `<optgroup label="${trEsc(groupLabels[g]||g)}">${items.map(i => `<option value="${trEsc(i.name)}" ${i.name===current?'selected':''}>${trEsc(i.name)}</option>`).join('')}</optgroup>`;
     }).join('');
   } else {
     options = list.map(item =>
-      `<option value="${item.name}" ${item.name === current ? 'selected' : ''}>${item.name}</option>`
+      `<option value="${trEsc(item.name)}" ${item.name === current ? 'selected' : ''}>${trEsc(item.name)}</option>`
     ).join('');
   }
   return `<select id="${id}" class="tr-color-select">${options}</select>`;
@@ -482,8 +484,13 @@ function trBuildEmptyPlan(number, startDate) {
   };
 }
 
+/* Снимок планов до правки: с ним trSavePlans пишет только изменённые дни.
+   Обновляется, когда данные пришли заново (новый массив) и после каждого сохранения */
+let _trBase = null, _trBaseRef = null;
 function trGetPlans() {
-  return Store.get().training.plans || [];
+  const plans = Store.get().training.plans || [];
+  if (plans !== _trBaseRef) { _trBaseRef = plans; try { _trBase = JSON.parse(JSON.stringify(plans)); } catch (e) { _trBase = null; } }
+  return plans;
 }
 
 const TR_UNDO_KEY = 'nik_tr_undo_stack';
@@ -527,6 +534,7 @@ function trUndoLastChange() {
     if (cur.ai !== undefined) previous.ai = cur.ai;
     if (cur.aiPrefs !== undefined) previous.aiPrefs = cur.aiPrefs;
     Store.set('training', previous);
+    if (window.TrainingAI && TrainingAI.resyncQueue) TrainingAI.resyncQueue();
     return true;
   } catch (e) {
     return false;
@@ -537,9 +545,24 @@ function trSavePlans(plans) {
   /* Пишем каждый план отдельным путём — не перезаписываем весь массив.
      Это гарантирует что одновременные правки двух пользователей
      не затирают друг друга в Firebase. */
+  /* Пишем только изменённые дни (точечные пути): если тренер в это время поправил другой день,
+     его правка не затрётся. Новый план или изменённая структура недель пишутся целиком */
+  const same = (a, b) => { try { return JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b); } catch (e) { return false; } };
+  const base = Array.isArray(_trBase) && _trBaseRef === Store.get().training.plans ? _trBase : null;
   plans.forEach((plan, idx) => {
-    if (plan) Store.set('training.plans.' + idx, plan);
+    if (!plan) return;
+    const old = base && base[idx];
+    const pw = plan.weeks || [], ow = (old && old.weeks) || [];
+    if (!old || old.id !== plan.id || pw.length !== ow.length) { Store.set('training.plans.' + idx, plan); return; }
+    Object.keys(Object.assign({}, old, plan)).forEach(k => { if (k !== 'weeks' && !same(old[k], plan[k])) Store.set('training.plans.' + idx + '.' + k, plan[k] === undefined ? null : plan[k]); });
+    pw.forEach((w, wi) => {
+      const o = ow[wi], wd = (w && w.days) || [], od = (o && o.days) || [];
+      if (!w || !o || wd.length !== od.length) { if (!same(w, o)) Store.set('training.plans.' + idx + '.weeks.' + wi, w); return; }
+      Object.keys(Object.assign({}, o, w)).forEach(k => { if (k !== 'days' && !same(o[k], w[k])) Store.set('training.plans.' + idx + '.weeks.' + wi + '.' + k, w[k] === undefined ? null : w[k]); });
+      wd.forEach((d, di) => { if (!same(d, od[di])) Store.set('training.plans.' + idx + '.weeks.' + wi + '.days.' + di, d); });
+    });
   });
+  try { _trBase = JSON.parse(JSON.stringify(Store.get().training.plans || [])); _trBaseRef = Store.get().training.plans; } catch (e) {}
 }
 
 function trActivePlan() {
@@ -562,8 +585,11 @@ function trEnsureSeedPlan() {
 function trCreateNextPlan() {
   trSnapshotBeforeChange();
   const plans = trGetPlans();
-  plans.forEach(p => { if (p.status === 'active') p.status = 'archived'; });
-  const maxNumber = plans.reduce((m, p) => Math.max(m, p.number), 0);
+  /* текущий план: со status 'active', а у старых планов без статуса последний */
+  let wasActive = plans.filter(p => p && p.status === 'active');
+  if (!wasActive.length) { const cur = trActivePlan(); if (cur) wasActive = [cur]; }
+  wasActive.forEach(p => { p.status = 'archived'; });
+  const maxNumber = plans.reduce((m, p) => Math.max(m, +p.number || 0), 0);
   /* Начинаем план с понедельника текущей недели */
   const _today = new Date();
   const _dow = _today.getDay(); // 0=вс, 1=пн, ..., 6=сб
@@ -572,6 +598,17 @@ function trCreateNextPlan() {
   _planStart.setDate(_today.getDate() - _daysFromMon);
   _planStart.setHours(0, 0, 0, 0);
   const newPlan = trBuildEmptyPlan(maxNumber + 1, _planStart);
+  /* тренировки текущей недели переезжают в новый план, иначе они пропадают из «Плана» и «Весов» */
+  const _wkEnd = new Date(_planStart); _wkEnd.setDate(_wkEnd.getDate() + 7);
+  const _w0 = (newPlan.weeks || [])[0];
+  wasActive.forEach(op => (op.weeks || []).forEach(w => ((w && w.days) || []).forEach(d => {
+    if (!d) return; const dt = trDayDateOf(op, d.date); if (!dt || dt < _planStart || dt >= _wkEnd) return;
+    trMigrateDayToSessions(d);
+    if (!(d.sessions || []).length && !d.comment) return;
+    const nd = _w0 && (_w0.days || []).find(x => x && x.date === d.date); if (!nd) return;
+    nd.sessions = (nd.sessions || []).concat(d.sessions || []); if (d.comment && !nd.comment) nd.comment = d.comment;
+    d.sessions = []; delete d.comment;
+  })));
   plans.push(newPlan);
   trSavePlans(plans);
   return newPlan.id;
@@ -745,7 +782,7 @@ function trProgressionHint(plan, exName) {
   const lastInfo = trFindLastStrength(plan, exName);
   const last = lastInfo ? lastInfo.ex : null;
   const whereLine = lastInfo
-    ? (lastInfo.plan && plan && lastInfo.plan.id !== plan.id ? ` · план №${lastInfo.plan.number}, ${lastInfo.date}` : ` · ${lastInfo.date}`)
+    ? (lastInfo.plan && plan && lastInfo.plan.id !== plan.id ? ` · план №${trEsc(lastInfo.plan.number)}, ${trEsc(lastInfo.date)}` : ` · ${trEsc(lastInfo.date)}`)
     : '';
 
   if (!prog) {
@@ -753,7 +790,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'last',
       html: `<div class="tr-prog-hint tr-prog-hold">
-        <div class="tr-prog-last">Крайний раз: ${last.sets} × ${last.reps} × ${last.weight} кг${whereLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${trEsc(last.sets)} × ${trEsc(last.reps)} × ${trEsc(last.weight)} кг${whereLine}</div>
       </div>`
     };
   }
@@ -769,15 +806,15 @@ function trProgressionHint(plan, exName) {
   }
 
   const { sets, reps, weight } = last;
-  const lastLine = `${sets} × ${reps} × ${weight} кг${whereLine}`;
+  const lastLine = `${trEsc(sets)} × ${trEsc(reps)} × ${trEsc(weight)} кг${whereLine}`;
 
   if (prog.step === 0) {
     /* Пресс — только повторы */
-    const target = reps < prog.max ? `${sets} × ${Math.min(reps + 2, prog.max)} повторов` : `усложни упражнение`;
+    const target = reps < prog.max ? `${trEsc(sets)} × ${Math.min(reps + 2, prog.max)} повторов` : `усложни упражнение`;
     return {
       type: 'reps',
       html: `<div class="tr-prog-hint tr-prog-ok">
-        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine}</div>
         <div class="tr-prog-target"><i class="ti ti-target"></i> Цель сегодня: ${target}</div>
       </div>`
     };
@@ -789,8 +826,8 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'increase',
       html: `<div class="tr-prog-hint tr-prog-up">
-        <div class="tr-prog-last">Крайний раз: ${lastLine} ✅</div>
-        <div class="tr-prog-target"><i class="ti ti-trending-up"></i> Поднимай до <strong>${newWeight} кг</strong>, цель ${sets} × ${prog.min}</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine} ✅</div>
+        <div class="tr-prog-target"><i class="ti ti-trending-up"></i> Поднимай до <strong>${newWeight} кг</strong>, цель ${trEsc(sets)} × ${prog.min}</div>
       </div>`
     };
   } else if (reps >= prog.min) {
@@ -798,8 +835,8 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'hold',
       html: `<div class="tr-prog-hint tr-prog-hold">
-        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
-        <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${weight} кг</strong>, цель: дойти до ${sets} × ${prog.max}</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine}</div>
+        <div class="tr-prog-target"><i class="ti ti-target"></i> Держи <strong>${trEsc(weight)} кг</strong>, цель: дойти до ${trEsc(sets)} × ${prog.max}</div>
       </div>`
     };
   } else {
@@ -807,8 +844,8 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'work',
       html: `<div class="tr-prog-hint tr-prog-low">
-        <div class="tr-prog-last">Крайний раз: ${lastLine}</div>
-        <div class="tr-prog-target"><i class="ti ti-refresh"></i> Оставь <strong>${weight} кг</strong>, работай над повторами (цель ${prog.min}–${prog.max})</div>
+        <div class="tr-prog-last">Прошлый раз: ${lastLine}</div>
+        <div class="tr-prog-target"><i class="ti ti-refresh"></i> Оставь <strong>${trEsc(weight)} кг</strong>, работай над повторами (цель ${prog.min}–${prog.max})</div>
       </div>`
     };
   }
@@ -856,21 +893,21 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
 
   if (ex.kind === 'cardio') {
     const pace = trPace(ex);
-    if (!(+ex.distance > 0)) return wrap(`${ex.duration || 0} мин`, 'без дистанции');
-    return wrap(`${String(ex.distance).replace('.', ',')} км`, `${ex.duration} мин${pace ? ' · ' + pace : ''}`);
+    if (!(+ex.distance > 0)) return wrap(`${trEsc(ex.duration || 0)} мин`, 'без дистанции');
+    return wrap(`${trEsc(String(ex.distance).replace('.', ','))} км`, `${trEsc(ex.duration)} мин${pace ? ' · ' + pace : ''}`);
   }
   if (ex.kind === 'time_calorie') {
-    return wrap(`${ex.calories} ккал`, `${ex.duration} мин`);
+    return wrap(`${trEsc(ex.calories)} ккал`, `${trEsc(ex.duration)} мин`);
   }
   if (ex.kind === 'steps') {
-    return wrap(`${ex.steps.toLocaleString('ru-RU')} шагов`, '');
+    return wrap(`${(+ex.steps || 0).toLocaleString('ru-RU')} шагов`, '');
   }
   /* крупно тоннаж, рабочий вес строкой ниже */
   const tonnage = trTonnage(ex);
   const wNum = +ex.weight || 0;
   const wStr = String(wNum).replace('.', ',');
-  if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${ex.sets} × ${ex.reps}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
-  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${ex.sets} × ${ex.reps} · вес ${wStr} кг`);
+  if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${trEsc(ex.sets)} × ${trEsc(ex.reps)}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
+  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${trEsc(ex.reps)} · вес ${wStr} кг`);
 }
 
 function trMigrateDayToSessions(day) {
@@ -903,6 +940,23 @@ function trMigrateDayToSessions(day) {
 }
 
 /* экранирование текста пользователя (заметки, названия), чтобы HTML не исполнялся */
+/* числа из полей ввода: запятая как точка, без минуса, NaN и бесконечности, с разумным потолком */
+function trNum(v, max) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.').replace(/\s/g, '')); return isFinite(n) && n > 0 ? Math.min(n, max || 100000) : 0; }
+function trInt(v, max) { return Math.round(trNum(v, max)); }
+/* перед сохранением: заполненное поле с минусом, не числом или слишком большим числом не превращаем молча в 0 */
+const TR_NUM_MAX = { 'm-sets': 50, 'm-reps': 1000, 'm-weight': 1000, 'm-distance': 1000, 'm-duration': 1440, 'm-calories': 20000, 'm-steps': 200000, 'm-set-reps': 1000, 'm-set-weight': 1000 };
+function trNumsBad(root) {
+  const bad = [];
+  root.querySelectorAll('#m-sets, #m-reps, #m-weight, #m-distance, #m-duration, #m-calories, #m-steps, .m-set-reps, .m-set-weight').forEach(i => {
+    const raw = String(i.value || '').trim(); if (!raw) return;
+    const n = +raw.replace(',', '.').replace(/\s/g, ''), max = TR_NUM_MAX[i.id] || TR_NUM_MAX[[...i.classList].find(c => TR_NUM_MAX[c])] || 100000;
+    if (!isFinite(n) || n < 0 || n > max) bad.push(((i.closest('label') || {}).textContent || 'число').replace(/\s+/g, ' ').trim().split(/[ ,]/)[0].toLowerCase());
+  });
+  if (bad.length) alert('Проверь: ' + [...new Set(bad)].join(', ') + '. Нужно положительное число в разумных пределах');
+  return bad.length > 0;
+}
+/* подпись группы: ключ данных «FULL BODY» не меняем (старые записи), а показываем по-русски */
+function trGL(g) { return g === 'FULL BODY' ? 'Всё тело' : g; }
 function trEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* окно ввода текста вместо системного prompt(): несколько строк, кнопки в стиле приложения.
@@ -934,6 +988,7 @@ function trAskText(o) {
 
 /* метки тренировки: насыщенный фон и светлый текст своего цвета */
 function trTagStyle(c) {
+  c = trSafeColor(c, '#8A8985');
   return `background:${c}33; color:color-mix(in srgb, ${c} 55%, #fff); border-color:${c}55; box-shadow:inset 0 0 0 1px ${c}40;`;
 }
 
@@ -958,7 +1013,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     const typeColor = trBadgeColor(TRAINING_TYPES, session.type);
     const groupTags = (session.groups || []).map(g => {
       const c = trBadgeColor(MUSCLE_GROUPS, g);
-      return `<span class="tr-day-tag has-session" style="${trTagStyle(c)}">${trEsc(g)}</span>`;
+      return `<span class="tr-day-tag has-session" style="${trTagStyle(c)}">${trEsc(trGL(g))}</span>`;
     }).join('');
     const exercisesHtml = session.exercises.map((ex, exIdx) => trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx)).join('');
 
@@ -990,7 +1045,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
   return `
     <div class="tr-day${isToday ? ' tr-day-today' : ''}">
       <div class="tr-day-head">
-        <span class="tr-day-date">${day.date} ${day.dow}</span>
+        <span class="tr-day-date">${trEsc(day.date)} ${trEsc(day.dow)}</span>
         ${isToday ? '<span class="tr-today-badge">Сегодня</span>' : ''}
         ${!hasAnySession ? `<span class="tr-day-tag">не задано</span>` : ''}
         <span style="display:flex; gap:4px; margin-left:auto; align-items:center;">
@@ -1010,8 +1065,8 @@ function trRenderWeek(week, plan, weekIndex, collapsed) {
     <div class="tr-week">
       <button class="tr-week-head tr-week-toggle" data-week="${weekIndex}">
         <i class="ti ti-chevron-${collapsed ? 'right' : 'down'}"></i>
-        <span class="tr-week-label">Неделя ${week.weekNum}</span>
-        <span class="tr-week-range">${week.range}</span>
+        <span class="tr-week-label">Неделя ${trEsc(week.weekNum)}</span>
+        <span class="tr-week-range">${trEsc(week.range)}</span>
       </button>
       <div class="tr-week-body" style="${collapsed ? 'display:none;' : ''}">${days}</div>
     </div>`;
@@ -1030,7 +1085,7 @@ function trAnimateBars(scope) {
 
 function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave) {
   const ex = plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises[exIdx];
-  window._trEditingEx = ex; /* подсказка «Крайний раз» не должна брать эту же запись */
+  window._trEditingEx = ex; /* подсказка «Прошлый раз» не должна брать эту же запись */
   const overlay = document.createElement('div');
   overlay.className = 'tr-modal-overlay';
 
@@ -1038,19 +1093,19 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
   if (ex.kind === 'cardio') {
     fieldsHtml = `
       <div class="tr-modal-row">
-        <label>Дистанция, км<input type="text" id="m-distance" value="${String(ex.distance || '').replace('.', ',')}" inputmode="decimal"></label>
-        <label>Время, мин<input type="number" id="m-duration" value="${ex.duration}" inputmode="numeric"></label>
+        <label>Дистанция, км<input type="text" id="m-distance" value="${trEsc(String(ex.distance || '').replace('.', ','))}" inputmode="decimal"></label>
+        <label>Время, мин<input type="number" id="m-duration" value="${trEsc(ex.duration)}" inputmode="numeric"></label>
       </div>`;
   } else if (ex.kind === 'time_calorie') {
     fieldsHtml = `
       <div class="tr-modal-row">
-        <label>Время, мин<input type="number" id="m-duration" value="${ex.duration}" inputmode="numeric"></label>
-        <label>Калории<input type="number" id="m-calories" value="${ex.calories}" inputmode="numeric"></label>
+        <label>Время, мин<input type="number" id="m-duration" value="${trEsc(ex.duration)}" inputmode="numeric"></label>
+        <label>Калории<input type="number" id="m-calories" value="${trEsc(ex.calories)}" inputmode="numeric"></label>
       </div>`;
   } else if (ex.kind === 'steps') {
     fieldsHtml = `
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" value="${ex.steps}" inputmode="numeric"></label>
+        <label style="flex:1 1 100%">Количество шагов<input type="number" id="m-steps" value="${trEsc(ex.steps)}" inputmode="numeric"></label>
       </div>`;
   } else {
     const hint = trProgressionHint(plan, ex.name);
@@ -1058,9 +1113,9 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
     fieldsHtml = `
       ${hintHtml}
       <div class="tr-modal-row">
-        <label>Подходы<input type="number" id="m-sets" value="${ex.sets}" inputmode="numeric"></label>
-        <label>Повторы<input type="number" id="m-reps" value="${ex.reps}" inputmode="numeric"></label>
-        <label>Вес, кг<input type="text" id="m-weight" value="${String(ex.weight || '').replace('.', ',')}" inputmode="decimal"></label>
+        <label>Подходы<input type="number" id="m-sets" value="${trEsc(ex.sets)}" inputmode="numeric"></label>
+        <label>Повторы<input type="number" id="m-reps" value="${trEsc(ex.reps)}" inputmode="numeric"></label>
+        <label>Вес, кг<input type="text" id="m-weight" value="${trEsc(String(ex.weight || '').replace('.', ','))}" inputmode="decimal"></label>
       </div>
       <button type="button" class="tr-link-btn" id="m-toggle-sets">${ex.setDetails ? 'Скрыть' : 'Записать каждый подход отдельно'}</button>
       <div id="m-set-details-wrap">${ex.setDetails ? trBuildSetDetailsRows(ex.setDetails) : ''}</div>`;
@@ -1117,29 +1172,31 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
   });
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
+    if (trNumsBad(overlay)) return;
     if (ex.kind === 'cardio') {
-      ex.distance = parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0;
-      ex.duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
+      ex.distance = trNum(overlay.querySelector('#m-distance').value, 1000);
+      ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
     } else if (ex.kind === 'time_calorie') {
-      ex.duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
-      ex.calories = parseFloat(overlay.querySelector('#m-calories').value) || 0;
+      ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
+      ex.calories = trNum(overlay.querySelector('#m-calories').value, 20000);
     } else if (ex.kind === 'steps') {
-      ex.steps = parseInt(overlay.querySelector('#m-steps').value, 10) || 0;
+      ex.steps = trInt(overlay.querySelector('#m-steps').value, 200000);
     } else {
       const detailRows = overlay.querySelectorAll('.tr-set-detail-row');
       if (detailRows.length > 0) {
         const setDetails = Array.from(detailRows).map(row => ({
-          reps: parseInt(row.querySelector('.m-set-reps').value, 10) || 0,
-          weight: parseFloat(String(row.querySelector('.m-set-weight').value).replace(',', '.')) || 0
+          reps: trInt(row.querySelector('.m-set-reps').value, 1000),
+          weight: trNum(row.querySelector('.m-set-weight').value, 1000)
         }));
         ex.setDetails = setDetails;
         ex.sets = setDetails.length;
         ex.reps = Math.round(setDetails.reduce((s, d) => s + d.reps, 0) / setDetails.length) || 0;
-        ex.weight = Math.round((setDetails.reduce((s, d) => s + d.weight, 0) / setDetails.length) * 10) / 10 || 0;
+        /* рабочий вес: самый тяжёлый подход, а не среднее (среднего веса на штанге не было) */
+        ex.weight = Math.max(0, ...setDetails.map(d => d.weight));
       } else {
-        ex.sets = parseInt(overlay.querySelector('#m-sets').value, 10) || 0;
-        ex.reps = parseInt(overlay.querySelector('#m-reps').value, 10) || 0;
-        ex.weight = parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0;
+        ex.sets = trInt(overlay.querySelector('#m-sets').value, 50);
+        ex.reps = trInt(overlay.querySelector('#m-reps').value, 1000);
+        ex.weight = trNum(overlay.querySelector('#m-weight').value, 1000);
         delete ex.setDetails;
       }
     }
@@ -1161,9 +1218,9 @@ function trBuildSetDetailsRows(setDetails) {
       ${setDetails.map((d, i) => `
         <div class="tr-set-detail-row">
           <span class="tr-set-num">${i + 1}</span>
-          <input type="number" class="m-set-reps" value="${d.reps||''}" placeholder="повт." inputmode="numeric">
+          <input type="number" class="m-set-reps" value="${trEsc(d.reps||'')}" placeholder="повт." inputmode="numeric">
           <span class="tr-set-x">×</span>
-          <input type="text" class="m-set-weight" value="${d.weight ? String(d.weight).replace('.', ',') : ''}" placeholder="кг" inputmode="decimal">
+          <input type="text" class="m-set-weight" value="${trEsc(d.weight ? String(d.weight).replace('.', ',') : '')}" placeholder="кг" inputmode="decimal">
           <button type="button" class="tr-set-remove" aria-label="Удалить подход">×</button>
         </div>
       `).join('')}
@@ -1175,7 +1232,7 @@ function trWeightHint(plan, exerciseName) {
   const { last } = trCollectExerciseHistory(plan, exerciseName);
   if (!last || last.ex.kind !== 'strength') return null;
   const suggested = Math.round((last.ex.weight + last.ex.weight * 0.05) * 2) / 2;
-  return `Последний раз: ${last.ex.sets} × ${last.ex.reps} × ${last.ex.weight} кг. Можно попробовать ~${suggested} кг.`;
+  return `Последний раз: ${trEsc(last.ex.sets)} × ${trEsc(last.ex.reps)} × ${trEsc(last.ex.weight)} кг. Можно попробовать ~${suggested} кг.`;
 }
 
 /* ── Короткие списки в модалках тренировок показываем кнопками, как в кабинете тренера.
@@ -1186,7 +1243,7 @@ function trChipify(root) {
     sel.dataset.chips = '1'; sel.style.display = 'none';
     if (sel.id === 'm-type') { trDropdown(sel); return; }
     const box = document.createElement('div'); box.className = 'tr-chips';
-    const draw = () => { box.innerHTML = Array.from(sel.options).map(o => `<button type="button" class="tr-chip${o.value === sel.value ? ' on' : ''}" data-v="${o.value.replace(/"/g, '&quot;')}">${o.textContent}</button>`).join(''); };
+    const draw = () => { box.innerHTML = Array.from(sel.options).map(o => `<button type="button" class="tr-chip${o.value === sel.value ? ' on' : ''}" data-v="${o.value.replace(/"/g, '&quot;')}">${trEsc(o.textContent)}</button>`).join(''); };
     draw();
     box.addEventListener('click', (e) => { const b = e.target.closest('.tr-chip'); if (!b || b.dataset.v === sel.value) return; sel.value = b.dataset.v; draw(); sel.dispatchEvent(new Event('change', { bubbles: true })); });
     sel.insertAdjacentElement('afterend', box);
@@ -1256,7 +1313,7 @@ function trMuscleImageHtml(groups) {
 }
 
 function trMuscleBtn(name, active) {
-  const label = name === 'FULL BODY' ? 'FULL<br>BODY' : name;
+  const label = name === 'FULL BODY' ? 'Всё<br>тело' : trEsc(name);
   return `<label class="m-group-label${name === 'FULL BODY' ? ' m-group-full' : ''}${active ? ' is-on' : ''}" data-group="${name}" style="--mc:${MUSCLE_COLOR[name] || '#8A8F9C'};">
       <input type="checkbox" class="m-group-cb m-group-check" value="${name}" ${active ? 'checked' : ''} style="display:none;">
       <span>${label}</span>
@@ -1363,7 +1420,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
   overlay.className = 'tr-modal-overlay';
   overlay.innerHTML = `
     <div class="tr-modal">
-      <p class="tr-modal-title">${day.date} ${day.dow} · ${session.type}</p>
+      <p class="tr-modal-title">${trEsc(day.date)} ${trEsc(day.dow)} · ${trEsc(session.type)}</p>
       <div id="m-fields-wrap">${trBuildFormFields(session.type, session.groups, plan)}</div>
       <div class="tr-modal-actions">
         <button class="tr-modal-btn-secondary" id="m-cancel">Отмена</button>
@@ -1431,6 +1488,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
   bindNameSelect();
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
+    if (trNumsBad(overlay)) return;
     const type = session.type;
     if (trIsGymType(type)) {
       const groups = selectedGroupsNow();
@@ -1440,27 +1498,27 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
       session.exercises.push({
         kind: 'strength',
         name,
-        sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
-        reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-        weight: parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0
+        sets: trInt(overlay.querySelector('#m-sets').value, 50),
+        reps: trInt(overlay.querySelector('#m-reps').value, 1000),
+        weight: trNum(overlay.querySelector('#m-weight').value, 1000)
       });
     } else if (trIsCardioType(type)) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
       session.exercises.push({
         kind: 'cardio', name: direction,
-        distance: parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0,
-        duration: parseFloat(overlay.querySelector('#m-duration').value) || 0
+        distance: trNum(overlay.querySelector('#m-distance').value, 1000),
+        duration: trNum(overlay.querySelector('#m-duration').value, 1440)
       });
     } else if (trIsTimeCalorieType(type)) {
       session.exercises.push({
         kind: 'time_calorie', name: type,
-        duration: parseFloat(overlay.querySelector('#m-duration').value) || 0,
-        calories: parseFloat(overlay.querySelector('#m-calories').value) || 0
+        duration: trNum(overlay.querySelector('#m-duration').value, 1440),
+        calories: trNum(overlay.querySelector('#m-calories').value, 20000)
       });
     } else if (trIsStepsType(type)) {
       session.exercises.push({
         kind: 'steps', name: type,
-        steps: parseInt(overlay.querySelector('#m-steps').value, 10) || 0
+        steps: trInt(overlay.querySelector('#m-steps').value, 200000)
       });
     }
     overlay.remove();
@@ -1476,7 +1534,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
   overlay.className = 'tr-modal-overlay';
   overlay.innerHTML = `
     <div class="tr-modal">
-      <p class="tr-modal-title">${day.date} ${day.dow}${day.sessions.length > 0 ? ' · новая тренировка' : ''}</p>
+      <p class="tr-modal-title">${trEsc(day.date)} ${trEsc(day.dow)}${day.sessions.length > 0 ? ' · новая тренировка' : ''}</p>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Тип${trBuildSelect('m-type', TRAINING_CATEGORIES.map(function(t){return {name:t.id,color:t.color};}), initialType)}</label>
       </div>
@@ -1557,6 +1615,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
   overlay.querySelector('#m-type').addEventListener('change', refreshFields);
 
   overlay.querySelector('#m-save').addEventListener('click', () => {
+    if (trNumsBad(overlay)) return;
     const type = currentType();
 
     if (trIsRestType(type)) {
@@ -1575,9 +1634,9 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
         exercises: [{
           kind: 'strength',
           name,
-          sets: parseInt(overlay.querySelector('#m-sets').value, 10) || 0,
-          reps: parseInt(overlay.querySelector('#m-reps').value, 10) || 0,
-          weight: parseFloat(String(overlay.querySelector('#m-weight').value).replace(',', '.')) || 0
+          sets: trInt(overlay.querySelector('#m-sets').value, 50),
+          reps: trInt(overlay.querySelector('#m-reps').value, 1000),
+          weight: trNum(overlay.querySelector('#m-weight').value, 1000)
         }]
       });
       overlay.remove();
@@ -1587,8 +1646,8 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
 
     if (trIsCardioType(type)) {
       const direction = overlay.querySelector('#m-cardio-dir').value;
-      const distance = parseFloat(String(overlay.querySelector('#m-distance').value).replace(',', '.')) || 0;
-      const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
+      const distance = trNum(overlay.querySelector('#m-distance').value, 1000);
+      const duration = trNum(overlay.querySelector('#m-duration').value, 1440);
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'cardio', name: direction, distance, duration }] });
       overlay.remove();
       onSave();
@@ -1596,16 +1655,18 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     }
 
     if (trIsTimeCalorieType(type)) {
-      const duration = parseFloat(overlay.querySelector('#m-duration').value) || 0;
-      const calories = parseFloat(overlay.querySelector('#m-calories').value) || 0;
-      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: type, duration, calories }] });
+      const duration = trNum(overlay.querySelector('#m-duration').value, 1440);
+      const calories = trNum(overlay.querySelector('#m-calories').value, 20000);
+      /* «Спорт»: название берём из выбранного вида (Бокс, Теннис…), а не просто «Спорт» */
+      const sp = overlay.querySelector('#m-sport-name'), spName = sp && sp.value ? sp.value : type;
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: spName, duration, calories }] });
       overlay.remove();
       onSave();
       return;
     }
 
     if (trIsStepsType(type)) {
-      const steps = parseInt(overlay.querySelector('#m-steps').value, 10) || 0;
+      const steps = trInt(overlay.querySelector('#m-steps').value, 200000);
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'steps', name: type, steps }] });
       overlay.remove();
       onSave();
@@ -1615,8 +1676,8 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     if (trIsFitnessType(type)) {
       const nameEl = overlay.querySelector('#m-fitness-name');
       const name = nameEl ? (nameEl.value || type) : type;
-      const duration = parseFloat(overlay.querySelector('#m-duration')?.value) || 0;
-      const calories = parseFloat(overlay.querySelector('#m-calories')?.value) || 0;
+      const duration = trNum(overlay.querySelector('#m-duration')?.value, 1440);
+      const calories = trNum(overlay.querySelector('#m-calories')?.value, 20000);
       day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name, duration, calories }] });
       overlay.remove();
       onSave();
@@ -1626,8 +1687,8 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     // Фолбэк — сохраняем с duration/calories
     const _sportSel = overlay.querySelector('#m-sport-name');
     const _sportName = _sportSel ? _sportSel.value : type;
-    const duration = parseFloat(overlay.querySelector('#m-duration')?.value) || 0;
-    const calories = parseFloat(overlay.querySelector('#m-calories')?.value) || 0;
+    const duration = trNum(overlay.querySelector('#m-duration')?.value, 1440);
+    const calories = trNum(overlay.querySelector('#m-calories')?.value, 20000);
     day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: _sportName, duration, calories }] });
     overlay.remove();
     onSave();
@@ -1665,7 +1726,7 @@ function trRender1RMCalc() {
     <div class="tr-1rm-inputs">
       <label class="tr-1rm-label">
         <span>Вес, кг</span>
-        <input id="rm-weight" type="number" inputmode="decimal" placeholder="100" min="1" max="500" step="0.5" class="tr-1rm-input">
+        <input id="rm-weight" type="text" inputmode="decimal" placeholder="100" class="tr-1rm-input">
       </label>
       <div class="tr-1rm-x">×</div>
       <label class="tr-1rm-label">
@@ -1679,6 +1740,7 @@ function trRender1RMCalc() {
 }
 
 window.Screens.training = function (mount) {
+  window._trJumpToday = true; /* при входе в раздел план прокручивается к сегодняшнему дню */
   try { trSyncCatalogFromStore(); } catch (e) { console.warn('catalog sync', e); }
   const role = Auth.role();
   const activeId = trEnsureSeedPlan();
@@ -1730,7 +1792,7 @@ window.Screens.training = function (mount) {
   function populatePlanSelect() {
     const plans = trGetPlans().slice().sort((a, b) => b.number - a.number);
     planSelect.innerHTML = plans.map(p =>
-      `<option value="${p.id}" ${p.id === currentPlanId ? 'selected' : ''}>План №${p.number}${p.status === 'archived' ? ' · архив' : ''}</option>`
+      `<option value="${trEsc(p.id)}" ${p.id === currentPlanId ? 'selected' : ''}>План №${trEsc(p.number)}${p.status === 'archived' ? ' · архив' : ''}</option>`
     ).join('');
   }
 
@@ -2065,9 +2127,9 @@ window.Screens.training = function (mount) {
         const overlay = document.createElement('div');
         overlay.className = 'tr-modal-overlay';
         const opts = TRAINING_TYPES.map(t =>
-          `<button class="tr-type-pick-btn" data-type="${t.name}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid #2A2D35;color:${t.name===session.type?trBadgeColor(TRAINING_TYPES,t.name):'#E8E5DC'};cursor:pointer;font-size:13px;font-weight:${t.name===session.type?700:400};text-align:left;font-family:inherit;">
+          `<button class="tr-type-pick-btn" data-type="${trEsc(t.name)}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid #2A2D35;color:${t.name===session.type?trBadgeColor(TRAINING_TYPES,t.name):'#E8E5DC'};cursor:pointer;font-size:13px;font-weight:${t.name===session.type?700:400};text-align:left;font-family:inherit;">
             <span style="width:8px;height:8px;border-radius:50%;background:${trBadgeColor(TRAINING_TYPES,t.name)};flex-shrink:0;"></span>
-            ${t.name}
+            ${trEsc(t.name)}
             ${t.name===session.type?'<i class="ti ti-check" style="margin-left:auto;font-size:14px;"></i>':''}
           </button>`
         ).join('');
@@ -2164,43 +2226,6 @@ window.Screens.training = function (mount) {
           </div>
           <div style="margin-bottom:22px;">          <button onclick="document.querySelector('.tr-tab[data-tab=&quot;ai&quot;]')?.click()" style="width:100%;padding:14px;background:linear-gradient(135deg,#2C4FA8,#3A62C9);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.02em;margin-bottom:10px;"><i class="ti ti-sparkles"></i> План от AI-тренера</button>
           <button onclick="document.getElementById('tr-new-plan')?.click()" style="width:100%;padding:13px;background:none;border:1px solid rgba(96,165,250,0.35);border-radius:12px;color:#93C5FD;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;">+ Заполнить вручную</button></div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-calendar-plus" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Тренировки по дням</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Нажми «+» у дня, выбери тип: зал, бег, теннис и другие. Потом добавь упражнения.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-sparkles" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">План от AI</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке AI расскажи цель, и он соберёт программу с весами под тебя.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-barbell" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Веса и рекорды</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Во вкладке «Веса» рабочие веса по каждому упражнению и калькулятор максимума.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-ruler-measure" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Итоги и замеры</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Статистика за период, вес и объёмы тела с выводами, что меняется.</div>
-              </div>
-            </div>
-            <div style="background:#1C1E24;border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-              <i class="ti ti-user-star" style="font-size:20px;color:#7EA0FF;margin-top:1px;"></i>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#E8E5DC;margin-bottom:3px;">Есть тренер?</div>
-                <div style="font-size:12px;color:#9D9A92;line-height:1.5;">Подключи его значком тренера сверху. Он будет вести план, а ты тренироваться.</div>
-              </div>
-            </div>
-          </div>
 
         </div>`;
         return;
@@ -2226,6 +2251,9 @@ window.Screens.training = function (mount) {
       if (orphBtn) orphBtn.onclick = () => { if (!confirm('Убрать из Плана будущие тренировки от удалённого AI-плана? Сделанные и изменённые тобой останутся.')) return; trSnapshotBeforeChange(); const n = TrainingAI.dropOrphans(trGetPlans(), plan.id); trSavePlans(trGetPlans()); renderTab('plan'); if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Убрал ' + n); };
       trAnimateBars(content);
       bindPlanEvents(plan);
+      if (window._trJumpToday) { window._trJumpToday = false;
+        const td = content.querySelector('.tr-day-today');
+        if (td && td.getBoundingClientRect().top > innerHeight * 0.6) setTimeout(() => td.scrollIntoView({ block: 'center' }), 60); }
       if (window.TrainerClient) TrainerClient.bind(content, plan, () => renderTab('plan'));
     } else if (tab === 'working-weight') {
       let _baseWkIdx = 0;
@@ -2262,9 +2290,10 @@ window.Screens.training = function (mount) {
 
       if (calcBtn) {
         const doCalc = () => {
-          const w = parseFloat(wEl.value);
-          const r = parseInt(rEl.value);
-          if (!w || !r || w <= 0 || r <= 0) return;
+          /* запятая как точка: «62,5» это 62,5 кг, а не 625 */
+          const w = trNum(wEl.value, 1000), r = trInt(rEl.value, 30);
+          const resultEl0 = document.getElementById('rm-result');
+          if (!w || !r || +String(rEl.value).replace(',', '.') > 30) { resultEl0.innerHTML = '<div class="tr-1rm-answer"><div class="tr-1rm-answer-sub">Вес больше нуля, повторы от 1 до 30</div></div>'; resultEl0.style.display = 'block'; return; }
           window._last1rmState = { w, r, ts: Date.now() };
           const rm = calc1RM(w, r);
           const zones = get1RMZones(rm);
@@ -2281,8 +2310,8 @@ window.Screens.training = function (mount) {
           resultEl.innerHTML = `
             <div class="tr-1rm-answer">
               <div class="tr-1rm-answer-label">Расчётный максимум</div>
-              <div class="tr-1rm-answer-num">${rm}<span> кг</span></div>
-              <div class="tr-1rm-answer-sub">${w} кг × ${r} повт.</div>
+              <div class="tr-1rm-answer-num">${String(rm).replace('.', ',')}<span> кг</span></div>
+              <div class="tr-1rm-answer-sub">${String(w).replace('.', ',')} кг × ${r} повт.</div>
             </div>
             <div class="tr-1rm-zones-title">Зоны нагрузки</div>
             <div class="tr-1rm-zones">${zonesHtml}</div>`;
@@ -2342,7 +2371,7 @@ window.Screens.training = function (mount) {
           goalBtn.style.display = 'none';
         } else {
           goalBtn.addEventListener('click', () => {
-            trOpenNutritionModal(plan, () => {
+            if (typeof window.trOpenNutritionModal === "function") window.trOpenNutritionModal(plan, () => {
               const planIdx = trGetPlans().findIndex(p => p.id === plan.id);
               Store.set('training.plans.' + planIdx + '.nutrition', plan.nutrition);
               renderTab('nutrition');
@@ -2357,7 +2386,7 @@ window.Screens.training = function (mount) {
         } else {
           editBtn.addEventListener('click', () => {
             trSnapshotBeforeChange();
-            trOpenNutritionModal(plan, () => {
+            if (typeof window.trOpenNutritionModal === "function") window.trOpenNutritionModal(plan, () => {
               trSavePlans(trGetPlans().map(p => p.id === plan.id ? plan : p));
               renderTab('nutrition');
             });
@@ -2393,7 +2422,7 @@ window.Screens.training = function (mount) {
         <p class="tr-modal-title" style="text-align:center;margin-bottom:8px;">${isFirst ? 'Создать первый план' : 'Начать новый план'}</p>
         <p style="font-size:13px;color:#9D9A92;text-align:center;line-height:1.6;margin-bottom:20px;">${isFirst
           ? 'Создаётся 8-недельная сетка. Заполняй её под себя: тип тренировки, группы мышц, упражнения.'
-          : 'Текущий план перейдёт в архив. Рабочие веса и упражнения сохранятся в новом плане.'
+          : 'Текущий план уйдёт в историю, тренировки этой недели переедут в новый. Прошлые веса подставятся сами, когда выберешь упражнение.'
         }</p>
         <div class="tr-modal-actions">
           <button class="tr-modal-btn-secondary" id="tr-new-plan-cancel">Отмена</button>
@@ -2636,16 +2665,16 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       return `
         <tr>
           <td class="tr-ww-name">${trEsc(ex.name)}</td>
-          <td class="tr-ww-num num">${ex.sets}</td>
-          <td class="tr-ww-num num">${ex.reps}</td>
-          <td class="tr-ww-num num tr-ww-weight">${String(ex.weight).replace(".", ",")}&nbsp;кг</td>
+          <td class="tr-ww-num num">${trEsc(ex.sets)}</td>
+          <td class="tr-ww-num num">${trEsc(ex.reps)}</td>
+          <td class="tr-ww-num num tr-ww-weight">${trEsc(String(ex.weight).replace(".", ","))}&nbsp;кг</td>
           <td class="tr-ww-num num tr-progress ${progress.dir}">${sign}${progress.pct}% ${arrow}</td>
         </tr>`;
     }).join('');
 
     return `
       <div class="tr-ww-group">
-        <div class="tr-ww-group-label fb-accent">${cat}</div>
+        <div class="tr-ww-group-label fb-accent">${trEsc(trGL(cat))}</div>
         <table class="tr-ww-table">
           <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th>Рост</th></tr></thead>
           <tbody>${exerciseRows}</tbody>
@@ -2849,10 +2878,10 @@ function nutrOpenAddModal(dateKey, meal, onSave) {
     container.innerHTML = items.map((p, i) => `
       <div class="nutr-result-item" data-idx="${i}">
         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div class="nutr-result-name">${p.name}${p.source === 'custom' || showCount ? '' : ''}</div>
-          <span class="nutr-result-kcal">${p.kcal} ккал</span>
+          <div class="nutr-result-name">${trEsc(p.name)}${p.source === 'custom' || showCount ? '' : ''}</div>
+          <span class="nutr-result-kcal">${trEsc(p.kcal)} ккал</span>
         </div>
-        <div class="nutr-result-meta">Б ${p.protein}г · Ж ${p.fat}г · У ${p.carbs}г · на 100г${showCount && p.count > 1 ? ' · ' + p.count + 'x' : ''}</div>
+        <div class="nutr-result-meta">Б ${trEsc(p.protein)}г · Ж ${trEsc(p.fat)}г · У ${trEsc(p.carbs)}г · на 100г${showCount && p.count > 1 ? ' · ' + p.count + 'x' : ''}</div>
       </div>`).join('');
     container.querySelectorAll('.nutr-result-item').forEach((el, i) => {
       el.addEventListener('click', () => {
@@ -2972,11 +3001,11 @@ function nutrRenderDay(dateKey, plan, onUpdate) {
     const itemsHtml = items.map((item, idx) => `
       <div class="nutr-food-item">
         <div class="nutr-food-left">
-          <div class="nutr-food-name">${item.name}</div>
+          <div class="nutr-food-name">${trEsc(item.name)}</div>
           <div class="nutr-food-meta">Б${Math.round(item.protein * item.grams / 100 * 10)/10} · Ж${Math.round(item.fat * item.grams / 100 * 10)/10} · У${Math.round(item.carbs * item.grams / 100 * 10)/10}</div>
         </div>
         <div class="nutr-food-right">
-          <input class="nutr-grams-inline" type="number" value="${item.grams}" min="1" data-meal="${meal}" data-idx="${idx}" style="width:52px; text-align:center; background:#0F1117; border:0.5px solid #2A2D35; border-radius:6px; color:#E8E5DC; font-size:12px; padding:3px 4px;">
+          <input class="nutr-grams-inline" type="number" value="${trEsc(item.grams)}" min="1" data-meal="${meal}" data-idx="${idx}" style="width:52px; text-align:center; background:#0F1117; border:0.5px solid #2A2D35; border-radius:6px; color:#E8E5DC; font-size:12px; padding:3px 4px;">
           <span class="nutr-food-kcal" id="kcal-${meal}-${idx}">${Math.round(item.kcal * item.grams / 100)} ккал</span>
           <button class="nutr-delete-btn" data-meal="${meal}" data-idx="${idx}" title="Удалить"><i class="ti ti-trash"></i></button>
         </div>
@@ -3061,14 +3090,14 @@ function trRenderNutrition(plan) {
   wrap.innerHTML = `
     <div class="tr-group-card" style="margin-bottom:12px;">
       <div class="tr-group-title fb-accent" style="display:flex; align-items:center;">
-        Цель · план №${plan.number}
+        Цель · план №${trEsc(plan.number)}
         <button class="nutr-edit-goal-btn" style="margin-left:auto; background:none; border:0.5px solid #2A2D35; border-radius:6px; color:#9D9A92; cursor:pointer; font-size:12px; padding:3px 8px;"><i class="ti ti-edit"></i> Изменить</button>
       </div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
-        <span style="font-size:13px; color:#2E7FD4;">${n.totalKcal} ккал</span>
-        <span style="font-size:13px; color:#A8C97F;">Б ${n.protein}г</span>
-        <span style="font-size:13px; color:#E0B873;">Ж ${n.fat}г</span>
-        <span style="font-size:13px; color:#B6A4D9;">У ${n.carbs}г</span>
+        <span style="font-size:13px; color:#2E7FD4;">${trEsc(n.totalKcal)} ккал</span>
+        <span style="font-size:13px; color:#A8C97F;">Б ${trEsc(n.protein)}г</span>
+        <span style="font-size:13px; color:#E0B873;">Ж ${trEsc(n.fat)}г</span>
+        <span style="font-size:13px; color:#B6A4D9;">У ${trEsc(n.carbs)}г</span>
       </div>
     </div>
     <div id="nutr-wrap"></div>`;
@@ -3102,9 +3131,9 @@ function trCollectExerciseHistory(plan, exerciseName) {
 }
 
 function trWasNowLabel(ex, metricLabelFn) {
-  if (ex.kind === 'cardio') return `${ex.distance} км`;
-  if (ex.kind === 'time_calorie') return `${ex.calories} ккал`;
-  if (ex.kind === 'steps') return `${ex.steps.toLocaleString('ru-RU')} шагов`;
+  if (ex.kind === 'cardio') return `${trEsc(ex.distance)} км`;
+  if (ex.kind === 'time_calorie') return `${trEsc(ex.calories)} ккал`;
+  if (ex.kind === 'steps') return `${(+ex.steps || 0).toLocaleString('ru-RU')} шагов`;
   return `${trTonnage(ex).toLocaleString('ru-RU')} кг`;
 }
 
@@ -3136,7 +3165,7 @@ function trRenderWasNowRow(exerciseName, plan) {
     return `
       <div class="tr-exercise" style="cursor:default">
         <div class="tr-ex-top">
-          <div class="tr-ex-name">${exerciseName}</div>
+          <div class="tr-ex-name">${trEsc(exerciseName)}</div>
           <div class="tr-ex-stats"><span class="tr-ex-weight num">${label}</span></div>
         </div>
         <div class="tr-ex-bottom"><div class="tr-ex-meta num">${count} ${count === 1 ? 'запись' : 'записей'}</div></div>
@@ -3160,8 +3189,8 @@ function trRenderWasNowRow(exerciseName, plan) {
     return `
       <div class="tr-exercise" style="cursor:default">
         <div class="tr-ex-top">
-          <div class="tr-ex-name">${exerciseName}</div>
-          <div class="tr-ex-stats"><span class="tr-ex-weight num">${trWasNowLabel(last.ex)}</span></div>
+          <div class="tr-ex-name">${trEsc(exerciseName)}</div>
+          <div class="tr-ex-stats"><span class="tr-ex-weight num">${trEsc(trWasNowLabel(last.ex))}</span></div>
         </div>
         <div class="tr-ex-bottom"><div class="tr-ex-meta num">только одна запись</div></div>
       </div>`;
@@ -3170,10 +3199,10 @@ function trRenderWasNowRow(exerciseName, plan) {
   return `
     <div class="tr-exercise" style="cursor:default">
       <div class="tr-ex-top">
-        <div class="tr-ex-name">${exerciseName}</div>
+        <div class="tr-ex-name">${trEsc(exerciseName)}</div>
         <div class="tr-ex-stats"><span class="tr-progress ${dir}">${sign}${pct}% ${arrow}</span></div>
       </div>
-      <div class="tr-ex-bottom"><div class="tr-ex-meta num">было ${trWasNowLabel(first.ex)} → стало ${trWasNowLabel(last.ex)}</div></div>
+      <div class="tr-ex-bottom"><div class="tr-ex-meta num">было ${trEsc(trWasNowLabel(first.ex))} → стало ${trEsc(trWasNowLabel(last.ex))}</div></div>
     </div>`;
 }
 
@@ -3196,7 +3225,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   if (!first) return '';
 
   const fw = (v) => String(Math.round((+v || 0) * 10) / 10).replace('.', ',');
-  const lbl = (e) => (+e.weight || 0) > 0 ? `${e.sets}×${e.reps}×${fw(e.weight)} кг` : `${e.sets}×${e.reps}`;
+  const lbl = (e) => (+e.weight || 0) > 0 ? `${trEsc(e.sets)}×${trEsc(e.reps)}×${fw(e.weight)} кг` : `${trEsc(e.sets)}×${trEsc(e.reps)}`;
   const w1 = +first.ex.weight || 0, wN = +last.ex.weight || 0;
   const r1 = (+first.ex.sets || 0) * (+first.ex.reps || 0), rN = (+last.ex.sets || 0) * (+last.ex.reps || 0);
   /* со своим весом (0 кг) сравниваем повторы, а не килограммы */
@@ -3220,13 +3249,13 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   return `
     <div class="tr-exercise" style="cursor:default;">
       <div class="tr-ex-top">
-        <div class="tr-ex-name">${exerciseName}</div>
+        <div class="tr-ex-name">${trEsc(exerciseName)}</div>
         <div class="tr-ex-stats">${head}</div>
       </div>
       <div class="tr-ex-bottom">
         <div class="tr-ex-meta num" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          ${n < 2 ? `<span style="color:#E8E5DC;">Нед.${last.wi + 1}: ${lbl(last.ex)}</span>`
-            : `<span style="color:#9D9A92;">Нед.${first.wi + 1}: ${lbl(first.ex)}</span><span style="color:#555;">→</span><span style="color:#E8E5DC;">Нед.${last.wi + 1}: ${lbl(last.ex)}</span>`}
+          ${n < 2 ? `<span style="color:#E8E5DC;">Неделя ${last.wi + 1}: ${lbl(last.ex)}</span>`
+            : `<span style="color:#9D9A92;">Неделя ${first.wi + 1}: ${lbl(first.ex)}</span><span style="color:#555;">→</span><span style="color:#E8E5DC;">Неделя ${last.wi + 1}: ${lbl(last.ex)}</span>`}
         </div>
       </div>
       ${bar}
@@ -3267,7 +3296,7 @@ function trRenderSummary(plan) {
     if (!rows) return '';
     return `
       <div class="tr-group-card">
-        <div class="tr-group-title">${g} <span class="tr-group-range">· прогрессия веса</span></div>
+        <div class="tr-group-title">${trEsc(trGL(g))} <span class="tr-group-range">· прогрессия веса</span></div>
         <div class="tr-day">${rows}</div>
       </div>`;
   }).filter(Boolean).join('');
@@ -3294,7 +3323,7 @@ function trRenderSummary(plan) {
     const rows = Array.from(otherByType[t]).map(name => trRenderWasNowRow(name, plan)).join('');
     return `
       <div class="tr-group-card">
-        <div class="tr-group-title">${t} <span class="tr-group-range">· было → стало</span></div>
+        <div class="tr-group-title">${trEsc(t)} <span class="tr-group-range">· было → стало</span></div>
         <div class="tr-day">${rows}</div>
       </div>`;
   }).join('');
@@ -3322,14 +3351,14 @@ function trRenderMeasurementsBlock() {
         return `
           <div class="tr-measure-card">
             <div class="tr-measure-date-row">
-              <span class="tr-measure-date">${m.date}</span>
+              <span class="tr-measure-date">${trEsc(m.date)}</span>
               <span style="display:flex; gap:4px;">
                 <button class="tr-measure-edit" data-idx="${realIdx}" aria-label="Редактировать замер"><i class="ti ti-edit"></i></button>
                 <button class="tr-measure-delete" data-idx="${realIdx}" aria-label="Удалить замер"><i class="ti ti-trash"></i></button>
               </span>
             </div>
             <div class="tr-measure-grid">
-              ${fields.map(f => `<div class="tr-measure-item"><span>${f}</span><span>${m.values[f]}</span></div>`).join('')}
+              ${fields.map(f => `<div class="tr-measure-item"><span>${trEsc(f)}</span><span>${trEsc(m.values[f])}</span></div>`).join('')}
             </div>
           </div>`;
       }).join('');
@@ -3354,8 +3383,8 @@ function trOpenMeasureModal(onSave, existingIdx) {
   const prevM = isEdit ? (list[existingIdx - 1] || null) : (list.filter(Boolean).slice(-1)[0] || null);
   const formInner = window.BodyProgress && BodyProgress.formHtml
     ? BodyProgress.formHtml(values, prevM ? prevM.values : {}, dateValue)
-    : `<div class="tr-modal-row"><label style="flex:1 1 100%">Дата (ДД.ММ.ГГГГ)<input type="text" id="m-measure-date" value="${dateValue}"></label></div>
-       <div class="tr-measure-form-grid">${MEASURE_FIELDS.map(f => `<label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" value="${values[f] !== undefined ? values[f] : ''}"></label>`).join('')}</div>`;
+    : `<div class="tr-modal-row"><label style="flex:1 1 100%">Дата (ДД.ММ.ГГГГ)<input type="text" id="m-measure-date" value="${trEsc(dateValue)}"></label></div>
+       <div class="tr-measure-form-grid">${MEASURE_FIELDS.map(f => `<label class="tr-measure-form-field">${f}<input type="text" data-field="${f}" inputmode="decimal" value="${trEsc(values[f] !== undefined ? values[f] : '')}"></label>`).join('')}</div>`;
   overlay.innerHTML = `
     <div class="tr-modal mf-modal">
       <p class="tr-modal-title">${isEdit ? 'Редактировать замер' : 'Новый замер'}</p>
@@ -3377,18 +3406,15 @@ function trOpenMeasureModal(onSave, existingIdx) {
   });
   overlay.querySelector('#m-save').addEventListener('click', () => {
     let newValues = {}, newDate = '';
-    if (window.BodyProgress && BodyProgress.readForm && overlay.querySelector('.mf')) { const r = BodyProgress.readForm(overlay); newValues = r.values; newDate = r.date; }
+    if (window.BodyProgress && BodyProgress.readForm && overlay.querySelector('.mf')) { const r = BodyProgress.readForm(overlay); if (r.bad && r.bad.length) { alert('Нужно число: ' + r.bad.join(', ')); return; } newValues = r.values; newDate = r.date; }
     else { overlay.querySelectorAll('input[data-field]').forEach(input => { if (input.value.trim() !== '') newValues[input.dataset.field] = input.value.trim(); }); newDate = overlay.querySelector('#m-measure-date').value.trim(); }
     newDate = newDate || defaultDate;
     if (!Object.keys(newValues).length) { alert('Заполни хотя бы один замер'); return; }
     trSnapshotBeforeChange();
     const freshList = Store.get().training.measurements || [];
-    if (isEdit) {
-      freshList[existingIdx] = { date: newDate, values: newValues };
-    } else {
-      freshList.push({ date: newDate, values: newValues });
-    }
-    freshList.forEach((m, i) => { if (m) Store.set('training.measurements.' + i, m); });
+    /* пишем только изменённый замер: свежие записи с другого устройства не затираются */
+    const at = isEdit ? existingIdx : freshList.length;
+    Store.set('training.measurements.' + at, { date: newDate, values: newValues });
     overlay.remove();
     onSave();
   });
@@ -3398,7 +3424,8 @@ function trDeleteMeasurement(idx, onSave) {
   trSnapshotBeforeChange();
   const list = Store.get().training.measurements || [];
   list.splice(idx, 1);
-  list.forEach((m, i) => { if (m) Store.set('training.measurements.' + i, m); });
+  /* весь список целиком: иначе в облаке остаётся последний индекс и замер «воскресает» */
+  Store.set('training.measurements', list.filter(Boolean));
   onSave();
 }
 

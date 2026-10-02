@@ -11,9 +11,9 @@
 window.FinPiggy = (function () {
   const WITHDRAW_CATS = [
     { id: 'health', label: 'Здоровье',      icon: 'ti-heart-rate-monitor' },
-    { id: 'repair', label: 'Поломка/ремонт', icon: 'ti-tool' },
+    { id: 'repair', label: 'Ремонт', icon: 'ti-tool' },
     { id: 'car',    label: 'Машина',        icon: 'ti-car' },
-    { id: 'docs',   label: 'Налоги/штрафы', icon: 'ti-file-invoice' },
+    { id: 'docs',   label: 'Налоги и штрафы', icon: 'ti-file-invoice' },
     { id: 'work',   label: 'Для работы',    icon: 'ti-briefcase' },
     { id: 'other',  label: 'Другое',        icon: 'ti-dots' },
   ];
@@ -164,16 +164,18 @@ window.FinPiggy = (function () {
           <div class="pg-err" id="pg-err"></div>
           <div class="pg-sheet-actions">
             <button class="pg-sbtn pg-sbtn-ghost" data-close>Отмена</button>
-            <button class="pg-sbtn pg-sbtn-main" id="pg-next">Дальше</button>
+            <button class="pg-sbtn pg-sbtn-main" id="pg-next">Далее</button>
           </div>`;
         box.querySelectorAll('.pg-cat').forEach(b => b.addEventListener('click', () => {
           cat = b.dataset.cat; box.querySelectorAll('.pg-cat').forEach(x => x.classList.toggle('on', x === b));
         }));
         box.querySelector('#pg-next').addEventListener('click', () => {
-          amount = Math.round(parseFloat(box.querySelector('#pg-amt').value) || 0);
+          amount = Math.round(parseFloat(String(box.querySelector('#pg-amt').value).replace(',', '.')) || 0);
           note = box.querySelector('#pg-note').value.trim();
           const err = box.querySelector('#pg-err');
-          if (amount <= 0) { err.textContent = 'Укажи сумму'; return; }
+          if (!(amount > 0)) { err.textContent = 'Укажи сумму'; return; }
+          /* копилка не уходит в минус */
+          if (amount > c.balance) { err.textContent = c.balance > 0 ? 'В копилке только ' + fmt(c.balance) : 'Копилка пока пустая'; return; }
           if (!note) { err.textContent = 'Напиши, на что именно: так проще честно оценить трату'; return; }
           step = 2; render();
         });
@@ -207,7 +209,7 @@ window.FinPiggy = (function () {
         const upd = () => {
           const n = qs.filter(q => q.checked).length;
           conf.disabled = n < qs.length;
-          imp.style.display = (n < qs.length && qs.some(q => q.dataset.touched)) ? '' : 'none';
+          imp.style.display = (n < qs.length && qs.some(q => q.dataset.touched)) ? 'block' : 'none';
         };
         qs.forEach(q => q.addEventListener('change', () => { q.dataset.touched = '1'; upd(); }));
         upd();
@@ -236,7 +238,7 @@ window.FinPiggy = (function () {
   function openDeposit(done) {
     const ov = sheet(`
       <div class="pg-sheet-head"><span>Пополнить копилку</span><button class="pg-x" data-close>×</button></div>
-      <div class="pg-hint">Отчисления с доходов добавляются сами. Здесь можно добавить, если отложил что-то сверху.</div>
+      <div class="pg-hint">Процент с доходов копится сам. Здесь добавь то, что отложил сверху.</div>
       <label class="pg-field">Сумма<input id="pg-amt" type="number" inputmode="numeric" placeholder="0"></label>
       <label class="pg-field">Комментарий<input id="pg-note" type="text" placeholder="Необязательно"></label>
       <div class="pg-err" id="pg-err"></div>
@@ -246,8 +248,8 @@ window.FinPiggy = (function () {
       </div>`);
     setTimeout(() => ov.querySelector('#pg-amt').focus(), 50);
     ov.querySelector('#pg-ok').addEventListener('click', () => {
-      const amount = Math.round(parseFloat(ov.querySelector('#pg-amt').value) || 0);
-      if (amount <= 0) { ov.querySelector('#pg-err').textContent = 'Укажи сумму'; return; }
+      const amount = Math.round(parseFloat(String(ov.querySelector('#pg-amt').value).replace(',', '.')) || 0);
+      if (!(amount > 0) || amount > 1e9) { ov.querySelector('#pg-err').textContent = 'Укажи сумму'; return; }
       const p = get();
       p.ops.push({ id: 'pg_' + Date.now(), type: 'deposit', amount, date: today(), note: ov.querySelector('#pg-note').value.trim() });
       save(p); ov.remove(); done();
@@ -260,7 +262,7 @@ window.FinPiggy = (function () {
       <div class="pg-sheet-head"><span>Обнулить копилку?</span><button class="pg-x" data-close>×</button></div>
       <div class="pg-warn"><div class="pg-warn-amt">${fmt(c.balance)} → 0₽</div>
         <div class="pg-warn-txt">Баланс станет нулевым, отчисления со следующих доходов продолжат копиться. История месяцев и операций сохранится.</div></div>
-      <label class="pg-check"><input type="checkbox" id="pg-sure"><span>Да, я перевёл/потратил эти деньги и хочу начать заново</span></label>
+      <label class="pg-check"><input type="checkbox" id="pg-sure"><span>Да, этих денег в копилке уже нет</span></label>
       <div class="pg-sheet-actions">
         <button class="pg-sbtn pg-sbtn-ghost" data-close>Отмена</button>
         <button class="pg-sbtn pg-sbtn-danger" id="pg-ok" disabled>Обнулить</button>
@@ -285,7 +287,7 @@ window.FinPiggy = (function () {
     }
     const ov = sheet(`
       <div class="pg-sheet-head"><span>Настройки копилки</span><button class="pg-x" data-close>×</button></div>
-      <label class="pg-field">Считать отчисления с месяца<select id="pg-start">${opts}</select></label>
+      <label class="pg-field">Копить с какого месяца<select id="pg-start">${opts}</select></label>
       <label class="pg-field">Уже было в копилке на старте, ₽<input id="pg-init" type="number" inputmode="numeric" value="${p.initial || ''}" placeholder="0"></label>
       <div class="pg-hint">Процент отчислений меняется в «Настроить расходы и цель» ниже.</div>
       <div class="pg-sheet-actions">

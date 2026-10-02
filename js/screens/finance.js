@@ -15,8 +15,8 @@ if (!window._finConsts) {
                       'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   window.FIN_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   window.FIN_LABEL_COLORS = {
-    '':       { hex: '#16A34A', name: 'Зелёный (осн.)' },
-    'blue':   { hex: '#16A34A', name: 'Синий (другой источник)' },
+    '':       { hex: '#16A34A', name: 'Зелёный, основной' },
+    'blue':   { hex: '#3B82F6', name: 'Синий, другой источник' },
     'purple': { hex: '#818CF8', name: 'Индиго' },
     'orange': { hex: '#F59E0B', name: 'Оранжевый' },
   };
@@ -52,9 +52,15 @@ window.FIN_DEFAULT_CATS = [
     { id:'b15', name:'Непредвиденные расходы',      amt:5000,  color:'#EF4444' },
   ];
 
+/* пользовательский текст в HTML только через экранирование */
+function finEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
 function finEntries(year, month) {
   const mm = String(month+1).padStart(2,'0');
-  return ((Store.get().finance||{}).years||{})[year] && (((Store.get().finance.years||{})[year]||{})[mm]||{}).entries || [];
+  const raw = (((((Store.get().finance||{}).years||{})[year])||{})[mm]||{}).entries;
+  /* Firebase может отдать объект {0:…} или массив с пустыми элементами */
+  const arr = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.keys(raw).sort((a,b)=>a-b).map(k=>raw[k]) : []);
+  return arr.filter(e => e && typeof e === 'object');
 }
 
 function finSave(year, month, entries) {
@@ -63,7 +69,7 @@ function finSave(year, month, entries) {
 }
 
 function finSum(entries) {
-  return entries.reduce((s,e) => s+(e.amount||0), 0);
+  return entries.reduce((s,e) => s+(e && isFinite(+e.amount) ? +e.amount : 0), 0);
 }
 
 function finFmt(n) {
@@ -111,10 +117,10 @@ function finOpenModal(existing, year, month, onSave) {
   overlay.className = 'tr-modal-overlay modal-finance';
   overlay.innerHTML = `
     <div class="tr-modal">
-      <p class="tr-modal-title" style="margin-bottom:16px;">${isEdit?'Редактировать приход':'Новый приход'}</p>
+      <p class="tr-modal-title" style="margin-bottom:16px;">${isEdit?'Изменить доход':'Новый доход'}</p>
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Сумма, ₽
-          <input type="number" id="fin-amount" value="${existing?.amount||''}" inputmode="numeric" placeholder="0" style="font-size:18px;font-weight:600;">
+          <input type="text" id="fin-amount" value="${finEsc(existing?.amount||'')}" inputmode="decimal" placeholder="0" style="font-size:18px;font-weight:600;">
         </label>
       </div>
       <div class="tr-modal-row">
@@ -130,6 +136,7 @@ function finOpenModal(existing, year, month, onSave) {
           </select>
         </label>
       </div>
+      <div class="sp-err" id="fin-err" style="color:#F87171;font-size:13px;min-height:18px;margin-top:4px;"></div>
       <div class="tr-modal-actions">
         ${isEdit?'<button class="tr-modal-btn-secondary" id="fin-del" style="color:#FF5C5C;">Удалить</button>':'<button class="tr-modal-btn-secondary" id="fin-cancel">Отмена</button>'}
         <button class="tr-modal-btn-primary" id="fin-save">Сохранить</button>
@@ -141,12 +148,15 @@ function finOpenModal(existing, year, month, onSave) {
   const cb=overlay.querySelector('#fin-cancel');
   if(cb)cb.addEventListener('click',()=>overlay.remove());
   const db=overlay.querySelector('#fin-del');
-  if(db)db.addEventListener('click',()=>{onSave(null);overlay.remove();});
+  if(db)db.addEventListener('click',()=>{ if(!confirm('Удалить доход '+finFmtFull(+existing.amount||0)+'?'))return; onSave(null);overlay.remove();});
 
   overlay.querySelector('#fin-save').addEventListener('click',()=>{
-    const amount = parseFloat(overlay.querySelector('#fin-amount').value)||0;
-    if(!amount)return;
+    const err = (t) => { overlay.querySelector('#fin-err').textContent = t; };
+    const amount = Math.round(parseFloat(String(overlay.querySelector('#fin-amount').value).replace(/\s/g,'').replace(',','.')) * 100) / 100;
+    if(!(amount > 0)) return err('Укажи сумму больше нуля');
+    if(amount > 1e9) return err('Слишком большая сумма, проверь');
     const iso = overlay.querySelector('#fin-date').value; // yyyy-mm-dd
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return err('Выбери дату');
     const [y,m,d] = iso.split('-');
     const dateStr = `${d}.${m}.${y}`;
     const color = overlay.querySelector('#fin-color').value;
@@ -159,7 +169,7 @@ window.Screens.finance = function(mount) {
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
-  let activeTab = 'month';
+  let activeTab = 'expenses'; /* чаще всего нужно «сколько можно потратить», поэтому открываемся на «Расходах» */
 
   mount.innerHTML = `
     <div class="tochka-screen">
@@ -174,8 +184,8 @@ window.Screens.finance = function(mount) {
         </div>
       </div>
       <div class="tochka-tabs" style="position:sticky;top:0;z-index:10;">
-        <button class="tochka-tab active" data-tab="month">Месяц</button>
-        <button class="tochka-tab" data-tab="expenses">Расходы</button>
+        <button class="tochka-tab" data-tab="month">Месяц</button>
+        <button class="tochka-tab active" data-tab="expenses">Расходы</button>
         <button class="tochka-tab" data-tab="balance">Баланс</button>
         <button class="tochka-tab" data-tab="year">Год</button>
         <button class="tochka-tab" data-tab="all">Всё время</button>
@@ -257,22 +267,25 @@ window.Screens.finance = function(mount) {
 
       <div class="tochka-list">
         <div class="tochka-list-head">
-          <span class="tochka-list-title">Приходы</span>
+          <span class="tochka-list-title">Доходы</span>
           <button id="fin-add" class="tochka-add-btn"><i class="ti ti-plus"></i> Добавить</button>
         </div>
         ${(()=>{
           if(!sorted.length) return '<div class="tochka-empty">Нет записей, добавь первую</div>';
-          const grps={};sorted.forEach(e=>{if(!grps[e.date])grps[e.date]=[];grps[e.date].push(e);});
-          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+date+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(e.amount)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+e.label+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
+          const grps={};sorted.forEach(e=>{const dk=e.date&&!/undefined/.test(e.date)?e.date:'Без даты';if(!grps[dk])grps[dk]=[];grps[dk].push(e);});
+          return Object.entries(grps).map(([date,items])=>'<div class="tochka-date-group"><div class="tochka-date-label">'+finEsc(date)+'</div>'+items.map(e=>{const c=FIN_LABEL_COLORS[e.color||""]?.hex||"#1A9E6E";const i=entries.indexOf(e);return "<div class=\"tochka-row fin2-edit\" data-idx=\""+i+"\"><div class=\"tochka-row-left\"><div class=\"tochka-row-amount\" style=\"color:"+c+"\">+"+finFmtFull(isFinite(+e.amount)?+e.amount:0)+"</div>"+(e.label?"<div class=\"tochka-row-label\">"+finEsc(e.label)+"</div>":"")+"</div><div class=\"tochka-row-icon\" style=\"background:"+c+"22;color:"+c+"\"><i class=\"ti ti-arrow-down-left\"></i></div></div>";}).join('')+'</div>').join('');
         })()}
       </div>`;
 
     document.getElementById('fin-add').addEventListener('click',()=>{
       finOpenModal(null,vYear,vMonth,result=>{
         if(!result)return;
-        const list=finEntries(vYear,vMonth);
+        /* приход ложится в месяц своей даты; если это другой месяц, переходим туда */
+        const [,tm,ty]=result.date.split('.').map(Number);
+        const list=finEntries(ty,tm-1);
         list.push(result);
-        finSave(vYear,vMonth,list);
+        finSave(ty,tm-1,list);
+        vYear=ty; vMonth=tm-1;
         render();
       });
     });
@@ -281,9 +294,10 @@ window.Screens.finance = function(mount) {
         const list=finEntries(vYear,vMonth);
         const idx=parseInt(btn.dataset.idx);
         finOpenModal(list[idx],vYear,vMonth,result=>{
-          if(result===null)list.splice(idx,1);
-          else list[idx]=result;
-          finSave(vYear,vMonth,list);
+          if(result===null){ list.splice(idx,1); finSave(vYear,vMonth,list); render(); return; }
+          const [,tm,ty]=result.date.split('.').map(Number);
+          if(ty===vYear&&tm-1===vMonth){ list[idx]=result; finSave(vYear,vMonth,list); }
+          else { list.splice(idx,1); finSave(vYear,vMonth,list); const t=finEntries(ty,tm-1); t.push(result); finSave(ty,tm-1,t); vYear=ty; vMonth=tm-1; }
           render();
         });
       });
@@ -326,18 +340,18 @@ window.Screens.finance = function(mount) {
           : '<div class="tochka-hero-pct neu">Нет данных за прошлый год</div>'}
       </div>
 
-      <div class="tochka-stats-row">
+      ${months.some(m=>m.income>0) ? `<div class="tochka-stats-row">
         <div class="tochka-stat">
-          <div class="tochka-stat-label">Средняя / мес</div>
+          <div class="tochka-stat-label">В среднем за месяц</div>
           <div class="tochka-stat-val">${finFmtFull(avgIncome)}</div>
-          <div class="tochka-stat-sub">за ${passedMonths.length} мес.</div>
+          <div class="tochka-stat-sub">за ${passedMonths.length} ${passedMonths.length%10===1&&passedMonths.length%100!==11?'месяц':passedMonths.length%10>=2&&passedMonths.length%10<=4&&(passedMonths.length%100<12||passedMonths.length%100>14)?'месяца':'месяцев'}</div>
         </div>
         <div class="tochka-stat">
           <div class="tochka-stat-label">Лучший месяц</div>
-          <div class="tochka-stat-val">${months.reduce((a,b)=>a.income>b.income?a:b).short}</div>
+          <div class="tochka-stat-val">${months.reduce((a,b)=>a.income>b.income?a:b).label||months.reduce((a,b)=>a.income>b.income?a:b).short}</div>
           <div class="tochka-stat-sub">${finFmt(Math.max(...months.map(m=>m.income)))}</div>
         </div>
-      </div>
+      </div>` : '<div class="tochka-empty">Доходов за этот год пока нет</div>'}
 
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${months.filter(m=>m.income>0).map(m=>`
@@ -419,7 +433,9 @@ window.Screens.finance = function(mount) {
 
     /* Настройки из Store */
     const stored = Store.get().finance?.balance || {};
-    const GOAL_INCOME = stored.goalIncome || 291500;
+    /* цель дохода: своя, а если не задана, доход этого или прошлого месяца (раньше у всех стояло чужое число) */
+    const _gNow = new Date(), _gPrev = new Date(_gNow.getFullYear(), _gNow.getMonth() - 1, 1);
+    const GOAL_INCOME = stored.goalIncome || finSum(finEntries(_gNow.getFullYear(), _gNow.getMonth())) || finSum(finEntries(_gPrev.getFullYear(), _gPrev.getMonth())) || 0;
     /* 0% в копилку тоже осознанный выбор, поэтому не «|| 30» */
     const SAVE_PCT = stored.savePct != null && isFinite(+stored.savePct) ? +stored.savePct : 30;
     const escH = FS ? FS.esc : (x => String(x == null ? '' : x).replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';'));
@@ -508,7 +524,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-ico" style="--c:#16A34A;"><i class="ti ti-pig-money"></i></div>
           <div class="plan-main">
             <div class="plan-name">Сразу в копилку</div>
-            <div class="plan-desc">${SAVE_PCT}% с каждого поступления, без исключений</div>
           </div>
           <div class="plan-val"><b style="color:#16A34A;">${finFmtFull(savingsAmt)}</b><span>${SAVE_PCT}%</span></div>
         </div>
@@ -517,7 +532,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-ico" style="--c:#6366F1;"><i class="ti ti-home-dollar"></i></div>
           <div class="plan-main">
             <div class="plan-name">Базовые расходы</div>
-            <div class="plan-desc">Оплачиваются в первую очередь</div>
           </div>
           <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctOf(totalBase)}%</span></div>
         </div>
@@ -536,8 +550,8 @@ window.Screens.finance = function(mount) {
         <div class="plan-step">
           <div class="plan-ico" style="--c:${shortAmt ? '#DC2626' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-alert-triangle' : 'ti-target-arrow'}"></i></div>
           <div class="plan-main">
-            <div class="plan-name">${shortAmt ? 'Не хватает на базу' : 'Свободно на цели'}</div>
-            <div class="plan-desc">${shortAmt ? 'Доход меньше, чем копилка и базовые расходы' : 'Цели, желания, удовольствия'}</div>
+            <div class="plan-name">${shortAmt ? 'Доход меньше обязательных трат' : 'Свободно на цели'}</div>
+            <div class="plan-desc">${shortAmt ? 'Доход меньше, чем копилка и базовые расходы' : ''}</div>
           </div>
           <div class="plan-val"><b style="color:${shortAmt ? '#DC2626' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctOf(freeAmt) + '%'}</span></div>
         </div>
@@ -546,7 +560,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-ico" style="--c:#F59E0B;"><i class="ti ti-umbrella"></i></div>
           <div class="plan-main">
             <div class="plan-name">Внеплановая трата</div>
-            <div class="plan-desc">Берёшь из копилки, а не из свободного остатка</div>
           </div>
         </div>
       </div>
@@ -581,7 +594,7 @@ window.Screens.finance = function(mount) {
       ov.innerHTML = `<div class="tr-modal sp-edit" style="max-height:85vh;overflow-y:auto;">
         <p class="tr-modal-title">Настройки баланса</p>
         <div class="tr-modal-row">
-          <label style="flex:1">Цель дохода, ₽<input type="text" id="bi-goal" value="${GOAL_INCOME}" inputmode="numeric"></label>
+          <label style="flex:1">Цель дохода, ₽<input type="text" id="bi-goal" value="${GOAL_INCOME || ''}" inputmode="numeric" placeholder="Например, 100000"></label>
           <label style="width:96px;">Копилка, %<input type="number" id="bi-pct" value="${SAVE_PCT}" min="0" max="100" inputmode="numeric"></label>
         </div>
         <p class="ce-h">Категории расходов</p>
@@ -634,9 +647,9 @@ window.Screens.finance = function(mount) {
     ov.innerHTML = '<div class="tr-modal">'
       + '<p class="tr-modal-title">'+title+'</p>'
       + (isSrc
-        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
+        ? '<div class="tr-modal-row"><label style="flex:1 1 100%">Источник<input type="text" id="em-src" value="'+finEsc(item&&item.source||'')+'" placeholder="Клиент, проект…"></label></div>'
         + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма потенциала, ₽<input type="number" id="em-srca" value="'+(item&&item.sourceAmt||'')+'" inputmode="numeric" placeholder="0"></label></div>'
-        : '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+(item&&item.name||'')+'" placeholder="Название"></label></div>'
+        : '<div class="tr-modal-row"><label style="flex:1 1 100%">Вид расхода<input type="text" id="em-name" value="'+finEsc(item&&item.name||'')+'" placeholder="Название"></label></div>'
         + '<div class="tr-modal-row"><label style="flex:1 1 100%">Сумма, ₽<input type="number" id="em-amt" value="'+(item&&item.amount||'')+'" inputmode="numeric" placeholder="0"></label></div>')
       + '<div class="tr-modal-actions">'
       + (isEdit ? '<button class="tr-modal-btn-secondary" id="em-del" style="color:#EF4444;">Удалить</button>' : '<button class="tr-modal-btn-secondary" id="em-cancel">Отмена</button>')
@@ -675,11 +688,11 @@ window.Screens.finance = function(mount) {
     var rows = list.map(function(e,i){
       return '<tr data-idx="'+i+'">'
         + dragL(i)
-        + '<td class="exp-cl xp-name" data-idx="'+i+'" data-side="expense">'+(e.name||'')+'</td>'
+        + '<td class="exp-cl xp-name" data-idx="'+i+'" data-side="expense">'+finEsc(e.name||'')+'</td>'
         + '<td class="exp-cl xp-amt xp-red" data-idx="'+i+'" data-side="expense">'+(e.amount?finFmtFull(e.amount):'')+'</td>'
         + '<td class="xp-sep"></td>'
         + dragR(i)
-        + '<td class="exp-cr xp-name xp-green" data-idx="'+i+'" data-side="source">'+(e.source||'')+'</td>'
+        + '<td class="exp-cr xp-name xp-green" data-idx="'+i+'" data-side="source">'+finEsc(e.source||'')+'</td>'
         + '<td class="exp-cr xp-amt xp-green" data-idx="'+i+'" data-side="source">'+(e.sourceAmt?finFmtFull(e.sourceAmt):'')+'</td>'
         + '</tr>';
     }).join('');

@@ -3383,12 +3383,9 @@ function trOpenMeasureModal(onSave, existingIdx) {
     if (!Object.keys(newValues).length) { alert('Заполни хотя бы один замер'); return; }
     trSnapshotBeforeChange();
     const freshList = Store.get().training.measurements || [];
-    if (isEdit) {
-      freshList[existingIdx] = { date: newDate, values: newValues };
-    } else {
-      freshList.push({ date: newDate, values: newValues });
-    }
-    freshList.forEach((m, i) => { if (m) Store.set('training.measurements.' + i, m); });
+    /* пишем только изменённый замер: свежие записи с другого устройства не затираются */
+    const at = isEdit ? existingIdx : freshList.length;
+    Store.set('training.measurements.' + at, { date: newDate, values: newValues });
     overlay.remove();
     onSave();
   });
@@ -3398,7 +3395,8 @@ function trDeleteMeasurement(idx, onSave) {
   trSnapshotBeforeChange();
   const list = Store.get().training.measurements || [];
   list.splice(idx, 1);
-  list.forEach((m, i) => { if (m) Store.set('training.measurements.' + i, m); });
+  /* весь список целиком: иначе в облаке остаётся последний индекс и замер «воскресает» */
+  Store.set('training.measurements', list.filter(Boolean));
   onSave();
 }
 

@@ -96,18 +96,27 @@ const FirebaseSync = (() => {
       const sections = new Set();
       for (const [path] of entries) sections.add(path.split('.')[0]);
       if (isCoachUser(_auth.currentUser)) [...sections].forEach(t => { if (t !== 'training') sections.delete(t); });
-      /* Клиента ведёт тренер: если тренер успел поменять план — сначала берём его версию */
+      /* Клиента ведёт тренер: пишем только изменённые пути тренировок, а не раздел целиком.
+         Если тренер успел поменять план, берём его версию и накладываем сверху свои правки,
+         ничего своего не выбрасываем */
       if (sections.has('training') && _myTrainer && !isCoachUser(_auth.currentUser)) {
-        try {
-          const rs = await get(ref(_db, root + '/training/coachRev'));
-          const srv = rs.exists() ? +rs.val() : 0, loc = +((Store.get().training || {}).coachRev || 0);
-          if (srv > loc) {
-            const ts = await get(ref(_db, root + '/training'));
-            const cur = Store.get(); cur.training = ts.val() || cur.training; Store.replaceAll(cur);
-            sections.delete('training');
-            window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: { conflict: true } }));
-          }
-        } catch (e) {}
+        const tp = [...new Set(entries.map(([p]) => p).filter(p => p === 'training' || p.startsWith('training.')))];
+        const keep = tp.filter(p => !tp.some(q => q !== p && p.startsWith(q + '.')));
+        const at = (obj, keys) => keys.reduce((o, k) => (o == null ? undefined : o[k]), obj);
+        const put = (obj, keys, v) => { let o = obj; keys.slice(0, -1).forEach(k => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }); o[keys[keys.length - 1]] = v; };
+        let srv = 0, loc = +((Store.get().training || {}).coachRev || 0);
+        try { const rs = await get(ref(_db, root + '/training/coachRev')); srv = rs.exists() ? +rs.val() : 0; } catch (e) {}
+        if (srv > loc && !keep.includes('training')) {
+          const ts = await get(ref(_db, root + '/training'));
+          const merged = ts.val() || {};
+          keep.forEach(p => put(merged, p.split('.').slice(1), at(Store.get(), p.split('.'))));
+          const cur = Store.get(); cur.training = merged; Store.replaceAll(cur);
+          window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: { conflict: true } }));
+        }
+        const up = {};
+        keep.forEach(p => { const v = at(Store.get(), p.split('.')); up[root + '/' + p.split('.').join('/')] = v === undefined ? null : sanitizeKeys(v); });
+        if (Object.keys(up).length) await update(ref(_db), up);
+        sections.delete('training');
       }
       for (const top of sections) {
         const data = Store.get()[top];

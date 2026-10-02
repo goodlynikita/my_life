@@ -289,7 +289,7 @@ window.FinPiggy = (function () {
       <div class="pg-sheet-head"><span>Настройки копилки</span><button class="pg-x" data-close>×</button></div>
       <label class="pg-field">Копить с какого месяца<select id="pg-start">${opts}</select></label>
       <label class="pg-field">Уже было в копилке на старте, ₽<input id="pg-init" type="number" inputmode="numeric" value="${p.initial || ''}" placeholder="0"></label>
-      <div class="pg-hint">Процент отчислений меняется в «Настроить расходы и цель» ниже.</div>
+      <div class="pg-hint">Процент отчислений меняется в настройках баланса: шестерёнка у «Как распределить доход».</div>
       <div class="pg-sheet-actions">
         <button class="pg-sbtn pg-sbtn-ghost" data-close>Отмена</button>
         <button class="pg-sbtn pg-sbtn-main" id="pg-ok">Сохранить</button>

@@ -74,7 +74,17 @@ window.FinSpend = (function () {
 
   /* запись без времени попадает на первое число своего месяца */
   function monthStart(ym) { const [y, m] = String(ym).split('-').map(Number); return new Date(y || 1970, (m || 1) - 1, 1, 12).getTime(); }
-  function saveList(ym, arr) { Store.set('finance.spend.' + ym, arr.filter(Boolean)); }
+  function saveList(ym, arr) { Store.set('finance.spend.' + ym, arr.filter(Boolean)); syncOnce(); }
+  /* платёж «оплачен», когда траты по нему покрыли сумму; удалили или уменьшили трату — снова ждёт оплаты.
+     Отметку, поставленную без трат (старые записи), не трогаем */
+  function syncOnce() {
+    const paid = oncePaid(); let ch = false;
+    const next = planned().map(p => { const pd = paid[p.id] || 0;
+      if (!p.done && pd >= p.amt && p.amt > 0) { ch = true; return Object.assign(p, { done: true, doneAt: Date.now(), auto: true }); }
+      if (p.done && (p.auto || pd > 0) && pd < p.amt) { ch = true; return Object.assign(p, { done: false, doneAt: null, auto: null }); }
+      return p; });
+    if (ch) savePlanned(next);
+  }
   function income(d) {
     if (demoOn()) { const n = new Date(); return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() ? 180000 : 0; }
     return realIncome(d);
@@ -84,7 +94,8 @@ window.FinSpend = (function () {
   }
   /* сколько потрачено по каждой категории за месяц */
   function catSpent(ym) {
-    const out = {}; list(ym).forEach(x => { const k = x.cat || '_other'; out[k] = (out[k] || 0) + x.amt; }); return out;
+    /* траты по разовым платежам в категории не идут: эти деньги зарезервированы отдельно */
+    const out = {}; list(ym).forEach(x => { const k = x.once ? '_once' : (x.cat || '_other'); out[k] = (out[k] || 0) + x.amt; }); return out;
   }
   /* день зарплаты: считаем «до зарплаты» вместо «до конца месяца». Нет дня = до конца месяца */
   function payday() { const d = Math.round(+(Store.get().finance || {}).payday); return d >= 2 && d <= 31 ? d : 0; }
@@ -124,9 +135,10 @@ window.FinSpend = (function () {
   /* трата похожа на разовый платёж по названию: «одежда 1385» → платёж «Одежда» */
   function matchPlanned(note) {
     const n = norm(note); if (!n) return null;
-    const w = words(n)[0];
-    const cand = planned().filter(p => !p.done).filter(p => { const pn = norm(p.name); const pw = words(pn)[0];
-      return n === pn || n.startsWith(pn + ' ') || pn.startsWith(n + ' ') || (w && pw && w.length >= 4 && stem(w) === stem(pw)); });
+    const nw = words(n).map(stem);
+    /* совпадение только если в трате есть все значимые слова названия платежа: «одежда» → «Одежда», но «продукты» ≠ «Продукты на праздник» */
+    const cand = planned().filter(p => !p.done).filter(p => { const pn = norm(p.name); const pw = words(pn).map(stem);
+      return n === pn || (pw.length > 0 && pw.length <= 3 && pw.every(x => nw.includes(x))); });
     return cand.sort((a, b) => pDate(a.date) - pDate(b.date))[0] || null;
   }
   function markPlanned(id, done) { savePlanned(planned().map(x => x.id === id ? Object.assign(x, done ? { done: true, doneAt: Date.now() } : { done: false, doneAt: null }) : x)); }
@@ -134,7 +146,7 @@ window.FinSpend = (function () {
   function icsDownload(p) {
     const d = pDate(p.date), d2 = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
     const ymd = (x) => isoDate(x).replace(/-/g, '');
-    const clean = (t) => String(t).replace(/[\\;,]/g, ' ').replace(/[\r\n]+/g, ' ');
+    const clean = (t) => String(t).replace(/\\/g, '\\\\').replace(/[;,]/g, m => '\\' + m).replace(/[\r\n]+/g, ' '); /* экранирование по стандарту iCalendar */
     const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
     const title = clean(p.name) + ': ' + fmt(p.amt);
     const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//YOU//Finance//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:' + p.id + '@you-app.ru', 'DTSTAMP:' + stamp,
@@ -161,7 +173,7 @@ window.FinSpend = (function () {
     if (!inc) for (let i = 1; i <= 3 && !inc; i++) { const p = new Date(incM.getFullYear(), incM.getMonth() - i, 1); const pi = income(p); if (pi) { inc = pi; est = true; estFrom = p.getMonth(); } }
     const save = Math.round(inc * b.savePct / 100);
     const items = listRange(per.start, per.end);
-    const sp = {}; items.forEach(x => { const k = x.cat || '_other'; sp[k] = (sp[k] || 0) + x.amt; });
+    const sp = {}; items.forEach(x => { const k = x.once ? '_once' : (x.cat || '_other'); sp[k] = (sp[k] || 0) + x.amt; });
     const spent = Object.values(sp).reduce((s, v) => s + v, 0);
     /* план, который ещё предстоит оплатить: по каждой категории остаток плана */
     const planOf = {}; b.cats.forEach(c => { planOf[c.id] = Math.max(0, +c.amt || 0); });
@@ -191,7 +203,8 @@ window.FinSpend = (function () {
     now = now || new Date();
     const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const start = c.start || new Date(now.getFullYear(), now.getMonth(), 1);
-    return c.cats.filter(x => +x.day >= 1 && +x.day <= 31).map(x => {
+    /* стандартный бюджет-пример (человек ещё не настраивал категории) платежей не даёт, кроме режима примера */
+    return c.cats.filter(x => +x.day >= 1 && +x.day <= 31 && (!c.demo || c.sample)).map(x => {
       /* дата платежа внутри периода: в месяце начала периода или в следующем */
       let date = dayIn(start.getFullYear(), start.getMonth(), Math.round(+x.day));
       if (date < start) date = dayIn(start.getFullYear(), start.getMonth() + 1, Math.round(+x.day));
@@ -323,6 +336,9 @@ window.FinSpend = (function () {
     out.push({ k: 'amt', h: `<span class="sp-chip ${p.err ? 'warn' : 'on'}">${p.err === 'noamt' ? 'сумма?' : p.err === 'big' ? 'слишком много' : fmt(p.amt)}</span>` });
     out.push({ k: 'cat', h: `<span class="sp-chip${p.learned ? ' ai' : ''}" style="--c:${p.catColor}"${p.learned ? ' title="Запомнил по прошлому разу"' : ''}>${p.learned ? '<i class="ti ti-sparkles"></i>' : '<i class="sp-dot"></i>'}${esc(p.catName)}</span>` });
     if (p.src) out.push({ k: 'src', h: `<span class="sp-chip"><i class="ti ti-credit-card"></i>${esc(p.src)}</span>` });
+    /* трата спишется с разового платежа: показываем это до записи */
+    const mp = !p.err && matchPlanned(p.note);
+    if (mp) out.push({ k: 'once:' + mp.id, h: `<span class="sp-chip ai"><i class="ti ti-calendar-dollar"></i>в платёж «${esc(mp.name)}»</span>` });
     return out;
   }
   /* обновляем чипы без мигания: старые одинаковые остаются на месте, новые проявляются */
@@ -462,7 +478,7 @@ window.FinSpend = (function () {
       const op = onceId && planned().find(x => x.id === onceId), rest = op ? Math.max(0, op.amt - (oncePaid()[onceId] || 0)) : 0;
       if (op && rest <= 0) markPlanned(onceId, true);
       rerender();
-      toast(op ? (rest > 0 ? `Записал ${fmt(p.amt)} · ${op.name}, осталось ${fmt(rest)}` : `Записал ${fmt(p.amt)} · ${op.name} оплачен`) : `Записал ${fmt(p.amt)} · ${p.catName}`,
+      toast(op ? (rest > 0 ? `Записал ${fmt(p.amt)} · ${op.name}, осталось ${fmt(rest)}` : `Записал ${fmt(p.amt)}. Оплачено: ${op.name}`) : `Записал ${fmt(p.amt)} · ${p.catName}`,
         () => { saveList(ym, rawList(ym).filter(x => x.id !== rec.id)); if (op) markPlanned(onceId, false); rerender(); });
       const ni = document.querySelector('#sp-in'); if (ni) ni.focus({ preventScroll: true });
     };
@@ -608,10 +624,12 @@ window.FinSpend = (function () {
     const byId = {}; (base || []).forEach(c => { byId[c.id] = c; });
     return Array.from(box.querySelectorAll('.ce-row')).map(r => {
       const old = byId[r.dataset.id] || {};
+      /* новая пустая строка (без названия и суммы) не превращается в категорию «Категория» на 0 ₽ */
+      if (!old.name && !r.querySelector('.ce-name').value.trim() && !parseAmt(r.querySelector('.ce-amt').value)) return null;
       const c = Object.assign({}, old, { id: r.dataset.id, name: r.querySelector('.ce-name').value.trim().slice(0, 60) || old.name || 'Категория', amt: parseAmt(r.querySelector('.ce-amt').value), color: col(r.dataset.color || old.color) });
       const d = +r.querySelector('.ce-day').value; if (d >= 1 && d <= 31) c.day = d; else delete c.day;
       return c;
-    });
+    }).filter(Boolean);
   }
   /* записываем категории в «Баланс», не трогая цель дохода и копилку */
   function saveCats(cats) {
@@ -686,7 +704,7 @@ window.FinSpend = (function () {
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
-    const amtOf = () => Math.round(parseFloat(String($('#pm-amt').value).replace(/\s/g, '').replace(',', '.')) || 0);
+    const amtOf = () => Math.round(parseAmt($('#pm-amt').value) || 0);
     /* подсказка «по N ₽ в месяц» для разового платежа */
     const hint = () => {
       const a = amtOf(), dv = $('#pm-date').value; const h = $('#pm-hint');
@@ -754,7 +772,7 @@ window.FinSpend = (function () {
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     const read = () => {
-      const amt = Math.round(parseFloat(String($('#om-amt').value).replace(/\s/g, '').replace(',', '.')) || 0);
+      const amt = Math.round(parseAmt($('#om-amt').value) || 0);
       const name = String($('#om-name').value || '').trim().slice(0, 60), date = $('#om-date').value;
       if (!name) { $('#om-err').textContent = 'Впиши название'; return null; }
       if (!(amt > 0)) { $('#om-err').textContent = 'Укажи сумму'; return null; }
@@ -774,7 +792,7 @@ window.FinSpend = (function () {
       const at = Date.now(), ym = ymKey(new Date(at)), rec = { id: uid('s'), amt: Math.max(0, x.amt - (oncePaid()[x.id] || 0)) || x.amt, cat: null, note: x.name, src: '', at, once: x.id };
       const arr = rawList(ym); arr.push(rec); saveList(ym, arr); markPlanned(x.id, true);
       if (onDone) onDone();
-      toast(`Записал ${fmt(x.amt)} · ${x.name}`, () => { saveList(ym, rawList(ym).filter(z => z.id !== rec.id)); markPlanned(x.id, false); if (onDone) onDone(); }); };
+      toast(`Записал ${fmt(rec.amt)} · ${x.name}`, () => { saveList(ym, rawList(ym).filter(z => z.id !== rec.id)); markPlanned(x.id, false); if (onDone) onDone(); }); };
   }
 
   /* до конца месяца или до зарплаты N-го числа */
@@ -813,5 +831,5 @@ window.FinSpend = (function () {
     setTimeout(() => t.classList.add('out'), 4200); setTimeout(() => t.remove(), 4600);
   }
 
-  return { planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS };
+  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS };
 })();

@@ -1520,7 +1520,7 @@ function entryMenu(e, date, done) {
    без пропущенных дней, напоминание за час */
 function slotNameOf(it) { const c = it.ck ? clients.find(x => x.k === it.ck) : null; return c ? cname(c) : (it.nm || 'клиент'); }
 function schedIcs(items, file) {
-  const icsT = (s) => String(s || '').replace(/[\\;,]/g, ' ').replace(/[\r\n]+/g, ' ').slice(0, 200);
+  const icsT = (s) => String(s || '').slice(0, 200).replace(/\\/g, '\\\\').replace(/[;,]/g, m => '\\' + m).replace(/[\r\n]+/g, ' '); /* экранирование по стандарту iCalendar */
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   const loc = (d, m) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, m); return ymd(x).replace(/-/g, '') + 'T' + String(x.getHours()).padStart(2, '0') + String(x.getMinutes()).padStart(2, '0') + '00'; };
   const ev = items.filter(it => it && it.d && it.tm).map(it => {

@@ -152,7 +152,9 @@ function finOpenModal(existing, year, month, onSave) {
 
   overlay.querySelector('#fin-save').addEventListener('click',()=>{
     const err = (t) => { overlay.querySelector('#fin-err').textContent = t; };
-    const amount = Math.round(parseFloat(String(overlay.querySelector('#fin-amount').value).replace(/\s/g,'').replace(',','.')) * 100) / 100;
+    const rawAmt = String(overlay.querySelector('#fin-amount').value);
+    /* «2,5к», «120 000», «1.5 тыс» понимаем так же, как строка трат */
+    const amount = window.FinSpend && /[кkтм]/i.test(rawAmt) ? FinSpend.parseAmt(rawAmt) : Math.round(parseFloat(rawAmt.replace(/\s/g,'').replace(',','.')) * 100) / 100;
     if(!(amount > 0)) return err('Укажи сумму больше нуля');
     if(amount > 1e9) return err('Слишком большая сумма, проверь');
     const iso = overlay.querySelector('#fin-date').value; // yyyy-mm-dd
@@ -451,6 +453,7 @@ window.Screens.finance = function(mount) {
     const afterSavings = monthIncome - savingsAmt;
     /* разовые платежи и цели по дате (из «Расходов»): этого месяца входят в план, будущие показываем с суммой «по N в месяц» */
     const onceAll = FS && FS.planned ? FS.planned() : [];
+    const onceP = FS && FS.oncePaid ? FS.oncePaid() : {};
     const mEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const onceNow = onceAll.filter(p => FS.pDate(p.date) < mEnd && (!p.done || +p.doneAt >= +new Date(now.getFullYear(), now.getMonth(), 1)));
     const onceNext = onceAll.filter(p => !p.done && FS.pDate(p.date) >= mEnd).sort((a, b) => FS.pDate(a.date) - FS.pDate(b.date));
@@ -562,11 +565,11 @@ window.Screens.finance = function(mount) {
           <div class="plan-val"><b>${finFmtFull(onceSum)}</b><span>${pctOf(onceSum)}%</span></div>
         </div>
         <div class="plan-cats">
-          ${onceNow.concat(onceNext).map(p => { const d = FS.pDate(p.date), later = d >= mEnd, mo = later ? FS.perMonth(p, now) : 0; return `
+          ${onceNow.concat(onceNext).map(p => { const d = FS.pDate(p.date), later = d >= mEnd, mo = later ? FS.perMonth(p, now) : 0, paidP = Math.min(p.amt, (onceP[p.id] || 0)); return `
             <div class="plan-cat plan-once${p.done ? ' done' : ''}" data-once="${escH(p.id)}" role="button" tabindex="0">
               <span class="plan-dot" style="background:#977FE9;"></span>
-              <span class="plan-cat-name"><span class="plan-cat-nm">${escH(p.name)}</span><em class="plan-day"><i class="ti ti-calendar-event"></i>${d.getDate()} ${FIN_MONTHS_GEN[d.getMonth()]}</em></span>
-              <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em> ' : ''}${finFmtFull(p.amt)}${later && mo < p.amt ? `<small>по ${finFmtFull(mo)} в мес</small>` : ''}</span>
+              <span class="plan-cat-name"><span class="plan-cat-nm">${escH(p.name)}</span><em class="plan-day"><i class="ti ti-calendar-event"></i>${d.getDate()} ${FIN_MONTHS_GEN[d.getMonth()]}${later && mo < p.amt ? ` · по ${finFmtFull(mo)} в мес` : ''}</em></span>
+              <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em>' : paidP > 0 ? `<em>${finFmtFull(paidP)}</em> из ` : ''}${finFmtFull(p.amt)}</span>
               <span class="plan-cat-pct">${later ? '' : pctOf(p.amt) + '%'}</span>
             </div>`; }).join('')}
         </div>` : ''}

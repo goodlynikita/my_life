@@ -509,11 +509,12 @@ html.fin-dark-on .modal-finance .ce-bot select{height:38px !important;padding-to
 .sp-q-box ol{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:var(--tk-soft,#C8C8C8)}
 .sp-q-btn{display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;background:#977FE9;color:#fff;font-weight:700;font-size:14px;text-decoration:none}
 /* разовые платежи в «Балансе» */
-.plan-once .plan-cat-amt{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25}
+.plan-once .plan-cat-amt{display:block;text-align:right;line-height:1.3;white-space:nowrap}
 .plan-once .plan-cat-amt small{font-size:11px;font-weight:600;color:#C9BDF7}
-.plan-once .plan-cat-amt em.ok{color:var(--tk-green,#5FC98B);font-size:11.5px}
+.plan-once .plan-cat-amt em.ok{display:block;color:var(--tk-green,#5FC98B);font-size:11.5px}
 .plan-once.done .plan-cat-nm{opacity:.6}
 .plan-once{cursor:pointer}
 .plan-once .plan-cat-name{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
 .plan-once .plan-cat-nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plan-once .plan-day{margin:0!important}
+#se-del{color:#EF4444!important}

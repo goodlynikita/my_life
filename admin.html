@@ -819,17 +819,22 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUser(); });
 /* ── Экономика: калькулятор подписок ──
    Все суммы в месяц. Настройки сохраняются в nik-data/adminEconomics. */
 let AISTATS={};
-const ECON_DEF={ trainers:100, perTrainer:7.5, clientPayPct:30, solo:300, soloPayPct:5,
+/* Модель: бесплатного тарифа нет. Все платят после пробной недели; кто не оплатил, просто уходит
+   и стоит нам только AI-сообщения за пробную неделю */
+const ECON_DEF={ trainers:100, perTrainer:7.5, solo:300, trials:400, trialConv:25, msgTrial:10,
   priceUser:199, priceTrainer:999, kassaPct:3, taxPct:6, aiPrice1k:1.2, tokPerMsg:4000,
-  msgClient:10, msgTrainer:50, msgFree:5, server:3000, refPct:10, marketing:0 };
+  msgClient:10, msgTrainer:50, server:3000, refPct:10, marketing:0 };
 let E=Object.assign({},ECON_DEF), econBuilt=false, econT=null;
 const ECON_F=[
   ['Кто платит', 'ti-users', [
-    ['trainers','Тренеров',0,2000,1],
+    ['trainers','Тренеров с подпиской',0,2000,1],
     ['perTrainer','Клиентов у тренера, в среднем',0,50,0.5],
-    ['clientPayPct','Клиенты с подпиской, %',0,100,1],
-    ['solo','Пользователей без тренера',0,50000,10],
-    ['soloPayPct','Из них платят, %',0,100,0.5],
+    ['solo','Пользователей без тренера с подпиской',0,50000,10],
+  ]],
+  ['Пробная неделя', 'ti-clock-hour-4', [
+    ['trials','Начинают пробную неделю, в месяц',0,20000,10],
+    ['trialConv','Из пробной в оплату, %',0,100,1],
+    ['msgTrial','Сообщений AI за пробную неделю',0,100,1],
   ]],
   ['Цены', 'ti-tag', [
     ['priceUser','Подписка пользователя, ₽',0,2000,1],
@@ -847,13 +852,12 @@ const ECON_F=[
     ['tokPerMsg','Токенов на одно сообщение',0,20000,100],
     ['msgClient','Сообщений в месяц у клиента',0,200,1],
     ['msgTrainer','Сообщений в месяц у тренера',0,500,5],
-    ['msgFree','Сообщений у бесплатного',0,100,1],
   ]],
 ];
 const ECON_PRESETS={
-  start:{l:'Старт',v:{trainers:30,perTrainer:5,clientPayPct:20,solo:100,soloPayPct:3}},
-  goal:{l:'Цель',v:{trainers:100,perTrainer:7.5,clientPayPct:30,solo:300,soloPayPct:5}},
-  scale:{l:'Масштаб',v:{trainers:1000,perTrainer:10,clientPayPct:35,solo:5000,soloPayPct:6}},
+  start:{l:'Старт',v:{trainers:30,perTrainer:5,solo:100,trials:150,trialConv:20}},
+  goal:{l:'Цель',v:{trainers:100,perTrainer:7.5,solo:300,trials:400,trialConv:25}},
+  scale:{l:'Масштаб',v:{trainers:1000,perTrainer:10,solo:5000,trials:4000,trialConv:30}},
 };
 const rub=(n)=>(n<0?'−':'')+Math.round(Math.abs(n)).toLocaleString('ru-RU')+' ₽';
 const num=(n,d)=>(Math.round(n*(d||1))/(d||1)).toLocaleString('ru-RU');
@@ -869,21 +873,26 @@ function econFact(){
   return { trainers:trs.length, withCl:withCl.length, clients, users, solo:Math.max(0,users-clients-trs.length), month:m, msgs, tok, tokPerMsg:msgs?Math.round(tok/msgs):0 };
 }
 function econCalc(e){
-  const clients=e.trainers*e.perTrainer, payClients=clients*e.clientPayPct/100, paySolo=e.solo*e.soloPayPct/100;
+  /* платят все: тренеры, их клиенты и пользователи без тренера */
+  const clients=e.trainers*e.perTrainer, payClients=clients, paySolo=e.solo;
   const revT=e.trainers*e.priceTrainer, revC=payClients*e.priceUser, revS=paySolo*e.priceUser, rev=revT+revC+revS;
   const kassa=rev*e.kassaPct/100, tax=rev*e.taxPct/100, ref=rev*e.refPct/100;
   const msgCost=e.tokPerMsg/1000*e.aiPrice1k;
-  const msgs=clients*e.msgClient+e.trainers*e.msgTrainer+paySolo*e.msgClient+(e.solo-paySolo)*e.msgFree;
-  const ai=msgs*msgCost, fixed=e.server+e.marketing;
+  /* пробная неделя: кто не оплатил, стоит только сообщения AI за неделю */
+  const trialLost=e.trials*(1-e.trialConv/100), trialNew=e.trials*e.trialConv/100;
+  const msgs=clients*e.msgClient+e.trainers*e.msgTrainer+paySolo*e.msgClient+trialLost*e.msgTrial;
+  const ai=msgs*msgCost, trialAi=trialLost*e.msgTrial*msgCost, fixed=e.server+e.marketing;
   const cost=kassa+tax+ref+ai+fixed, profit=rev-cost;
   /* один тренер вместе со своими клиентами: что приносит и сколько стоит */
   const pct=(e.kassaPct+e.taxPct+e.refPct)/100;
-  const tRev=e.priceTrainer+e.perTrainer*e.clientPayPct/100*e.priceUser;
+  const tRev=e.priceTrainer+e.perTrainer*e.priceUser;
   const tCost=tRev*pct+(e.msgTrainer+e.perTrainer*e.msgClient)*msgCost;
   const tProfit=tRev-tCost;
-  const soloProfit=e.solo*(e.soloPayPct/100*(e.priceUser*(1-pct)-e.msgClient*msgCost)-(1-e.soloPayPct/100)*e.msgFree*msgCost);
-  const breakeven=tProfit>0?Math.max(0,Math.ceil((fixed-soloProfit)/tProfit)):null;
-  return {clients,payClients,paySolo,revT,revC,revS,rev,kassa,tax,ref,ai,fixed,cost,profit,msgCost,msgs,tRev,tCost,tProfit,breakeven,margin:rev?profit/rev*100:0,aiPerUser:msgCost*e.msgClient};
+  const soloProfit=e.solo*(e.priceUser*(1-pct)-e.msgClient*msgCost);
+  const breakeven=tProfit>0?Math.max(0,Math.ceil((fixed+trialAi-soloProfit)/tProfit)):null;
+  /* цена привлечения: сколько рекламы приходится на одного оплатившего после пробной */
+  const cac=trialNew>0&&e.marketing>0?e.marketing/trialNew:null;
+  return {clients,payClients,paySolo,revT,revC,revS,rev,kassa,tax,ref,ai,trialAi,trialNew,trialLost,cac,fixed,cost,profit,msgCost,msgs,tRev,tCost,tProfit,breakeven,margin:rev?profit/rev*100:0,aiPerUser:msgCost*e.msgClient};
 }
 function econFill(){ if(!econBuilt) return; Object.keys(ECON_DEF).forEach(k=>{ const t=$('#ec-'+k), r=$('#ecr-'+k); if(t&&document.activeElement!==t) t.value=String(E[k]).replace('.',','); if(r) r.value=E[k]; }); }
 function econSave(){ clearTimeout(econT); econT=setTimeout(async()=>{ try{ await set(ref(db,'nik-data/adminEconomics'),E); }catch(e){ console.error(e); if(denied(e)) rulesWarn(); } },700); }
@@ -931,12 +940,12 @@ function econResults(){
     </div>
     <div class="ec-card"><div class="ec-h"><b><i class="ti ti-list-details"></i> Разбивка</b></div>
       <div class="ec-row"><span>Тренеры: ${num(E.trainers)} × ${rub(E.priceTrainer)}</span><b class="ec-plus">${rub(r.revT)}</b></div>
-      <div class="ec-row"><span>Клиенты с подпиской: ${num(r.payClients,10)} из ${num(r.clients,10)}</span><b class="ec-plus">${rub(r.revC)}</b></div>
-      <div class="ec-row"><span>Без тренера с подпиской: ${num(r.paySolo,10)} из ${num(E.solo)}</span><b class="ec-plus">${rub(r.revS)}</b></div>
+      <div class="ec-row"><span>Клиенты тренеров: ${num(r.payClients,10)} × ${rub(E.priceUser)}</span><b class="ec-plus">${rub(r.revC)}</b></div>
+      <div class="ec-row"><span>Без тренера: ${num(r.paySolo)} × ${rub(E.priceUser)}</span><b class="ec-plus">${rub(r.revS)}</b></div>
       <div class="ec-row t"><span>Выручка</span><b>${rub(r.rev)}</b></div>
       <div class="ec-row"><span>Касса ${num(E.kassaPct,10)}%</span><b class="ec-minus">−${rub(r.kassa)}</b></div>
       <div class="ec-row"><span>Налог ${num(E.taxPct,10)}%</span><b class="ec-minus">−${rub(r.tax)}</b></div>
-      <div class="ec-row"><span>AI: ${num(r.msgs)} сообщений × ${num(r.msgCost,100)} ₽</span><b class="ec-minus">−${rub(r.ai)}</b></div>
+      <div class="ec-row"><span>AI: ${num(r.msgs)} сообщений × ${num(r.msgCost,100)} ₽${r.trialAi?`, из них пробная ${rub(r.trialAi)}`:''}</span><b class="ec-minus">−${rub(r.ai)}</b></div>
       <div class="ec-row"><span>Рефералка ${num(E.refPct)}%</span><b class="ec-minus">−${rub(r.ref)}</b></div>
       <div class="ec-row"><span>Сервер, бот, реклама</span><b class="ec-minus">−${rub(r.fixed)}</b></div>
       <div class="ec-row t"><span>Остаётся</span><b class="${r.profit<0?'ec-minus':'ec-plus'}">${rub(r.profit)}</b></div>
@@ -949,6 +958,8 @@ function econResults(){
         <div><small>Окупаемость</small><b>${r.breakeven==null?'не окупается':r.breakeven+' '+(r.breakeven%10===1&&r.breakeven%100!==11?'тренер':r.breakeven%10>=2&&r.breakeven%10<=4&&(r.breakeven%100<12||r.breakeven%100>14)?'тренера':'тренеров')}</b></div>
         <div><small>1 сообщение AI</small><b>${num(r.msgCost,100)} ₽</b></div>
         <div><small>AI на клиента в месяц</small><b>${rub(r.aiPerUser)}</b></div>
+        <div><small>Новых оплат в месяц</small><b>${num(r.trialNew,10)}</b></div>
+        <div><small>Реклама на 1 оплату</small><b>${r.cac==null?'без рекламы':rub(r.cac)}</b></div>
       </div>
     </div>
     <div class="ec-card"><div class="ec-h"><b><i class="ti ti-database"></i> Сейчас в базе</b></div>

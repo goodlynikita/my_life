@@ -116,6 +116,7 @@ window.Screens.home = function(mount) {
       + '<button id="hm-settings" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-adjustments-horizontal" style="font-size:18px;color:#9D9A92;"></i>Настройки слайдера</button>'
       + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
       + '<div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Ещё</div>'
+      + '<button id="hm-phone" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-device-watch" style="font-size:18px;color:#9D9A92;"></i>Телефон и часы</button>'
       + '<button id="hm-tour" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-help-circle" style="font-size:18px;color:#9D9A92;"></i>Подсказки по приложению</button>'
       + '<button id="hm-logout" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#F87171;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button>'
       + '</div>';
@@ -128,6 +129,7 @@ window.Screens.home = function(mount) {
     ov.querySelector('#hm-trainer').addEventListener('click', function(){ ov.remove(); if (!window.TrainerLink) return; if (FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached()) TrainerLink.info(); else TrainerLink.connect(); });
     ov.querySelector('#hm-friend').addEventListener('click', function(){ ov.remove(); window.Analytics && Analytics.inviteFriend(); });
     if (window.Palette) Palette.bind(ov);
+    ov.querySelector('#hm-phone').addEventListener('click', function(){ ov.remove(); window.Inbox && Inbox.open(); });
     ov.querySelector('#hm-tour').addEventListener('click', function(){ ov.remove(); window.Tour && Tour.restart(); });
     ov.querySelector('#hm-logout').addEventListener('click', function(){ if (!confirm('Выйти из аккаунта?')) return; ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
   });

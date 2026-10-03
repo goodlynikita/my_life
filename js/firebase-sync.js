@@ -649,11 +649,38 @@ const FirebaseSync = (() => {
       } catch (e) {}
     });
   }
+  /* ── Телефон и часы: личный ящик inbox/<ключ> ──
+     Команды iPhone и MacroDroid пишут туда без входа (знают только ключ), читать и удалять может только владелец.
+     inboxOwner/<ключ> = uid: по нему правила пускают владельца. Каждую запись забираем транзакцией,
+     чтобы два открытых устройства не записали одну трату дважды */
+  async function inboxClaim(key) {
+    const u = _auth.currentUser; if (!u || !/^[A-Za-z0-9]{24}$/.test(key)) throw new Error('nokey');
+    const r = ref(_db, 'inboxOwner/' + key); const s = await get(r);
+    if (!s.exists()) await set(r, u.uid); else if (s.val() !== u.uid) throw new Error('taken');
+  }
+  async function inboxDrop(key) {
+    if (!_auth.currentUser || !/^[A-Za-z0-9]{24}$/.test(key)) return;
+    await update(ref(_db), { ['inbox/' + key]: null, ['inboxOwner/' + key]: null });
+  }
+  async function inboxTake(key, max) {
+    if (!_auth.currentUser || !/^[A-Za-z0-9]{24}$/.test(key)) return [];
+    const s = await get(ref(_db, 'inbox/' + key)); if (!s.exists()) return [];
+    const v = s.val() || {}, out = [];
+    for (const id of Object.keys(v).sort().slice(0, max || 60)) {
+      let got = null;
+      try {
+        const tr = await runTransaction(ref(_db, 'inbox/' + key + '/' + id), (cur) => { got = cur; return null; }, { applyLocally: false });
+        if (tr.committed && got) out.push(Object.assign({}, got, { _id: id }));
+      } catch (e) {}
+    }
+    return out;
+  }
   function stopWatch() { if (_revUnsub) { try { _revUnsub(); } catch (e) {} _revUnsub = null; } }
 
   return {
     shareTemplate, getShared, markSharedUse, mySharedList, removeShared,
     isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer,
+    inboxClaim, inboxDrop, inboxTake,
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser,

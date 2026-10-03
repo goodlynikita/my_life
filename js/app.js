@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       FirebaseSync.isTrainer().then(v => { window._isTrainer = v; }).catch(() => {});
     }
     if (window.Notices) setTimeout(() => Notices.check(), 1200);
+    /* данные с телефона и часов: траты из банка, шаги, тренировки (js/inbox.js) */
+    if (window.Inbox) setTimeout(() => Inbox.pull(true), 1500);
   }
 });
 

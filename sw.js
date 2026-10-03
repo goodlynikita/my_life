@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v140';
+const CACHE = 'nik-system-v141';
 
 const STATIC = [
   './',
@@ -55,6 +55,7 @@ const STATIC = [
   './js/screens/finance.js',
   './js/screens/finance-piggy.js',
   './js/screens/finance-spend.js',
+  './js/inbox.js',
   './js/screens/goals.js',
 ];
 

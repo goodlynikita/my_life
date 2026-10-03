@@ -1785,3 +1785,27 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 /* правка и удаление замера были 22px: делаем видимо крупнее */
 .tr-measure-edit, .tr-measure-delete { min-width: 36px !important; min-height: 36px !important; display: inline-flex !important; align-items: center; justify-content: center; }
 .tr-measure-edit::after, .tr-measure-delete::after { content: ''; position: absolute; inset: -4px; }
+
+/* ── Телефон и часы (js/inbox.js) ── */
+.ib { max-width: 460px; max-height: 88vh; overflow-y: auto; }
+.ib-sub { margin: -4px 0 14px; font-size: 13px; color: #9D9A92; }
+.ib-url { padding: 12px; border-radius: 12px; background: rgba(74,124,255,.08); border: 1px solid rgba(74,124,255,.2); margin-bottom: 14px; }
+.ib-url > span { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8EA8FF; margin-bottom: 6px; }
+.ib-code { display: block; font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; line-height: 1.45; color: #E8E5DC; word-break: break-all; user-select: all; }
+.ib-row { display: flex; gap: 8px; margin-top: 10px; }
+.ib-row button { flex: 1; height: 44px; }
+.ib .sp-seg { display: flex; gap: 4px; padding: 4px; margin: 0 0 12px; border-radius: 12px; background: rgba(255,255,255,.06); }
+.ib .sp-seg button { flex: 1; height: 36px; border: none; border-radius: 9px; background: transparent; color: #9D9A92; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.ib .sp-seg button.on { background: linear-gradient(135deg, #2C4FA8, #3A62C9); color: #fff; }
+.ib-step { border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); margin-bottom: 8px; padding: 0 12px; }
+.ib-step summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; min-height: 48px; font-size: 14px; font-weight: 700; color: #E8E5DC; }
+.ib-step summary::-webkit-details-marker { display: none; }
+.ib-step summary::after { content: '+'; margin-left: auto; color: #8E98B8; font-size: 18px; font-weight: 500; }
+.ib-step[open] summary::after { content: '−'; }
+.ib-step summary i { font-size: 18px; color: #8EA8FF; }
+.ib-step ol { margin: 0 0 10px; padding-left: 20px; font-size: 13px; line-height: 1.5; color: #C9C6BD; }
+.ib-step li { margin-bottom: 6px; }
+.ib-step code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.08); color: #E8E5DC; }
+.ib-note { margin: 0 0 12px; font-size: 12.5px; line-height: 1.45; color: #9D9A92; }
+.ib-last { margin: 10px 0 6px; font-size: 12.5px; color: #8E98B8; }
+.ib-warn i { color: #FBBF24; }

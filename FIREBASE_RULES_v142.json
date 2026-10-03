@@ -229,6 +229,56 @@
         ".read": "auth != null && $uid === auth.uid",
         ".write": "auth != null && $uid === auth.uid"
       }
+    },
+    "inboxOwner": {
+      "$key": {
+        ".read": "auth != null && data.val() === auth.uid",
+        ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && !newData.exists()))",
+        ".validate": "$key.matches(/^[A-Za-z0-9]{24}$/) && newData.isString()"
+      }
+    },
+    "inbox": {
+      "$key": {
+        ".read": "auth != null && root.child('inboxOwner').child($key).val() === auth.uid",
+        ".write": "auth != null && root.child('inboxOwner').child($key).val() === auth.uid && !newData.exists()",
+        "$id": {
+          ".write": "(!data.exists() && newData.exists() && root.child('inboxOwner').child($key).exists()) || (auth != null && root.child('inboxOwner').child($key).val() === auth.uid && !newData.exists())",
+          ".validate": "newData.hasChild('k')",
+          "k": {
+            ".validate": "newData.isString() && newData.val().matches(/^(sms|day|workout)$/)"
+          },
+          "text": {
+            ".validate": "newData.isString() && newData.val().length <= 1000"
+          },
+          "from": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "type": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "start": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "d": {
+            ".validate": "newData.isString() && newData.val().length <= 30"
+          },
+          "n": {
+            ".validate": "newData.isNumber() || (newData.isString() && newData.val().length <= 30)"
+          },
+          "kcal": {
+            ".validate": "newData.isNumber() || (newData.isString() && newData.val().length <= 30)"
+          },
+          "min": {
+            ".validate": "newData.isNumber() || (newData.isString() && newData.val().length <= 30)"
+          },
+          "km": {
+            ".validate": "newData.isNumber() || (newData.isString() && newData.val().length <= 30)"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
     }
   }
 }

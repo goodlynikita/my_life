@@ -823,6 +823,23 @@ window.FinSpend = (function () {
     };
   }
 
+  /* трата из SMS или пуша банка (Inbox): категория подбирается так же, как при записи строкой.
+     Повтор той же суммы с тем же названием за 3 минуты не пишем: банк часто шлёт и SMS, и пуш */
+  function addBank(b) {
+    const amt = Math.round((+b.amt || 0) * 100) / 100; if (!(amt > 0) || amt > MAX_AMT) return null;
+    const at = isFinite(+b.at) && +b.at > 0 ? +b.at : Date.now(), ym = ymKey(new Date(at));
+    const p = parse(String(b.note || ''), budget().cats) || {};
+    const arr = rawList(ym);
+    if (arr.some(x => x.id === b.id)) return null;
+    const note = p.note || 'Трата';
+    if (arr.some(x => x.bank && Math.abs(x.amt - amt) < 0.01 && norm(x.note) === norm(note) && Math.abs(x.at - at) < 180000)) return null;
+    const rec = { id: b.id || uid('s'), amt, cat: p.cat || null, note, src: b.src || p.src || '', at, bank: 1 };
+    const auto = matchPlanned(note); if (auto) rec.once = auto.id;
+    arr.push(rec); saveList(ym, arr);
+    if (auto) { const rest = Math.max(0, auto.amt - (oncePaid()[auto.id] || 0)); if (rest <= 0) markPlanned(auto.id, true); }
+    return Object.assign({ catName: p.catName || 'Другое' }, rec);
+  }
+
   function toast(text, undo) {
     document.querySelectorAll('.sp-toast').forEach(t => t.remove());
     const t = document.createElement('div'); t.className = 'sp-toast'; t.setAttribute('role', 'status');
@@ -833,5 +850,5 @@ window.FinSpend = (function () {
     setTimeout(() => t.classList.add('out'), 4200); setTimeout(() => t.remove(), 4600);
   }
 
-  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS };
+  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS, addBank, toast };
 })();

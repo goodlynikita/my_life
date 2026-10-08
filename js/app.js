@@ -96,6 +96,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       FirebaseSync.myTrainer().then((t) => { if (Router.currentPath() !== '/training') return; if (t) Router.render({ keepScroll: true }); else if (window.TrainerLink) TrainerLink.decorate(); }).catch(() => {});
       FirebaseSync.isTrainer().then(v => { window._isTrainer = v; }).catch(() => {});
     }
+    /* пришли записи от тренера: главная перерисуется, чтобы «Фокус дня» показал напоминание */
+    let _slotSig = ''; try { _slotSig = localStorage.getItem('you_slots') || ''; } catch (e) {}
+    window.addEventListener('you-slots', () => { let s = ''; try { s = localStorage.getItem('you_slots') || ''; } catch (e) {} if (s === _slotSig) return; _slotSig = s;
+      if (Router.currentPath() === '/home' && !(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) { window.__keepUi = true; try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; } } });
     if (window.Notices) setTimeout(() => Notices.check(), 1200);
     /* данные с телефона и часов: траты из банка, шаги, тренировки (js/inbox.js) */
     if (window.Inbox) setTimeout(() => Inbox.pull(true), 1500);

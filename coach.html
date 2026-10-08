@@ -893,6 +893,8 @@ async function boot(u) {
   }
   show('appv');
   await Promise.all([loadClients(), loadTemplates(), loadSchedule()]);
+  /* разовая выгрузка записей клиентам (для записей, созданных до того, как клиенты стали их видеть) */
+  try { const today = ymd(new Date()); schedule.filter(it => it.ck && !it.demo && (it.rep || it.d >= today)).forEach(it => mirrorSlot(it)); } catch (e) {}
   if (isDemo()) schedule = schedule.concat(demoSlots());
   render();
   watchClients();
@@ -1403,13 +1405,23 @@ async function loadSchedule() {
   try { const s = await get(ref(db, 'trainerSchedule/' + trainer.uid)); schedule = s.exists() ? Object.entries(s.val()).map(([id, v]) => ({ id, ...v })) : loc; }
   catch (e) { schedule = loc; }
 }
+/* копия записи у клиента: clientSlots/{ключ клиента}/{тренер_id}. Клиент видит «Тренировка с тренером 15:00» в плане и в «Фокусе дня» */
+const slotKey = (id) => trainer.uid + '_' + id;
+async function mirrorSlot(it, prevCk) {
+  if (prevCk && prevCk !== it.ck && !String(prevCk).startsWith('demo-')) { try { await set(ref(db, 'clientSlots/' + prevCk + '/' + slotKey(it.id)), null); } catch (e) {} }
+  if (!it.ck || String(it.ck).startsWith('demo-') || !clients.some(c => c.k === it.ck)) return;
+  try { await set(ref(db, 'clientSlots/' + it.ck + '/' + slotKey(it.id)), clean({ t: trainer.uid, tn: trainer.name || '', d: it.d, tm: it.tm || '', dur: it.dur || 60, rep: !!it.rep, skip: it.skip || null, note: it.note || '' })); } catch (e) {}
+}
 async function saveSlot(it) {
-  const i = schedule.findIndex(x => x.id === it.id); if (i >= 0) schedule[i] = it; else schedule.push(it);
+  const i = schedule.findIndex(x => x.id === it.id), prevCk = i >= 0 ? schedule[i].ck : ''; if (i >= 0) schedule[i] = it; else schedule.push(it);
   try { localStorage.setItem('you_sched_' + trainer.uid, JSON.stringify(schedule)); } catch (e) {}
   if (it.demo || String(it.ck || '').startsWith('demo-')) return;
   const { id, ...v } = it; try { await set(ref(db, 'trainerSchedule/' + trainer.uid + '/' + id), clean(v)); } catch (e) {}
+  mirrorSlot(it, prevCk);
 }
 async function removeSlot(id) {
+  const old = schedule.find(x => x.id === id);
+  if (old && old.ck && !String(old.ck).startsWith('demo-')) { try { await set(ref(db, 'clientSlots/' + old.ck + '/' + slotKey(id)), null); } catch (e) {} }
   schedule = schedule.filter(x => x.id !== id);
   try { localStorage.setItem('you_sched_' + trainer.uid, JSON.stringify(schedule)); } catch (e) {}
   try { await set(ref(db, 'trainerSchedule/' + trainer.uid + '/' + id), null); } catch (e) {}

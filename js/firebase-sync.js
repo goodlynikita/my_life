@@ -480,7 +480,7 @@ const FirebaseSync = (() => {
   async function logout() {
     _loaded = false;
     _coachRoot = null;
-    try { _myTrainer = null; stopWatch(); if (_linkUnsub) { _linkUnsub(); _linkUnsub = null; } } catch (e) {}
+    try { _myTrainer = null; stopWatch(); stopSlots(); _slots = null; localStorage.removeItem('you_slots'); if (_linkUnsub) { _linkUnsub(); _linkUnsub = null; } } catch (e) {}
     Store.replaceAll(Store.defaultData ? Store.defaultData() : {});
     await signOut(_auth);
   }
@@ -567,7 +567,34 @@ const FirebaseSync = (() => {
     await cleanupPrev(k);
     if (_myTrainer) watchCoachRev(); else stopWatch();
     watchLink();
+    loadSlots().catch(() => {});
     return _myTrainer;
+  }
+  /* записи тренера на меня: clientSlots/{мой ключ}/{id} = { t, tn, d, tm, dur, rep, skip, note }.
+     Берём только от текущего тренера. Кэш в localStorage, чтобы «Фокус дня» видел сразу */
+  let _slots = null, _slotsUnsub = null, _slotsK = null;
+  function slotsCached() { if (_slots) return _slots; try { return JSON.parse(localStorage.getItem('you_slots') || '[]'); } catch (e) { return []; } }
+  function setSlots(v) { _slots = v; try { if (v.length) localStorage.setItem('you_slots', JSON.stringify(v)); else localStorage.removeItem('you_slots'); } catch (e) {} try { window.dispatchEvent(new CustomEvent('you-slots')); } catch (e) {} }
+  function stopSlots() { if (_slotsUnsub) { try { _slotsUnsub(); } catch (e) {} } _slotsUnsub = null; _slotsK = null; }
+  function loadSlots() {
+    const k = myKey(); const t = _myTrainer;
+    if (!k || !t || !t.trainerUid) { stopSlots(); setSlots([]); return Promise.resolve([]); }
+    if (_slotsUnsub && _slotsK === k) return Promise.resolve(slotsCached());
+    stopSlots(); _slotsK = k;
+    return new Promise(res => {
+      _slotsUnsub = onValue(ref(_db, 'clientSlots/' + k), (snap) => {
+        const cur = _myTrainer && _myTrainer.trainerUid;
+        setSlots(snap.exists() ? Object.entries(snap.val() || {}).map(([id, v]) => ({ id, ...v })).filter(x => x && cur && x.t === cur && /^\d{4}-\d{2}-\d{2}$/.test(String(x.d))) : []);
+        res(_slots);
+      }, () => res(slotsCached()));
+    });
+  }
+  /* записи на конкретный день (с учётом повторов каждую неделю и отменённых дат) */
+  function slotsOn(date) {
+    const k = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    const wd = date.getDay();
+    const fy = (s) => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+    return slotsCached().filter(x => x.rep ? (fy(x.d).getDay() === wd && k >= x.d && !(x.skip || {})[k]) : x.d === k).sort((a, b) => String(a.tm || '').localeCompare(String(b.tm || '')));
   }
   /* Новый тренер подключился по ключу → убираем себя из списка прежнего */
   async function cleanupPrev(k) {
@@ -585,6 +612,7 @@ const FirebaseSync = (() => {
       _myTrainer = v;
       if (v) { await cleanupPrev(k); watchCoachRev(); } else stopWatch();
       if (was !== now) window.dispatchEvent(new CustomEvent('trainer-link-change', { detail: { trainer: v } }));
+      if (was !== now) { stopSlots(); loadSlots().catch(() => {}); }
     }, () => {});
   }
 
@@ -679,7 +707,7 @@ const FirebaseSync = (() => {
 
   return {
     shareTemplate, getShared, markSharedUse, mySharedList, removeShared,
-    isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer,
+    isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer, loadSlots, slotsOn,
     inboxClaim, inboxDrop, inboxTake,
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,

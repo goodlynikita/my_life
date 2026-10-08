@@ -2163,3 +2163,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-tabs { overflow-x: auto !important; scrollbar-width: none; }
 .tr-tabs .tr-tab { flex: 1 0 auto !important; min-width: auto !important; padding: 14px 12px !important; }
 @media (max-width: 600px) { .tr-tabs .tr-tab { padding: 13px 10px !important; font-size: 13px !important; } .tr-tabs .tr-tab-ai i { display: none; } }
+
+/* запись у тренера в дне плана */
+.tr-day-slot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 4px;padding:9px 12px;border-radius:12px;background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.28);font-size:13px;color:#FDE68A}
+.tr-day-slot i{font-size:16px;color:#FBBF24}.tr-day-slot b{font-weight:700}.tr-day-slot span{color:rgba(253,230,138,.7);font-size:12px}

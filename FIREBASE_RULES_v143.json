@@ -112,6 +112,14 @@
         ".write": "auth != null && ($k === auth.uid || ($k === 'nik-data' && auth.token.email === 'nedomolkin.1998@mail.ru') || (data.child('trainerUid').val() === auth.uid && !newData.exists()) || (newData.child('trainerUid').val() === auth.uid && newData.child('akey').isString() && newData.child('akey').val().matches(/^[A-Z0-9]{8}$/) && root.child('accessKeys').child(newData.child('akey').val()).child('key').val() === $k && ($k === 'nik-data' || root.child('accessKeys').child(newData.child('akey').val()).child('uid').val() === $k) && root.child('accessKeys').child(newData.child('akey').val()).child('expiresAt').val() > now && root.child('accessKeys').child(newData.child('akey').val()).child('expiresAt').val() <= now + 90000000 && !newData.parent().parent().child('accessKeys').child(newData.child('akey').val()).exists()))"
       }
     },
+    "clientSlots": {
+      "$k": {
+        ".read": "auth != null && ($k === auth.uid || ($k === 'nik-data' && auth.token.email === 'nedomolkin.1998@mail.ru') || root.child('clientTrainer').child($k).child('trainerUid').val() === auth.uid)",
+        "$id": {
+          ".write": "auth != null && root.child('clientTrainer').child($k).child('trainerUid').val() === auth.uid && $id.beginsWith(auth.uid + '_')"
+        }
+      }
+    },
     "trainerClients": {
       ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
       "$t": {

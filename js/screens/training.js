@@ -1043,6 +1043,12 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
     ? `<div class="tr-day-coachnote"><i class="ti ti-user-star"></i><span><b>Тренер:</b> ${trEsc(day.coachNote)}</span></div>`
     : '');
 
+  /* запись у тренера на этот день (из его расписания): «С тренером 15:00» */
+  let slotHtml = '';
+  if (!coachMode && window.FirebaseSync && FirebaseSync.slotsOn && window.TrainingAI && TrainingAI.planDayDate) {
+    try { const dt = TrainingAI.planDayDate(plan, day.date); if (dt) slotHtml = FirebaseSync.slotsOn(dt).map(x => `<div class="tr-day-slot"><i class="ti ti-user-star"></i><b>С тренером${x.tm ? ' в ' + trEsc(x.tm) : ''}</b>${x.note ? `<span>${trEsc(x.note)}</span>` : ''}</div>`).join(''); } catch (e) {}
+  }
+
   return `
     <div class="tr-day${isToday ? ' tr-day-today' : ''}">
       <div class="tr-day-head">
@@ -1055,6 +1061,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
           <button class="tr-day-add" data-week="${weekIndex}" data-day="${dayIdx}" aria-label="Добавить" title="${hasAnySession ? 'Добавить ещё одну тренировку в этот день' : 'Добавить тренировку'}"><i class="ti ti-plus"></i></button>
         </span>
       </div>
+      ${slotHtml}
       ${commentHtml}
       ${sessionsHtml}
     </div>`;
@@ -2538,11 +2545,14 @@ window.Screens.training = function (mount) {
     if (activeTab !== 'plan') renderTab(activeTab);
   }
   window.addEventListener('firebase-remote-update', _onRemoteUpdate);
+  const _onSlots = () => { const t = document.querySelector('.tr-tab.active')?.dataset.tab || 'plan'; if (t === 'plan' && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) renderTab('plan'); };
+  window.addEventListener('you-slots', _onSlots);
 
   /* Чистим listener при уходе с экрана */
   const _obs = new MutationObserver(() => {
     if (!document.contains(mount)) {
       window.removeEventListener('firebase-remote-update', _onRemoteUpdate);
+      window.removeEventListener('you-slots', _onSlots);
       _obs.disconnect();
     }
   });

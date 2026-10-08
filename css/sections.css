@@ -1837,3 +1837,6 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 .tc-row.off span{opacity:.4;text-decoration:line-through}
 .tc-eye,.tc-mv{width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,.06);color:inherit;font-size:17px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 .tc-mv:disabled{opacity:.25;cursor:default}
+
+.hero-slot{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 10px;border-radius:999px;background:rgba(251,191,36,.16);border:1px solid rgba(251,191,36,.35);color:#FDE68A;font-size:12.5px;font-weight:700}
+.hero-slot i{font-size:14px;color:#FBBF24}

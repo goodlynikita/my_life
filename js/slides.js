@@ -48,7 +48,10 @@ var Slides = (() => {
       desc: 'Группы мышц / тип тренировки на сегодня',
       render: (store) => {
         const t = todayWorkoutInfo(store);
-        return `<div class="hero-big-text${t.empty ? ' hero-dim' : ''}">${SlideKit.esc(t.text)}</div>`;
+        /* запись у тренера на сегодня из его расписания: напоминание прямо в «Фокусе дня» */
+        let sl = []; try { if (window.FirebaseSync && FirebaseSync.slotsOn) sl = FirebaseSync.slotsOn(new Date()); } catch (e) {}
+        const slot = sl.length ? `<div class="hero-slot"><i class="ti ti-user-star"></i>С тренером${sl[0].tm ? ' в ' + SlideKit.esc(sl[0].tm) : ''}</div>` : '';
+        return `<div class="hero-big-text${t.empty && !sl.length ? ' hero-dim' : ''}">${SlideKit.esc(t.empty && sl.length ? 'Тренировка с тренером' : t.text)}</div>${slot}`;
       },
     },
     {

@@ -605,7 +605,7 @@ function dt(iso){ const d=new Date(iso); return isNaN(d)?'':d.toLocaleString('ru
 const isOwner = (u) => !!u && !!u.email && u.email.toLowerCase() === OWNER;
 function denied(e){ return e && (e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message||'')); }
 function rulesWarn(){ $('#a-rules').classList.remove('hidden');
-  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы: Firebase → Realtime Database → Rules, вставь текст из файла <b>FIREBASE_RULES_v140.json</b>.'; }
+  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы: Firebase → Realtime Database → Rules, вставь текст из файла <b>FIREBASE_RULES_v143.json</b>.'; }
 
 /* ── Вход ── */
 async function doLogin(){

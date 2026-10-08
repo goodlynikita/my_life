@@ -1553,3 +1553,5 @@ html.no-anim *, html.no-anim *::before, html.no-anim *::after{animation-duration
 .tiles-v88 .home2-tile-tasks { --acc: 240,100,90; }
 .tiles-v88 .home2-tile-tasks::before { animation: blobF1 13s infinite alternate ease-in-out !important; }
 .tiles-v88 .home2-tile-tasks::after  { animation: blobG2 11s infinite ease-in-out !important; }
+.home2-tile-tasks { background: linear-gradient(135deg, #1C0806 0%, #2C0F0B 100%) !important; }
+.home2-tile-tasks::before { background: rgba(240,100,90,0.75); }

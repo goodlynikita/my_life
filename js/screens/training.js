@@ -777,6 +777,17 @@ function trPrefillFromLast(root, plan, exName) {
   return last;
 }
 
+/* подсказка «Прошлый раз» + кнопка подставить. Сами поля не заполняем: человек решает */
+function trHintWithFill(root, plan, exName, hintEl) {
+  /* то, что раньше подставилось само при другом упражнении, убираем */
+  root.querySelectorAll('#m-sets,#m-reps,#m-weight').forEach(inp => { if (inp.dataset.auto === '1') { inp.value = ''; inp.dataset.auto = ''; } });
+  const hint = trProgressionHint(plan, exName);
+  const last = trFindLastStrength(plan, exName);
+  hintEl.innerHTML = (hint ? hint.html : '') + (last ? '<button type="button" class="tr-prog-fill" id="m-fill-last"><i class="ti ti-history"></i> Как в прошлый раз</button>' : '');
+  const b = hintEl.querySelector('#m-fill-last');
+  if (b) b.onclick = () => { root.querySelectorAll('#m-sets,#m-reps,#m-weight').forEach(inp => { inp.value = ''; inp.dataset.auto = ''; }); trPrefillFromLast(root, plan, exName); root.querySelectorAll('#m-sets,#m-reps,#m-weight').forEach(inp => { inp.dataset.auto = ''; }); };
+}
+
 function trProgressionHint(plan, exName) {
   const prog = trGetProgression(exName);
   const lastInfo = trFindLastStrength(plan, exName);
@@ -1458,9 +1469,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
       if (hintEl) hintEl.innerHTML = '';
       return;
     }
-    trPrefillFromLast(overlay, plan, nameEl.value);
-    const hint = trProgressionHint(plan, nameEl.value);
-    hintEl.innerHTML = hint ? hint.html : '';
+    trHintWithFill(overlay, plan, nameEl.value, hintEl);
   }
 
   function refreshMuscleUI() {
@@ -1578,9 +1587,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       if (hintEl) hintEl.innerHTML = '';
       return;
     }
-    trPrefillFromLast(overlay, plan, nameEl.value);
-    const hint = trProgressionHint(plan, nameEl.value);
-    hintEl.innerHTML = hint ? hint.html : '';
+    trHintWithFill(overlay, plan, nameEl.value, hintEl);
   }
 
   function refreshFields() {

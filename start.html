@@ -1041,7 +1041,6 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 .dx-frames img.on{opacity:1}
 
 /* ═══ Телефон: легче и последовательнее ═══ */
-.merge-m{display:none}
 @media (max-width:760px){
   /* производительность: без тяжёлых размытий, шума и бесконечных анимаций */
   .grain{display:none!important}
@@ -1052,16 +1051,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   .float,.dx-float,.cs-phone,.orb-core{animation:none!important}
   .progress{box-shadow:none}
-  /* «Знакомо?»: простой блок вместо сцены с прокруткой */
-  .merge{display:none!important}
-  .merge-m{display:block;padding:40px 0 28px}
-  .merge-m h2{margin-bottom:22px}
-  .mm-apps{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-  .mm-apps span{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line2);font-size:13.5px;font-weight:700;color:#C9D0E2;text-decoration:line-through;text-decoration-color:rgba(255,255,255,.25)}
-  .mm-apps i{font-size:17px;color:var(--c)}
-  .mm-arrow{margin:14px 0;font-size:22px;color:#8EA8FF}
-  .mm-you{display:inline-flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:linear-gradient(135deg,rgba(74,124,255,.18),rgba(139,92,246,.18));border:1px solid rgba(139,92,246,.4);text-align:left}
-  .mm-you img{width:44px;height:44px;border-radius:12px}.mm-you b{display:block;font-size:17px}.mm-you small{display:block;font-size:12.5px;color:#C9D0E2;max-width:200px}
+  .merge-scene{height:min(60vh,500px)!important}
   /* «Четыре раздела» дублирует блоки ниже: на телефоне не показываем */
   #features{display:none!important}
   /* герой: короче */
@@ -1188,14 +1178,6 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   </div>
 </div></section>
 
-<section class="merge-m" data-for="me"><div class="wrap center">
-  <span class="eyebrow">Знакомо?</span>
-  <h2>Всё раскидано<br>по <span class="grad-t">пяти приложениям</span></h2>
-  <div class="mm-apps"><span style="--c:#F5C451"><i class="ti ti-notes"></i>Заметки</span><span style="--c:#34A853"><i class="ti ti-table"></i>Таблица</span><span style="--c:#4A7CFF"><i class="ti ti-checkbox"></i>Трекер</span><span style="--c:#A78BFA"><i class="ti ti-list-check"></i>Список</span><span style="--c:#2AABEE"><i class="ti ti-brand-telegram"></i>Чат</span></div>
-  <div class="mm-arrow"><i class="ti ti-arrow-down"></i></div>
-  <div class="mm-you"><img src="icon.png" alt=""><div><b>YOU</b><small>тренировки, привычки, деньги и цели в одном месте</small></div></div>
-</div></section>
-
 <section class="merge" id="merge" data-for="me">
   <div class="merge-stage">
     <div class="wrap center merge-head">
@@ -1204,11 +1186,11 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     </div>
     <div class="merge-scene" id="merge-scene">
       <svg class="merge-lines" id="merge-lines"><line/><line/><line/><line/></svg>
-      <div class="mc" data-x="-.34" data-y="-.30" data-r="-8" style="--c:#F5C451"><span class="mc-badge">12</span><i class="ti ti-notes"></i><div><b>Заметки</b><small>веса в зале, не найти</small></div></div>
-      <div class="mc" data-x=".33" data-y="-.33" data-r="6" style="--c:#34A853"><span class="mc-badge">!</span><i class="ti ti-table"></i><div><b>Таблица</b><small>доходы, забросил в марте</small></div></div>
-      <div class="mc" data-x="-.38" data-y=".24" data-r="5" style="--c:#4A7CFF"><span class="mc-badge">3</span><i class="ti ti-checkbox"></i><div><b>Трекер</b><small>привычки, серия сгорела</small></div></div>
-      <div class="mc" data-x=".37" data-y=".27" data-r="-6" style="--c:#A78BFA"><span class="mc-badge">7</span><i class="ti ti-list-check"></i><div><b>Список</b><small>цели, лежат с января</small></div></div>
-      <div class="mc" data-x="0" data-y=".40" data-r="3" style="--c:#2AABEE"><span class="mc-badge">28</span><i class="ti ti-brand-telegram"></i><div><b>Чат с тренером</b><small>программа где-то выше</small></div></div>
+      <div class="mc" data-x="-.34" data-y="-.30" data-mx="-.17" data-my="-.42" data-r="-8" style="--c:#F5C451"><span class="mc-badge">12</span><i class="ti ti-notes"></i><div><b>Заметки</b><small>веса в зале, не найти</small></div></div>
+      <div class="mc" data-x=".33" data-y="-.33" data-mx=".17" data-my="-.21" data-r="6" style="--c:#34A853"><span class="mc-badge">!</span><i class="ti ti-table"></i><div><b>Таблица</b><small>доходы, забросил в марте</small></div></div>
+      <div class="mc" data-x="-.38" data-y=".24" data-mx="-.17" data-my="0" data-r="5" style="--c:#4A7CFF"><span class="mc-badge">3</span><i class="ti ti-checkbox"></i><div><b>Трекер</b><small>привычки, серия сгорела</small></div></div>
+      <div class="mc" data-x=".37" data-y=".27" data-mx=".17" data-my=".21" data-r="-6" style="--c:#A78BFA"><span class="mc-badge">7</span><i class="ti ti-list-check"></i><div><b>Список</b><small>цели, лежат с января</small></div></div>
+      <div class="mc" data-x="0" data-y=".40" data-mx="-.1" data-my=".42" data-r="3" style="--c:#2AABEE"><span class="mc-badge">28</span><i class="ti ti-brand-telegram"></i><div><b>Чат с тренером</b><small>программа где-то выше</small></div></div>
 
       <div class="merge-core" id="merge-core"><span class="ring r1"></span><span class="ring r2"></span><img src="icon.png" alt="YOU"></div>
       <div class="orb" data-x="-.30" data-y="-.28" style="--c:#4ADE80"><i class="ti ti-checklist"></i>Привычки</div>
@@ -1217,7 +1199,6 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="orb" data-x=".30" data-y=".28" style="--c:#F2A93B"><i class="ti ti-target-arrow"></i>Цели</div>
     </div>
     <div class="wrap center merge-caps">
-      <p class="merge-cap" id="cap-a">Тренировки в заметках, расходы в таблице, привычки в трекере, цели в голове.<br>Всё вразнобой, и через две недели бросаешь.</p>
       <p class="merge-cap" id="cap-b"><b>В YOU всё в одном месте.</b><br>Тренировки, привычки, деньги и цели рядом.</p>
     </div>
     <div class="merge-hint" id="merge-hint"><i class="ti ti-mouse"></i> листай</div>
@@ -1798,7 +1779,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       var W=scene.clientWidth, H=scene.clientHeight, t=(now-t0)/1000;
       var m=ease(cl((p-.1)/.36)), f=ease(cl((p-.36)/.3));
       cards.forEach(function(c,i){
-        var x=+c.dataset.x, y=+c.dataset.y, rot=+c.dataset.r;
+        var sm=innerWidth<=560&&c.dataset.mx!=null, x=+(sm?c.dataset.mx:c.dataset.x), y=+(sm?c.dataset.my:c.dataset.y), rot=+c.dataset.r;
         var fl=(1-m)*Math.sin(t*1.1+i*1.7)*6;
         place(c,x,y+fl/Math.max(H,1),W,H,1-m,'rotate('+(rot*(1-m))+'deg) scale('+(1-.72*m)+')');
         c.style.opacity=String(cl(1-m*1.25));
@@ -1806,7 +1787,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       core.style.opacity=String(f); core.style.transform='scale('+(.3+.7*f)+')';
       orbs.forEach(function(o,i){ var k=ease(cl((f-.15*i/3)/.85)); var pt=place(o,+o.dataset.x,+o.dataset.y,W,H,k,'scale('+(.6+.4*k)+')'); o.style.opacity=String(k);
         var l=lines[i]; if(l){ l.setAttribute('x1',W/2); l.setAttribute('y1',H/2); l.setAttribute('x2',W/2+pt[0]); l.setAttribute('y2',H/2+pt[1]); l.style.opacity=String(k*.9); } });
-      capA.style.opacity=String(cl(1-m*2)); capA.style.transform='translateY('+(-12*m)+'px)';
+      if(capA){capA.style.opacity=String(cl(1-m*2)); capA.style.transform='translateY('+(-12*m)+'px)';}
       capB.style.opacity=String(f); capB.style.transform='translateY('+(12*(1-f))+'px)';
       hint.style.opacity=String(cl(1-p*6));
       requestAnimationFrame(frame);

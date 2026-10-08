@@ -59,7 +59,7 @@ window.Tasks = (function () {
   function card(t, opts) {
     const td = iso(today()), late = !t.done && t.date && t.date < td;
     const showDate = t.date && (!(opts && opts.noDate) || late);
-    const subs = t.subs.length ? `<span class="tk-m"><i class="ti ti-subtask"></i>${t.subs.filter(s => s.done).length}/${t.subs.length}</span>` : '';
+    const subs = t.subs.length ? `<span class="tk-m"><i class="ti ti-subtask"></i>${t.subs.filter(s => s.done).length}/${t.subs.length}<i class="ti ti-chevron-right tk-chev"></i></span>` : '';
     const date = showDate ? `<span class="tk-m ${late ? 'late' : 'ok'}"><i class="ti ti-calendar"></i>${dayLabel(t.date)}</span>` : '';
     const desc = t.desc ? `<span class="tk-d">${esc(t.desc.split('\n')[0])}</span>` : '';
     const meta = subs + date;
@@ -95,7 +95,7 @@ window.Tasks = (function () {
     const days = Array.from({ length: DAYS }, (_, i) => addDays(today(), i));
     const col = (d) => { const ds = iso(d), items = all.filter(t => t.date === ds).sort(byOrd), lb = dayLabel(ds), nd = items.filter(t => !t.done).length;
       const name = lb === 'Сегодня' || lb === 'Завтра' ? lb : DOW[d.getDay()];
-      return `<section class="tk-col${d.getDay() === 1 ? ' mon' : ''}" data-day="${ds}"><header>${d.getDate()} ${MON[d.getMonth()]} · ${name}<i>${nd || ''}</i></header>
+      return `<section class="tk-col${d.getDay() === 1 ? ' mon' : ''}" data-day="${ds}"><header>${d.getDate()} ${MON[d.getMonth()]} · ${name}<i>${nd}</i></header>
         <div class="tk-col-l" data-list="${ds}">${items.map(t => card(t, { noDate: true })).join('')}${addBtn(ds)}</div></section>`; };
     return `<div class="tk-page tk-page-w"><div class="tk-ph"><h1>Предстоящее</h1></div>
       <div class="tk-wbar"><b id="tk-month">${MONN[today().getMonth()]} ${today().getFullYear()}</b>

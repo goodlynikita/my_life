@@ -15,6 +15,7 @@ const Router = (() => {
     '/habits': () => Screens.habits(mount()),
     '/finance': () => Screens.finance(mount()),
     '/goals': () => Screens.goals(mount()),
+    '/tasks': () => Screens.tasks(mount()),
   };
 
   function currentPath() {

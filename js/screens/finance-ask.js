@@ -82,14 +82,14 @@ window.FinAsk = (function () {
   function render(content) {
     const list = msgs(); const off = !cfg().aiChatUrl;
     const left = usage ? Math.max(0, usage.limit - usage.used) : null;
-    content.innerHTML = `<div class="fa-card">
-      <div class="fa-head"><span class="fa-ico"><i class="ti ti-sparkles"></i></span><div class="fa-t"><b>Помощник</b><span>Считает по твоим тратам, доходам и целям</span></div>${left == null ? '' : `<div class="fa-left"><b>${left}</b><span>из ${usage.limit}</span></div>`}</div>
-      <div class="fa-list" id="fa-list">${list.length ? list.map(m => `<div class="fa-msg ${m.role === 'user' ? 'me' : 'bot'}${m.err ? ' err' : ''}">${m.role === 'user' ? esc(m.text) : fmt(m.text)}</div>`).join('')
-        : `<div class="fa-empty"><i class="ti ti-message-question"></i><b>Спроси о своих деньгах</b></div>`}${busy ? '<div class="fa-msg bot fa-typing"><span></span><span></span><span></span></div>' : ''}</div>
-      ${list.length < 2 ? `<div class="fa-quick">${QUICK.map(q => `<button class="fa-q">${esc(q)}</button>`).join('')}</div>` : ''}
-      <div class="fa-input"><textarea id="fa-text" rows="1" placeholder="${off ? 'Помощник скоро заработает' : 'Спроси о своих деньгах'}" ${off || left === 0 ? 'disabled' : ''}></textarea>
+    content.innerHTML = `<div class="ch-card fa-ch">
+      <div class="ch-head"><div class="ai-hero-ico sm"><i class="ti ti-sparkles"></i></div><div class="ch-head-t"><b>Помощник</b><span>Считает по твоим тратам, доходам и целям</span></div><div class="ch-left${left === 0 ? ' zero' : ''}">${left == null ? '' : `<b>${left}</b><span>из ${usage.limit}</span>`}</div></div>
+      <div class="ch-list" id="fa-list">${list.length ? list.map(m => `<div class="ch-msg ${m.role === 'user' ? 'me' : 'bot'}${m.err ? ' err' : ''}">${m.role === 'user' ? esc(m.text) : fmt(m.text)}</div>`).join('')
+        : `<div class="ch-empty"><i class="ti ti-message-question"></i><b>Спроси о своих деньгах</b></div>`}${busy ? '<div class="ch-msg bot ch-typing"><span></span><span></span><span></span></div>' : ''}</div>
+      ${list.length < 2 ? `<div class="ch-quick">${QUICK.map(q => `<button class="ch-q fa-q">${esc(q)}</button>`).join('')}</div>` : ''}
+      <div class="ch-input"><textarea id="fa-text" rows="1" placeholder="${off ? 'Помощник скоро заработает' : 'Спроси о своих деньгах…'}" ${off || left === 0 ? 'disabled' : ''}></textarea>
         <button id="fa-send" aria-label="Спросить" ${off || left === 0 || busy ? 'disabled' : ''}><i class="ti ti-send"></i></button></div>
-      ${list.length ? '<button class="fa-clear" id="fa-clear">Очистить переписку</button>' : ''}
+      <div class="ch-foot">${usage ? usage.limit + ' сообщений в месяц' : 'Общий лимит с чатом тренера'}${list.length ? ' · <button class="ch-clear" id="fa-clear">Очистить переписку</button>' : ''}</div>
     </div>`;
     const box = content.querySelector('#fa-list'); if (box) box.scrollTop = box.scrollHeight;
     const again = () => { if (content.isConnected && content.querySelector('#fa-list')) render(content); };

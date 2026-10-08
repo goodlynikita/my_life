@@ -2169,3 +2169,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-day-slot i{font-size:16px;color:#FBBF24}.tr-day-slot b{font-weight:700}.tr-day-slot span{color:rgba(253,230,138,.7);font-size:12px}
 
 .tr-prog-fill{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;height:40px;border-radius:10px;border:1px solid rgba(90,130,230,.4);background:rgba(58,98,201,.14);color:#BFD0FF;font:700 13px Montserrat,sans-serif;cursor:pointer}
+/* Чат на всю высоту экрана */
+.ch-list{max-height:none;height:max(280px,calc(100dvh - 330px))}
+/* Открыт список «Тип»: прячем остальную форму */
+.tr-modal.tr-dd-only > :not(.tr-modal-title):not(.tr-dd-row){display:none!important}

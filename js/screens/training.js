@@ -1281,7 +1281,10 @@ function trDropdown(sel) {
   const dd = document.createElement('div'); dd.className = 'tr-dd';
   const head = () => { const c = cat(sel.value); return `<button type="button" class="tr-dd-h"><i class="tr-dd-dot" style="--c:${c.color}"></i><span><b>${c.label}</b><small>${c.desc || ''}</small></span><i class="ti ti-chevron-down tr-dd-ch"></i></button>`; };
   const list = () => `<div class="tr-dd-list">${Array.from(sel.options).map(o => { const c = cat(o.value); return `<button type="button" class="tr-dd-o${o.value === sel.value ? ' on' : ''}" data-v="${o.value.replace(/"/g, '&quot;')}"><i class="tr-dd-dot" style="--c:${c.color}"></i><span><b>${c.label}</b><small>${c.desc || ''}</small></span>${o.value === sel.value ? '<i class="ti ti-check"></i>' : ''}</button>`; }).join('')}</div>`;
-  const draw = (open) => { dd.classList.toggle('open', !!open); dd.innerHTML = head() + (open ? list() : ''); };
+  /* пока список открыт, остальная форма свёрнута: видно только выбор типа */
+  const draw = (open) => { dd.classList.toggle('open', !!open); dd.innerHTML = head() + (open ? list() : '');
+    const m = dd.closest('.tr-modal'), row = dd.closest('.tr-modal-row');
+    if (m && row) { row.classList.add('tr-dd-row'); m.classList.toggle('tr-dd-only', !!open); } };
   draw(false);
   dd.addEventListener('click', (e) => {
     const o = e.target.closest('.tr-dd-o');

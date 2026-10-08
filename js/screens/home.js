@@ -76,6 +76,7 @@ window.Screens.home = function(mount) {
     + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
     + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + '</div>'
+    + (window.Tasks && Tasks.isOwner() ? (function(){ var n = Tasks.todayCount(); return '<button class="home-tasks" data-route="/tasks"><i class="ti ti-list-check"></i><b>Задачи</b><span>' + (n ? n + ' на сегодня' : 'на сегодня пусто') + '</span><i class="ti ti-chevron-right"></i></button>'; })() : '')
     + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
 
     + ''

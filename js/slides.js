@@ -293,17 +293,19 @@ var Slides = (() => {
     {
       id: 'finance_balance', section: 'Финансы',
       name: 'Баланс: доход − расходы',
-      desc: 'Итоговый баланс месяца (доход минус расходы)',
+      desc: 'Сколько свободно: доход минус копилка и траты, как во вкладке «Расходы»',
       render: (store) => {
         const now = new Date();
         const yr = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
         const entries = store.finance?.years?.[yr]?.[mm]?.entries || [];
         const income = entries.reduce((s,e)=>s+((e?.amount)||0),0);
         const expenses = finSpentMonth();
-        const bal = income - expenses;
+        /* то же число, что «Свободно» в Расходах: заработано − копилка − потрачено */
+        let bal = income - expenses, lbl = 'баланс';
+        try { if (window.FinSpend && FinSpend.calc) { bal = FinSpend.calc(now).free; lbl = 'свободно'; } } catch (e) {}
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const c = bal>=0?'#4ADE80':'#F87171';
-        return `<div class="hero-stat-num" style="color:${c}">${bal<0?'−':''}${fmt(bal)}</div><div class="hero-stat-lbl">баланс</div>`;
+        return `<div class="hero-stat-num" style="color:${c}">${bal<0?'−':''}${fmt(bal)}</div><div class="hero-stat-lbl">${lbl}</div>`;
       },
     },
     {

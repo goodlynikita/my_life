@@ -180,6 +180,21 @@ function habSeriesHtml(store) {
     <div class="hs-main"><div class="hs-t">${S.cur ? S.cur + ' ' + pl(S.cur) + ' подряд' : 'Начни серию сегодня'}</div>
       <div class="hs-s">${S.todayDone ? 'Сегодня засчитан' : S.cur ? 'Отметь больше половины привычек, чтобы продлить' : 'Отметь больше половины привычек дня'}${S.best > S.cur ? ' · рекорд ' + S.best : ''}</div>
       <div class="hs-week">${S.week.map((w, i) => `<span class="hs-d ${w.r}${w.today ? ' today' : ''}"><i>${w.r === 'done' ? '<i class="ti ti-flame"></i>' : ''}</i><em>${DW[i]}</em></span>`).join('')}</div></div>
+    ${habGoalHtml(S, pl)}
+  </div>`;
+}
+/* Следующая награда серии: сколько дней осталось и какие уже получены (по рекорду) */
+const HAB_MILES = [[3, 'Разгон'], [7, 'Неделя'], [14, 'Две недели'], [30, 'Месяц'], [50, 'Полсотни'], [100, 'Сотня'], [200, 'Двести'], [365, 'Год']];
+function habGoalHtml(S, pl) {
+  const best = Math.max(S.best || 0, S.cur || 0);
+  const next = HAB_MILES.find(m => m[0] > S.cur) || [Math.ceil((S.cur + 1) / 100) * 100, 'Новый рубеж'];
+  const prev = [...HAB_MILES].reverse().find(m => m[0] <= S.cur); const from = prev ? prev[0] : 0;
+  const left = next[0] - S.cur, pct = Math.round((S.cur - from) / Math.max(1, next[0] - from) * 100);
+  return `<div class="hs-goal">
+    <div class="hs-g-top"><span>Цель: <b>${next[1]}</b></span><em>${S.cur} / ${next[0]}</em></div>
+    <div class="hs-g-bar"><span style="width:${pct}%"></span></div>
+    <div class="hs-g-left">${left === 1 ? 'Остался 1 день' : 'Осталось ' + left + ' ' + pl(left)}</div>
+    <div class="hs-g-badges">${HAB_MILES.slice(0, 6).map(m => `<span class="hs-b${best >= m[0] ? ' got' : ''}${m[0] === next[0] ? ' nx' : ''}" title="${m[1]}: ${m[0]} ${pl(m[0])} подряд">${m[0]}</span>`).join('')}</div>
   </div>`;
 }
 

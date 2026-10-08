@@ -157,9 +157,10 @@ function goalsPayDate(g) {
   return d;
 }
 function goalsInPlanned(g) { if (!g || !g.payId) return false; const pl = (Store.get().finance || {}).planned; return Object.values(pl || {}).some(x => x && x.id === g.payId); }
-function goalsToPlanned(g) {
+const goalsIso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+function goalsToPlanned(g, when) {
   const fin = Store.get().finance || {}; const arr = Object.values(fin.planned || {}).filter(Boolean);
-  const d = goalsPayDate(g), iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(String(when || '')) ? when : goalsIso(goalsPayDate(g));
   const id = 'o' + Date.now().toString(36);
   arr.push({ id, name: String(g.name).slice(0, 60), amt: Math.round(g.amount), date: iso, done: false, createdAt: Date.now(), goal: g.id });
   Store.set('finance.planned', arr);
@@ -187,6 +188,9 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
         <div class="goals-modal-label">Сумма, ₽</div>
         <input class="goals-modal-input" type="number" id="g-amount" value="${existing?.amount||''}" inputmode="numeric" placeholder="0">
       </div>
+      <div class="gm-fold${isEdit ? '' : ' open'}" id="g-fold">
+        <button type="button" class="gm-sum" id="g-sum"><span class="gm-sum-t"><span class="gm-sum-l">Категория и срок</span><span class="gm-sum-v" id="g-sum-v"></span></span><i class="ti ti-chevron-down"></i></button>
+        <div class="gm-fold-in">
       <div class="goals-modal-field">
         <div class="goals-modal-label">Категория</div>
         <div class="gm-chips" id="g-cat-chips">${existingCats.map(c=>`<button type="button" class="gm-chip${!isNewCat&&existing?.cat===c?' sel':''}" data-v="${goalsEsc(c)}">${goalsEsc(c)}</button>`).join('')}<button type="button" class="gm-chip gm-chip-new${isNewCat?' sel':''}" data-v="_new">+ Новая</button></div>
@@ -199,6 +203,8 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
       <div class="goals-modal-field">
         <div class="goals-modal-label">Месяц</div>
         <div class="gm-months" id="g-month">${['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'].map((l,i)=>`<button type="button" class="gm-chip${existing?.month===i+1?' sel':''}" data-v="${i+1}">${l}</button>`).join('')}</div>
+      </div>
+        </div>
       </div>
       <div class="goals-modal-field">
         <div class="goals-modal-label">Комментарий или ссылка</div>
@@ -232,6 +238,15 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
     if (box.id === 'g-cat-chips') { const inp = overlay.querySelector('#g-cat'); inp.style.display = c.dataset.v === '_new' ? 'block' : 'none'; if (c.dataset.v === '_new') inp.focus(); }
   }));
   pick(overlay.querySelector('#g-cat-chips')); pick(overlay.querySelector('#g-season')); pick(overlay.querySelector('#g-month'), true);
+  /* свёрнутый блок «Категория и срок»: в шапке коротко, что выбрано */
+  const SEAS = { all: 'Без сезона', spring: 'Весна', summer: 'Лето', autumn: 'Осень', winter: 'Зима' };
+  const sumUpd = () => { const c = overlay.querySelector('#g-cat-chips .gm-chip.sel'), se = overlay.querySelector('#g-season .gm-chip.sel'), mo = overlay.querySelector('#g-month .gm-chip.sel');
+    const cat = c ? (c.dataset.v === '_new' ? (overlay.querySelector('#g-cat').value.trim() || 'Новая') : c.textContent) : '';
+    overlay.querySelector('#g-sum-v').textContent = [cat, se ? SEAS[se.dataset.v] || se.textContent : '', mo ? mo.textContent : ''].filter(Boolean).join(' · '); };
+  sumUpd();
+  overlay.querySelector('.gm-fold-in').addEventListener('click', () => setTimeout(sumUpd, 0));
+  overlay.querySelector('#g-cat').addEventListener('input', sumUpd);
+  overlay.querySelector('#g-sum').addEventListener('click', () => overlay.querySelector('#g-fold').classList.toggle('open'));
   const selOf = (id) => { const c = overlay.querySelector('#' + id + ' .gm-chip.sel'); return c ? c.dataset.v : ''; };
   const readForm = () => {
     const name = overlay.querySelector('#g-name').value.trim();
@@ -248,8 +263,16 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   const tp = overlay.querySelector('#g-topay');
   if (tp) { if (goalsInPlanned(existing)) tp.disabled = true;
     tp.addEventListener('click', () => { const g = readForm(); if (!g.name || !(g.amount > 0)) { alert('Укажи название и сумму'); return; }
-      const pid = goalsToPlanned(g); g.payId = pid; onSave(g); overlay.remove();
-      if (window.FinSpend && FinSpend.toast) FinSpend.toast('Добавил в «Ближайшие платежи» к ' + goalsPayDate(g).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })); }); }
+      /* сначала спрашиваем дату платежа, по умолчанию конец месяца или сезона цели */
+      let box = overlay.querySelector('.gm-paybox'); if (box) { box.remove(); return; }
+      box = document.createElement('div'); box.className = 'gm-paybox';
+      box.innerHTML = `<label>Когда заплатить<input type="date" id="g-paydate" value="${goalsIso(goalsPayDate(g))}" min="${goalsIso(new Date())}"></label><button type="button" id="g-payok">Добавить</button>`;
+      tp.insertAdjacentElement('afterend', box);
+      box.querySelector('#g-payok').addEventListener('click', () => { const g2 = readForm(); const when = box.querySelector('#g-paydate').value;
+        if (!when) { alert('Выбери дату'); return; }
+        const pid = goalsToPlanned(g2, when); g2.payId = pid; onSave(g2); overlay.remove();
+        if (window.FinSpend && FinSpend.toast) FinSpend.toast('Добавил в «Ближайшие платежи» к ' + new Date(when + 'T12:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })); });
+    }); }
 
   /* Статус кнопки */
   let selStatus = existing?.done?'done':existing?.maybe?'maybe':'active';

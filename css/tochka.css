@@ -565,3 +565,15 @@ button.sp-day{width:100%;background:none;border:none;font:inherit;cursor:pointer
 .fa-t b { color: #fff; }
 .fa-msg.bot { color: #EDEAF7; } .fa-msg.bot b { color: #fff; } .fa-msg.err { color: #F5B5B0; }
 .plan-dlt{font-style:normal;font-size:11px;font-weight:700;margin-left:6px;padding:1px 6px;border-radius:999px;white-space:nowrap}.plan-dlt.up{color:#E0B252;background:rgba(224,178,82,.12)}.plan-dlt.dn{color:#4ADE80;background:rgba(74,222,128,.10)}
+/* Помощник по деньгам: как чат тренера, но в фиолетовом */
+.fa-ch{margin:16px;background:linear-gradient(160deg,rgba(40,31,70,.85),rgba(20,17,31,.92));border-color:rgba(151,127,233,.25)}
+.fa-ch .ch-head,.fa-ch .ch-input{border-color:rgba(151,127,233,.14)}
+.fa-ch .ai-hero-ico{background:rgba(151,127,233,.18)!important;color:#C4B5FD!important;box-shadow:inset 0 0 0 1px rgba(151,127,233,.3)!important}
+.fa-ch .ch-left b,.fa-ch .ch-empty i,.fa-ch .ch-clear{color:#C4B5FD}
+.fa-ch .ch-msg.me,.fa-ch .ch-input button{background:#7B5FE0!important}
+.fa-ch .ch-msg.bot{border-color:rgba(151,127,233,.16)}
+.fa-ch .ch-q{border-color:rgba(151,127,233,.3);background:rgba(151,127,233,.1);color:#DDD6FE}
+.fa-ch .ch-input textarea{background:#1A1626;border-color:rgba(151,127,233,.25)}
+.fa-ch .ch-input textarea:focus{border-color:#977FE9}
+.fa-ch .ch-typing span{background:#B9A6FF}
+.fa-ch .ch-list{height:max(260px,calc(100dvh - 390px))}

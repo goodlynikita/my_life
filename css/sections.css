@@ -1870,3 +1870,82 @@ html[data-theme="light"] .habit-table .hab-col-today{background:#1A1C22}
 .hs-d.future>i{opacity:.4}
 .hs-d em{font-style:normal;font-size:9.5px;color:#7A766E;font-weight:600}
 .hs-d.today em{color:#FF9600}
+.gm-paybox{display:flex;align-items:flex-end;gap:8px;margin:10px 20px 0}
+.gm-paybox label{flex:1;display:flex;flex-direction:column;gap:6px;font:600 12px Montserrat,sans-serif;color:rgba(255,255,255,.5)}
+.gm-paybox input{height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#2A2D35;color:#F0EDE5;font:600 15px Montserrat,sans-serif;padding:0 12px;color-scheme:dark}
+.gm-paybox button{height:44px;padding:0 16px;border-radius:12px;border:none;background:var(--gm-acc,#F2A93B);color:#1A1407;font:800 14px Montserrat,sans-serif;cursor:pointer}
+/* Серия: дни компактно и цель-награда */
+.hs-week{max-width:340px}
+.hs-goal{flex:0 0 250px;padding-left:16px;border-left:1px solid rgba(255,255,255,.07)}
+.hs-g-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:#9D9A92}
+.hs-g-top b{color:#F2EFE8;font-weight:800}.hs-g-top em{font-style:normal;font-weight:700;color:#FFB020}
+.hs-g-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.07);margin:8px 0 6px;overflow:hidden}
+.hs-g-bar span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#FFB020,#FF7A00);transition:width .6s}
+.hs-g-left{font-size:11.5px;color:#9D9A92}
+.hs-g-badges{display:flex;gap:6px;margin-top:10px}
+.hs-b{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#5E5B55;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.hs-b.got{color:#1E1407;background:linear-gradient(135deg,#FFC24A,#FF8A00);border-color:transparent;box-shadow:0 2px 8px rgba(255,140,0,.3)}
+.hs-b.nx{border:1px dashed rgba(255,176,32,.6);color:#FFB020}
+@media (max-width:640px){.hab-series{flex-wrap:wrap}.hs-goal{flex:1 1 100%;padding:12px 0 0;border-left:none;border-top:1px solid rgba(255,255,255,.07)}.hs-week{max-width:none}}
+
+/* ═══ Задачи (только владелец) ═══ */
+.home-tasks{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:12px 16px 0;padding:14px 16px;border-radius:18px;border:1px solid rgba(240,100,90,.25);background:linear-gradient(135deg,rgba(240,100,90,.12),rgba(26,28,34,.9));color:#F2EFE8;font-family:inherit;cursor:pointer;text-align:left}
+.home-tasks>i:first-child{font-size:22px;color:#F0645A}.home-tasks b{font-size:15px}.home-tasks span{flex:1;font-size:12.5px;color:#9D9A92}.home-tasks>i:last-child{color:#6E6B66}
+.tk-screen{min-height:100vh;background:#0F1117;color:#F2EFE8;padding-bottom:80px}
+.tk-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(135deg,#B8372E,#E0564A)}
+.tk-header p{margin:0;font-size:20px;font-weight:800;color:#fff}
+.tk-back{width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tk-tabs{position:sticky;top:60px;z-index:19;display:flex;background:#16181E;border-bottom:1px solid #2A2D35}
+.tk-tabs button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:46px;border:none;border-bottom:2px solid transparent;background:none;color:#8A8F9C;font:700 13.5px Montserrat,sans-serif;cursor:pointer}
+.tk-tabs button i{font-size:17px}.tk-tabs button.on{color:#F0645A;border-bottom-color:#F0645A}
+.tk-n{font-size:11px;font-weight:800;color:#F0645A;min-width:0}.tk-n:empty{display:none}
+.tk-body{padding:16px}
+.tk-col.one{max-width:720px;margin:0 auto}
+.tk-sec{margin:18px 0 6px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8A8F9C}.tk-sec.late{color:#F0645A;margin-top:0}
+.tk-row{display:flex;align-items:flex-start;gap:12px;padding:12px 4px;border-bottom:1px solid #22252C;transition:opacity .25s,transform .25s}
+.tk-row.pop{opacity:.3;transform:translateX(8px)}
+.tk-ck{flex-shrink:0;width:22px;height:22px;margin-top:1px;border-radius:50%;border:2px solid #5E626E;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.tk-ck i{font-size:13px;color:#fff;opacity:0;transition:opacity .2s}
+.tk-ck:hover{border-color:#F0645A}.tk-ck:hover i{opacity:.6;color:#F0645A}
+.tk-row.done .tk-ck,.tk-row.pop .tk-ck{background:#F0645A;border-color:#F0645A}.tk-row.done .tk-ck i,.tk-row.pop .tk-ck i{opacity:1;color:#fff}
+.tk-tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;border:none;background:none;padding:0;text-align:left;color:#F2EFE8;font:500 15px/1.35 Montserrat,sans-serif;cursor:pointer;word-break:break-word}
+.tk-row.done .tk-tt span{color:#6E727E;text-decoration:line-through}
+.tk-tt em{display:inline-flex;align-items:center;gap:4px;font-style:normal;font-size:12px;font-weight:600;color:#4ADE80}.tk-tt em.late{color:#F0645A}.tk-tt em i{font-size:13px}
+.tk-add{display:flex;align-items:center;gap:10px;padding:10px 4px;color:#F0645A}
+.tk-add i{font-size:18px}
+.tk-add input{flex:1;min-width:0;height:36px;border:none;background:none;color:#F2EFE8;font:500 15px Montserrat,sans-serif;outline:none}
+.tk-add input::placeholder{color:#8A8F9C}
+.tk-add:focus-within{border-bottom:1px solid #F0645A}
+.tk-empty{padding:28px 0;text-align:center;color:#6E727E;font-size:14px}
+.tk-wk-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tk-wk-nav b{font-size:16px}
+.tk-wk-nav div{display:flex;border:1px solid #2A2D35;border-radius:10px;overflow:hidden}
+.tk-wk-nav button{height:34px;min-width:34px;padding:0 10px;border:none;background:#16181E;color:#C9CDD6;font:600 13px Montserrat,sans-serif;cursor:pointer}
+.tk-wk-nav button+button{border-left:1px solid #2A2D35}
+.tk-week{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:16px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.tk-day{scroll-snap-align:start;min-width:0}
+.tk-day-h{padding:6px 2px 8px;font-size:14px;font-weight:800;border-bottom:1px solid #2A2D35}
+.tk-day-h span{color:#6E727E;font-weight:600;margin-left:4px}
+.tk-day.now .tk-day-h{color:#F0645A}
+.tk-day .tk-row{padding:10px 10px;margin-top:8px;border:1px solid #2A2D35;border-radius:12px;background:#16181E}
+.tk-day .tk-tt{font-size:14px}
+@media (max-width:640px){.tk-week{grid-auto-flow:row;grid-auto-columns:auto;overflow:visible}.tk-tabs button{font-size:12.5px;gap:4px}.tk-tabs button i{display:none}}
+.tk-modal textarea{width:100%;box-sizing:border-box;min-height:64px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#2A2D35;color:#F0EDE5;font:500 15px Montserrat,sans-serif;resize:vertical}
+.tk-e-dates{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.tk-e-dates button{height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#23262E;color:#C9CDD6;font:600 13px Montserrat,sans-serif;cursor:pointer}
+.tk-e-dates button.on{border-color:#F0645A;color:#F0645A;background:rgba(240,100,90,.1)}
+.tk-e-dates input{height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#23262E;color:#C9CDD6;font:600 13px Montserrat,sans-serif;padding:0 10px;color-scheme:dark}
+/* Цель: свёрнутый блок «Категория и срок» */
+.gm-fold{margin:14px 20px 0;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.02)}
+.gm-sum{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 14px;border:none;background:none;color:#F0EDE5;font-family:Montserrat,sans-serif;cursor:pointer;text-align:left}
+.gm-sum-l{font-size:12px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.gm-sum-v{flex:1;min-width:0;font-size:14px;font-weight:700;color:var(--gm-acc,#F2A93B);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gm-sum i{color:rgba(255,255,255,.45);font-size:18px;transition:transform .25s}
+.gm-fold.open .gm-sum i{transform:rotate(180deg)}
+.gm-fold-in{display:none;padding:0 0 4px}
+.gm-fold.open .gm-fold-in{display:block;animation:gmFold .2s ease}
+.gm-fold-in .goals-modal-field{padding-left:14px;padding-right:14px;margin-left:0;margin-right:0}
+@keyframes gmFold{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.gm-sum-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.gm-sum-v{text-align:left;font-size:15px}
+.gm-sum-l{font-size:11px}

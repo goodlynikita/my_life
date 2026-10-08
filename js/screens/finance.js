@@ -172,7 +172,7 @@ window.Screens.finance = function(mount) {
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
   let activeTab = (window.__keepUi && window.__ui && window.__ui.fin) || (function(){ try { return localStorage.getItem('you_fin_tab'); } catch(e) { return null; } })() || 'month'; /* открываемся на последней выбранной вкладке */
-  if (!['month','expenses','balance','year','all'].includes(activeTab)) activeTab = 'month';
+  if (!['month','expenses','balance','year','all','ask'].includes(activeTab)) activeTab = 'month';
 
   mount.innerHTML = `
     <div class="tochka-screen">
@@ -192,6 +192,7 @@ window.Screens.finance = function(mount) {
         <button class="tochka-tab" data-tab="balance">Баланс</button>
         <button class="tochka-tab" data-tab="year">Год</button>
         <button class="tochka-tab" data-tab="all">Всё время</button>
+        ${window.APP_CONFIG && APP_CONFIG.aiChatUrl ? '<button class="tochka-tab" data-tab="ask"><i class="ti ti-sparkles"></i> Помощник</button>' : ''}
       </div>
       <div class="tochka-body" id="fin-content"></div>
     </div>`;
@@ -848,6 +849,7 @@ window.Screens.finance = function(mount) {
     else if(activeTab==='expenses')renderExpenses();
     else if(activeTab==='balance')renderBalance();
     else if(activeTab==='year')renderYear();
+    else if(activeTab==='ask'&&window.FinAsk)FinAsk.render(document.getElementById('fin-content'));
     else renderAll();
   }
   render();

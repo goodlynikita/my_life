@@ -25,7 +25,7 @@ PWA «YOU»: трекер жизни (тренировки, привычки, ф
 - Финансы: `js/screens/finance.js` (вкладки Месяц/Год/Всё время/Баланс), `finance-spend.js` (вкладка «Расходы»: сколько можно потратить, запись одной строкой, обучение категориям), `finance-piggy.js` (копилка).
 - Подсказки для новичков: `js/tour.js` (SCREENS и TABS). Палитра «Яркие/Пастельные»: `js/palette.js`.
 - Помощник по деньгам: `js/screens/finance-ask.js` (вкладка «Помощник», `ai-coach` с `mode: 'finance'`).
-- Задачи (как Todoist, пока только для владельца, по `ownerEmail`): `js/screens/tasks.js`, маршрут `#/tasks`, 5-я плитка на главной (`home2-tile-tasks`, индекс 4 в `home.tileOrder`), данные `tasks.list` (desc, prio 1..4, subs). Перетаскивание между днями во вкладке «Предстоящее».
+- Задачи (как Todoist, пока только для владельца, по `ownerEmail`): `js/screens/tasks.js`, маршрут `#/tasks`, 5-я плитка на главной (`home2-tile-tasks`, индекс 4 в `home.tileOrder`), данные `tasks.list` (desc, prio 1..4, subs). Перетаскивание между днями и внутри дня (поле `order`) во вкладке «Предстоящее», она открывается по умолчанию; вкладки настраиваются (`home.tabs.tasks`).
 - Настройка вкладок (порядок/скрытие) во всех разделах: `js/tabs-custom.js`, хранится в `home.tabs.<раздел>`.
 - Расписание тренера у клиента: тренер пишет копию записи в `clientSlots/{ключ клиента}/{trainerUid}_{id}`, клиент читает через `FirebaseSync.slotsOn(date)` (план и «Фокус дня»).
 - Личный лимит AI: `userIndex/{uid}/aiLimit` (ставится в админке), счётчик `aiUsage/{uid}/{YYYY-MM}`.

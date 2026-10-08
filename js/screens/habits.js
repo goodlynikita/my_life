@@ -145,6 +145,44 @@ function habStreak(h, store) {
   return streak;
 }
 
+/* ── Серия дней как в Duolingo ──
+   День засчитан, если сделано больше половины привычек, запланированных на этот день.
+   Сегодня ещё не засчитан: серия не сгорает до конца дня. */
+function habDayDone(list, months, d) {
+  const y = d.getFullYear(), m = d.getMonth(), day = d.getDate(), mk = habMonthKey(y, m);
+  const act = list.filter(h => h && h.schedule !== '3perweek' && habDayActive(h, y, m, day));
+  const all = list.filter(Boolean);
+  const done = all.filter(h => months[mk]?.[h.id]?.[day] === 'done').length;
+  if (!act.length) return done > 0 ? 'done' : 'skip'; /* выходной без привычек: серию не рвёт */
+  return done * 2 > act.length ? 'done' : 'miss';
+}
+function habSeries(store) {
+  const list = (store.habits?.list || []).filter(Boolean), months = store.habits?.months || {};
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  let cur = 0, best = 0, run = 0;
+  const todayDone = habDayDone(list, months, t) === 'done';
+  for (let i = 0; i < 400; i++) { const d = new Date(t); d.setDate(t.getDate() - i); const r = habDayDone(list, months, d);
+    if (i === 0 && r !== 'done') continue;
+    if (r === 'done') cur++; else if (r === 'skip') continue; else break; }
+  for (let i = 400; i >= 0; i--) { const d = new Date(t); d.setDate(t.getDate() - i); const r = habDayDone(list, months, d);
+    if (r === 'done') { run++; best = Math.max(best, run); } else if (r === 'miss' && i > 0) run = 0; }
+  const mon = new Date(t); mon.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return { d, r: d > t ? 'future' : habDayDone(list, months, d), today: +d === +t }; });
+  return { cur, best: Math.max(best, cur), todayDone, week, any: list.length > 0 };
+}
+function habSeriesHtml(store) {
+  const S = habSeries(store); if (!S.any) return '';
+  const DW = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const lvl = S.cur >= 30 ? 'l4' : S.cur >= 14 ? 'l3' : S.cur >= 7 ? 'l2' : S.cur >= 1 ? 'l1' : 'l0';
+  const pl = (n) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? 'день' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'дня' : 'дней'; };
+  return `<div class="hab-series ${lvl}${S.todayDone ? ' lit' : ''}" id="hab-series">
+    <div class="hs-flame"><i class="ti ti-flame"></i><b>${S.cur}</b></div>
+    <div class="hs-main"><div class="hs-t">${S.cur ? S.cur + ' ' + pl(S.cur) + ' подряд' : 'Начни серию сегодня'}</div>
+      <div class="hs-s">${S.todayDone ? 'Сегодня засчитан' : S.cur ? 'Отметь больше половины привычек, чтобы продлить' : 'Отметь больше половины привычек дня'}${S.best > S.cur ? ' · рекорд ' + S.best : ''}</div>
+      <div class="hs-week">${S.week.map((w, i) => `<span class="hs-d ${w.r}${w.today ? ' today' : ''}"><i>${w.r === 'done' ? '<i class="ti ti-flame"></i>' : ''}</i><em>${DW[i]}</em></span>`).join('')}</div></div>
+  </div>`;
+}
+
 function habSchedLabel(h) {
   if (h.schedule === 'weekday') return 'пн–пт';
   if (h.schedule === 'weekend') return 'сб–вс';
@@ -455,6 +493,7 @@ window.Screens.habits = function(mount) {
       </div>` : '';
 
     content.innerHTML = `
+      ${isNow && !isDemo ? habSeriesHtml(Store.get()) : ''}
       <div class="sec-card">
       ${demoBanner}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -496,7 +535,7 @@ window.Screens.habits = function(mount) {
                   const dow = habDow(viewYear, viewMonth, d);
                   const isToday = isNow && d===today.getDate();
                   const isWE = dow===0||dow===6;
-                  return `<th style="min-width:22px;font-size:10px;text-align:center;color:${isToday?'#4ADE80':isWE?'#444':'#666'};font-weight:${isToday?700:400};">${d}</th>`;
+                  return `<th${isToday?' class="hab-col-today"':''} style="min-width:22px;font-size:10px;text-align:center;color:${isToday?'#4ADE80':isWE?'#444':'#666'};font-weight:${isToday?700:400};">${d}</th>`;
                 }).join('')}
                 <th style="min-width:50px;font-size:10px;color:#9D9A92;padding-left:8px;">%</th>
                 <th style="min-width:36px;font-size:10px;color:#9D9A92;">Итог</th>
@@ -506,7 +545,7 @@ window.Screens.habits = function(mount) {
                 ${dayNums.map(d=>{
                   const dow = habDow(viewYear,viewMonth,d);
                   const isWE = dow===0||dow===6;
-                  return `<th style="font-size:9px;text-align:center;color:${isWE?'#333':'#555'};">${HAB_DOW[dow]}</th>`;
+                  return `<th${isNow && d===today.getDate()?' class="hab-col-today"':''} style="font-size:9px;text-align:center;color:${isWE?'#333':'#555'};">${HAB_DOW[dow]}</th>`;
                 }).join('')}
                 <th></th><th></th>
               </tr>
@@ -519,7 +558,7 @@ window.Screens.habits = function(mount) {
                   const active = habDayActive(h, viewYear, viewMonth, d);
                   const mark = hMarks[d]||'';
                   const isToday = isNow && d===today.getDate();
-                  return `<td style="text-align:center;padding:2px 1px;">
+                  return `<td${isToday?' class="hab-col-today"':''} style="text-align:center;padding:2px 1px;">
                     <span class="hab-cell ${active?'hab-active':''} ${['done','missed'].includes(mark)?mark:''} ${isToday?'hab-today':''}"
                       data-hid="${habEsc(h.id)}" data-day="${d}" data-active="${active}">
                       ${habMarkHtml(mark, active)}
@@ -561,6 +600,12 @@ window.Screens.habits = function(mount) {
         </button>
       </div>`;
 
+    /* сегодняшний столбец закреплён рядом с названиями, таблица сразу открывается на сегодня */
+    { const tc = content.querySelector('th.hab-col-today'); const wrap = tc && tc.closest('div');
+      if (tc && wrap) { const nameW = (content.querySelector('.habit-table thead th') || {}).offsetWidth || 130;
+        content.querySelectorAll('.hab-col-today').forEach(c => { c.style.left = nameW + 'px'; });
+        const colW = tc.offsetWidth || 30; wrap.scrollLeft = Math.max(0, tc.offsetLeft - nameW - colW * 4); } }
+
     /* Клики по ячейкам */
     content.querySelectorAll('.hab-cell.hab-active').forEach(el => {
       el.addEventListener('click', () => {
@@ -571,6 +616,7 @@ window.Screens.habits = function(mount) {
         habSetMark(mk, hid, day, next);
         /* Обновляем только эту ячейку — без полного ре-рендера страницы */
         el.className = 'hab-cell hab-active ' + next + (el.classList.contains('hab-today')?' hab-today':'');
+        { const hs = content.querySelector('#hab-series'); if (hs) { const was = hs.classList.contains('lit'); hs.outerHTML = habSeriesHtml(Store.get()); const n = content.querySelector('#hab-series'); if (n && !was && n.classList.contains('lit')) { n.classList.add('pop'); try { navigator.vibrate && navigator.vibrate(30); } catch (e) {} } } }
         el.innerHTML = habMarkHtml(next, true);
         /* Обновляем marks локально */
         if (!marks[hid]) marks[hid] = {};

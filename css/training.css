@@ -1703,6 +1703,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .bp-line { fill: none; stroke: #4A7CFF; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
 .bp-dot { fill: #4A7CFF; stroke: #10162A; stroke-width: 2; } .bp-dot.last { fill: #8EB0FF; }
 .bp-pt:hover .bp-dot { fill: #fff; }
+.bp-chart.wide .bp-ax { font-size: 12px; } .bp-chart.wide .bp-line { stroke-width: 2.5; }
 .bp-ins { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .bp-in { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 13px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); }
 .bp-in i { font-size: 18px; margin-top: 1px; } .bp-in b { display: block; font-size: 13px; } .bp-in span { font-size: 12px; color: #9AA3BC; line-height: 1.4; }

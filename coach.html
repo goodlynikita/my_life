@@ -541,6 +541,26 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .fd:last-child{border-bottom:none} .fd b{color:#fff} .fd i{font-size:17px;margin-top:1px;color:#8EA8FF}
 .fd-done i{color:var(--ok)} .fd-pr i{color:#FCD34D} .fd-miss i{color:var(--warn)} .fd-comment i{color:#A5B4FC} .fd-measure i{color:#67E8F9}
 .fd-empty{font-size:13px;color:var(--soft);padding:10px 0;line-height:1.5}
+/* Лента карточками по клиентам */
+.fc-day{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:18px 2px 8px}
+.feed .fc-day:first-child{margin-top:4px}
+.fc-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:900px){.fc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fc{border-radius:16px;border:1px solid var(--line2);border-left:3px solid var(--c);background:linear-gradient(135deg,color-mix(in srgb,var(--c) 10%,transparent),rgba(255,255,255,.02) 55%);padding:12px 14px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.fc:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.3)}
+.fc-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fc-av{width:34px;height:34px;flex-shrink:0;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}
+.fc-h b{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.fc-tags em{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 8px;border-radius:999px;font-style:normal;font-size:11px;font-weight:800;white-space:nowrap}
+.fc-tags em i{font-size:13px}
+.t-done{background:rgba(74,222,128,.13);color:#4ADE80} .t-pr{background:rgba(252,211,77,.14);color:#FCD34D} .t-miss{background:rgba(251,191,36,.12);color:#FBBF24}
+.fc-rows{display:flex;flex-direction:column;gap:2px}
+.fc-r{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
+.fc-r>i{font-size:18px;margin-top:1px;flex-shrink:0}
+.fc-r b{display:block;font-size:13.5px;font-weight:700;line-height:1.35}
+.fc-r span{display:block;font-size:12.5px;color:var(--soft);line-height:1.4;margin-top:1px}
+@media (max-width:560px){.fc-tags{display:none}}
 .bad{color:#FCA5A5}
 .tpl{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
 .tpl-i{width:40px;height:40px;border-radius:12px;background:rgba(74,124,255,.15);color:#8EA8FF;display:flex;align-items:center;justify-content:center;font-size:20px}
@@ -570,7 +590,10 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .cd-lift-t{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:6px}
 .cd-lift-t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cd-lift-t span{font-size:13px;font-weight:800;white-space:nowrap}
 .cd-lift-t em{font-style:normal;font-size:11.5px} .cd-lift-t em.up{color:var(--ok)} .cd-lift-t em.down{color:var(--bad)}
-.cd-spark{width:100%;height:auto;display:block} .cd-line{fill:none;stroke:#4A7CFF;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke} .cd-dot{fill:#8B5CF6;stroke:#161D2E;stroke-width:2;vector-effect:non-scaling-stroke}
+.cd-chart{position:relative;height:84px;margin:4px 4px 0}
+.cd-spark{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible} .cd-line{fill:none;stroke:#4A7CFF;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke} .cd-area{fill:rgba(74,124,255,.12)}
+.cd-pt{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#4A7CFF;box-shadow:0 0 0 2px #161D2E} .cd-pt.last{width:10px;height:10px;margin:-5px 0 0 -5px;background:#8EB0FF}
+.cd-ax{display:flex;justify-content:space-between;gap:6px;margin-top:8px;font-size:11px;white-space:nowrap;font-weight:600;color:var(--faint)}
 .cd-feels{display:flex;flex-direction:column}
 .cd-feel{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45;color:#C9D0E2}
 .cd-feel:last-child{border-bottom:none} .cd-feel-d{font-weight:800;color:#fff;min-width:44px}
@@ -587,16 +610,16 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .demo-bar button{height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(160,170,210,.3);background:none;color:var(--txt);font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;flex-shrink:0}
 /* v147: спокойные пастельные тона разделов, без кислотных сочетаний */
 .c-sh.c-sh-blue{background:linear-gradient(135deg,#2C4470 0%,#3A5690 100%)!important}
-.c-sh.c-sh-green{background:linear-gradient(135deg,#1C6149 0%,#2A8264 100%)!important}
-.c-sh.c-sh-violet{background:linear-gradient(135deg,#3E3488 0%,#5747B0 100%)!important}
-.c-sh.c-sh-amber{background:linear-gradient(135deg,#7A4716 0%,#A2621F 100%)!important}
+.c-sh.c-sh-green{background:linear-gradient(135deg,#2A5E4D 0%,#3A7A64 100%)!important}
+.c-sh.c-sh-violet{background:linear-gradient(135deg,#463E7E 0%,#5D53A0 100%)!important}
+.c-sh.c-sh-amber{background:linear-gradient(135deg,#74502C 0%,#96673A 100%)!important}
 body.sec-blue{--acc:#6F8FD0;--acc2:#5873AE}
-body.sec-green{--acc:#3FAE82;--acc2:#2A8A66;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
-body.sec-violet{--acc:#8B7BE0;--acc2:#6A59C4;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
-body.sec-amber{--acc:#D08A3C;--acc2:#A8661F;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
-body.sec-green .card{background:linear-gradient(160deg,rgba(30,32,42,.82),rgba(17,18,25,.94))}
-body.sec-violet .card{background:linear-gradient(160deg,rgba(30,32,42,.82),rgba(17,18,25,.94))}
-body.sec-amber .card{background:linear-gradient(160deg,rgba(30,32,42,.82),rgba(17,18,25,.94))}
+body.sec-green{--acc:#5FAF90;--acc2:#43907A;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
+body.sec-violet{--acc:#9488D6;--acc2:#7569BC;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
+body.sec-amber{--acc:#C99256;--acc2:#A8743E;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
+body.sec-green .card{background:linear-gradient(160deg,rgba(95,175,144,.11),rgba(95,175,144,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95))}
+body.sec-violet .card{background:linear-gradient(160deg,rgba(148,136,214,.12),rgba(148,136,214,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95))}
+body.sec-amber .card{background:linear-gradient(160deg,rgba(201,146,86,.11),rgba(201,146,86,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95))}
 body.sec-green{background:radial-gradient(1200px 600px at 50% -200px,rgba(63,174,130,.06),transparent),var(--bg)}
 body.sec-violet{background:radial-gradient(1200px 600px at 50% -200px,rgba(143,130,198,.08),transparent),var(--bg)}
 body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(217,139,43,.06),transparent),var(--bg)}
@@ -1644,7 +1667,7 @@ function renderFeed(body) {
   const list = feedFilter === 'all' ? all : all.filter(e => e.k === feedFilter);
   body.innerHTML = `<div class="card"><div class="card-h"><div><b>Лента</b><span>2 недели</span></div></div>
     <div class="chips">${F.map(f => `<button class="chip${feedFilter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}${f[0] !== 'all' ? ' ' + all.filter(e => e.k === f[0]).length : ''}</button>`).join('')}</div>
-    <div class="feed">${window.CoachDash.feedHtml(list, 80)}</div></div>`;
+    <div class="feed">${window.CoachDash.feedCards(list.slice(0, 120), { name: cname, color: avaCol })}</div></div>`;
   body.querySelectorAll('.chip').forEach(b => b.onclick = () => { feedFilter = b.dataset.f; renderFeed(body); });
   body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
 }
@@ -1726,6 +1749,9 @@ const CT = {
     { sel: '#k-in', t: 'Ключ от клиента', d: 'Клиент создаёт ключ в приложении YOU и присылает вам. Введите его здесь, и клиент появится в списке с фамилией и именем.' },
     { sel: '.inv', t: 'Или ссылка', d: 'Можно наоборот: отправьте клиенту ссылку, он откроет её и подключится сам.' },
     { sel: '.tier', t: 'Лимит', d: 'Бесплатно до 50 клиентов.' },
+  ],
+  ai: [
+    { sel: '#cbody', t: 'AI-помощник', d: 'AI предлагает, вы решаете. Кнопка «В план» добавит тренировку клиенту от вашего имени. Клиент свой AI-план не видит, чтобы не было двух разных планов.' }
   ],
   client: [
     { sel: '.ctabs', t: 'Карточка клиента', d: 'Обзор с оценкой прогресса, план, AI-помощник и ваши заметки о клиенте.' },
@@ -2031,9 +2057,7 @@ function renderClient() {
     if (!p) { body.innerHTML = '<div class="empty"><i class="ti ti-sparkles"></i>Сначала создайте клиенту план во вкладке «План», и AI поможет его заполнить.</div>'; return; }
     window._aiView = 'plan';
     window.TrainingAI.render(body, p, h());
-    const hint = document.createElement('div'); hint.className = 'cnote'; hint.style.marginBottom = '12px';
-    hint.innerHTML = '<i class="ti ti-info-circle"></i><span>Это ваш помощник: AI предлагает, вы решаете. Кнопка «В план» добавит тренировку клиенту от вашего имени. Клиент свой AI-план не видит, чтобы не было двух разных планов.</span>';
-    body.prepend(hint);
+    coachTips('ai');
   }
   else renderNote(c, body);
 }

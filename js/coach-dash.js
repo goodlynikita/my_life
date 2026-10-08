@@ -95,17 +95,18 @@ window.CoachDash = (function () {
         if (d.isDone(x)) {
           const hs = d.hist.filter(h => +h.date === +x.date).flatMap(h => h.exercises);
           const top = hs.sort((a, b) => e1(b) - e1(a))[0];
-          ev.push({ t: +x.date, k: 'done', c, html: `<b>${esc(who)}</b>: ${x.day.done && x.day.done.by === 'coach' ? 'тренировка с вами' : 'тренировка сделана'}, ${esc(groupsOf(x))}${top && top.weight > 0 ? `, ${esc(top.name)} ${kg(top.weight)}×${top.reps}` : ''}` });
-        } else if (+x.date < +today) ev.push({ t: +x.date, k: 'miss', c, html: `<b>${esc(who)}</b>: тренировка не отмечена (${esc(groupsOf(x))})` });
-        if (x.day.comment) ev.push({ t: +x.date + 1, k: 'comment', c, html: `<b>${esc(who)}</b>, заметка: «${esc(x.day.comment)}»` });
+          ev.push({ t: +x.date, k: 'done', c, html: `<b>${esc(who)}</b>: ${x.day.done && x.day.done.by === 'coach' ? 'тренировка с вами' : 'тренировка сделана'}, ${esc(groupsOf(x))}${top && top.weight > 0 ? `, ${esc(top.name)} ${kg(top.weight)}×${top.reps}` : ''}`,
+            t1: x.day.done && x.day.done.by === 'coach' ? 'Тренировка с вами' : 'Тренировка сделана', t2: esc(groupsOf(x)) + (top && top.weight > 0 ? ` · лучший подход: ${esc(top.name)} ${kg(top.weight)}×${esc(top.reps)}` : '') });
+        } else if (+x.date < +today) ev.push({ t: +x.date, k: 'miss', c, html: `<b>${esc(who)}</b>: тренировка не отмечена (${esc(groupsOf(x))})`, t1: 'Тренировка не отмечена', t2: esc(groupsOf(x)) });
+        if (x.day.comment) ev.push({ t: +x.date + 1, k: 'comment', c, html: `<b>${esc(who)}</b>, заметка: «${esc(x.day.comment)}»`, t1: 'Заметка клиента', t2: `«${esc(x.day.comment)}»` });
       });
       /* рекорды */
       Object.values(d.an.ex).forEach(x => {
         const h = toArr(x.hist).filter(r => r.weight > 0 && r.reps > 0); if (h.length < 3 || !x.cls || x.cls.kind !== 'comp') return;
-        let best = 0; h.forEach((r, i) => { const v = e1(r); if (i >= 2 && v > best + 0.01 && r.date >= from) ev.push({ t: +r.date + 2, k: 'pr', c, html: `<b>${esc(who)}</b> рекорд: ${esc(x.name)} ${kg(r.weight)}×${esc(r.reps)} (1ПМ ≈ ${kg(Math.round(v))} кг)` }); best = Math.max(best, v); });
+        let best = 0; h.forEach((r, i) => { const v = e1(r); if (i >= 2 && v > best + 0.01 && r.date >= from) ev.push({ t: +r.date + 2, k: 'pr', c, html: `<b>${esc(who)}</b> рекорд: ${esc(x.name)} ${kg(r.weight)}×${esc(r.reps)} (1ПМ ≈ ${kg(Math.round(v))} кг)`, t1: 'Рекорд: ' + esc(x.name), t2: `${kg(r.weight)} кг × ${esc(r.reps)} · 1ПМ ≈ ${kg(Math.round(v))} кг` }); best = Math.max(best, v); });
       });
       d.ms.filter(m => m.d && m.d >= from).forEach(m => { const w = parseFloat(String(m.values['Вес'] || '').replace(',', '.'));
-        ev.push({ t: +m.d, k: 'measure', c, html: `<b>${esc(who)}</b> внёс замеры${w ? ': вес ' + kg(w) + ' кг' : ''}` }); });
+        ev.push({ t: +m.d, k: 'measure', c, html: `<b>${esc(who)}</b> внёс замеры${w ? ': вес ' + kg(w) + ' кг' : ''}`, t1: 'Внёс замеры', t2: w ? 'вес ' + kg(w) + ' кг' : '' }); });
     });
     return ev.sort((a, b) => b.t - a.t);
   }
@@ -116,6 +117,22 @@ window.CoachDash = (function () {
     let last = '';
     return list.slice(0, limit || 40).map(e => { const w = whenLabel(e.t); const h = w !== last ? `<div class="fd-day">${w}</div>` : ''; last = w;
       return h + `<div class="fd fd-${e.k}" data-ck="${esc(e.c.k)}"><i class="ti ${EV_ICON[e.k]}"></i><span>${e.html}</span></div>`; }).join('');
+  }
+
+  /* Лента карточками: день, внутри по карточке на клиента со всеми его событиями */
+  const EV_ORD = { done: 0, pr: 1, measure: 2, comment: 3, miss: 4 };
+  function feedCards(list, opt) {
+    opt = opt || {}; const nameOf = opt.name || (c => c.k), colOf = opt.color || (() => '#4A7CFF');
+    if (!list.length) return '<div class="fd-empty">Пока тихо. Здесь появятся тренировки, рекорды, пропуски и комментарии клиентов.</div>';
+    const days = []; const byDay = {};
+    list.forEach(e => { const w = whenLabel(e.t); if (!byDay[w]) { byDay[w] = { w, cl: [], m: {} }; days.push(byDay[w]); }
+      const g = byDay[w]; if (!g.m[e.c.k]) { g.m[e.c.k] = { c: e.c, ev: [] }; g.cl.push(g.m[e.c.k]); } g.m[e.c.k].ev.push(e); });
+    const plw = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
+    return days.map(g => `<div class="fc-day">${g.w}</div><div class="fc-grid">${g.cl.map(x => {
+      const ev = x.ev.slice().sort((a, b) => EV_ORD[a.k] - EV_ORD[b.k]), nm = String(nameOf(x.c) || ''), n = (k) => ev.filter(e => e.k === k).length;
+      const tags = [n('done') ? '<em class="t-done"><i class="ti ti-circle-check"></i>тренировка</em>' : '', n('pr') ? `<em class="t-pr"><i class="ti ti-trophy"></i>${n('pr')} ${plw(n('pr'), 'рекорд', 'рекорда', 'рекордов')}</em>` : '', n('miss') ? '<em class="t-miss"><i class="ti ti-clock-exclamation"></i>не отмечена</em>' : ''].join('');
+      return `<div class="fc" data-ck="${esc(x.c.k)}" style="--c:${colOf(x.c)}"><div class="fc-h"><span class="fc-av">${esc(nm.trim().charAt(0).toUpperCase() || '?')}</span><b>${esc(nm)}</b><span class="fc-tags">${tags}</span></div>
+        <div class="fc-rows">${ev.map(e => `<div class="fc-r fd-${e.k}"><i class="ti ${EV_ICON[e.k]}"></i><div><b>${e.t1 || e.html}</b>${e.t2 ? `<span>${e.t2}</span>` : ''}</div></div>`).join('')}</div></div>`; }).join('')}</div>`).join('');
   }
 
   /* ═══ Графики (SVG, без библиотек) ═══ */
@@ -154,12 +171,15 @@ window.CoachDash = (function () {
     return s + '</svg>';
   }
   function lineSvg(pts) {
-    const W = 300, H = 64, p = 6;
+    /* растягивается по ширине карточки, высота постоянная: линия тонкая, точки и подписи не раздуваются */
+    const W = 300, H = 80, p = 8;
     const t0_ = pts[0].t, t1 = pts[pts.length - 1].t || t0_ + 1, vs = pts.map(x => x.v), mn = Math.min(...vs), mx = Math.max(...vs);
     const X = (t) => p + (t - t0_) / Math.max(1, t1 - t0_) * (W - 2 * p), Y = (v) => H - p - (mx === mn ? 0.5 : (v - mn) / (mx - mn)) * (H - 2 * p);
     const d = pts.map((x, i) => (i ? 'L' : 'M') + X(x.t).toFixed(1) + ' ' + Y(x.v).toFixed(1)).join(' ');
-    const l = pts[pts.length - 1];
-    return `<svg viewBox="0 0 ${W} ${H}" class="cd-spark"><path d="${d}" class="cd-line"/><circle cx="${X(l.t)}" cy="${Y(l.v)}" r="3.5" class="cd-dot"/></svg>`;
+    const area = d + ` L${X(pts[pts.length - 1].t).toFixed(1)} ${H} L${X(t0_).toFixed(1)} ${H} Z`;
+    const dots = pts.map((x, i) => `<i class="cd-pt${i === pts.length - 1 ? ' last' : ''}" style="left:${(X(x.t) / W * 100).toFixed(2)}%;top:${(Y(x.v) / H * 100).toFixed(2)}%" title="${fmtD(new Date(x.t))}: ${kg(x.v)} кг"></i>`).join('');
+    return `<div class="cd-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="cd-spark"><path d="${area}" class="cd-area"/><path d="${d}" class="cd-line" vector-effect="non-scaling-stroke"/></svg>${dots}</div>
+      <div class="cd-ax"><span>${fmtD(new Date(pts[0].t))} · ${kg(pts[0].v)} кг</span><span>${fmtD(new Date(pts[pts.length - 1].t))}</span></div>`;
   }
 
   /* ═══ Оценка эффективности: 4 опоры, которыми тренеры оценивают прогресс ═══
@@ -380,5 +400,5 @@ window.CoachDash = (function () {
     return { weeks, startDate: start };
   }
 
-  return { carryWeek, sig, analyze, feed, feedHtml, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
+  return { carryWeek, sig, analyze, feed, feedHtml, feedCards, dashHtml, weekSummary, weeklyFormHtml, weeklyImage, templateFrom, applyTemplate, clientWeights, monday, fmtD, esc, toArr };
 })();

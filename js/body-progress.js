@@ -99,7 +99,9 @@ window.BodyProgress = (function () {
   /* ── Графики ── */
   function weightChart(pts, unit, dec) {
     unit = unit == null ? 'кг' : unit; const fx = (v) => dec === 2 ? String(Math.round(v * 100) / 100).replace('.', ',') : f1(v);
-    const W = 340, H = 130, pl_ = 30, pr = 12, pt = 16, pb = 20;
+    /* ширина рисунка примерно равна ширине на экране, чтобы подписи не раздувались на компьютере */
+    const wide = typeof innerWidth === 'number' && innerWidth > 700;
+    const W = wide ? Math.round(Math.max(500, Math.min(innerWidth - 120, 1700))) : 340, H = wide ? 200 : 130, pl_ = wide ? 40 : 30, pr = 12, pt = 16, pb = wide ? 26 : 20;
     const t0 = +pts[0].d, t1 = +pts[pts.length - 1].d || t0 + 1;
     const vs = pts.map(p => p.v); let mn = Math.min(...vs), mx = Math.max(...vs);
     const minSpan = dec === 2 ? 0.05 : 1;
@@ -109,7 +111,7 @@ window.BodyProgress = (function () {
     const line = pts.map((p, i) => (i ? 'L' : 'M') + X(+p.d).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
     const area = line + ` L${X(+pts[pts.length - 1].d).toFixed(1)} ${H - pb} L${X(t0).toFixed(1)} ${H - pb} Z`;
     const ticks = [mx - pad, (mx + mn) / 2, mn + pad];
-    return `<svg viewBox="0 0 ${W} ${H}" class="bp-chart" role="img" aria-label="График">
+    return `<svg viewBox="0 0 ${W} ${H}" class="bp-chart${wide ? ' wide' : ''}" role="img" aria-label="График">
       <defs><linearGradient id="bpg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4A7CFF" stop-opacity=".28"/><stop offset="1" stop-color="#4A7CFF" stop-opacity="0"/></linearGradient></defs>
       ${ticks.map(v => `<line x1="${pl_}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" class="bp-grid"/><text x="${pl_ - 5}" y="${Y(v) + 3}" class="bp-ax" text-anchor="end">${fx(v)}</text>`).join('')}
       <path d="${area}" fill="url(#bpg)"/><path d="${line}" class="bp-line"/>

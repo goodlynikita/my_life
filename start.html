@@ -35,11 +35,11 @@
 <meta property="og:url" content="https://you-app.ru/start">
 <meta property="og:title" content="YOU · вся твоя жизнь в одном приложении">
 <meta property="og:description" content="Тренировки с AI-тренером, привычки, деньги и цели. Сейчас бесплатно.">
-<meta property="og:image" content="https://you-app.ru/img/og-you.jpg">
+<meta property="og:image" content="https://you-app.ru/img/og-you.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://you-app.ru/img/og-you.jpg">
+<meta name="twitter:image" content="https://you-app.ru/img/og-you.jpg?v=2">
 <meta name="theme-color" content="#07090F">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="img/fav/tab-32.png">
@@ -692,6 +692,96 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 .m-shot{display:none;width:100%;max-width:300px;margin:0 auto}
 .m-shot .phone{position:relative;width:100%}
 @media (max-width:560px) and (max-height:720px){.ins-phone-wrap{height:380px}.ins-phone{transform:scale(.58)}.merge-scene{height:40vh}}
+
+/* ═══ v2: живой чат с AI, орбита клиентов, ленты экранов, текст по словам ═══ */
+/* AI: живой диалог в телефоне + карточка плана, которая меняется */
+.aid{position:relative;height:640px;display:flex;align-items:center;justify-content:center}
+@media (min-width:981px){.ai-x{align-items:start}.ai-x .aid{position:sticky;top:90px}}
+.aid .phone{position:relative;width:300px;z-index:2}
+.aid-scr{display:flex;flex-direction:column;background:#0E1220!important}
+.aid-top{display:flex;align-items:center;gap:10px;white-space:nowrap;padding:46px 16px 12px;background:linear-gradient(180deg,#2C4FA8,#22408C);color:#fff;font-weight:800;font-size:15px}
+.aid-top i{font-size:18px;opacity:.8}.aid-top span{margin-left:auto;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.16)}
+.aid-list{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:12px 12px 6px;overflow:hidden}
+.aid-m{max-width:86%;padding:9px 12px;border-radius:16px;font-size:12.5px;line-height:1.45;opacity:0;transform:translateY(10px) scale(.98);transition:opacity .4s,transform .5s var(--ease)}
+.aid-m.on{opacity:1;transform:none}
+.aid-m.me{align-self:flex-end;background:#3A62C9;color:#fff;border-bottom-right-radius:5px}
+.aid-m.bot{align-self:flex-start;background:#1B2236;border:1px solid rgba(255,255,255,.07);color:#E6EAF5;border-bottom-left-radius:5px}
+.aid-m b{color:#fff}
+.aid-dots{display:inline-flex;gap:4px;padding:2px 0}.aid-dots i{width:6px;height:6px;border-radius:50%;background:#8EA8FF;animation:aidDot 1s infinite}.aid-dots i:nth-child(2){animation-delay:.15s}.aid-dots i:nth-child(3){animation-delay:.3s}
+@keyframes aidDot{0%,80%,100%{opacity:.3;transform:none}40%{opacity:1;transform:translateY(-3px)}}
+.aid-in{display:flex;align-items:center;gap:8px;margin:6px 10px 16px;padding:10px 12px;border-radius:14px;background:#161C2C;border:1px solid rgba(255,255,255,.08);font-size:12.5px;color:#E6EAF5;min-height:40px}
+.aid-in span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aid-in span:empty::before{content:'Спроси тренера…';color:#5D6680}
+.aid-in i{width:28px;height:28px;border-radius:9px;background:#3A62C9;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.aid-plan{position:absolute;right:-30px;top:120px;z-index:3;width:250px;padding:14px;border-radius:20px;background:rgba(18,23,38,.92);border:1px solid rgba(110,139,255,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.aid-plan-h{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--soft);font-weight:700;margin-bottom:8px}.aid-plan-h i{color:#8EA8FF;font-size:16px}.aid-plan-h b{color:#fff}
+.aid-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.06);font-size:12px;transition:background .4s}
+.aid-row:first-of-type{border-top:none}.aid-row span{color:#D7DCEA;min-width:0}.aid-row b{white-space:nowrap;color:#fff}
+.aid-row.swap{animation:aidSwap 1.6s var(--ease)}
+@keyframes aidSwap{0%{background:transparent}20%{background:rgba(74,222,128,.18)}100%{background:transparent}}
+.aid-row.swap b{color:#4ADE80}
+.aid-tag{position:absolute;left:-10px;top:70px;z-index:3}
+
+/* Тренерам: клиенты на орбите вокруг кабинета */
+.orbit{position:relative;width:min(520px,100%);aspect-ratio:1;margin:0 auto;--R:200px}
+.orbit .ring{position:absolute;inset:6%;border-radius:50%;border:1px dashed rgba(139,92,246,.35)}
+.orbit .ring.r2{inset:22%;border-style:solid;border-color:rgba(74,124,255,.18)}
+.orb-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;background:radial-gradient(circle at 50% 35%,rgba(74,124,255,.35),rgba(20,24,40,.95) 70%);border:1px solid rgba(139,92,246,.45);box-shadow:0 0 60px rgba(74,124,255,.35);z-index:2}
+.orb-core img{width:44px;height:44px;border-radius:13px}.orb-core b{font-size:15px}.orb-core small{font-size:11.5px;color:var(--soft)}
+.orb-spin{position:absolute;inset:0}
+.orb-n{position:absolute;left:50%;top:50%;width:0;height:0;will-change:transform}
+.orb-n>div{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:7px 12px 7px 7px;border-radius:999px;background:rgba(18,22,34,.92);border:1px solid var(--line2);white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:border-color .4s,box-shadow .4s}
+.orb-n .av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:var(--c);flex-shrink:0}
+.orb-n b{display:block;font-size:12.5px}.orb-n small{display:block;font-size:11px;color:var(--soft)}
+.orb-n.hot>div{border-color:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 25%,transparent),0 10px 30px rgba(0,0,0,.4)}
+@keyframes orbSpin{to{transform:rotate(360deg)}}
+
+/* Ленты экранов: едут в разные стороны при прокрутке */
+.lanes-sec{padding:70px 0 60px;overflow:hidden}
+.lanes{display:flex;flex-direction:column;gap:14px;margin-top:40px}
+.lane{display:flex;gap:14px;width:max-content;will-change:transform}
+.lane img{width:200px;aspect-ratio:390/844;object-fit:cover;object-position:top;border-radius:26px;border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 40px rgba(0,0,0,.35);background:#11141C}
+
+/* Текст проявляется по словам при прокрутке */
+.manifest{padding:90px 0}
+.manifest p{max-width:860px;margin:0 auto;text-align:center;font-size:clamp(24px,3.4vw,42px);line-height:1.3;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.manifest .w{opacity:.16;transition:opacity .25s}
+.manifest .w.on{opacity:1}
+.manifest .w.g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* Ровный текст на телефоне: без висячих предлогов и рваных строк */
+h1,h2,h3,h4{text-wrap:balance}
+p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;overflow-wrap:normal;word-break:normal}
+
+@media (max-width:980px){
+  .ai-x{display:flex!important;flex-direction:column;gap:0}
+  .ai-x>div:first-child{display:contents}
+  .ai-x .eyebrow{order:1;align-self:flex-start}.ai-x h2{order:2}.ai-x .sec-lead{order:3}.ai-x .aid{order:4;margin:26px 0 8px}.ai-x .ai-card{order:5}
+  .aid{height:auto;flex-direction:column}
+  .aid .phone{width:260px}
+  .aid-top span{display:none}
+  .aid-plan{position:relative;right:auto;top:auto;margin:14px auto 0;width:min(300px,92%)}
+  .orbit{--R:min(150px,36vw)}
+  .orbit{aspect-ratio:1/1.12}
+  .orb-core{width:96px;height:96px;gap:2px}.orb-core img{width:30px;height:30px;border-radius:9px}.orb-core b{font-size:12px}.orb-core small{font-size:10px}
+  .orb-n>div{padding:4px 9px 4px 4px;gap:6px}.orb-n .av{width:24px;height:24px;font-size:11px}.orb-n b{font-size:11px}.orb-n small{font-size:9.5px}
+  .lane img{width:140px;border-radius:20px}
+  .lanes{gap:10px}.lane{gap:10px}
+  .manifest{padding:60px 0}
+}
+@media (max-width:400px){ .aid .phone{width:240px} }
+@media (max-width:430px){ h1{font-size:clamp(30px,9vw,36px)} }
+@media (max-width:560px){
+  .coach-sec .ai-feats{grid-template-columns:1fr!important;gap:8px!important}
+  .coach-sec .ai-feat{display:grid;grid-template-columns:28px 1fr;column-gap:12px;align-items:start;padding:12px 14px!important}
+  .coach-sec .ai-feat i{grid-row:span 2;font-size:20px;margin-top:2px}
+  .coach-sec .ai-feat b{margin:0 0 2px!important;font-size:14px!important}
+  .coach-sec .ai-feat span{font-size:12.5px!important;line-height:1.45!important}
+  #ai .ai-feats{grid-template-columns:1fr;gap:8px}
+  #ai .ai-feat{display:grid;grid-template-columns:28px 1fr;column-gap:12px;align-items:start;padding:12px 14px}
+  #ai .ai-feat i{grid-row:span 2;font-size:20px;margin-top:2px}
+  #ai .ai-feat b{margin:0 0 2px}
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
 </style>
 </head>
@@ -813,29 +903,29 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       <div class="step" data-img="training_plan" data-glow="#4A7CFF" style="--c:#60A5FA;--glow:rgba(74,124,255,.4)">
         <div class="step-ico" style="background:rgba(74,124,255,.16);color:#8EA8FF"><i class="ti ti-barbell"></i></div>
         <h3>Тренировки,<br>которые растут вместе с тобой</h3>
-        <p>План на 8 недель. Каждый подход записан, а прогресс считается сам: сколько поднял за неделю, как вырос вес, рабочий вес по каждому упражнению.</p>
-        <ul class="ticks"><li><i class="ti ti-check"></i>Силуэт показывает, какие мышцы работают</li><li><i class="ti ti-check"></i>Вес с прошлой тренировки подставляется сам</li><li><i class="ti ti-check"></i>Зал, бег, теннис, шаги, растяжка</li><li><i class="ti ti-check"></i>Калькулятор максимума на один раз</li></ul>
+        <p>План на 8 недель. Записываешь подходы, а прогресс считается сам: сколько поднял за неделю и как растёт рабочий вес в каждом упражнении.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Силуэт показывает, какие мышцы работают</li><li><i class="ti ti-check"></i>Вес прошлого раза одной кнопкой</li><li><i class="ti ti-check"></i>Зал, бег, теннис, шаги, растяжка</li><li><i class="ti ti-check"></i>Калькулятор максимума на один раз</li></ul>
         <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/training_plan.webp" alt="" loading="lazy"></div></div></div>
       </div>
       <div class="step" data-img="habits_grid" data-glow="#22C55E" style="--c:#4ADE80;--glow:rgba(34,197,94,.35)">
         <div class="step-ico" style="background:rgba(34,197,94,.16);color:#4ADE80"><i class="ti ti-checklist"></i></div>
         <h3>Привычки,<br>которые не отпускают</h3>
-        <p>Отмечай одним касанием. Серия дней растёт с каждой отметкой, а процент за месяц честно показывает, что подтянуть.</p>
-        <ul class="ticks"><li><i class="ti ti-check"></i>Каждый день, по будням или 3 раза в неделю</li><li><i class="ti ti-check"></i>Серии дней подряд с огоньком</li><li><i class="ti ti-check"></i>Колесо жизни: оценка месяца по 8 сферам</li></ul>
+        <p>Отмечаешь одним касанием. Серия растёт каждый день, а процент за месяц честно показывает, что подтянуть.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Каждый день, по будням или 3 раза в неделю</li><li><i class="ti ti-check"></i>Серия дней как в Duolingo: огонь, неделя, рекорд</li><li><i class="ti ti-check"></i>Колесо жизни: оценка месяца по 8 сферам</li></ul>
         <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/habits_grid.webp" alt="" loading="lazy"></div></div></div>
       </div>
       <div class="step" data-img="finance_spend" data-glow="#8B5CF6" style="--c:#A78BFA;--glow:rgba(139,92,246,.4)">
         <div class="step-ico" style="background:rgba(139,92,246,.16);color:#A78BFA"><i class="ti ti-chart-bar"></i></div>
         <h3>Деньги<br>под контролем</h3>
-        <p>Одна цифра: сколько свободно до зарплаты или до конца месяца. И норма на сегодня, чтобы денег точно хватило.</p>
-        <ul class="ticks"><li><i class="ti ti-check"></i>Трата одной строкой: «кофе 420», категория подберётся сама</li><li><i class="ti ti-check"></i>Ближайшие платежи: аренда, связь, подписки</li><li><i class="ti ti-check"></i>Копилка сама откладывает процент с каждого дохода</li><li><i class="ti ti-check"></i>Проверка на импульс перед снятием из копилки</li></ul>
+        <p>Одна цифра: сколько денег свободно до зарплаты. И сколько можно тратить сегодня, чтобы хватило до конца.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Трата одной строкой: «кофе 420», категория подберётся сама</li><li><i class="ti ti-check"></i>Ближайшие платежи: аренда, связь, подписки</li><li><i class="ti ti-check"></i>Копилка сама откладывает процент с каждого дохода</li><li><i class="ti ti-check"></i>Помощник: спроси о своих деньгах обычными словами</li></ul>
         <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/finance_spend.webp" alt="" loading="lazy"></div></div></div>
       </div>
       <div class="step" data-img="goals" data-glow="#F2A93B" style="--c:#F2A93B;--glow:rgba(242,169,59,.35)">
         <div class="step-ico" style="background:rgba(242,169,59,.16);color:#F2A93B"><i class="ti ti-target-arrow"></i></div>
         <h3>Цели<br>по сезонам</h3>
-        <p>Раскладываешь желания на весну, лето, осень и зиму с суммами. Видно, сколько уже закрыто и сколько осталось.</p>
-        <ul class="ticks"><li><i class="ti ti-check"></i>Категории и суммы по каждой цели</li><li><i class="ti ti-check"></i>Прогресс года одной полосой</li><li><i class="ti ti-check"></i>Желание из копилки превращается в цель</li></ul>
+        <p>Раскладываешь желания по сезонам и суммам. Видно, сколько уже закрыто и сколько осталось.</p>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Категории и суммы по каждой цели</li><li><i class="ti ti-check"></i>Прогресс года одной полосой</li><li><i class="ti ti-check"></i>Цель одним нажатием уходит в платежи</li></ul>
         <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/goals.webp" alt="" loading="lazy"></div></div></div>
       </div>
     </div>
@@ -851,12 +941,21 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   </div>
 </div></section>
 
+<!-- Ленты экранов -->
+<section class="lanes-sec" data-for="me">
+  <div class="wrap center"><span class="eyebrow">Внутри</span><h2 class="rv">Всё это уже работает</h2></div>
+  <div class="lanes" id="lanes">
+    <div class="lane" data-dir="1"></div>
+    <div class="lane" data-dir="-1"></div>
+  </div>
+</section>
+
 <!-- AI-тренер -->
-<section class="ai" id="ai" data-for="me"><div class="wrap ai-grid">
+<section class="ai" id="ai" data-for="me"><div class="wrap ai-grid ai-x">
   <div>
     <span class="eyebrow">AI-тренер</span>
     <h2 class="rv">Личный тренер,<br>который <span class="grad-t">знает твои цифры</span></h2>
-    <p class="sec-lead rv">AI собирает программу из твоих упражнений и весов. Когда идти в зал, решаешь ты. После каждой тренировки он сам подстраивает нагрузку, а в чате отвечает по твоим цифрам, а не общими советами.</p>
+    <p class="sec-lead rv">Собирает программу из твоих упражнений и весов и сам ведёт нагрузку после каждой тренировки. В чате отвечает по твоим цифрам, а не общими советами.</p>
     <div class="ai-card rv" style="margin-top:28px">
       <div class="chart" id="chart">
         <div class="chart-h"><b>Жим штанги лёжа</b><span>добрал 12, вес вверх</span></div>
@@ -870,11 +969,11 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
         </svg>
       </div>
       <div class="ai-feats">
-        <div class="ai-feat"><i class="ti ti-calendar-plus"></i><b>Ты решаешь, когда</b><span>Ставишь тренировку на сегодня или любой день. Не нравится, убираешь одним нажатием</span></div>
+        <div class="ai-feat"><i class="ti ti-calendar-plus"></i><b>Ты решаешь, когда</b><span>Ставишь тренировку на любой день. Не подошла, убираешь одним нажатием</span></div>
         <div class="ai-feat"><i class="ti ti-stairs-up"></i><b>Прогрессия по факту</b><span>Добрал повторы, вес вверх. Недобрал дважды, вес ниже. Сменил цель, вес пересчитается</span></div>
         <div class="ai-feat"><i class="ti ti-wand"></i><b>Твои связки</b><span>Спина с трицепсом или ноги с плечами: как ты привык. Мышцу можно перенести нажатием</span></div>
         <div class="ai-feat"><i class="ti ti-weight"></i><b>Реальные веса</b><span>Учитывает блины и гантели твоего зала: никаких 82,5, если их нет</span></div>
-        <div class="ai-feat"><i class="ti ti-message-chatbot"></i><b>Чат с тренером</b><span>«Почему не растёт жим?» Ответит по твоим весам и повторам и подскажет, что поменять</span></div>
+        <div class="ai-feat"><i class="ti ti-message-chatbot"></i><b>Чат с тренером</b><span>«Почему стоит жим?» Ответит по твоим весам, а тренировку из ответа поставит в план</span></div>
         <div class="ai-feat"><i class="ti ti-gender-bigender"></i><b>Для него и для неё</b><span>Упор на всё тело или на ноги и ягодицы. Без длинных анкет</span></div>
       </div>
       <div class="goal-pills"><span>Цель:</span><b>Масса 8–12</b><b>Сила 4–6</b><b>Рельеф 12–15</b></div>
@@ -888,9 +987,13 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
       </div>
     </div>
   </div>
-  <div class="ai-phones rv rv-r">
-    <div class="phone pa float"><div class="scr"><img src="img/landing/ai_chat.webp" alt="Чат с AI-тренером" loading="lazy"></div></div>
-    <div class="phone pb float"><div class="scr"><img src="img/landing/ai_plan.webp" alt="План от AI" loading="lazy"></div></div>
+  <div class="aid rv rv-r" id="aid" aria-label="Пример разговора с AI-тренером">
+    <div class="phone float"><div class="scr aid-scr">
+      <div class="aid-top"><i class="ti ti-message-chatbot"></i>Чат с тренером<span>знает твои веса</span></div>
+      <div class="aid-list" id="aid-list"></div>
+      <div class="aid-in"><span id="aid-typing"></span><i class="ti ti-send"></i></div>
+    </div></div>
+    <div class="aid-plan" id="aid-plan"><div class="aid-plan-h"><i class="ti ti-calendar-event"></i><b id="aid-plan-t">Сегодня · ноги</b></div><div id="aid-rows"></div></div>
   </div>
 </div></section>
 
@@ -912,9 +1015,17 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 
 <!-- Для тренеров -->
 <section class="coach-sec" id="c-feat" data-for="coach"><div class="wrap ai-grid">
-  <div class="ai-phones coach-phones rv">
-    <div class="phone pa float"><div class="scr"><img src="img/landing/coach_client.webp" alt="Карточка клиента в кабинете тренера" loading="lazy"></div></div>
-    <div class="phone pb float"><div class="scr"><img src="img/landing/coach_sched.webp" alt="Расписание тренера" loading="lazy"></div></div>
+  <div class="orbit rv" id="orbit" aria-label="Клиенты вокруг кабинета тренера">
+    <div class="ring"></div><div class="ring r2"></div>
+    <div class="orb-spin">
+      <div class="orb-n" style="--a:-90deg;--c:#4A7CFF"><div><span class="av">А</span><span><b>Алексей</b><small>рекорд: жим 85×8</small></span></div></div>
+      <div class="orb-n" style="--a:-30deg;--c:#34D399"><div><span class="av">М</span><span><b>Мария</b><small>сделала ноги</small></span></div></div>
+      <div class="orb-n" style="--a:30deg;--c:#F2A93B"><div><span class="av">И</span><span><b>Игорь</b><small>сегодня в 18:00</small></span></div></div>
+      <div class="orb-n" style="--a:90deg;--c:#F87171"><div><span class="av">О</span><span><b>Олег</b><small>пауза 5 дней</small></span></div></div>
+      <div class="orb-n" style="--a:150deg;--c:#A78BFA"><div><span class="av">Е</span><span><b>Ева</b><small>талия −2 см</small></span></div></div>
+      <div class="orb-n" style="--a:210deg;--c:#2DD4BF"><div><span class="av">Д</span><span><b>Дима</b><small>новый план</small></span></div></div>
+    </div>
+    <div class="orb-core"><img src="icon.png" alt=""><b>Ваш кабинет</b><small>6 клиентов</small></div>
   </div>
   <div>
     <span class="eyebrow">Возможности</span>
@@ -923,7 +1034,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <div class="ai-feats rv">
       <div class="ai-feat"><i class="ti ti-layout-dashboard"></i><b>Главная и лента</b><span>Кто тренируется сегодня, рекорды, пропуски и комментарии. Слайды и плитки настраиваете под себя</span></div>
       <div class="ai-feat"><i class="ti ti-chart-bar"></i><b>Обзор клиента</b><span>Оценка по четырём опорам: регулярность, сила, нагрузка и тело. Плюс что сделать дальше</span></div>
-      <div class="ai-feat"><i class="ti ti-calendar-event"></i><b>Расписание</b><span>Записи с временем и повтором каждую неделю. Тренировки клиентов по плану подтягиваются сами</span></div>
+      <div class="ai-feat"><i class="ti ti-calendar-event"></i><b>Расписание</b><span>Записи с временем и повтором. Клиент видит время тренировки у себя в приложении</span></div>
       <div class="ai-feat"><i class="ti ti-ruler-measure"></i><b>Замеры тела</b><span>Вес, обхваты и пропорции с выводами. Замерили в зале, внесли сами</span></div>
       <div class="ai-feat"><i class="ti ti-template"></i><b>Шаблоны программ</b><span>Собрали раз, назначаете в два клика. Веса подставятся из истории клиента</span></div>
       <div class="ai-feat"><i class="ti ti-send"></i><b>Итоги недели</b><span>Цифры считаются сами, вы добавляете комментарий, клиент видит в приложении</span></div>
@@ -1039,7 +1150,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <details class="qa rv"><summary>Я тренирую в зале, это подойдёт?<i class="ti ti-plus"></i></summary><p>Да. Отмечайте проведённые тренировки галочкой в плане клиента, вносите веса и замеры сами. Посещаемость и прогресс посчитаются так же, как у онлайн-клиентов.</p></details>
     <details class="qa rv"><summary>AI не заменит меня для клиента?<i class="ti ti-plus"></i></summary><p>Нет. Когда у клиента есть тренер, его собственный AI-план выключается, чтобы не было двух разных планов. AI работает на вас: подсказывает прогрессию и плато, а решение принимаете вы.</p></details>
     <details class="qa rv"><summary>Как подключить клиента?<i class="ti ti-plus"></i></summary><p>Клиент регистрируется в YOU, в меню выбирает «Подключить тренера» и создаёт ключ с фамилией и именем. Вы нажимаете «Добавить» в шапке кабинета и вводите ключ. Ключ одноразовый и действует сутки. Второй способ: ваша ссылка-приглашение.</p></details>
-    <details class="qa rv"><summary>Есть расписание занятий?<i class="ti ti-plus"></i></summary><p>Да, плитка «Расписание»: неделя, записи с временем, повтор каждую неделю и отметка «Провёл». Время можно сразу написать клиенту в план, он увидит его над тренировкой.</p></details>
+    <details class="qa rv"><summary>Есть расписание занятий?<i class="ti ti-plus"></i></summary><p>Да, плитка «Расписание»: неделя, записи со временем, повтор каждую неделю и отметка «Провёл». Клиент сразу видит запись у себя: в плане и на главном экране «С тренером в 18:00».</p></details>
     <details class="qa rv"><summary>Сколько это стоит?<i class="ti ti-plus"></i></summary><p>Сейчас идёт ранний доступ: кабинет бесплатный, до 50 клиентов и все функции. Для клиента приложение тоже бесплатное.</p></details>
   </div>
   <div class="center" style="margin-top:40px"><a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
@@ -1167,6 +1278,11 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Начать бесплатно</a></div>
 </div></section>
 
+<!-- Зачем YOU: текст проявляется по словам -->
+<section class="manifest" data-for="me"><div class="wrap">
+  <p id="manifest">Ты и так знаешь, что делать. Не хватает одного места, где видно всё сразу: растут ли веса, держатся ли привычки, сколько денег свободно и сколько осталось до цели. YOU собирает это вместе и каждый день подсказывает <span data-g>следующий шаг.</span></p>
+</div></section>
+
 <!-- CTA -->
 <section class="cta" id="get" data-for="me"><div class="wrap">
   <div class="cta-box rv rv-s">
@@ -1192,8 +1308,8 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
     <details class="qa rv"><summary>Это правда бесплатно?<i class="ti ti-plus"></i></summary><p>Да. Первые 1 000 пользователей получают полный доступ бесплатно. Карта не нужна.</p></details>
     <details class="qa rv"><summary>Где скачать? В App Store нет.<i class="ti ti-plus"></i></summary><p>Скачивать ничего не нужно. YOU открывается в браузере и ставится на экран телефона как обычное приложение: на iPhone через «Поделиться» → «На экран Домой», на Android через меню браузера.</p></details>
     <details class="qa rv"><summary>Кто видит мои данные?<i class="ti ti-plus"></i></summary><p>Только ты. Данные каждого пользователя хранятся отдельно, доступ к ним закрыт правилами базы на сервере. Тренер, если ты его подключишь, видит только тренировки.</p></details>
-    <details class="qa rv"><summary>Как работает AI-тренер?<i class="ti ti-plus"></i></summary><p>AI смотрит твои записи: какие мышцы ты тренируешь вместе, какие упражнения и веса. Добавляет то, чего не хватает, и собирает тренировки по кругу: 1, 2, 3 и снова 1. В какие дни их делать, решаешь ты. Дальше он сам ведёт вес под цель (масса, сила или рельеф): добрал повторы, вес растёт, не добрал дважды, вес чуть ниже. Учитывает блины и гантели твоего зала и замечает, где вес встал. В чате можно спросить что угодно о своих тренировках, 20 сообщений в месяц бесплатно.</p></details>
-    <details class="qa rv"><summary>Как понять, сколько можно тратить?<i class="ti ti-plus"></i></summary><p>Во вкладке «Расходы» одна цифра: сколько свободно до зарплаты или до конца месяца, выбираешь сам. Из дохода вычитаются копилка, обязательные платежи и то, что уже потрачено. Остаток делится на оставшиеся дни, и видно норму на сегодня. Трату записываешь одной строкой, например «такси 350», категорию приложение подберёт само.</p></details>
+    <details class="qa rv"><summary>Как работает AI-тренер?<i class="ti ti-plus"></i></summary><p>AI смотрит твои записи: какие мышцы ты тренируешь вместе, какие упражнения и веса. Собирает тренировки по кругу, а в какие дни их делать, решаешь ты. Дальше сам ведёт вес под цель: масса, сила или рельеф. Добрал повторы, вес растёт. Не добрал дважды, вес чуть ниже. Учитывает блины и гантели твоего зала. В чате отвечает на любой вопрос о твоих тренировках, 20 сообщений в месяц.</p></details>
+    <details class="qa rv"><summary>Как понять, сколько можно тратить?<i class="ti ti-plus"></i></summary><p>Во вкладке «Расходы» одна цифра: сколько свободно до зарплаты или до конца месяца. Это заработанное минус копилка и то, что уже потрачено. Остаток делится на оставшиеся дни, и видно, сколько можно тратить сегодня. Трату пишешь одной строкой, например «такси 350», категорию приложение подберёт само. А помощнику можно задать вопрос словами: «сколько я трачу на кафе за год?»</p></details>
     <details class="qa rv"><summary>Я тренер. Как вести клиентов?<i class="ti ti-plus"></i></summary><p>Для тренеров есть отдельный кабинет: переключите сайт вверху на «Для тренеров» или откройте его сразу по ссылке coach.html. Клиент ставит YOU, создаёт в меню ключ доступа и присылает вам, либо переходит по вашей ссылке. Вы видите только его тренировки, ведёте план, отмечаете тренировки в зале и отправляете итоги недели. До 50 клиентов бесплатно.</p></details>
     <details class="qa rv"><summary>Можно пользоваться на нескольких устройствах?<i class="ti ti-plus"></i></summary><p>Да. Войди под своим email на телефоне и на компьютере, данные синхронизируются автоматически.</p></details>
     <details class="qa rv"><summary>Что будет, когда места закончатся?<i class="ti ti-plus"></i></summary><p>Регистрация закроется, а новые пользователи смогут получить личный инвайт через поддержку. Те, кто уже внутри, продолжают пользоваться как раньше.</p></details>
@@ -1456,5 +1572,86 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
 try{var q=new URLSearchParams(location.search),r=q.get('ref'),t=q.get('tref');
 if(r&&/^[A-Za-z0-9_-]{2,64}$/.test(r)&&!localStorage.getItem('you_ref'))localStorage.setItem('you_ref',JSON.stringify({by:r,kind:'friend',at:Date.now()}));
 if(t&&/^[A-Za-z0-9_-]{2,64}$/.test(t))localStorage.setItem('you_tref',t);}catch(e){}</script>
+<script>
+/* ═══ v2: AI-диалог, орбита, ленты, текст по словам ═══ */
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var esc = function(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+
+  /* Типограф: неразрывный пробел после коротких слов и перед тире/«—»-заменителями, чтобы предлоги не висели в конце строки */
+  (function(){
+    var re = /(^|[\s(«"])((?:[а-яёА-ЯЁa-zA-Z]{1,2}|без|для|над|под|при|про|что|как|или|это|всё|все|ещё|уже|его|её|них))\s+(?=\S)/g;
+    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: function(n){ var p = n.parentNode && n.parentNode.nodeName; return /SCRIPT|STYLE|TEXTAREA|INPUT|SVG|TEXT/.test(p) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } });
+    var ns = []; while (w.nextNode()) ns.push(w.currentNode);
+    ns.forEach(function(n){ var t = n.nodeValue; if (!/\S/.test(t)) return; var t2 = t.replace(re, function(m, a, b){ return a + b + ' '; }).replace(/(\d)\s+(₽|кг|см|сек|мин|дн|раз|из|%)/g, '$1 $2').replace(/\s+(₽)/g, ' $1'); if (t2 !== t) n.nodeValue = t2; });
+  })();
+
+  /* ── AI-тренер: живой диалог ── */
+  var SC = [
+    { plan: 'Сегодня · ноги', rows: [['Присед со штангой','4×8 · 80 кг'],['Выпады с гантелями','3×10 · 14 кг'],['Сгибания ног','3×12 · 35 кг']],
+      q: 'Колено ноет. Что заменить сегодня в ногах?',
+      a: 'Понял, присед сегодня убираем. Поставил <b>жим ногами 4×10 · 150 кг</b>: колено не уходит вперёд, нагрузка та же. Выпады оставь, но шаг короче.',
+      swap: [0, 'Жим ногами', '4×10 · 150 кг'] },
+    { plan: 'Четверг · грудь', rows: [['Жим штанги лёжа','4×8 · 80 кг'],['Жим гантелей наклон','3×10 · 26 кг'],['Разводка в кроссовере','3×12 · 15 кг']],
+      q: 'Почему жим третью неделю стоит на 80?',
+      a: 'Три тренировки подряд 80×8, повторы не растут. Сделаем шаг назад: <b>77,5 кг на 4×10</b>, через две недели вернёмся к 82,5. И добавил отжимания на брусьях.',
+      swap: [0, 'Жим штанги лёжа', '4×10 · 77,5 кг'] }
+  ];
+  var aid = document.getElementById('aid');
+  if (aid) {
+    var list = document.getElementById('aid-list'), typing = document.getElementById('aid-typing'), rowsEl = document.getElementById('aid-rows'), planT = document.getElementById('aid-plan-t');
+    var k = 0, running = false, timers = [];
+    var T = function(f, ms){ timers.push(setTimeout(f, ms)); };
+    function drawPlan(sc){ planT.textContent = sc.plan; rowsEl.innerHTML = sc.rows.map(function(r){ return '<div class="aid-row"><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join(''); }
+    function bubble(cls, html){ var d = document.createElement('div'); d.className = 'aid-m ' + cls; d.innerHTML = html; list.appendChild(d); requestAnimationFrame(function(){ requestAnimationFrame(function(){ d.classList.add('on'); }); }); while (list.children.length > 4) list.removeChild(list.firstChild); return d; }
+    function play(){
+      var sc = SC[k % SC.length]; k++;
+      list.innerHTML = ''; typing.textContent = ''; drawPlan(sc);
+      if (reduce) { bubble('me', esc(sc.q)); bubble('bot', sc.a); var r0 = rowsEl.children[sc.swap[0]]; r0.innerHTML = '<span>' + esc(sc.swap[1]) + '</span><b>' + esc(sc.swap[2]) + '</b>'; return; }
+      var i = 0; (function type(){ if (i <= sc.q.length) { typing.textContent = sc.q.slice(0, i++); T(type, 38); } else T(send, 350); })();
+      function send(){ typing.textContent = ''; bubble('me', esc(sc.q)); var dots = null; T(function(){ dots = bubble('bot', '<span class="aid-dots"><i></i><i></i><i></i></span>'); }, 500);
+        T(function(){ if (dots) dots.innerHTML = sc.a; T(function(){ var r = rowsEl.children[sc.swap[0]]; r.innerHTML = '<span>' + esc(sc.swap[1]) + '</span><b>' + esc(sc.swap[2]) + '</b>'; r.classList.remove('swap'); void r.offsetWidth; r.classList.add('swap'); }, 700); T(play, 6500); }, 2100); }
+    }
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting && !running) { running = true; play(); } else if (!e.isIntersecting && running) { running = false; timers.forEach(clearTimeout); timers = []; } }); }, { threshold: .35 }).observe(aid);
+  }
+
+  /* ── Орбита: по очереди подсвечиваем клиента ── */
+  var orbit = document.getElementById('orbit');
+  if (orbit) { var ns = [].slice.call(orbit.querySelectorAll('.orb-n')), j = 0, oi = null, raf = null, ang = 0, last = 0;
+    /* клиенты плывут по эллипсу, который влезает в ширину экрана; подписи всегда ровно */
+    function place(){ var W = orbit.clientWidth, H = orbit.clientHeight, mw = 0; ns.forEach(function(n){ mw = Math.max(mw, n.firstElementChild.offsetWidth); });
+      var rx = Math.max(60, W / 2 - mw / 2 - 6), ry = Math.max(60, H / 2 - 26);
+      ns.forEach(function(n, q){ var a = ang + q / ns.length * Math.PI * 2 - Math.PI / 2; n.style.transform = 'translate(' + (Math.cos(a) * rx).toFixed(1) + 'px,' + (Math.sin(a) * ry).toFixed(1) + 'px)'; }); }
+    function loop(t){ if (last) ang += Math.min(50, t - last) / 1000 * 0.09; last = t; place(); raf = requestAnimationFrame(loop); }
+    place(); addEventListener('resize', place);
+    new IntersectionObserver(function(es){ es.forEach(function(e){
+      if (e.isIntersecting) { if (!reduce && !raf) { last = 0; raf = requestAnimationFrame(loop); } if (!oi) oi = setInterval(function(){ ns.forEach(function(n, q){ n.classList.toggle('hot', q === j % ns.length); }); j++; }, 1400); }
+      else { if (raf) { cancelAnimationFrame(raf); raf = null; } if (oi) { clearInterval(oi); oi = null; } } }); }).observe(orbit); }
+
+  /* ── Ленты экранов ── */
+  var lanes = document.getElementById('lanes');
+  if (lanes) {
+    var A = ['home_dark','training_plan','ai_plan','habits_grid','finance_spend','goals','ai_insights','training_ww'], B = ['finance_balance','habits_wheel','ai_chat','client_trainer','finance_month','coach_home','finance_year','coach_sched'];
+    var ls = lanes.querySelectorAll('.lane');
+    [A, B].forEach(function(arr, q){ var h = arr.concat(arr).concat(arr).map(function(n){ return '<img src="img/landing/' + n + '.webp" alt="" loading="lazy" decoding="async">'; }).join(''); ls[q].innerHTML = h; });
+    var ticking = false;
+    function lanesMove(){ ticking = false; var r = lanes.getBoundingClientRect(); if (r.bottom < -200 || r.top > innerHeight + 200) return;
+      var off = (innerHeight - r.top) * .35; ls[0].style.transform = 'translate3d(' + (off - 900) + 'px,0,0)'; ls[1].style.transform = 'translate3d(' + (-off - 300) + 'px,0,0)'; }
+    addEventListener('scroll', function(){ if (!ticking) { ticking = true; requestAnimationFrame(lanesMove); } }, { passive: true }); lanesMove();
+  }
+
+  /* ── Манифест: слова проявляются по мере прокрутки ── */
+  var mf = document.getElementById('manifest');
+  if (mf) {
+    var html = '', gWords = mf.querySelector('[data-g]') ? mf.querySelector('[data-g]').textContent : '';
+    var plain = mf.textContent.replace(gWords, '').trim();
+    html = plain.split(/(\s+)/).map(function(t){ return /\s/.test(t) ? t : '<span class="w">' + esc(t) + '</span>'; }).join('') + ' ' + gWords.split(/(\s+)/).map(function(t){ return /\s/.test(t) ? t : '<span class="w g">' + esc(t) + '</span>'; }).join('');
+    mf.innerHTML = html; var ws = mf.querySelectorAll('.w');
+    function mfMove(){ var r = mf.getBoundingClientRect(); var p = (innerHeight * .85 - r.top) / (r.height + innerHeight * .45); p = Math.max(0, Math.min(1, p)); var n = Math.round(p * ws.length * 1.08);
+      ws.forEach(function(w, q){ w.classList.toggle('on', reduce || q < n); }); }
+    addEventListener('scroll', mfMove, { passive: true }); mfMove();
+  }
+})();
+</script>
 </body>
 </html>

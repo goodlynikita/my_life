@@ -615,6 +615,8 @@ var Slides = (() => {
     const ov = document.createElement('div');
     ov.className = 'tr-modal-overlay se-overlay';
 
+    /* настройки слайдера (показ, интервал, автолистание) живут здесь же, отдельного окна больше нет */
+    const sliderCfg = () => { const c = (Store.get().home || {}).sliderCfg || {}; return { show: c.hidden !== true, iv: Math.round((c.interval || 5000) / 1000), auto: c.autoplay !== false }; };
     function renderOv() {
       const curSlides = getSlides();
       ov.innerHTML = `<div id="se-panel" class="se-panel">
@@ -626,7 +628,7 @@ var Slides = (() => {
           </div>
         </div>
         <div id="se-body" class="se-body">
-          <div class="se-hint">Стрелками меняй порядок на главном, «Вкл/Выкл» показывает или прячет слайд. Нажми на карандаш, чтобы настроить вид.</div>
+          ${SlideKit.cfgHtml(sliderCfg())}
           ${curSlides.map((s,i) => slideCard(s,i,curSlides.length)).join('')}
         </div>
       </div>`;
@@ -643,6 +645,7 @@ var Slides = (() => {
 
       ov.querySelector('#se-close').addEventListener('click', () => ov.remove());
       ov.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
+      SlideKit.cfgBind(ov, sliderCfg(), (c) => { Store.set('home.sliderCfg', { interval: c.iv * 1000, autoplay: c.auto, hidden: !c.show }); Router.render(); });
 
       /* Toggle enabled */
       ov.querySelectorAll('.se-toggle-slide').forEach(btn => {

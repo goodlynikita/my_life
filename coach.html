@@ -283,6 +283,34 @@ html[data-theme="light"] .hdots,html[data-theme="light"] .hadd{box-shadow:none}
 html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893)}
 /* v139: шапка (конверт, добавить) и расписание */
 @media (max-width:370px){.hadd span{display:none}}
+/* Расписание: неделя карточками, как на лендинге. На компьютере сетка недели, на телефоне полоса дней и список */
+.sb{display:none}
+@media (min-width:900px){
+  .sc .sc-week{display:none}
+  .sb{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:18px}
+  .sb-c{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:120px}
+  .sb-h{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 0;border:1px solid transparent;border-radius:12px;background:none;color:var(--faint);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
+  .sb-h b{font-size:18px;color:var(--txt)}
+  .sb-h:hover{background:rgba(255,255,255,.04)}
+  .sb-c.today .sb-h{background:linear-gradient(160deg,#3A62C9,#2C4FA8);color:#DCE6FF}.sb-c.today .sb-h b{color:#fff}
+  .sb-c.on:not(.today) .sb-h{border-color:var(--line2);background:rgba(255,255,255,.04)}
+  .sb-s{position:relative;min-width:0;padding:9px 8px 8px;border-radius:11px;background:color-mix(in srgb,var(--c) 16%,rgba(255,255,255,.02));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-left:3px solid var(--c);cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .sb-s:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+  .sb-s time,.sb-s b{display:block!important}
+  .sb-s time{font-weight:800;font-size:12.5px;color:#fff}
+  .sb-s b{display:block;font-size:12.5px;font-weight:600;color:#D7DCEA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sb-s>i{position:absolute;top:7px;right:7px;font-size:13px;color:color-mix(in srgb,var(--c) 70%,#fff);opacity:.8}
+  .sb-s em{display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:2px 6px;border-radius:999px;background:rgba(74,222,128,.15);color:#4ADE80;font-style:normal;font-weight:800;font-size:10.5px}
+  .sb-s.done{opacity:.85}
+  .sb-s.trial{border-style:dashed;border-left-style:solid}
+  .sb-s.plan{border-style:dotted;border-left-style:solid;opacity:.8}
+  .sb-free{padding:10px 0;text-align:center;font-size:11px;color:var(--faint);border:1px dashed var(--line2);border-radius:11px}
+  .sb-add{height:30px;border:1px dashed var(--line2);border-radius:10px;background:none;color:var(--faint);cursor:pointer;font-size:15px;opacity:0;transition:opacity .2s}
+  .sb-c:hover .sb-add{opacity:1}
+}
+/* телефон: полоса дней и записи в том же стиле */
+.sc .sc-d.is-today:not(.on){background:linear-gradient(160deg,rgba(58,98,201,.35),rgba(44,79,168,.25));border-color:rgba(110,148,255,.5)}
+.sc .sc-it{border-left:3px solid var(--c,var(--line2))}
 .sc-cal-all{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:8px;border:none;background:none;color:#E8C49A;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.sc-cal-all i{font-size:17px}
 .sc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px} .sc-top b{font-size:14.5px;text-align:center}
 .sc-nav{width:38px;height:38px;border-radius:12px;font-size:18px}
@@ -818,8 +846,7 @@ $('#menu').onclick = () => {
     <button data-m="tref" ${R}><i class="ti ti-users-group" ${I}></i>Пригласить тренера</button>
     <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Внешний вид</div>
     ${window.Palette ? Palette.rowHtml() : ''}
-    <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Редактор слайдов</button>
-    <button data-m="slider" ${R}><i class="ti ti-adjustments-horizontal" ${I}></i>Настройки слайдера</button>
+    <button data-m="slides" ${R}><i class="ti ti-layout" ${I}></i>Слайдер</button>
     <button data-m="tiles" ${R}><i class="ti ti-layout-grid" ${I}></i>Настройка плиток</button>
     <div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Ещё</div>
     <a href="index.html" ${R.replace('color:#E8E5DC', 'color:#C7D2FE')}><i class="ti ti-apps" style="font-size:18px;color:#8EA8FF;"></i>Приложение YOU</a>
@@ -830,7 +857,6 @@ $('#menu').onclick = () => {
   const go = (fn) => () => { ov.remove(); if (view.name !== 'list' || view.tab !== 'hub') { view = { name: 'list', tab: 'hub' }; render(); } fn(); };
   ov.querySelector('[data-m="slides"]').onclick = go(openSlidesEditor);
   ov.querySelector('[data-m="tiles"]').onclick = go(openTilesEditor);
-  ov.querySelector('[data-m="slider"]').onclick = go(openSliderSettings);
   if (window.Palette) Palette.bind(ov);
   ov.querySelector('[data-m="help"]').onclick = () => { ov.remove(); $('#help').click(); };
   ov.querySelector('[data-m="out"]').onclick = () => { ov.remove(); $('#out').click(); };
@@ -1250,9 +1276,10 @@ function openSlidesEditor() {
   const list = () => {
     ov.innerHTML = `<div id="se-panel" class="se-panel"><div class="se-head"><span class="se-head-title">Слайды</span>
       <div style="display:flex;gap:8px;align-items:center;"><button id="se-add" class="se-add-btn">+ Новый</button><button id="se-close" class="se-close-btn">×</button></div></div>
-      <div id="se-body" class="se-body"><div class="se-hint">Стрелками меняйте порядок, «Вкл/Выкл» показывает или прячет слайд.</div>${u.slides2.map((s, i) => card(s, i, u.slides2.length)).join('')}</div></div>`;
+      <div id="se-body" class="se-body">${SlideKit.cfgHtml({ show: !u.sliderHidden, iv: Math.round(u.interval || 5), auto: u.autoplay !== false })}${u.slides2.map((s, i) => card(s, i, u.slides2.length)).join('')}</div></div>`;
     const save = () => { applyUI(u); list(); };
     ov.querySelector('#se-close').onclick = () => ov.remove();
+    SlideKit.cfgBind(ov, { show: !u.sliderHidden, iv: Math.round(u.interval || 5), auto: u.autoplay !== false }, (c) => { Object.assign(u, { interval: c.iv, autoplay: c.auto, sliderHidden: !c.show }); applyUI(u); });
     ov.querySelector('#se-add').onclick = () => {
       ov.querySelector('.se-head-title').textContent = 'Новый слайд'; ov.querySelector('#se-add').style.display = 'none';
       const x = hubCtx();
@@ -1466,7 +1493,7 @@ function renderSched(body) {
   const nextI = isT ? timed.findIndex(e => !e.done && hm2m(e.tm) + (+(e.it && e.it.dur) || 60) > nowM) : -1;
   const range = `${days[0].getDate()} ${MON[days[0].getMonth()]} – ${days[6].getDate()} ${MON[days[6].getMonth()]}`;
   const row = (e, i, cls) => { const st = hm2m(e.tm), dur = +(e.it && e.it.dur) || 60, live = isT && e.tm && st <= nowM && nowM < st + dur;
-    return `<div class="sc-it${e.done ? ' done' : ''}${cls || ''}${live ? ' live' : ''}" data-i="${i}">
+    return `<div class="sc-it${e.done ? ' done' : ''}${cls || ''}${live ? ' live' : ''}" data-i="${i}" style="--c:${e.c ? avaCol(e.c) : '#2DD4BF'};background:color-mix(in srgb,${e.c ? avaCol(e.c) : '#2DD4BF'} 10%,rgba(255,255,255,.02))">
       <button class="sc-chk${e.done ? ' on' : ''}" data-chk="${i}" aria-label="${e.done ? 'Снять отметку' : 'Отметить: провёл'}"><i class="ti ti-check"></i></button>
       <span class="sc-tm">${e.tm ? `${esc(e.tm)}<small>до ${m2hm(st + dur)}</small>` : '<small>план</small>'}</span>
       <span class="sc-av" style="background:${e.c ? avaCol(e.c) : '#475569'}">${esc((e.nm || '?').trim()[0] || '?').toUpperCase()}</span>
@@ -1477,6 +1504,10 @@ function renderSched(body) {
     <div class="sc-top"><button class="hb sc-nav" data-wk="-1" aria-label="Прошлая неделя"><i class="ti ti-chevron-left"></i></button><div class="sc-rng"><b>${range}</b><span>${wkN ? `${wkN} ${pl(wkN, 'тренировка', 'тренировки', 'тренировок')} · проведено ${wkD}` : 'Неделя свободна'}</span></div><button class="hb sc-nav" data-wk="1" aria-label="Следующая неделя"><i class="ti ti-chevron-right"></i></button></div>
     <div class="sc-week">${days.map((d, j) => { const n = wk[j].length, dn = wk[j].filter(e => e.done).length, k = ymd(d);
       return `<button class="sc-d${k === schedSel ? ' on' : ''}${+d === +t0 ? ' is-today' : ''}" data-d="${k}"><span>${DOW[d.getDay()]}</span><b>${d.getDate()}</b><i>${n ? `<em>${dn && dn === n ? '✓' : n}</em>` : ''}</i></button>`; }).join('')}</div>
+    <div class="sb">${days.map((d, j) => { const k = ymd(d), es = wk[j];
+      return `<div class="sb-c${+d === +t0 ? ' today' : ''}${k === schedSel ? ' on' : ''}"><button class="sb-h" data-d="${k}">${DOW[d.getDay()]}<b>${d.getDate()}</b></button>
+        ${es.length ? es.map((e, i) => `<div class="sb-s${e.done ? ' done' : ''}${!e.c ? ' trial' : ''}${e.it ? '' : ' plan'}" style="--c:${e.c ? avaCol(e.c) : '#2DD4BF'}" data-bj="${j}" data-bi="${i}"><time>${e.tm ? esc(e.tm) : 'план'}</time><b>${esc(firstNameS(e.nm))}</b>${e.it && e.it.rep ? '<i class="ti ti-repeat"></i>' : ''}${e.done ? '<em><i class="ti ti-check"></i>провёл</em>' : ''}</div>`).join('') : '<div class="sb-free">свободно</div>'}
+        ${d >= t0 ? `<button class="sb-add" data-add="${k}" aria-label="Запись"><i class="ti ti-plus"></i></button>` : ''}</div>`; }).join('')}</div>
     <div class="sc-dh"><b>${isT ? 'Сегодня' : DOW[sel.getDay()] + ', ' + sel.getDate() + ' ' + MON[sel.getMonth()]}</b>${schedWeek || !isT ? '<button class="sc-today" id="sc-today">Сегодня</button>' : ''}</div>
     <div class="sc-list">${all.length ? timed.map((e, i) => row(e, i, i === nextI && !(isT && hm2m(e.tm) <= nowM) ? ' next' : '')).join('')
         + (plan.length ? `<div class="sc-sub">По плану, без времени</div>` + plan.map((e, i) => row(e, timed.length + i)).join('') : '')
@@ -1485,6 +1516,9 @@ function renderSched(body) {
     ${schedule.some(x => !x.demo && x.tm && (x.rep || x.d >= ymd(t0))) ? '<button class="sc-cal-all" id="sc-cal-all"><i class="ti ti-calendar-share"></i>Все записи в календарь телефона</button>' : ''}</div>`;
   body.querySelectorAll('.sc-nav').forEach(b => b.onclick = () => { schedWeek += +b.dataset.wk; const d = new Date(mon); d.setDate(mon.getDate() + 7 * +b.dataset.wk); schedSel = ymd(d); renderSched(body); });
   body.querySelectorAll('.sc-d').forEach(b => b.onclick = () => { schedSel = b.dataset.d; renderSched(body); });
+  body.querySelectorAll('.sb-h').forEach(b => b.onclick = () => { schedSel = b.dataset.d; renderSched(body); });
+  body.querySelectorAll('.sb-s').forEach(b => b.onclick = () => entryMenu(wk[+b.dataset.bj][+b.dataset.bi], days[+b.dataset.bj], () => renderSched(body)));
+  body.querySelectorAll('.sb-add').forEach(b => b.onclick = () => slotModal(null, b.dataset.add, () => renderSched(body)));
   const tb = body.querySelector('#sc-today'); if (tb) tb.onclick = () => { schedWeek = 0; schedSel = ymd(t0); renderSched(body); };
   const ab = body.querySelector('#sc-add'); if (ab) ab.onclick = () => slotModal(null, schedSel, () => renderSched(body));
   const ca = body.querySelector('#sc-cal-all'); if (ca) ca.onclick = () => schedIcs(schedule.filter(x => !x.demo && x.tm && (x.rep || x.d >= ymd(t0))), 'raspisanie.ics');

@@ -83,7 +83,7 @@ a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
 .nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s,backdrop-filter .3s;border-bottom:1px solid transparent}
 .nav.scrolled{background:rgba(7,9,15,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--line)}
 .nav-in{display:flex;align-items:center;gap:28px;height:68px;padding-top:env(safe-area-inset-top,0px)}
-.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;letter-spacing:.02em}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;letter-spacing:.02em;flex-shrink:0}
 .logo img{width:34px;height:34px;border-radius:10px;box-shadow:0 4px 16px rgba(74,124,255,.4)}
 .nav-links{display:flex;gap:24px;font-size:14px;font-weight:600;color:var(--soft)}
 .nav-links a:hover{color:var(--txt)}
@@ -145,7 +145,7 @@ h1 .line:nth-child(2) span{animation-delay:.12s} h1 .line:nth-child(3) span{anim
 @keyframes mq{to{transform:translateX(-50%)}}
 
 /* ── Секции ── */
-section{padding:110px 0;position:relative}
+section{padding:80px 0;position:relative}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#9DB2FF;margin-bottom:16px}
 .eyebrow::before{content:'';width:22px;height:2px;border-radius:2px;background:var(--grad)}
 h2{font-size:clamp(30px,4.2vw,52px);line-height:1.08;letter-spacing:-.03em;margin:0 0 18px;font-weight:900}
@@ -646,7 +646,7 @@ footer{border-top:1px solid var(--line);padding:34px 0 calc(34px + env(safe-area
   .zones b{font-size:14px !important}
   .zone-list{grid-template-columns:1fr;gap:7px;font-size:12.5px}
   .zone-list span{align-items:flex-start;line-height:1.35} .zone-list i{margin-top:5px;flex-shrink:0}
-  section{padding:64px 0}
+  section{padding:48px 0}
   .m-shot{max-width:200px}
   .step{padding:12px 0 0}
   .step h3{font-size:24px}
@@ -925,7 +925,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 
 
 /* ═══ v4: живые экраны по разделам ═══ */
-.dx{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center;margin-top:110px}
+.dx{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center;margin-top:70px}
 .dx:first-of-type{margin-top:70px}
 .dx.rev .dx-t{order:2}
 .dx-fin{--dc:#8B5CF6}.dx-hab{--dc:#4ADE80}.dx-goal{--dc:#F2A93B}.dx-cal{--dc:#4A7CFF}
@@ -934,7 +934,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 .dx h3{font-size:clamp(28px,3.4vw,44px);line-height:1.08;letter-spacing:-.03em;margin:0 0 16px;font-weight:900}
 .dx .ai-feats{margin-top:26px}
 .dx .ai-feat i{color:var(--dc)}
-.dx-ph{position:relative;display:flex;justify-content:center;align-items:center;min-height:640px}
+.dx-ph{position:relative;display:flex;justify-content:center;align-items:center;min-height:620px}
 .dx-glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--dc) 45%,transparent),transparent);filter:blur(30px);opacity:.55}
 .dx-ph .phone{position:relative;width:290px;z-index:2}
 .dx-scr{display:flex;flex-direction:column;background:#0E1220!important}
@@ -977,7 +977,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 .cl-e time{font-size:12.5px;font-weight:800;color:#fff}.cl-e time:empty::before{content:'весь день';font-size:10px;color:var(--faint);font-weight:700}
 .cl-e b{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700}.cl-e b i{color:var(--c);font-size:15px}
 .cl-e small{display:block;font-size:11px;color:var(--soft);margin-top:1px}
-@media (max-width:980px){.dx{grid-template-columns:1fr;gap:26px;margin-top:80px}.dx.rev .dx-t{order:0}.dx-ph{min-height:0;padding:10px 0 30px}}
+@media (max-width:980px){.dx{grid-template-columns:1fr;gap:22px;margin-top:56px}.dx.rev .dx-t{order:0}.dx-ph{min-height:0;padding:10px 0 30px}}
 @media (max-width:560px){.dx-ph{flex-direction:column}.dx-ph .phone{width:262px}.dx-float,.dx-goal .gl-pay{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:min(300px,100%);margin:-46px auto 0;padding:12px}.dx-f-note{position:absolute;left:-4px;top:40px;width:240px;margin:0}.dx-glow{width:300px;height:300px}
   .dx .ai-feats{grid-template-columns:1fr 1fr;gap:8px}.dx .ai-feat{padding:12px}.dx .ai-feat b{font-size:13px}.dx .ai-feat span{font-size:11.5px;line-height:1.4}}
 /* подпись в сцене «пять приложений»: читается на любом фоне */
@@ -1034,6 +1034,11 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 @media (max-width:980px){.c-sched .c-mg>div:first-child{order:2}.c-sched .cs-wrap{margin-bottom:40px}}
 @media (max-width:560px){.cs{padding:14px}.cs-grid{grid-template-columns:repeat(3,1fr)}.cs-c{display:none}.cs-c:nth-child(2),.cs-c:nth-child(3),.cs-c:nth-child(4){display:flex}
   .cs-s{font-size:12px;padding:9px 8px}.cs-s time{font-size:12.5px}.cs-phone{position:relative;right:auto;bottom:auto;width:min(280px,100%);margin:-18px 10px 0 auto}}
+
+/* настоящие кадры в телефоне */
+.dx-frames{position:relative}
+.dx-frames img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:0;transition:opacity .7s ease}
+.dx-frames img.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
 </style>
 </head>
@@ -1049,7 +1054,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
   </div>
   <div class="nav-links" data-for="coach">
-    <a href="#c-pain">Зачем</a><a href="#c-feat">Возможности</a><a href="#c-how">Как начать</a><a href="#c-morning">Сводка</a><a href="#c-sched">Расписание</a><a href="#start">Установка</a><a href="#c-faq">Вопросы</a>
+    <a href="#c-feat">Возможности</a><a href="#c-sched">Расписание</a><a href="#c-how">Как начать</a><a href="#start">Установка</a><a href="#c-faq">Вопросы</a>
   </div>
   <div class="sp"></div>
   <a class="btn btn-ghost btn-sm nav-login" href="./#/login" data-for="me">Войти</a>
@@ -1084,7 +1089,6 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <div class="chip c3"><i class="ti ti-pig-money"></i><div>+45 000 ₽ в копилку<small>20% с каждого дохода</small></div></div>
   </div></div>
 </div>
-<div class="marquee"><div class="mq-track" id="mq"></div></div>
 </header>
 
 
@@ -1269,13 +1273,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-pencil-bolt"></i><b>Трата одной строкой</b><span>«такси 350+420», категория подберётся сама</span></div><div class="ai-feat"><i class="ti ti-pig-money"></i><b>Копилка</b><span>Откладывает процент с каждого дохода. Снять можно только после честной проверки</span></div><div class="ai-feat"><i class="ti ti-calendar-dollar"></i><b>Платежи по датам</b><span>Аренда, кредит, подписки. Напомнит в календаре телефона</span></div><div class="ai-feat"><i class="ti ti-sparkles"></i><b>Помощник по деньгам</b><span>«Сколько я трачу на кафе?» Посчитает по твоим тратам</span></div></div>
     </div>
     <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
-      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-wallet"></i>Расходы<span>до зарплаты</span></div>
-        <div class="dx-body" id="dm-fin">
-          <div class="fd-top"><small>Свободно до 31 октября</small><b id="fd-free">38 400 ₽</b>
-            <div class="fd-bar"><span id="fd-bar"></span></div><div class="fd-r"><span>Сегодня</span><b id="fd-tod">420 ₽ из 1 600 ₽</b></div></div>
-          <div class="fd-in"><span id="fd-typing"></span><i class="ti ti-check"></i></div>
-          <div class="fd-list" id="fd-list"><div class="fd-it"><span class="fd-c" style="--c:#60A5FA">Т</span><span>Такси<small>Транспорт</small></span><b>−420 ₽</b></div></div>
-        </div></div></div>
+      <div class="phone float"><div class="scr dx-scr dx-frames" data-frames><img src="img/landing/real/fin1.webp?v=1" alt="" loading="lazy" decoding="async" class="on"><img src="img/landing/real/fin2.webp?v=1" alt="" loading="lazy" decoding="async"><img src="img/landing/real/fin3.webp?v=1" alt="" loading="lazy" decoding="async"></div></div>
       <div class="dx-float dx-f-ask fd-ask" id="fd-ask"><div class="dx-fh"><i class="ti ti-sparkles"></i>Помощник</div><div class="q">Сколько я трачу на кафе за год?</div><div class="a">Около <b>76 800 ₽</b>. Это почти вся цель «Отпуск» на 90 000 ₽.</div></div>
     </div>
   </div>
@@ -1287,18 +1285,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-flame"></i><b>Серия дней</b><span>Огонь загорается, когда день засчитан. Рекорд виден всегда</span></div><div class="ai-feat"><i class="ti ti-calendar-repeat"></i><b>Своё расписание</b><span>Каждый день, по будням или 3 раза в неделю</span></div><div class="ai-feat"><i class="ti ti-chart-donut"></i><b>Процент за месяц</b><span>Сразу видно, какая привычка проседает</span></div><div class="ai-feat"><i class="ti ti-chart-radar"></i><b>Колесо жизни</b><span>Раз в месяц оцениваешь 8 сфер и видишь, где расти</span></div></div>
     </div>
     <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
-      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-checklist"></i>Привычки<span>октябрь</span></div>
-        <div class="dx-body" id="dm-hab">
-          <div class="hb-streak" id="hb-streak"><div class="hb-fire"><i class="ti ti-flame"></i></div><div><b><span id="hb-n">46</span> дней подряд</b><small id="hb-s">Отметь больше половины, чтобы продлить</small></div></div>
-          <div class="hb-week" id="hb-week"></div>
-          <div class="hb-list" id="hb-list">
-            <button class="hb-row on"><i class="ti ti-sun"></i><span>Витамины утром</span><em></em></button>
-            <button class="hb-row"><i class="ti ti-book"></i><span>Читать 20 минут</span><em></em></button>
-            <button class="hb-row"><i class="ti ti-droplet"></i><span>Вода 2 литра</span><em></em></button>
-            <button class="hb-row"><i class="ti ti-moon"></i><span>Сон до 23:30</span><em></em></button>
-          </div>
-          <div class="hb-tip">Нажми на привычку</div>
-        </div></div></div>
+      <div class="phone float"><div class="scr dx-scr dx-frames" data-frames><img src="img/landing/real/hab1.webp?v=1" alt="" loading="lazy" decoding="async" class="on"><img src="img/landing/real/hab2.webp?v=1" alt="" loading="lazy" decoding="async"></div></div>
       <div class="dx-float dx-f-goal"><div class="dx-fh"><i class="ti ti-award"></i>Следующая награда</div><div class="dx-fg"><b>Полсотни</b><em>47 / 50</em></div><div class="dx-fbar"><span></span></div><div class="dx-badges"><span class="got">7</span><span class="got">14</span><span class="got">30</span><span class="nx">50</span><span>100</span></div></div>
     </div>
   </div>
@@ -1310,51 +1297,24 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-calendar-month"></i><b>По сезонам и месяцам</b><span>Отпуск к маю, ноутбук к декабрю, у каждой цели сумма</span></div><div class="ai-feat"><i class="ti ti-calculator"></i><b>Сколько в месяц</b><span>Посчитает, сколько откладывать, чтобы успеть</span></div><div class="ai-feat"><i class="ti ti-calendar-dollar"></i><b>Цель в платежи</b><span>Выбираешь дату, и сумма учтётся в «Свободно»</span></div><div class="ai-feat"><i class="ti ti-circle-check"></i><b>Закрывается сама</b><span>Оплатил платёж, цель отмечена выполненной</span></div></div>
     </div>
     <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
-      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-target-arrow"></i>Цели 2026<span>403 000 ₽</span></div>
-        <div class="dx-body" id="dm-goal">
-          <div class="gl-list">
-            <div class="gl"><div class="gl-t"><span>Отпуск</span><b>90 000 ₽</b></div><div class="gl-bar"><span style="--w:42%"></span></div><div class="gl-s"><span>к маю</span><em>12 900 ₽ в месяц</em></div></div>
-            <div class="gl"><div class="gl-t"><span>Новый ноутбук</span><b>150 000 ₽</b></div><div class="gl-bar"><span style="--w:18%"></span></div><div class="gl-s"><span>к декабрю</span><em>41 000 ₽ в месяц</em></div></div>
-            <div class="gl"><div class="gl-t"><span>Стоматолог</span><b>20 000 ₽</b></div><div class="gl-bar"><span style="--w:100%"></span></div><div class="gl-s"><span>оплачено</span><em class="ok"><i class="ti ti-check"></i>закрыта</em></div></div>
-            <div class="gl"><div class="gl-t"><span>Горнолыжный сезон</span><b>90 000 ₽</b></div><div class="gl-bar"><span style="--w:8%"></span></div><div class="gl-s"><span>к зиме</span><em>22 500 ₽ в месяц</em></div></div>
-          </div>
-        </div></div></div>
+      <div class="phone float"><div class="scr dx-scr dx-frames" data-frames><img src="img/landing/real/goal1.webp?v=1" alt="" loading="lazy" decoding="async" class="on"><img src="img/landing/real/goal2.webp?v=1" alt="" loading="lazy" decoding="async"></div></div>
       <div class="dx-float gl-pay" id="gl-pay"><i class="ti ti-calendar-dollar"></i><div><b>«Отпуск» в платежах</b><small>1 мая, в «Свободно» учтётся</small></div></div>
     </div>
   </div>
   <div class="dx rev dx-cal">
     <div class="dx-t">
-      <span class="dx-tag"><i class="ti ti-calendar-week"></i>Расписание</span>
-      <h3 class="rv">Вся неделя <span class="grad-t">в одном календаре</span></h3>
-      <p class="sec-lead rv">Тренировки, время с тренером, платежи и цели по дням. Утром открываешь приложение и видишь, что сегодня, а напоминания приходят в календарь телефона.</p>
+      <span class="dx-tag"><i class="ti ti-calendar-week"></i>План недели</span>
+      <h3 class="rv">Тренировки по дням <span class="grad-t">и время с тренером</span></h3>
+      <p class="sec-lead rv">План тренировок разложен по дням недели. Если есть тренер, его запись появляется прямо в плане и на главном экране: «С тренером в 18:30».</p>
       <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-barbell"></i><b>Тренировки по дням</b><span>План на неделю, тренировку можно перенести на другой день</span></div><div class="ai-feat"><i class="ti ti-user-star"></i><b>Время от тренера</b><span>Тренер ставит запись, у тебя в плане и на главной «С тренером в 18:30»</span></div><div class="ai-feat"><i class="ti ti-bell"></i><b>Платежи в календаре</b><span>Напоминание о платеже прямо в календарь телефона</span></div><div class="ai-feat"><i class="ti ti-layout-dashboard"></i><b>Фокус дня</b><span>На главной сразу видно, что сегодня по тренировкам, привычкам и деньгам</span></div></div>
     </div>
     <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
-      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-calendar-week"></i>Неделя<span>5–11 октября</span></div>
-        <div class="dx-body" id="dm-cal">
-          <div class="cl-strip" id="cl-strip"></div>
-          <div class="cl-day" id="cl-day"></div>
-          <div class="cl-list" id="cl-list"></div>
-        </div></div></div>
-      <div class="dx-float dx-f-note" id="cl-note"><img src="icon.png" alt=""><div><b>YOU · напоминание</b><span>Завтра аренда 35 000 ₽</span></div><small>сейчас</small></div>
+      <div class="phone float"><div class="scr dx-scr dx-frames" data-frames><img src="img/landing/real/cal1.webp?v=1" alt="" loading="lazy" decoding="async" class="on"><img src="img/landing/real/cal2.webp?v=1" alt="" loading="lazy" decoding="async"></div></div>
     </div>
   </div>
 </div></section>
 
-<!-- Сторис -->
-<section class="story-sec" data-for="me"><div class="wrap story-grid">
-  <div class="story-txt">
-    <span class="eyebrow">Разбор и сторис</span>
-    <h2 class="rv">Каждый понедельник <span class="grad-t">итоги недели</span></h2>
-    <p class="sec-lead rv">Сколько поднял за неделю, что выросло, что отстаёт и что делать дальше. Видно, какой мышце мало подходов, а какой многовато.</p>
-    <ul class="story-list rv">
-      <li><i class="ti ti-chart-dots"></i>Разбор недели и одна главная задача</li>
-      <li><i class="ti ti-scale"></i>Подходы на каждую мышцу в сравнении с нормой</li>
-      <li><i class="ti ti-share"></i>Картинка «мой прогресс за 8 недель» в сторис одной кнопкой</li>
-    </ul>
-  </div>
-  <div class="story-pic rv rv-r"><div class="story-glow"></div><img src="img/landing/story.webp?v=3" alt="Прогресс за 8 недель для сторис" loading="lazy"></div>
-</div></section>
+
 
 
 <!-- Для тренеров -->
@@ -1693,7 +1653,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   var items = [['ti-barbell','План на 8 недель'],['ti-sparkles','AI-тренер'],['ti-message-chatbot','Чат с тренером'],['ti-flame','Серии дней'],['ti-pig-money','Копилка'],['ti-wallet','Сколько можно тратить'],['ti-target-arrow','Цели по сезонам'],['ti-chart-donut','Колесо жизни'],['ti-user-shield','Кабинет тренера'],['ti-moon','Тёмная тема'],['ti-devices','Все устройства'],['ti-stairs-up','Вес растёт сам'],['ti-chart-dots','Разбор недели'],['ti-share','Прогресс в сторис']];
   var colors = ['#8EA8FF','#A78BFA','#F2A93B','#34D399','#F2A93B','#A78BFA','#60A5FA','#C9D0E2','#4ADE80','#F472B6','#8EA8FF','#F472B6','#977FE9','#34D399'];
   var html = items.map(function(x,i){ return '<span><i class="ti '+x[0]+'" style="color:'+colors[i]+'"></i>'+x[1]+'</span>'; }).join('');
-  document.getElementById('mq').innerHTML = html + html;
+  var mqEl = document.getElementById('mq'); if (mqEl) mqEl.innerHTML = html + html;
 
   /* Навигация + прогресс + мобильная кнопка */
   var nav = document.getElementById('nav'), prog = document.getElementById('progress'), mcta = document.getElementById('mcta'), heroEnd = 700;
@@ -2073,6 +2033,15 @@ if(t&&/^[A-Za-z0-9_-]{2,64}$/.test(t))localStorage.setItem('you_tref',t);}catch(
   /* ── Тренерам: расписание, записи появляются по очереди ── */
   var csEl = document.getElementById('cs');
   if (csEl) new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) csEl.classList.add('go'); }); }, { threshold: .3 }).observe(csEl);
+
+  /* ── Живые экраны: настоящие кадры приложения сменяют друг друга ── */
+  document.querySelectorAll('[data-frames]').forEach(function(box){
+    var imgs = [].slice.call(box.querySelectorAll('img')), k = 0, t = null, ph = box.closest('.dx-ph'), ask = ph && ph.querySelector('.fd-ask');
+    if (imgs.length < 2) return;
+    new IntersectionObserver(function(es){ es.forEach(function(e){
+      if (e.isIntersecting && !t && !reduce) { t = setInterval(function(){ imgs[k].classList.remove('on'); k = (k + 1) % imgs.length; imgs[k].classList.add('on'); if (ask && k === imgs.length - 1) ask.classList.add('on'); }, 2600); }
+      else if (!e.isIntersecting && t) { clearInterval(t); t = null; } }); }, { threshold: .35 }).observe(box);
+  });
 
   /* ── Тренерам: было и стало ── */
   var ab = document.getElementById('ab');

@@ -168,5 +168,20 @@ window.SlideKit = (() => {
     const near = IVS.reduce((a, b) => Math.abs(b - cur) < Math.abs(a - cur) ? b : a, IVS[0]);
     return IVS.map(v => `<button type="button" data-iv="${v}" class="${v === near ? 'on' : ''}"><b>${v}</b><span>сек</span></button>`).join('');
   }
-  return { ivHtml, esc, accentOf, VIEW_NAMES, ICONS, LAYOUTS, iconHtml, viewsFor, viewHtml, headHtml, bodyHtml, form, templates };
+  /* настройки слайдера прямо в окне «Слайды»: показывать, интервал, автолистание. Сохраняются сразу через onChange */
+  function cfgHtml(c) {
+    const tg = (id, on) => `<button type="button" id="${id}" data-on="${on ? 1 : 0}" class="sl-tgl" aria-pressed="${on ? 'true' : 'false'}"><i></i></button>`;
+    return `<div class="sl-cfg"><div class="sl-cfg-r"><b>Показывать слайдер</b>${tg('slc-show', c.show)}</div>
+      <div class="sl-cfg-more${c.show ? '' : ' off'}"><div class="sl-cfg-l">Интервал</div><div class="sl-iv" id="slc-iv">${ivHtml(c.iv)}</div>
+      <div class="sl-cfg-r"><b>Автолистание</b>${tg('slc-auto', c.auto)}</div></div></div>`;
+  }
+  function cfgBind(root, c, onChange) {
+    const flip = (b) => { const on = b.dataset.on !== '1'; b.dataset.on = on ? '1' : '0'; b.setAttribute('aria-pressed', on); return on; };
+    const sh = root.querySelector('#slc-show'), au = root.querySelector('#slc-auto'), iv = root.querySelector('#slc-iv'); if (!sh) return;
+    sh.onclick = () => { c.show = flip(sh); root.querySelector('.sl-cfg-more').classList.toggle('off', !c.show); onChange(c); };
+    au.onclick = () => { c.auto = flip(au); onChange(c); };
+    const bindIv = () => iv.querySelectorAll('[data-iv]').forEach(b => b.onclick = () => { c.iv = +b.dataset.iv; iv.innerHTML = ivHtml(c.iv); bindIv(); onChange(c); });
+    bindIv();
+  }
+  return { cfgHtml, cfgBind, ivHtml, esc, accentOf, VIEW_NAMES, ICONS, LAYOUTS, iconHtml, viewsFor, viewHtml, headHtml, bodyHtml, form, templates };
 })();

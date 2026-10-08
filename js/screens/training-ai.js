@@ -532,9 +532,9 @@ window.TrainingAI = (function () {
   };
   const T = (g, r, k, v) => ({ g, r, k, v: v || 0 });
   const DAYS = {
-    fbA: { t: 'Всё тело A', s: [T('Ноги', 'quads', 'comp'), T('Грудь', 'middle', 'comp'), T('Спина', 'width', 'comp'), T('Ноги', 'hams', 'iso'), T('Плечи', 'side', 'iso'), T('Руки', 'biceps', 'iso')] },
-    fbB: { t: 'Всё тело B', s: [T('Ноги', 'hams', 'comp'), T('Грудь', 'upper', 'comp'), T('Спина', 'thickness', 'comp'), T('Ноги', 'quads', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'triceps', 'iso')] },
-    fbC: { t: 'Всё тело C', s: [T('Ноги', 'quads', 'comp', 1), T('Грудь', 'middle', 'comp', 1), T('Спина', 'width', 'comp', 1), T('Плечи', 'front', 'comp'), T('Руки', 'biceps', 'iso', 1), T('Кор', 'core', 'iso')] },
+    fbA: { t: 'FULL BODY A', s: [T('Ноги', 'quads', 'comp'), T('Грудь', 'middle', 'comp'), T('Спина', 'width', 'comp'), T('Ноги', 'hams', 'iso'), T('Плечи', 'side', 'iso'), T('Руки', 'biceps', 'iso')] },
+    fbB: { t: 'FULL BODY B', s: [T('Ноги', 'hams', 'comp'), T('Грудь', 'upper', 'comp'), T('Спина', 'thickness', 'comp'), T('Ноги', 'quads', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'triceps', 'iso')] },
+    fbC: { t: 'FULL BODY C', s: [T('Ноги', 'quads', 'comp', 1), T('Грудь', 'middle', 'comp', 1), T('Спина', 'width', 'comp', 1), T('Плечи', 'front', 'comp'), T('Руки', 'biceps', 'iso', 1), T('Кор', 'core', 'iso')] },
     upA: { t: 'Верх A', s: [T('Грудь', 'middle', 'comp'), T('Спина', 'thickness', 'comp'), T('Плечи', 'front', 'comp'), T('Спина', 'width', 'comp'), T('Плечи', 'side', 'iso'), T('Руки', 'triceps', 'iso'), T('Руки', 'biceps', 'iso')] },
     upB: { t: 'Верх B', s: [T('Грудь', 'upper', 'comp'), T('Спина', 'width', 'comp', 1), T('Спина', 'thickness', 'comp', 1), T('Грудь', 'middle', 'iso'), T('Плечи', 'side', 'iso', 1), T('Руки', 'biceps', 'iso', 1), T('Руки', 'triceps', 'iso', 1)] },
     loA: { t: 'Низ A', s: [T('Ноги', 'quads', 'comp'), T('Ноги', 'hams', 'comp'), T('Ноги', 'quads', 'iso'), T('Ноги', 'hams', 'iso'), T('Ноги', 'calves', 'iso'), T('Кор', 'core', 'iso')] },
@@ -548,9 +548,9 @@ window.TrainingAI = (function () {
   };
   /* девушкам: больше ног и ягодиц (2–3 раза в неделю), верх поддерживающим объёмом */
   const FDAYS = {
-    ffA: { t: 'Всё тело A', s: [T('Ноги', 'glutes', 'comp'), T('Ноги', 'quads', 'comp'), T('Спина', 'width', 'comp'), T('Грудь', 'middle', 'comp'), T('Ноги', 'glutes', 'iso'), T('Плечи', 'side', 'iso')] },
-    ffB: { t: 'Всё тело B', s: [T('Ноги', 'hams', 'comp'), T('Ноги', 'quads', 'comp', 1), T('Спина', 'thickness', 'comp'), T('Плечи', 'front', 'comp'), T('Ноги', 'glutes', 'iso', 1), T('Кор', 'core', 'iso')] },
-    ffC: { t: 'Всё тело C', s: [T('Ноги', 'glutes', 'comp', 1), T('Ноги', 'hams', 'iso'), T('Спина', 'width', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'triceps', 'iso'), T('Руки', 'biceps', 'iso')] },
+    ffA: { t: 'FULL BODY A', s: [T('Ноги', 'glutes', 'comp'), T('Ноги', 'quads', 'comp'), T('Спина', 'width', 'comp'), T('Грудь', 'middle', 'comp'), T('Ноги', 'glutes', 'iso'), T('Плечи', 'side', 'iso')] },
+    ffB: { t: 'FULL BODY B', s: [T('Ноги', 'hams', 'comp'), T('Ноги', 'quads', 'comp', 1), T('Спина', 'thickness', 'comp'), T('Плечи', 'front', 'comp'), T('Ноги', 'glutes', 'iso', 1), T('Кор', 'core', 'iso')] },
+    ffC: { t: 'FULL BODY C', s: [T('Ноги', 'glutes', 'comp', 1), T('Ноги', 'hams', 'iso'), T('Спина', 'width', 'comp', 1), T('Плечи', 'rear', 'iso'), T('Руки', 'triceps', 'iso'), T('Руки', 'biceps', 'iso')] },
     flA: { t: 'Ноги и ягодицы A', s: [T('Ноги', 'glutes', 'comp'), T('Ноги', 'quads', 'comp'), T('Ноги', 'hams', 'comp'), T('Ноги', 'glutes', 'iso'), T('Ноги', 'quads', 'iso'), T('Кор', 'core', 'iso')] },
     flB: { t: 'Ноги и ягодицы B', s: [T('Ноги', 'hams', 'comp', 1), T('Ноги', 'glutes', 'comp', 1), T('Ноги', 'quads', 'comp', 1), T('Ноги', 'hams', 'iso'), T('Ноги', 'glutes', 'iso', 1), T('Ноги', 'calves', 'iso')] },
     fuA: { t: 'Верх A', s: [T('Спина', 'width', 'comp'), T('Грудь', 'middle', 'comp'), T('Спина', 'thickness', 'comp'), T('Плечи', 'side', 'iso'), T('Руки', 'triceps', 'iso'), T('Кор', 'core', 'iso')] },
@@ -559,18 +559,18 @@ window.TrainingAI = (function () {
   };
   Object.assign(DAYS, FDAYS);
   const SMART_SPLIT_F = {
-    1: { name: 'Всё тело', d: ['ffA'] },
-    2: { name: 'Всё тело A/B', d: ['ffA', 'ffB'] },
-    3: { name: 'Всё тело A/B/C', d: ['ffA', 'ffB', 'ffC'] },
+    1: { name: 'FULL BODY', d: ['ffA'] },
+    2: { name: 'FULL BODY A/B', d: ['ffA', 'ffB'] },
+    3: { name: 'FULL BODY A/B/C', d: ['ffA', 'ffB', 'ffC'] },
     4: { name: 'Низ / Верх ×2', d: ['flA', 'fuA', 'flB', 'fuB'] },
     5: { name: 'Низ / Верх ×2 + Ягодицы', d: ['flA', 'fuA', 'flB', 'fuB', 'fgl'] },
     6: { name: 'Низ / Верх ×2 + Ягодицы + Верх', d: ['flA', 'fuA', 'flB', 'fuB', 'fgl', 'fuA'] },
     7: { name: 'Низ / Верх ×2 + Ягодицы + Верх', d: ['flA', 'fuA', 'flB', 'fuB', 'fgl', 'fuA'] },
   };
   const SMART_SPLIT = {
-    1: { name: 'Всё тело', d: ['fbA'] },
-    2: { name: 'Всё тело A/B', d: ['fbA', 'fbB'] },
-    3: { name: 'Всё тело A/B/C', d: ['fbA', 'fbB', 'fbC'] },
+    1: { name: 'FULL BODY', d: ['fbA'] },
+    2: { name: 'FULL BODY A/B', d: ['fbA', 'fbB'] },
+    3: { name: 'FULL BODY A/B/C', d: ['fbA', 'fbB', 'fbC'] },
     4: { name: 'Верх / Низ ×2', d: ['upA', 'loA', 'upB', 'loB'] },
     5: { name: 'Верх / Низ + Толкай / Тяни / Ноги', d: ['upA', 'loA', 'push', 'pull', 'legs'] },
     6: { name: 'Толкай / Тяни / Ноги ×2', d: ['push', 'pull', 'legs', 'push2', 'pull2', 'legs2'] },
@@ -639,7 +639,7 @@ window.TrainingAI = (function () {
      трицепс после груди, бицепс после спины. */
   const P = (g, r, n, t) => ({ g, r, n, t });
   const ADAY = {
-    full:  { t: 'Всё тело', parts: [P('Ноги', null, 2), P('Грудь', null, 2), P('Спина', null, 2), P('Плечи', 'side', 1), P('Руки', null, 1)] },
+    full:  { t: 'FULL BODY', parts: [P('Ноги', null, 2), P('Грудь', null, 2), P('Спина', null, 2), P('Плечи', 'side', 1), P('Руки', null, 1)] },
     upper: { t: 'Верх', parts: [P('Грудь', null, 3), P('Спина', null, 3), P('Плечи', null, 1), P('Руки', 'biceps', 1), P('Руки', 'triceps', 1)] },
     chest: { t: 'Грудь + трицепс', parts: [P('Грудь', null, 4), P('Руки', 'triceps', 2)] },
     back:  { t: 'Спина + бицепс', parts: [P('Спина', null, 4), P('Руки', 'biceps', 2)] },
@@ -1331,7 +1331,7 @@ window.TrainingAI = (function () {
   function focusHtml(prefs) {
     const f = prefs.focus || 'even';
     return `<div class="q-focus"><div class="q-lbl">Упор</div><div class="q-seg">
-      <button data-f="even" class="${f === 'even' ? 'on' : ''}">Всё тело</button>
+      <button data-f="even" class="${f === 'even' ? 'on' : ''}">FULL BODY</button>
       <button data-f="lower" class="${f === 'lower' ? 'on' : ''}">Ноги и ягодицы</button></div></div>`;
   }
   function nHtml(prefs, N) {
@@ -1339,7 +1339,7 @@ window.TrainingAI = (function () {
   }
   /* подсказки к программе AI: по кнопке «?» и один раз при первом входе */
   const AI_TIPS = [
-    { sel: '.q-focus', t: 'Упор', d: 'Всё тело: грудь, спина, ноги, плечи и руки поровну. Ноги и ягодицы: низ два раза за круг, верх одним днём.' },
+    { sel: '.q-focus', t: 'Упор', d: 'FULL BODY: грудь, спина, ноги, плечи и руки поровну. Ноги и ягодицы: низ два раза за круг, верх одним днём.' },
     { sel: '.q-nrow', t: 'Тренировок в круге', d: 'Сколько разных тренировок. Обычно столько, сколько раз в неделю ходишь в зал.' },
     { sel: '.q-circle', t: 'Тренировки по кругу', d: 'Идут по очереди: 1, 2, 3 и снова 1. В какой день идти, выбираешь ты. Нажми на мышцу, чтобы перенести её в другую тренировку.' },
     { sel: '.ai-more', t: 'Настройки', d: 'Цель (масса, сила, рельеф), шаг веса под блины в твоём зале и откуда брать упражнения.' },
@@ -1472,7 +1472,7 @@ window.TrainingAI = (function () {
     /* настройки */
     content.querySelectorAll('.q-n [data-n]').forEach(b => b.onclick = () => apply({ ...prefs, n: +b.dataset.n, layout: null }, 'Разных тренировок: ' + b.dataset.n, true));
     if ($('#q-help')) $('#q-help').onclick = () => { if (window.Tour && Tour.play) Tour.play(AI_TIPS.filter(x => document.querySelector(x.sel)), 'tab:training.ai'); };
-    content.querySelectorAll('.q-focus [data-f]').forEach(b => b.onclick = () => apply({ ...prefs, focus: b.dataset.f, layout: null }, b.dataset.f === 'lower' ? 'Упор на ноги и ягодицы' : 'Всё тело ровно', true));
+    content.querySelectorAll('.q-focus [data-f]').forEach(b => b.onclick = () => apply({ ...prefs, focus: b.dataset.f, layout: null }, b.dataset.f === 'lower' ? 'Упор на ноги и ягодицы' : 'FULL BODY ровно', true));
     if ($('#q-auto')) $('#q-auto').onclick = () => apply({ ...prefs, layout: null }, 'Мышцы разложены как по истории', true);
     content.querySelectorAll('.ai-gl').forEach(b => b.onclick = () => apply(goalSet(prefs, b.dataset.v), 'Цель обновлена'));
     const STEPS = [0.25, 0.5, 1, 1.25, 2, 2.5, 3, 4, 5, 7.5, 10, 15, 20];

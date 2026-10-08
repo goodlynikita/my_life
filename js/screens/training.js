@@ -968,7 +968,7 @@ function trNumsBad(root) {
   return bad.length > 0;
 }
 /* подпись группы: ключ данных «FULL BODY» не меняем (старые записи), а показываем по-русски */
-function trGL(g) { return g === 'FULL BODY' ? 'Всё тело' : g; }
+function trGL(g) { return g; } /* везде пишем FULL BODY, как в слайдере */
 function trEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* окно ввода текста вместо системного prompt(): несколько строк, кнопки в стиле приложения.

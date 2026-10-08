@@ -117,7 +117,7 @@ function habDayActive(h, year, month, day) {
 }
 
 
-/* Считаем текущий стрик (дней подряд = done) до сегодня включительно */
+/* Текущий стрик привычки (дней подряд = done) до сегодня, в пределах текущего месяца */
 function habStreak(h, store) {
   const allMonths = store.habits?.months || {};
   const today = new Date();
@@ -128,6 +128,7 @@ function habStreak(h, store) {
     const year = d.getFullYear();
     const month = d.getMonth();
     const day = d.getDate();
+    if (month !== today.getMonth() || year !== today.getFullYear()) break; /* серия привычки считается внутри месяца: 1-го числа с нуля */
     const mk = habMonthKey(year, month);
     const mark = allMonths[mk]?.[h.id]?.[day];
     const active = habDayActive(h, year, month, day);

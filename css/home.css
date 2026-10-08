@@ -1543,3 +1543,13 @@ button.tl-key:active { transform: scale(.98); }
 .tl-copy.ok { background: rgba(92,184,140,.22); color: #A7F3D0; }
 /* фоновая перерисовка: анимации появления проигрываются мгновенно */
 html.no-anim *, html.no-anim *::before, html.no-anim *::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}
+/* Плитка «Задачи» (только владелец): коралловая */
+.home2-tile-tasks { background: rgba(40,10,8,0.72); border: 1px solid rgba(240,100,90,0.22); }
+.home2-tile-tasks::before { width:130px;height:130px;top:-30px;right:-30px;background:rgba(240,100,90,0.6);animation-delay:2s; }
+.home2-tile-tasks::after  { width:100px;height:100px;bottom:-20px;left:10px;background:rgba(253,164,150,0.35);animation-duration:14s;animation-delay:2s; }
+.home2-tile-tasks .home2-tile-name { color: #FFB4A9 !important; }
+.home2-tile-tasks .home2-tile-desc { color: rgba(255,180,169,0.55) !important; }
+.home2-tile-tasks i { color: #F0645A !important; font-size:22px; margin-bottom:6px; }
+.tiles-v88 .home2-tile-tasks { --acc: 240,100,90; }
+.tiles-v88 .home2-tile-tasks::before { animation: blobF1 13s infinite alternate ease-in-out !important; }
+.tiles-v88 .home2-tile-tasks::after  { animation: blobG2 11s infinite ease-in-out !important; }

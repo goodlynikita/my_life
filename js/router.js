@@ -37,6 +37,16 @@ const Router = (() => {
     if (all.length && all.length === _escN) all[all.length - 1].remove(); /* само окно Escape не обработало */
   });
   window.addEventListener('hashchange', closeModals);
+  /* Вкладки под шапкой раздела прилипают ровно к её нижнему краю: шапка не перекрывается и не «уменьшается» при прокрутке
+     (раньше top был числом и не совпадал с высотой шапки, особенно на iPhone с вырезом) */
+  function pinTabs() {
+    [['.tr-header', '.tr-tabs'], ['.tochka-header', '.tochka-tabs'], ['.goals-header', '.goals-season-tabs'], ['.hab-header', '.hab-tabs'], ['.tk-header', '.tk-tabs']].forEach(([h, t]) => {
+      const he = document.querySelector(h), te = document.querySelector(t);
+      if (!he || !te || getComputedStyle(te).position !== 'sticky') return;
+      te.style.setProperty('top', Math.round(he.getBoundingClientRect().height) + 'px', 'important');
+    });
+  }
+  window.addEventListener('resize', () => pinTabs());
   function render(opts) {
     const keepScroll = !!(opts && opts.keepScroll);
     const prevY = window.scrollY;
@@ -75,6 +85,7 @@ const Router = (() => {
     const handler = routes[path] || routes['/login'];
     try {
       handler();
+      pinTabs(); setTimeout(pinTabs, 300); setTimeout(pinTabs, 1200);
       let tplPend = null; try { tplPend = localStorage.getItem('you_tpl'); } catch (e) {}
       if (window.Tour && !keepScroll && !tplPend) Tour.onScreen(path); /* по ссылке на план сначала превью, без тура поверх */
       if (window.TrainerLink && loggedIn) {

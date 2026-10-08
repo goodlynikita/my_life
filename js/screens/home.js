@@ -75,8 +75,8 @@ window.Screens.home = function(mount) {
     + '<button class="home2-tile home2-tile-habits" data-route="/habits"><div class="home2-tile-content"><i class="ti ti-checklist home2-tile-icon"></i><div class="home2-tile-name">\u041f\u0440\u0438\u0432\u044b\u0447\u043a\u0438</div><div class="home2-tile-desc">'+todayDone+'/'+habList.length+' \u0441\u0435\u0433\u043e\u0434\u043d\u044f</div></div></button>'
     + '<button class="home2-tile home2-tile-finance" data-route="/finance"><div class="home2-tile-content"><i class="ti ti-chart-bar home2-tile-icon"></i><div class="home2-tile-name">\u0424\u0438\u043d\u0430\u043d\u0441\u044b</div><div class="home2-tile-desc">'+(monthIncome>0?fmt(monthIncome)+' / '+MONTHS[now.getMonth()]:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u043e\u0445\u043e\u0434')+'</div></div></button>'
     + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
+    + (window.Tasks && Tasks.isOwner() ? (function(){ var tc = Tasks.todayCount(); return '<button class="home2-tile home2-tile-tasks" data-route="/tasks"><div class="home2-tile-content"><i class="ti ti-list-check home2-tile-icon"></i><div class="home2-tile-name">Задачи</div><div class="home2-tile-desc">' + (tc ? tc + ' на сегодня' : 'На сегодня пусто') + '</div></div></button>'; })() : '')
     + '</div>'
-    + (window.Tasks && Tasks.isOwner() ? (function(){ var n = Tasks.todayCount(); return '<button class="home-tasks" data-route="/tasks"><i class="ti ti-list-check"></i><b>Задачи</b><span>' + (n ? n + ' на сегодня' : 'на сегодня пусто') + '</span><i class="ti ti-chevron-right"></i></button>'; })() : '')
     + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
 
     + ''
@@ -155,6 +155,8 @@ window.Screens.home = function(mount) {
       { key: 'finance',  label: 'Финансы',    icon: 'ti-chart-bar',    cls: 'home2-tile-finance'  },
       { key: 'goals',    label: 'Цели',       icon: 'ti-target-arrow', cls: 'home2-tile-goals'    },
     ];
+    var hasTasks = !!(window.Tasks && Tasks.isOwner());
+    if (hasTasks) TILES.push({ key: 'tasks', label: 'Задачи', icon: 'ti-list-check', cls: 'home2-tile-tasks' });
 
     var TEMPLATES = [
       {
@@ -177,7 +179,10 @@ window.Screens.home = function(mount) {
 
     var savedLayout = (Store.get().home && Store.get().home.tileLayout) || '2x2';
     var savedOrder  = (Store.get().home && Store.get().home.tileOrder)  || [0,1,2,3];
+    savedOrder = (Array.isArray(savedOrder) ? savedOrder : Object.values(savedOrder)).filter(function(i){ return i < TILES.length; });
+    TILES.forEach(function(_, i){ if (savedOrder.indexOf(i) === -1) savedOrder.push(i); });
     var savedHidden = (Store.get().home && Store.get().home.tileHidden) || [];
+    savedHidden = Array.isArray(savedHidden) ? savedHidden : Object.values(savedHidden);
     var layout  = savedLayout;
     var order   = savedOrder.slice();
     var hidden  = savedHidden.slice();
@@ -330,13 +335,15 @@ window.Screens.home = function(mount) {
     var savedOrder  = Array.isArray(h.tileOrder) ? h.tileOrder : (h.tileOrder ? Object.values(h.tileOrder) : null);
     var savedLayout = h.tileLayout || '2x2';
     var savedHidden = Array.isArray(h.tileHidden) ? h.tileHidden : (h.tileHidden ? Object.values(h.tileHidden) : []);
-    var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals'];
+    var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals','home2-tile-tasks'];
     var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
     Object.values(LAYOUT_MAP).forEach(function(cls) { grid.classList.remove(cls); });
     grid.classList.add(LAYOUT_MAP[savedLayout] || 'layout-2x2');
-    var order = (savedOrder && savedOrder.length === 4) ? savedOrder : [0,1,2,3];
+    /* сохранённый порядок + плитки, которых в нём ещё нет (Задачи) в конец */
+    var order = (savedOrder || [0,1,2,3]).filter(function(i){ return i >= 0 && i < TILE_CLS.length; });
+    TILE_CLS.forEach(function(_, i){ if (order.indexOf(i) === -1) order.push(i); });
     var tiles = order.map(function(ti){ return grid.querySelector('.'+TILE_CLS[ti]); }).filter(Boolean);
     var current = Array.from(grid.querySelectorAll('.home2-tile'));
     var sameOrder = current.length === tiles.length && current.every(function(el, i){ return el === tiles[i]; });

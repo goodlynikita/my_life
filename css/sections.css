@@ -1842,9 +1842,7 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 .hero-slot i{font-size:14px;color:#FBBF24}
 
 /* привычки: сегодняшний столбец прилипает к названиям */
-.habit-table .hab-col-today{position:sticky;z-index:3;background:#1A1C22;box-shadow:inset 1px 0 0 rgba(74,222,128,.18),inset -1px 0 0 rgba(74,222,128,.18)}
-.habit-table thead .hab-col-today{z-index:6}
-html[data-theme="light"] .habit-table .hab-col-today{background:#1A1C22}
+.habit-table .hab-col-today{box-shadow:inset 1px 0 0 rgba(74,222,128,.18),inset -1px 0 0 rgba(74,222,128,.18)}
 
 /* серия дней в привычках (как в Duolingo) */
 .hab-series{display:flex;align-items:center;gap:14px;margin:0 0 12px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#1E1A14,#1A1C22);border:1px solid rgba(255,150,40,.18)}

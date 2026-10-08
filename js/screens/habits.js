@@ -616,11 +616,9 @@ window.Screens.habits = function(mount) {
         </button>
       </div>`;
 
-    /* сегодняшний столбец закреплён рядом с названиями, таблица сразу открывается на сегодня */
+    /* таблица сразу открывается на сегодня: сегодняшний день виден у правого края, слева прошлые дни */
     { const tc = content.querySelector('th.hab-col-today'); const wrap = tc && tc.closest('div');
-      if (tc && wrap) { const nameW = (content.querySelector('.habit-table thead th') || {}).offsetWidth || 130;
-        content.querySelectorAll('.hab-col-today').forEach(c => { c.style.left = nameW + 'px'; });
-        const colW = tc.offsetWidth || 30; wrap.scrollLeft = Math.max(0, tc.offsetLeft - nameW - colW * 4); } }
+      if (tc && wrap) { const colW = tc.offsetWidth || 30; wrap.scrollLeft = Math.max(0, tc.offsetLeft + colW * 2 - wrap.clientWidth); } }
 
     /* Клики по ячейкам */
     content.querySelectorAll('.hab-cell.hab-active').forEach(el => {

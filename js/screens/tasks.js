@@ -262,13 +262,14 @@ window.Tasks = (function () {
     document.documentElement.classList.add('tk-on');
     view = window.TabsCustom && TabsCustom.isHidden('tasks', 'week') ? TabsCustom.firstVisible('tasks', ['inbox', 'today', 'week']) : 'week'; boardX = 0;
     mount.innerHTML = `<div class="tk-app ${themeCls()}" id="tk-app">
+      <header class="tk-hdr"><button class="tk-hb" id="tk-back" aria-label="На главную"><i class="ti ti-arrow-left"></i></button><p>Задачи</p>
+        <button class="tk-hb" id="tk-theme" aria-label="Светлые или тёмные задачи" title="Светлые / тёмные задачи"><i class="ti"></i></button></header>
+      <div class="tk-wrap">
       <aside class="tk-side">
-        <div class="tk-side-top"><button class="tk-ib" id="tk-back" aria-label="На главную" title="На главную"><i class="ti ti-arrow-left"></i></button><b>Задачи</b>
-          <button class="tk-ib" id="tk-theme" aria-label="Светлые или тёмные задачи" title="Светлые / тёмные задачи"><i class="ti"></i></button></div>
         <button class="tk-new" id="tk-new"><span class="tk-plus"><i class="ti ti-plus"></i></span>Добавить задачу</button>
         <nav class="tk-navl" id="tk-navl">${['inbox', 'today', 'week'].map(k => `<button data-v="${k}"><i class="ti ${ICO[k]}"></i><span class="tt-lg">${NAME[k]}</span><em data-n="${k}"></em></button>`).join('')}</nav>
       </aside>
-      <main class="tk-main" id="tk-main"></main></div>`;
+      <main class="tk-main" id="tk-main"></main></div></div>`;
     const app = mount.querySelector('#tk-app'), main = mount.querySelector('#tk-main');
     const paintTheme = () => { const l = isLight(); app.classList.toggle('tkl', l); app.classList.toggle('tkd', !l); document.documentElement.classList.toggle('tk-on-light', l); mount.querySelector('#tk-theme i').className = 'ti ' + (l ? 'ti-moon' : 'ti-sun'); };
     paintTheme();

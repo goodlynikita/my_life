@@ -1039,6 +1039,53 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 .dx-frames{position:relative}
 .dx-frames img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:0;transition:opacity .7s ease}
 .dx-frames img.on{opacity:1}
+
+/* ═══ Телефон: легче и последовательнее ═══ */
+.merge-m{display:none}
+@media (max-width:760px){
+  /* производительность: без тяжёлых размытий, шума и бесконечных анимаций */
+  .grain{display:none!important}
+  .blob{animation:none!important;filter:blur(60px)!important;opacity:.4!important}
+  .rv{filter:none!important;transform:translateY(18px)!important;transition:opacity .6s var(--ease),transform .6s var(--ease)!important}
+  .rv.in{transform:none!important}
+  .rv-l,.rv-r,.rv-s{transform:translateY(18px)!important}
+  *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  .float,.dx-float,.cs-phone,.orb-core{animation:none!important}
+  .progress{box-shadow:none}
+  /* «Знакомо?»: простой блок вместо сцены с прокруткой */
+  .merge{display:none!important}
+  .merge-m{display:block;padding:40px 0 28px}
+  .merge-m h2{margin-bottom:22px}
+  .mm-apps{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .mm-apps span{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line2);font-size:13.5px;font-weight:700;color:#C9D0E2;text-decoration:line-through;text-decoration-color:rgba(255,255,255,.25)}
+  .mm-apps i{font-size:17px;color:var(--c)}
+  .mm-arrow{margin:14px 0;font-size:22px;color:#8EA8FF}
+  .mm-you{display:inline-flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:linear-gradient(135deg,rgba(74,124,255,.18),rgba(139,92,246,.18));border:1px solid rgba(139,92,246,.4);text-align:left}
+  .mm-you img{width:44px;height:44px;border-radius:12px}.mm-you b{display:block;font-size:17px}.mm-you small{display:block;font-size:12.5px;color:#C9D0E2;max-width:200px}
+  /* «Четыре раздела» дублирует блоки ниже: на телефоне не показываем */
+  #features{display:none!important}
+  /* герой: короче */
+  .hero-res{gap:6px}.hero-res span{padding:6px 10px;font-size:12px}
+  /* AI-тренер: заголовок, сразу живой чат, потом фишки */
+  .ai-x{display:flex!important;flex-direction:column;align-items:stretch!important}
+  .ai-x .ai-card{width:100%;box-sizing:border-box}
+  .ai-x>div:first-child{display:contents}
+  .ai-x .eyebrow{order:1}.ai-x h2{order:2}.ai-x .sec-lead{order:3}
+  .ai-x .aid{order:4;height:auto;margin:22px 0 0;flex-direction:column}
+  .ai-x .ai-card{order:5}
+  .aid .phone{width:270px}
+  .aid-plan{position:relative!important;top:auto!important;right:auto!important;left:auto!important;margin:14px auto 0!important;width:min(300px,100%)!important;z-index:3}
+  .ai-card .goal-pills,.ai-card .zones{display:none!important}
+  .ai-feats{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .ai-feat{padding:12px!important;display:block!important;min-width:0}.ai-feat>i{display:block;margin-bottom:4px}.ai-feat b{font-size:13px!important}
+  .ai-x .ai-card{padding:16px!important}.ai-feat span{font-size:11.5px!important;line-height:1.4}
+  /* живые экраны: заголовок, телефон, текст, фишки */
+  .dx{display:flex!important;flex-direction:column;gap:0;margin-top:56px}
+  .dx .dx-t{display:contents}
+  .dx .dx-tag{order:1;align-self:flex-start}.dx h3{order:2}.dx .dx-ph{order:3;margin:6px 0 10px}.dx .sec-lead{order:4}.dx .ai-feats{order:5;margin-top:16px}
+  .dx-ph .phone{width:min(270px,72vw)}
+  .dx-glow{width:260px;height:260px}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
 </style>
 </head>
@@ -1075,13 +1122,13 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <div class="hero-res"><span><i class="ti ti-trending-up"></i>+5 кг к жиму за 2 месяца</span><span><i class="ti ti-wallet"></i>сколько можно тратить сегодня</span><span><i class="ti ti-flame"></i>47 дней подряд</span><span><i class="ti ti-beach"></i>отпуск к маю: 12 900 ₽ в месяц</span></div>
     <div class="hero-cta">
       <a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a>
-      <a class="btn btn-ghost" href="#features"><i class="ti ti-player-play"></i> Как это работает</a>
+      <a class="btn btn-ghost" href="#demos"><i class="ti ti-player-play"></i> Как это работает</a>
     </div>
     <div class="hero-login">Уже есть аккаунт? <a href="./#/login">Войти</a></div>
     <div class="hero-note"><span><i class="ti ti-circle-check"></i> Без App Store</span><span><i class="ti ti-circle-check"></i> Работает на всех устройствах</span><span><i class="ti ti-circle-check"></i> Данные только твои</span></div>
   </div>
   <div class="phones" id="phones"><div class="phones-in" id="phones-in">
-    <div class="phone p-left float"><div class="scr"><img src="img/landing/habits_grid.webp?v=3" alt="Привычки" loading="eager"></div></div>
+    <div class="phone p-left float"><div class="scr"><img src="img/landing/habits_grid.webp?v=4" alt="Привычки" loading="eager"></div></div>
     <div class="phone p-main float"><div class="scr"><img src="img/landing/home_dark.webp?v=3" alt="Главный экран YOU" loading="eager"></div></div>
     <div class="phone p-right float"><div class="scr"><img src="img/landing/finance_balance.webp?v=3" alt="Копилка" loading="eager"></div></div>
     <div class="chip c1"><i class="ti ti-trending-up"></i><div>+2,5 кг к жиму<small>AI поднял вес на 12 повторах</small></div></div>
@@ -1141,6 +1188,14 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   </div>
 </div></section>
 
+<section class="merge-m" data-for="me"><div class="wrap center">
+  <span class="eyebrow">Знакомо?</span>
+  <h2>Всё раскидано<br>по <span class="grad-t">пяти приложениям</span></h2>
+  <div class="mm-apps"><span style="--c:#F5C451"><i class="ti ti-notes"></i>Заметки</span><span style="--c:#34A853"><i class="ti ti-table"></i>Таблица</span><span style="--c:#4A7CFF"><i class="ti ti-checkbox"></i>Трекер</span><span style="--c:#A78BFA"><i class="ti ti-list-check"></i>Список</span><span style="--c:#2AABEE"><i class="ti ti-brand-telegram"></i>Чат</span></div>
+  <div class="mm-arrow"><i class="ti ti-arrow-down"></i></div>
+  <div class="mm-you"><img src="icon.png" alt=""><div><b>YOU</b><small>тренировки, привычки, деньги и цели в одном месте</small></div></div>
+</div></section>
+
 <section class="merge" id="merge" data-for="me">
   <div class="merge-stage">
     <div class="wrap center merge-head">
@@ -1186,7 +1241,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
         <h3>Привычки:<br>отмечай каждый день</h3>
         <p>Отмечаешь одним касанием. Серия растёт каждый день, а процент за месяц честно показывает, что подтянуть.</p>
         <ul class="ticks"><li><i class="ti ti-check"></i>Каждый день, по будням или 3 раза в неделю</li><li><i class="ti ti-check"></i>Серия дней как в Duolingo: огонь, неделя, рекорд</li><li><i class="ti ti-check"></i>Колесо жизни: оценка месяца по 8 сферам</li></ul>
-        <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/habits_grid.webp?v=3" alt="" loading="lazy"></div></div></div>
+        <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/habits_grid.webp?v=4" alt="" loading="lazy"></div></div></div>
       </div>
       <div class="step" data-img="finance_spend" data-glow="#8B5CF6" style="--c:#A78BFA;--glow:rgba(139,92,246,.4)">
         <div class="step-ico" style="background:rgba(139,92,246,.16);color:#A78BFA"><i class="ti ti-chart-bar"></i></div>
@@ -1207,7 +1262,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="stage-dots" id="stage-dots"><i class="on"></i><i></i><i></i><i></i></div>
       <div class="phone"><div class="scr" id="stage-scr">
         <img class="on" data-k="training_plan" src="img/landing/training_plan.webp?v=3" alt="">
-        <img data-k="habits_grid" src="img/landing/habits_grid.webp?v=3" alt="" loading="lazy">
+        <img data-k="habits_grid" src="img/landing/habits_grid.webp?v=4" alt="" loading="lazy">
         <img data-k="finance_spend" src="img/landing/finance_spend.webp?v=3" alt="" loading="lazy">
         <img data-k="goals" src="img/landing/goals.webp?v=3" alt="" loading="lazy">
       </div></div>

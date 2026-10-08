@@ -762,7 +762,7 @@ textarea.field{height:auto;min-height:96px;padding:12px 14px}
 window.__coachMode = true;
 window.CoachStore = { cur: null, onSet: null };
 window.Store = {
-  get() { const c = CoachStore.cur; if (!c) return { training: {} }; return { training: Object.assign({}, c.training, { ai: c.tai.ai || null, aiPrefs: c.tai.aiPrefs || {}, aiSources: c.tai.aiSources || [] }) }; },
+  get() { const c = CoachStore.cur; if (!c) return { training: {} }; return { training: Object.assign({}, c.training, { ai: c.tai.ai || null, aiPrefs: c.tai.aiPrefs || {}, aiSources: c.tai.aiSources || [], aiChat: c.tai.aiChat || null }) }; },
   set(path, val) { if (CoachStore.onSet) CoachStore.onSet(path, val); },
   replaceAll() {},
 };
@@ -1940,7 +1940,7 @@ async function openClient(i, tab) {
     /* свои упражнения и типы, которые тренер добавил клиенту, сохраняем клиенту */
     const cm = path.match(/^training\.catalog\.(types|exercises)$/);
     if (cm) { c.training.catalog = c.training.catalog || {}; c.training.catalog[cm[1]] = clean(val); if (!c.demo) set(ref(db, c.root + '/training/catalog/' + cm[1]), clean(val)).catch(() => {}); return; }
-    const m = path.match(/^training\.(ai|aiPrefs|aiSources)$/);
+    const m = path.match(/^training\.(ai|aiPrefs|aiSources|aiChat)$/);
     if (m) { CoachStore.cur.tai[m[1]] = val; if (!c.demo) set(ref(db, 'trainerAI/' + trainer.uid + '/' + c.k + '/' + m[1]), clean(val)).catch(() => {}); }
   };
   view = { name: 'client', i, tab: tab || (view.name === 'client' && view.i === i ? view.tab : 'dash'), open: null, back: view.name === 'list' ? view.tab : (view.back || 'hub') };
@@ -2055,7 +2055,9 @@ function renderClient() {
     body.className = 'coach-ai';
     const p = activePlan(c);
     if (!p) { body.innerHTML = '<div class="empty"><i class="ti ti-sparkles"></i>Сначала создайте клиенту план во вкладке «План», и AI поможет его заполнить.</div>'; return; }
-    window._aiView = 'plan';
+    /* полный AI как в YOU: Программа, Разбор и Чат про клиента */
+    window._aiHideViews = false; if (!['plan', 'insights', 'chat'].includes(window._aiView)) window._aiView = 'plan';
+    window.__coachClientName = cname(c);
     window.TrainingAI.render(body, p, h());
     coachTips('ai');
   }

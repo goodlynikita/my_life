@@ -17,6 +17,14 @@ window.TrainingChat = (function () {
     'Сегодня мало времени, 40 минут. Как сократить тренировку?',
     'Как понять, что пора разгрузочная неделя?',
   ];
+  /* в кабинете тренера чат про клиента: обращение на «вы», о клиенте в третьем лице */
+  const CQ = [
+    'Где клиент буксует и что поменять в плане?',
+    'Хватает ли ему объёма на каждую группу?',
+    'Пора ли клиенту разгрузочная неделя?',
+    'Как прогрессировать в жиме дальше?',
+  ];
+  const isC = () => !!window.__coachMode;
   let usage = null, busy = false, draft = '', focusInput = false, toAnswer = false;
 
   function msgs() { return toArr((Store.get().training || {}).aiChat).filter(m => m && m.text); }
@@ -132,17 +140,17 @@ window.TrainingChat = (function () {
       <div class="ch-card">
         <div class="ch-head">
           <div class="ai-hero-ico sm"><i class="ti ti-message-chatbot"></i></div>
-          <div class="ch-head-t"><b>Чат с тренером</b><span>Знает твои тренировки, веса и прогресс</span></div>
+          <div class="ch-head-t"><b>${isC() ? 'Чат с AI про клиента' : 'Чат с тренером'}</b><span>${isC() ? 'Знает его тренировки, веса и прогресс' : 'Знает твои тренировки, веса и прогресс'}</span></div>
           <div class="ch-left${left === 0 ? ' zero' : ''}" title="Бесплатно в этом месяце">${left == null ? '' : `<b>${left}</b><span>из ${usage.limit}</span>`}</div>
         </div>
         <div class="ch-list" id="ch-list">
           ${list.length ? list.map((m, i) => `<div class="ch-msg ${m.role === 'user' ? 'me' : 'bot'}${m.err ? ' err' : ''}">${m.role === 'user' ? esc(m.text).replace(/\n/g, '<br>') : fmt(m.text)}${m.role !== 'user' && !m.err && parseWorkout(m.text) ? `<button class="ch-toplan" data-wi="${i}"><i class="ti ti-calendar-plus"></i> В план</button>` : ''}</div>`).join('')
-            : `<div class="ch-empty"><i class="ti ti-sparkles"></i><b>Спроси о своих тренировках</b></div>`}
+            : `<div class="ch-empty"><i class="ti ti-sparkles"></i><b>${isC() ? 'Спросите о тренировках клиента' : 'Спроси о своих тренировках'}</b></div>`}
           ${busy ? '<div class="ch-msg bot ch-typing"><span></span><span></span><span></span></div>' : ''}
         </div>
-        ${list.length < 2 ? `<div class="ch-quick">${QUICK.map(q => `<button class="ch-q">${esc(q)}</button>`).join('')}</div>` : ''}
+        ${list.length < 2 ? `<div class="ch-quick">${(isC() ? CQ : QUICK).map(q => `<button class="ch-q">${esc(q)}</button>`).join('')}</div>` : ''}
         <div class="ch-input">
-          <textarea id="ch-text" rows="1" placeholder="${off ? 'Чат скоро заработает' : 'Спроси тренера…'}" ${off || left === 0 ? 'disabled' : ''}></textarea>
+          <textarea id="ch-text" rows="1" placeholder="${off ? 'Чат скоро заработает' : isC() ? 'Спросите AI…' : 'Спроси тренера…'}" ${off || left === 0 ? 'disabled' : ''}></textarea>
           <button id="ch-send" aria-label="Отправить" ${off || left === 0 || busy ? 'disabled' : ''}><i class="ti ti-send"></i></button>
         </div>
         <div class="ch-foot">${off ? 'Чат подключается' : `${usage ? usage.limit : LIMIT()} сообщений в месяц${list.length ? ' · <button class="ch-clear" id="ch-clear">Очистить переписку</button>' : ''}`}</div>
@@ -181,7 +189,7 @@ window.TrainingChat = (function () {
       draft = ''; busy = true; again();
       try {
         const context = TrainingAI.buildContext(h.getPlans(), plan);
-        const d = await call({ context, messages: l.filter(m => !m.err).slice(-8).map(m => ({ role: m.role, text: m.text })) });
+        const d = await call({ context, ...(isC() ? { mode: 'coach', client: String(window.__coachClientName || '').slice(0, 60) } : {}), messages: l.filter(m => !m.err).slice(-8).map(m => ({ role: m.role, text: m.text })) });
         usage = { used: d.used, limit: d.limit };
         l.push({ role: 'assistant', text: d.text, at: Date.now() });
       } catch (e) {

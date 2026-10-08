@@ -127,16 +127,16 @@ html[data-theme="light"][data-pal="soft"]:not([data-app="coach"]) { filter: inve
 
 /* ═══ Палитра «Яркие» для кабинета тренера: цвета разделов как в YOU ═══ */
 html[data-app="coach"][data-pal="bright"] body.sec-blue { --acc: #4A7CFF; --acc2: #6D5CF6; }
-html[data-app="coach"][data-pal="bright"] body.sec-green { --acc: #22C55E; --acc2: #0E9F4A; --line: rgba(34,197,94,.14); --line2: rgba(34,197,94,.24); }
-html[data-app="coach"][data-pal="bright"] body.sec-violet { --acc: #8B5CF6; --acc2: #6D28D9; --line: rgba(139,92,246,.14); --line2: rgba(139,92,246,.24); }
-html[data-app="coach"][data-pal="bright"] body.sec-amber { --acc: #F59E0B; --acc2: #B45309; --line: rgba(245,158,11,.14); --line2: rgba(245,158,11,.24); }
+html[data-app="coach"][data-pal="bright"] body.sec-green { --acc: #3DBE74; --acc2: #23985A; --line: rgba(34,197,94,.14); --line2: rgba(34,197,94,.24); }
+html[data-app="coach"][data-pal="bright"] body.sec-violet { --acc: #8E70EE; --acc2: #6C4FD3; --line: rgba(139,92,246,.14); --line2: rgba(139,92,246,.24); }
+html[data-app="coach"][data-pal="bright"] body.sec-amber { --acc: #E9993A; --acc2: #C47220; --line: rgba(245,158,11,.14); --line2: rgba(245,158,11,.24); }
 html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-blue { background: linear-gradient(135deg,#1a3a8f 0%,#1e4fc2 50%,#2563eb 100%) !important; }
-html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-green { background: linear-gradient(135deg,#15803D 0%,#22C55E 100%) !important; }
-html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-violet { background: linear-gradient(135deg,#5B21B6 0%,#8B5CF6 100%) !important; }
-html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-amber { background: linear-gradient(135deg,#C2410C 0%,#F59E0B 100%) !important; }
-html[data-app="coach"][data-pal="bright"] body.sec-amber .card { background: linear-gradient(160deg,rgba(245,158,11,.2),rgba(245,158,11,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95)) !important; }
-html[data-app="coach"][data-pal="bright"] body.sec-green .card { background: linear-gradient(160deg,rgba(34,197,94,.18),rgba(34,197,94,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95)) !important; }
-html[data-app="coach"][data-pal="bright"] body.sec-violet .card { background: linear-gradient(160deg,rgba(139,92,246,.2),rgba(139,92,246,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95)) !important; }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-green { background: linear-gradient(135deg,#1A7A48 0%,#2EA864 100%) !important; }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-violet { background: linear-gradient(135deg,#4F32A8 0%,#7656D8 100%) !important; }
+html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-amber { background: linear-gradient(135deg,#A9561A 0%,#D58A2A 100%) !important; }
+html[data-app="coach"][data-pal="bright"] body.sec-amber .card { background: linear-gradient(160deg,rgba(233,153,58,.15),rgba(233,153,58,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95)) !important; }
+html[data-app="coach"][data-pal="bright"] body.sec-green .card { background: linear-gradient(160deg,rgba(61,190,116,.14),rgba(61,190,116,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95)) !important; }
+html[data-app="coach"][data-pal="bright"] body.sec-violet .card { background: linear-gradient(160deg,rgba(142,112,238,.15),rgba(142,112,238,0) 60%),linear-gradient(160deg,rgba(30,32,42,.85),rgba(17,18,25,.95)) !important; }
 /* светлая тема кабинета: на цветных кнопках и выбранном дне белый текст (после инверсии тёмный становится белым) */
 html[data-app="coach"][data-theme="light"] .btn-main, html[data-app="coach"][data-theme="light"] .sb-c.today .sb-h, html[data-app="coach"][data-theme="light"] .sb-c.today .sb-h b,
 html[data-app="coach"][data-theme="light"] .sc .sc-d.on, html[data-app="coach"][data-theme="light"] .sc .sc-d.on b { color: #0A0A0A !important; }

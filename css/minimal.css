@@ -226,3 +226,8 @@ html[data-theme="light"] .hab-dark .hab-cell.done, html[data-theme="light"] .goa
 .goals-check-v3:not(.done) { background: transparent !important; border-color: rgba(255,255,255,0.18) !important; }
 .goals-add-v3 { color: color-mix(in srgb, var(--sc) 70%, #bbb) !important; }
 .goals-screen .goals-season-stat { background: rgba(255,255,255,0.035) !important; border-color: color-mix(in srgb, var(--sc) 12%, rgba(255,255,255,0.06)) !important; }
+
+/* Вкладки разделов: размер и толщина как во вкладках Задач */
+.tr-tabs .tr-tab, .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 13.5px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
+.tr-tabs .tr-tab.active, .hab-screen .hab-tabs .hab-tab.active, .goals-season-tabs .goals-season-tab.active, .tochka-tab.active, .fin-dark .tochka-tab.active { font-weight: 600 !important; }
+@media (max-width: 600px) { .tr-tabs .tr-tab, .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 13px !important; } }

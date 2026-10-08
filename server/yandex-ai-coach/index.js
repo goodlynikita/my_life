@@ -12,6 +12,11 @@ const setCors = (origin) => { CORS = {
 }; };
 const reply = (code, obj) => ({ statusCode: code, headers: CORS, body: JSON.stringify(obj) });
 
+/* Кабинет тренера: с AI говорит живой тренер о своём клиенте */
+const COACH_PRE = `ВАЖНО: сейчас с тобой говорит не сам ученик, а его персональный тренер в кабинете тренера.
+Ты его помощник-аналитик: смотришь данные клиента и даёшь тренеру профессиональные рекомендации по плану, нагрузке, прогрессии и восстановлению.
+Обращайся к тренеру на «вы». О клиенте говори в третьем лице, по имени. Не пиши клиенту напрямую и не мотивируй тренера, говори по делу, как коллега.
+Правила ниже про стиль, формат и упражнения действуют, но там, где они обращаются к ученику, адресат теперь тренер.`;
 const SYSTEM = `Ты личный тренер этого человека в приложении YOU. Не справочник и не бот поддержки, а свой тренер, который давно его ведёт, видел все его тренировки и искренне за него болеет.
 
 КТО ТЫ
@@ -175,7 +180,7 @@ module.exports.handler = async function (event, context) {
       /* MODEL: yandexgpt (по умолчанию), yandexgpt-lite или с веткой, например yandexgpt/rc */
       modelUri: `gpt://${env.YANDEX_FOLDER_ID}/${model.includes('/') ? model : model + '/latest'}`,
       completionOptions: { stream: false, temperature: body.mode === 'finance' ? 0.3 : 0.55, maxTokens: '1000' },
-      messages: [{ role: 'system', text: (body.mode === 'finance' ? SYSTEM_FIN + (name ? '\n\nИМЯ (обращайся только по имени): ' + name : '') + '\n\nДАННЫЕ:\n' : SYSTEM + (name ? '\n\nИМЯ УЧЕНИКА (обращайся только по имени, без фамилии): ' + name : '') + '\n\nДАННЫЕ УЧЕНИКА:\n') + ctx }, ...hist],
+      messages: [{ role: 'system', text: (body.mode === 'coach' ? COACH_PRE + (body.client ? '\n\nИМЯ КЛИЕНТА: ' + String(body.client).slice(0, 60) : '') + '\n\n' + SYSTEM + '\n\nДАННЫЕ КЛИЕНТА:\n' : body.mode === 'finance' ? SYSTEM_FIN + (name ? '\n\nИМЯ (обращайся только по имени): ' + name : '') + '\n\nДАННЫЕ:\n' : SYSTEM + (name ? '\n\nИМЯ УЧЕНИКА (обращайся только по имени, без фамилии): ' + name : '') + '\n\nДАННЫЕ УЧЕНИКА:\n') + ctx }, ...hist],
     }),
   });
   const text = gpt.ok && gpt.data && gpt.data.result && gpt.data.result.alternatives && gpt.data.result.alternatives[0]

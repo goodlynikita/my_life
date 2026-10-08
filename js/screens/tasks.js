@@ -4,8 +4,9 @@
    «Предстоящее»: одна неделя Пн–Вс колонками, стрелки листают недели, «Сегодня» возвращает к текущей,
    задачи перетаскиваются между днями и внутри дня (поле order).
    Своя тема (светлая / тёмная) как в Финансах: tasks.theme, на остальное приложение не влияет.
-   Данные: tasks.list = [{ id, title, date: 'YYYY-MM-DD' | null, done, doneAt, createdAt, order,
+   Данные: tasks.list = [{ id, title, date: 'YYYY-MM-DD' | null, time: 'HH:MM' | null, proj: id | null, done, doneAt, createdAt, order,
                            desc, prio: 1..4, subs: [{ id, title, done }] }]
+   Проекты: tasks.projects = [{ id, name, color }], каждый проект своя вкладка. Входящие: без срока и без проекта.
    ============================================================ */
 window.Tasks = (function () {
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -26,14 +27,18 @@ window.Tasks = (function () {
     const owner = (window.AUTH_CONFIG && AUTH_CONFIG.ownerEmail || '').toLowerCase();
     return !!(u && u.email && owner && u.email.toLowerCase() === owner);
   }
-  function norm(t) { return Object.assign({}, t, { subs: toArr(t.subs).filter(s => s && s.title), prio: [1, 2, 3, 4].includes(+t.prio) ? +t.prio : 4 }); }
+  function norm(t) { return Object.assign({}, t, { subs: toArr(t.subs).filter(s => s && s.title), prio: [1, 2, 3, 4].includes(+t.prio) ? +t.prio : 4, time: /^\d{2}:\d{2}$/.test(t.time || '') ? t.time : null, proj: t.proj || null }); }
+  const PCOL = ['#DB4035', '#FF9933', '#E5B800', '#7ECC49', '#299438', '#14AAF5', '#4073FF', '#884DFF', '#AF38EB', '#EB96EB', '#808080'];
+  function projects() { return toArr((Store.get().tasks || {}).projects).filter(p => p && p.id && p.name); }
+  function saveProjects(a) { Store.set('tasks.projects', a.length ? a.map(p => ({ id: p.id, name: p.name, color: p.color })) : null); }
+  const projOf = (id) => projects().find(p => p.id === id) || null;
   function list() { return toArr((Store.get().tasks || {}).list).filter(t => t && t.id && t.title).map(norm); }
   function save(arr) { Store.set('tasks.list', arr.map(t => JSON.parse(JSON.stringify(t)))); }
   const ord = (t) => (t.order != null && isFinite(+t.order)) ? +t.order : +t.createdAt || 0;
   const byOrd = (x, y) => (x.done - y.done) || (ord(x) - ord(y));
-  function add(title, date, desc) { title = String(title || '').trim().slice(0, 200); if (!title) return; const a = list();
+  function add(title, date, desc, proj, time) { title = String(title || '').trim().slice(0, 200); if (!title) return; const a = list();
     const same = a.filter(t => (t.date || null) === (date || null)); const mx = same.length ? Math.max(...same.map(ord)) : 0;
-    a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: 4, desc: String(desc || '').trim().slice(0, 2000) || null }); save(a); }
+    a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: 4, desc: String(desc || '').trim().slice(0, 2000) || null, proj: proj || null, time: (date && time) || null }); save(a); }
   function patch(id, p) { save(list().map(t => t.id === id ? Object.assign({}, t, p) : t)); }
   function remove(id) { save(list().filter(t => t.id !== id)); }
   function todayCount() { const t = iso(today()); return list().filter(x => !x.done && x.date && x.date <= t).length; }
@@ -60,22 +65,29 @@ window.Tasks = (function () {
     const td = iso(today()), late = !t.done && t.date && t.date < td;
     const showDate = t.date && !(opts && opts.inCol) && (!(opts && opts.noDate) || late);
     const subs = t.subs.length ? `<span class="tk-m"><i class="ti ti-subtask"></i>${t.subs.filter(s => s.done).length}/${t.subs.length}<i class="ti ti-chevron-right tk-chev"></i></span>` : '';
-    const date = showDate ? `<span class="tk-m ${late ? 'late' : 'ok'}"><i class="ti ti-calendar"></i>${dayLabel(t.date)}</span>` : '';
+    const date = showDate ? `<span class="tk-m ${late ? 'late' : 'ok'}"><i class="ti ti-calendar"></i>${dayLabel(t.date)}${t.time ? ' ' + t.time : ''}</span>` : (t.time && t.date ? `<span class="tk-m ${late ? 'late' : 'ok'}"><i class="ti ti-clock"></i>${t.time}</span>` : '');
     const desc = t.desc ? `<span class="tk-d">${esc(t.desc.split('\n')[0])}</span>` : '';
-    const meta = subs + date;
+    const pr = t.proj && !(opts && opts.noProj) ? projOf(t.proj) : null;
+    const meta = subs + date + (pr ? `<span class="tk-m tk-proj"><i style="background:${pr.color}"></i>${esc(pr.name)}</span>` : '');
     return `<div class="tk-card${t.done ? ' done' : ''}" data-id="${esc(t.id)}" style="--pc:${PRIO[t.prio] || '#808080'}">
       <button class="tk-ck${t.prio < 4 ? ' p' : ''}" data-ck="${esc(t.id)}" aria-label="${t.done ? 'Вернуть' : 'Готово'}"><i class="ti ti-check"></i></button>
       <div class="tk-c-b" data-ed="${esc(t.id)}"><div class="tk-c-t">${esc(t.title)}</div>${desc}${meta ? `<div class="tk-meta">${meta}</div>` : ''}</div>
     </div>`;
   }
-  const addBtn = (date) => `<button class="tk-addb" data-add="${date || ''}"><span class="tk-plus"><i class="ti ti-plus"></i></span>Добавить задачу</button>`;
+  const addBtn = (date, proj) => `<button class="tk-addb" data-add="${date || ''}"${proj ? ` data-proj="${esc(proj)}"` : ''}><span class="tk-plus"><i class="ti ti-plus"></i></span>Добавить задачу</button>`;
   const addForm = (date) => `<form class="tk-addf" data-date="${date || ''}"><input class="tk-af-t" maxlength="200" placeholder="Название задачи" autocomplete="off"><input class="tk-af-d" maxlength="2000" placeholder="Описание" autocomplete="off">
       <div class="tk-af-b"><button type="button" class="tk-btn ghost" data-cancel>Отмена</button><button type="submit" class="tk-btn red">Добавить задачу</button></div></form>`;
 
   function listView(kind) {
     const all = list(), td = iso(today());
+    if (kind.startsWith('p:')) {
+      const pid = kind.slice(2), pr = projOf(pid) || { name: 'Проект', color: '#808080' };
+      const a = all.filter(t => t.proj === pid && !t.done).sort((x, y) => (x.date ? 0 : 1) - (y.date ? 0 : 1) || (x.date || '').localeCompare(y.date || '') || byOrd(x, y)), dn = all.filter(t => t.proj === pid && t.done);
+      return `<div class="tk-page"><div class="tk-ph"><h1><i class="tk-pdot" style="background:${pr.color}"></i>${esc(pr.name)}</h1><span class="tk-cnt">${a.length ? a.length + ' ' + plural(a.length, 'задача', 'задачи', 'задач') : ''}</span></div>
+        <div class="tk-list" data-list="" data-keep="1">${a.map(t => card(t, { noProj: true })).join('')}${addBtn('', pid)}</div>${dn.length ? `<div class="tk-sec">Выполнено · ${dn.length}</div><div class="tk-list">${dn.map(t => card(t, { noProj: true })).join('')}</div>` : ''}</div>`;
+    }
     if (kind === 'inbox') {
-      const a = all.filter(t => !t.date && !t.done).sort(byOrd), dn = all.filter(t => !t.date && t.done);
+      const a = all.filter(t => !t.date && !t.proj && !t.done).sort(byOrd), dn = all.filter(t => !t.date && !t.proj && t.done);
       return `<div class="tk-page"><div class="tk-ph"><h1>Входящие</h1><span class="tk-cnt">${a.length ? a.length + ' ' + plural(a.length, 'задача', 'задачи', 'задач') : ''}</span></div>
         <div class="tk-list" data-list="">${a.map(t => card(t)).join('')}${addBtn('')}</div>${dn.length ? `<div class="tk-sec">Выполнено · ${dn.length}</div><div class="tk-list">${dn.map(t => card(t)).join('')}</div>` : ''}</div>`;
     }
@@ -116,11 +128,13 @@ window.Tasks = (function () {
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay tk-ov ' + themeCls();
     const $ = (q) => ov.querySelector(q);
     const commit = () => { const title = ($('#tk-c-t').value.trim() || t.title).slice(0, 200);
-      patch(t.id, { title, desc: $('#tk-c-d').value.trim().slice(0, 2000) || null, date: t.date || null, prio: t.prio, subs: t.subs.length ? t.subs : null, done: !!t.done, doneAt: t.done ? (t0.doneAt || Date.now()) : null }); };
-    const where = () => `<i class="ti ti-${t.date ? 'calendar' : 'inbox'}"></i>${t.date ? dayLabel(t.date) : 'Входящие'}`;
+      patch(t.id, { title, desc: $('#tk-c-d').value.trim().slice(0, 2000) || null, date: t.date || null, time: (t.date && t.time) || null, proj: t.proj || null, prio: t.prio, subs: t.subs.length ? t.subs : null, done: !!t.done, doneAt: t.done ? (t0.doneAt || Date.now()) : null }); };
+    const where = () => { const pr = t.proj ? projOf(t.proj) : null; return pr ? `<i class="tk-pdot" style="background:${pr.color}"></i>${esc(pr.name)}` : `<i class="ti ti-${t.date ? 'calendar' : 'inbox'}"></i>${t.date ? dayLabel(t.date) : 'Входящие'}`; };
+    const projMenu = () => `<button data-pj=""><i class="ti ti-inbox"></i>Входящие<i class="ti ti-check tk-mk"></i></button>${projects().map(p => `<button data-pj="${esc(p.id)}"><i class="tk-pdot" style="background:${p.color}"></i>${esc(p.name)}<i class="ti ti-check tk-mk"></i></button>`).join('')}
+      <form class="tk-pj-new" id="tk-pj-new"><i class="ti ti-plus"></i><input maxlength="40" placeholder="Новый проект"></form>`;
     const subsHtml = () => `<button class="tk-subs-h" id="tk-subs-h"><i class="ti ti-chevron-${subsOpen ? 'down' : 'right'}"></i><b>Подзадачи</b><span>${t.subs.filter(x => x.done).length}/${t.subs.length}</span></button>
       ${subsOpen ? t.subs.map((x, i) => `<div class="tk-sub${x.done ? ' done' : ''}"><button class="tk-ck" data-sck="${i}"><i class="ti ti-check"></i></button><input value="${esc(x.title)}" data-st="${i}" maxlength="200"><button class="tk-sub-x" data-sx="${i}" aria-label="Удалить подзадачу"><i class="ti ti-x"></i></button></div>`).join('') : ''}`;
-    const dateVal = () => t.date ? `<i class="ti ti-calendar ${t.date < iso(today()) ? 'late' : 'ok'}"></i>${dayLabel(t.date)}` : '<i class="ti ti-calendar-off"></i>Без срока';
+    const dateVal = () => t.date ? `<i class="ti ti-calendar ${t.date < iso(today()) ? 'late' : 'ok'}"></i>${dayLabel(t.date)}${t.time ? ' ' + t.time : ''}` : '<i class="ti ti-calendar-off"></i>Без срока';
     ov.innerHTML = `<div class="tk-modal">
       <div class="tk-modal-top"><span id="tk-where">${where()}</span><div><button class="tk-x" id="tk-c-del" aria-label="Удалить" title="Удалить"><i class="ti ti-trash"></i></button><button class="tk-x" data-close aria-label="Закрыть"><i class="ti ti-x"></i></button></div></div>
       <div class="tk-modal-body">
@@ -133,7 +147,9 @@ window.Tasks = (function () {
         <div class="tk-modal-side">
           <div class="tk-side-l">Срок</div>
           <div class="tk-pick"><button class="tk-pick-b" id="tk-date-b"></button>
-            <div class="tk-menu" id="tk-date-m" hidden>${[['', 'Без срока', 'ti-calendar-off'], [iso(today()), 'Сегодня', 'ti-calendar-event'], [iso(addDays(today(), 1)), 'Завтра', 'ti-sun'], [iso(addDays(today(), 7)), 'Через неделю', 'ti-calendar-week']].map(([v, l, ic]) => `<button data-d="${v}"><i class="ti ${ic}"></i>${l}</button>`).join('')}<label><i class="ti ti-calendar-search"></i><input type="date" id="tk-c-date" value="${t.date || ''}"></label></div></div>
+            <div class="tk-menu" id="tk-date-m" hidden>${[['', 'Без срока', 'ti-calendar-off'], [iso(today()), 'Сегодня', 'ti-calendar-event'], [iso(addDays(today(), 1)), 'Завтра', 'ti-sun'], [iso(addDays(today(), 7)), 'Через неделю', 'ti-calendar-week']].map(([v, l, ic]) => `<button data-d="${v}"><i class="ti ${ic}"></i>${l}</button>`).join('')}<label><i class="ti ti-calendar-search"></i><input type="date" id="tk-c-date" value="${t.date || ''}"></label><label><i class="ti ti-clock"></i><input type="time" id="tk-c-time" value="${t.time || ''}"><button type="button" class="tk-tm-x" id="tk-c-time-x" aria-label="Без времени"><i class="ti ti-x"></i></button></label></div></div>
+          <div class="tk-side-l">Проект</div>
+          <div class="tk-pick"><button class="tk-pick-b" id="tk-proj-b"></button><div class="tk-menu" id="tk-proj-m" hidden></div></div>
           <div class="tk-side-l">Приоритет</div>
           <div class="tk-pick"><button class="tk-pick-b" id="tk-prio-b"></button>
             <div class="tk-menu" id="tk-prio-m" hidden>${[1, 2, 3, 4].map(p => `<button data-p="${p}">${flag(p, 18)}Приоритет ${p}<i class="ti ti-check tk-mk"></i></button>`).join('')}</div></div>
@@ -146,6 +162,15 @@ window.Tasks = (function () {
       ov.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', +x.dataset.p === t.prio));
       $('#tk-date-b').innerHTML = dateVal() + '<i class="ti ti-chevron-down"></i>'; $('#tk-where').innerHTML = where();
       ov.querySelectorAll('[data-d]').forEach(x => x.classList.toggle('on', x.dataset.d === (t.date || '')));
+      const pr = t.proj ? projOf(t.proj) : null;
+      $('#tk-proj-b').innerHTML = (pr ? `<i class="tk-pdot" style="background:${pr.color}"></i>${esc(pr.name)}` : '<i class="ti ti-inbox"></i>Входящие') + '<i class="ti ti-chevron-down"></i>';
+      ov.querySelectorAll('[data-pj]').forEach(x => x.classList.toggle('on', x.dataset.pj === (t.proj || '')));
+    };
+    const bindProj = () => {
+      $('#tk-proj-m').innerHTML = projMenu();
+      ov.querySelectorAll('[data-pj]').forEach(b => b.onclick = () => { t.proj = b.dataset.pj || null; $('#tk-proj-m').hidden = true; paint(); commit(); });
+      $('#tk-pj-new').addEventListener('submit', e => { e.preventDefault(); const v = $('#tk-pj-new input').value.trim().slice(0, 40); if (!v) return;
+        const ps = projects(), np = { id: 'p' + uid(), name: v, color: PCOL[ps.length % PCOL.length] }; saveProjects(ps.concat(np)); t.proj = np.id; bindProj(); $('#tk-proj-m').hidden = true; paint(); commit(); });
     };
     const readSubs = () => ov.querySelectorAll('[data-st]').forEach(inp => { const x = t.subs[+inp.dataset.st]; if (x) x.title = inp.value.trim() || x.title; });
     const drawSubs = () => { $('#tk-subs').innerHTML = t.subs.length ? subsHtml() : ''; bindSubs(); };
@@ -155,39 +180,45 @@ window.Tasks = (function () {
       ov.querySelectorAll('[data-sx]').forEach(b => b.onclick = () => { readSubs(); t.subs.splice(+b.dataset.sx, 1); drawSubs(); commit(); });
       ov.querySelectorAll('[data-st]').forEach(inp => inp.addEventListener('change', () => { readSubs(); commit(); }));
     }
-    drawSubs(); paint();
+    bindProj(); drawSubs(); paint();
     const grow = (ta) => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
     ['#tk-c-t', '#tk-c-d'].forEach(q => { const ta = $(q); grow(ta); ta.addEventListener('input', () => grow(ta)); ta.addEventListener('change', commit); });
     $('#tk-c-t').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#tk-c-d').focus(); } });
     $('#tk-sub-add').addEventListener('submit', e => { e.preventDefault(); const inp = $('#tk-sub-add input'); const v = inp.value.trim(); if (!v) return; readSubs(); t.subs.push({ id: uid(), title: v.slice(0, 200), done: false }); subsOpen = true; inp.value = ''; drawSubs(); commit(); inp.focus(); });
     const menu = (b, m) => { $(b).onclick = (e) => { e.stopPropagation(); const open = $(m).hidden; ov.querySelectorAll('.tk-menu').forEach(x => { x.hidden = true; }); $(m).hidden = !open; }; };
-    menu('#tk-date-b', '#tk-date-m'); menu('#tk-prio-b', '#tk-prio-m');
+    menu('#tk-date-b', '#tk-date-m'); menu('#tk-prio-b', '#tk-prio-m'); menu('#tk-proj-b', '#tk-proj-m');
     $('.tk-modal').addEventListener('click', e => { if (!e.target.closest('.tk-pick')) ov.querySelectorAll('.tk-menu').forEach(x => { x.hidden = true; }); });
     ov.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { t.date = b.dataset.d || null; $('#tk-date-m').hidden = true; paint(); commit(); });
     $('#tk-c-date').onchange = (e) => { t.date = e.target.value || null; $('#tk-date-m').hidden = true; paint(); commit(); };
+    $('#tk-c-time').onchange = (e) => { t.time = e.target.value || null; if (t.time && !t.date) t.date = iso(today()); paint(); commit(); };
+    $('#tk-c-time-x').onclick = () => { t.time = null; $('#tk-c-time').value = ''; paint(); commit(); };
     ov.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { t.prio = +b.dataset.p; $('#tk-prio-m').hidden = true; paint(); commit(); });
     $('#tk-c-done').onclick = () => { t.done = !t.done; paint(); commit(); };
-    const close = () => { readSubs(); const pend = $('#tk-sub-add input').value.trim(); if (pend) t.subs.push({ id: uid(), title: pend.slice(0, 200), done: false }); commit(); ov.remove(); redraw(); };
+    const onKey = (e) => { if (e.key === 'Escape' && document.body.contains(ov) && !e.defaultPrevented) { e.preventDefault(); close(); } };
+    const close = () => { document.removeEventListener('keydown', onKey, true); readSubs(); const pend = $('#tk-sub-add input').value.trim(); if (pend) t.subs.push({ id: uid(), title: pend.slice(0, 200), done: false }); commit(); ov.remove(); redraw(); };
+    document.addEventListener('keydown', onKey, true);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     $('[data-close]').onclick = close;
-    ov.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
     $('#tk-c-del').onclick = () => { if (confirm('Удалить задачу?')) { remove(t.id); ov.remove(); redraw(); } };
   }
 
   /* быстрое добавление из меню слева */
   function quickAdd(redraw) {
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay tk-ov tk-qov ' + themeCls();
-    let d = view === 'inbox' ? '' : iso(today());
+    let d = view === 'inbox' || view.startsWith('p:') ? '' : iso(today()), pj = view.startsWith('p:') ? view.slice(2) : '';
     const chips = () => [['', 'Входящие', 'ti-inbox'], [iso(today()), 'Сегодня', 'ti-calendar-event'], [iso(addDays(today(), 1)), 'Завтра', 'ti-sun']].map(([v, l, ic]) => `<button type="button" data-qd="${v}" class="${d === v ? 'on' : ''}"><i class="ti ${ic}"></i>${l}</button>`).join('');
     ov.innerHTML = `<form class="tk-quick"><input class="tk-af-t" maxlength="200" placeholder="Название задачи" autocomplete="off"><input class="tk-af-d" maxlength="2000" placeholder="Описание" autocomplete="off">
-      <div class="tk-q-chips">${chips()}</div><div class="tk-af-b"><button type="button" class="tk-btn ghost" data-cancel>Отмена</button><button type="submit" class="tk-btn red">Добавить задачу</button></div></form>`;
+      <div class="tk-q-chips">${chips()}</div>
+      <div class="tk-q-row"><label><i class="ti ti-clock"></i><input type="time" class="tk-q-time"></label>${projects().length ? `<label><i class="ti ti-folder"></i><select class="tk-q-proj"><option value="">Входящие</option>${projects().map(p => `<option value="${esc(p.id)}"${p.id === pj ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>` : ''}</div>
+      <div class="tk-af-b"><button type="button" class="tk-btn ghost" data-cancel>Отмена</button><button type="submit" class="tk-btn red">Добавить задачу</button></div></form>`;
     document.body.appendChild(ov);
     const f = ov.querySelector('form'); f.querySelector('.tk-af-t').focus();
     const bindC = () => ov.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => { d = b.dataset.qd; ov.querySelector('.tk-q-chips').innerHTML = chips(); bindC(); });
     bindC();
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
     ov.querySelector('[data-cancel]').onclick = () => ov.remove();
-    f.addEventListener('submit', e => { e.preventDefault(); const t = f.querySelector('.tk-af-t').value.trim(); if (!t) return; add(t, d || null, f.querySelector('.tk-af-d').value); ov.remove(); redraw(); });
+    f.addEventListener('submit', e => { e.preventDefault(); const t = f.querySelector('.tk-af-t').value.trim(); if (!t) return; const tm = f.querySelector('.tk-q-time').value || null, sp = f.querySelector('.tk-q-proj');
+      add(t, d || (tm ? iso(today()) : null), f.querySelector('.tk-af-d').value, sp ? sp.value || null : pj || null, tm); ov.remove(); redraw(); });
   }
 
   function toast(text, undo, redraw) {
@@ -245,14 +276,14 @@ window.Tasks = (function () {
       if (!st) return; if (st.on) { cancelAnimationFrame(raf); place(); } /* последняя точка, даже если кадр ещё не отрисован */
       const was = st.on, id = st.id, lst = st.over, ph = st.ph; let ids = null;
       if (was && lst && ph && ph.parentNode === lst) ids = [...lst.children].filter(c => c === ph || (c.classList.contains('tk-card') && !c.classList.contains('tk-dragging'))).map(c => c === ph ? id : c.dataset.id);
-      const to = lst ? lst.dataset.list : undefined; clear();
+      const to = lst ? lst.dataset.list : undefined, keep = !!(lst && lst.dataset.keep); clear();
       if (!was) return;
       box.dataset.justDragged = '1'; setTimeout(() => { delete box.dataset.justDragged; }, 80);
       if (to === undefined || !ids) return;
       const before = list(), t = before.find(x => x.id === id); if (!t) return;
       const pos = {}; ids.forEach((x, i) => { pos[x] = i + 1; });
-      const moved = (t.date || '') !== to;
-      save(before.map(x => pos[x.id] ? Object.assign({}, x, { order: pos[x.id] }, x.id === id ? { date: to || null } : {}) : x)); redraw();
+      const moved = !keep && (t.date || '') !== to;
+      save(before.map(x => pos[x.id] ? Object.assign({}, x, { order: pos[x.id] }, x.id === id && !keep ? { date: to || null, time: to ? x.time || null : null } : {}) : x)); redraw();
       toast(moved ? (to ? 'Перенесено: ' + dayLabel(to).toLowerCase() : 'Перенесено во Входящие') : 'Порядок изменён', before, redraw);
     };
     box.addEventListener('pointerdown', down);
@@ -260,11 +291,52 @@ window.Tasks = (function () {
     dragOff = () => { box.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', clear); };
   }
 
+  /* ── Вкладки: Входящие, Сегодня, Предстоящее и проекты. Порядок и скрытие в home.tabs.tasks, как у всех разделов ── */
+  function tabCfg() { const t = ((Store.get().home || {}).tabs || {}).tasks || {}; const a = (v) => toArr(v).filter(x => typeof x === 'string'); return { order: a(t.order), hidden: a(t.hidden) }; }
+  function tabIds() {
+    const c = tabCfg(), base = ['inbox', 'today', 'week'].concat(projects().map(p => 'p:' + p.id));
+    const all = c.order.filter(k => base.includes(k)).concat(base.filter(k => !c.order.includes(k)));
+    let vis = all.filter(k => !c.hidden.includes(k)); if (!vis.length) vis = [all[0]];
+    return { all, vis };
+  }
+  function tabsEditor(redraw) {
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay tk-ov ' + themeCls();
+    let order = tabIds().all, hidden = tabCfg().hidden.filter(k => order.includes(k)), ps = projects().map(p => Object.assign({}, p));
+    const nm = (k) => k.startsWith('p:') ? (ps.find(p => 'p:' + p.id === k) || {}).name || '' : NAME[k];
+    const draw = () => {
+      ov.innerHTML = `<div class="tk-tabs-m"><div class="tk-tm-h"><b>Вкладки</b><button class="tk-x" data-close aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
+        <div class="tk-tm-l">${order.map((k, i) => { const pr = k.startsWith('p:') ? ps.find(p => 'p:' + p.id === k) : null, off = hidden.includes(k);
+          return `<div class="tk-tm-r${off ? ' off' : ''}"><button class="tk-ib" data-eye="${esc(k)}" aria-label="${off ? 'Показать' : 'Скрыть'}"><i class="ti ti-${off ? 'eye-off' : 'eye'}"></i></button>
+            ${pr ? `<i class="tk-pdot" style="background:${pr.color}"></i><input value="${esc(pr.name)}" data-rn="${esc(pr.id)}" maxlength="40">` : `<span>${esc(nm(k))}</span>`}
+            ${pr ? `<button class="tk-ib" data-del="${esc(pr.id)}" aria-label="Удалить проект"><i class="ti ti-trash"></i></button>` : ''}
+            <button class="tk-ib" data-up="${i}" ${i ? '' : 'disabled'} aria-label="Выше"><i class="ti ti-chevron-up"></i></button><button class="tk-ib" data-dn="${i}" ${i < order.length - 1 ? '' : 'disabled'} aria-label="Ниже"><i class="ti ti-chevron-down"></i></button></div>`; }).join('')}</div>
+        <form class="tk-tm-new"><span class="tk-plus"><i class="ti ti-plus"></i></span><input maxlength="40" placeholder="Новый проект"></form>
+        <div class="tk-af-b"><button type="button" class="tk-btn ghost" data-reset>Как было</button><button type="button" class="tk-btn red" data-ok>Готово</button></div></div>`;
+      const rd = () => ov.querySelectorAll('[data-rn]').forEach(inp => { const p = ps.find(x => x.id === inp.dataset.rn); if (p && inp.value.trim()) p.name = inp.value.trim().slice(0, 40); });
+      ov.querySelectorAll('[data-eye]').forEach(b => b.onclick = () => { rd(); const k = b.dataset.eye; if (hidden.includes(k)) hidden = hidden.filter(x => x !== k); else if (order.filter(x => !hidden.includes(x)).length > 1) hidden.push(k); draw(); });
+      ov.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { rd(); const i = +b.dataset.up; [order[i - 1], order[i]] = [order[i], order[i - 1]]; draw(); });
+      ov.querySelectorAll('[data-dn]').forEach(b => b.onclick = () => { rd(); const i = +b.dataset.dn; [order[i + 1], order[i]] = [order[i], order[i + 1]]; draw(); });
+      ov.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { rd(); const p = ps.find(x => x.id === b.dataset.del); if (!p || !confirm(`Удалить проект «${p.name}»? Задачи останутся, просто без проекта.`)) return;
+        ps = ps.filter(x => x !== p); order = order.filter(k => k !== 'p:' + p.id); hidden = hidden.filter(k => k !== 'p:' + p.id); draw(); });
+      ov.querySelector('.tk-tm-new').addEventListener('submit', e => { e.preventDefault(); rd(); const v = ov.querySelector('.tk-tm-new input').value.trim().slice(0, 40); if (!v) return;
+        const np = { id: 'p' + uid(), name: v, color: PCOL[ps.length % PCOL.length] }; ps.push(np); order.push('p:' + np.id); draw(); ov.querySelector('.tk-tm-new input').focus(); });
+      ov.querySelector('[data-close]').onclick = () => ov.remove();
+      ov.querySelector('[data-reset]').onclick = () => { order = ['inbox', 'today', 'week'].concat(ps.map(p => 'p:' + p.id)); hidden = []; draw(); };
+      ov.querySelector('[data-ok]').onclick = () => { rd();
+        const gone = projects().filter(p => !ps.some(x => x.id === p.id)).map(p => p.id);
+        if (gone.length) save(list().map(t => gone.includes(t.proj) ? Object.assign({}, t, { proj: null }) : t));
+        saveProjects(ps); Store.set('home.tabs.tasks', { order, hidden: hidden.length ? hidden : null }); ov.remove(); redraw(); };
+    };
+    draw();
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    document.body.appendChild(ov);
+  }
+
   /* ── Экран ── */
   function screen(mount) {
     if (!isOwner()) { Router.go('/home'); return; }
     document.documentElement.classList.add('tk-on');
-    view = window.TabsCustom && TabsCustom.isHidden('tasks', 'week') ? TabsCustom.firstVisible('tasks', ['inbox', 'today', 'week']) : 'week'; boardX = -1; wk = 0;
+    const vis0 = tabIds().vis; view = vis0.includes('week') ? 'week' : vis0[0]; boardX = -1; wk = 0;
     mount.innerHTML = `<div class="tk-app ${themeCls()}" id="tk-app">
       <header class="tk-hdr"><button class="tk-hb" id="tk-back" aria-label="На главную"><i class="ti ti-arrow-left"></i></button><p>Задачи</p>
         <button class="tk-hb tk-hb-add" id="tk-add-h" aria-label="Добавить задачу" title="Добавить задачу"><i class="ti ti-plus"></i></button>
@@ -272,7 +344,7 @@ window.Tasks = (function () {
       <div class="tk-wrap">
       <aside class="tk-side">
         <button class="tk-new" id="tk-new"><span class="tk-plus"><i class="ti ti-plus"></i></span>Добавить задачу</button>
-        <nav class="tk-navl" id="tk-navl">${['inbox', 'today', 'week'].map(k => `<button data-v="${k}"><i class="ti ${ICO[k]}"></i><span class="tt-lg">${NAME[k]}</span><em data-n="${k}"></em></button>`).join('')}</nav>
+        <nav class="tk-navl" id="tk-navl"></nav>
       </aside>
       <main class="tk-main" id="tk-main"></main></div></div>`;
     const app = mount.querySelector('#tk-app'), main = mount.querySelector('#tk-main');
@@ -282,9 +354,13 @@ window.Tasks = (function () {
     mount.querySelector('#tk-theme').onclick = () => { Store.set('tasks.theme', isLight() ? 'dark' : 'light'); paintTheme(); };
     const draw = () => {
       const all = list(), td = iso(today());
-      const n = { inbox: all.filter(t => !t.date && !t.done).length, today: all.filter(t => !t.done && t.date && t.date <= td).length, week: '' };
-      mount.querySelectorAll('#tk-navl [data-v]').forEach(x => x.classList.toggle('on', x.dataset.v === view));
-      mount.querySelectorAll('[data-n]').forEach(x => { x.textContent = n[x.dataset.n] || ''; });
+      const n = { inbox: all.filter(t => !t.date && !t.proj && !t.done).length, today: all.filter(t => !t.done && t.date && t.date <= td).length, week: '' };
+      projects().forEach(p => { n['p:' + p.id] = all.filter(t => t.proj === p.id && !t.done).length; });
+      const tv = tabIds(); if (!tv.vis.includes(view) && !tv.all.includes(view)) view = tv.vis[0];
+      const nm = (k) => k.startsWith('p:') ? (projOf(k.slice(2)) || {}).name || '' : NAME[k];
+      mount.querySelector('#tk-navl').innerHTML = tv.vis.map(k => `<button data-v="${esc(k)}" class="${k === view ? 'on' : ''}"><span class="tt-lg">${esc(nm(k))}</span><em>${n[k] || ''}</em></button>`).join('') + '<button class="tc-edit" id="tk-tabs-ed" aria-label="Настроить вкладки" title="Настроить вкладки"><i class="ti ti-adjustments-horizontal"></i></button>';
+      mount.querySelectorAll('#tk-navl [data-v]').forEach(x => x.onclick = () => { view = x.dataset.v; wk = 0; boardX = -1; draw(); });
+      mount.querySelector('#tk-tabs-ed').onclick = () => tabsEditor(draw);
       const ob = main.querySelector('#tk-board'); if (ob && boardX >= 0) boardX = ob.scrollLeft;
       main.innerHTML = view === 'week' ? weekView() : listView(view);
       const bd = main.querySelector('#tk-board');
@@ -293,20 +369,19 @@ window.Tasks = (function () {
       bindMain();
     };
     function bindMain() {
-      main.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const d = b.dataset.add; b.insertAdjacentHTML('beforebegin', addForm(d)); const f = b.previousElementSibling; b.remove();
+      main.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const d = b.dataset.add, pj = b.dataset.proj || null; b.insertAdjacentHTML('beforebegin', addForm(d)); const f = b.previousElementSibling; b.remove();
         const t = f.querySelector('.tk-af-t'); t.focus();
         f.querySelector('[data-cancel]').onclick = () => draw();
-        f.addEventListener('submit', e => { e.preventDefault(); if (!t.value.trim()) return; add(t.value, d || null, f.querySelector('.tk-af-d').value); draw(); const nb = main.querySelector(`[data-add="${d}"]`); if (nb) nb.click(); });
+        f.addEventListener('submit', e => { e.preventDefault(); if (!t.value.trim()) return; add(t.value, d || null, f.querySelector('.tk-af-d').value, pj); draw(); const nb = main.querySelector(`[data-add="${d}"]`); if (nb) nb.click(); });
         f.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); draw(); } }); });
       main.querySelectorAll('[data-ck]').forEach(x => x.onclick = () => { const t = list().find(y => y.id === x.dataset.ck); if (!t) return; x.closest('.tk-card').classList.add('pop');
         setTimeout(() => { const before = list(); patch(t.id, { done: !t.done, doneAt: !t.done ? Date.now() : null }); draw(); if (!t.done) toast('Задача выполнена', before, draw); }, t.done ? 0 : 280); });
-      main.querySelectorAll('[data-ed]').forEach(x => x.onclick = () => { if (main.dataset.justDragged) return; editModal(x.dataset.ed, draw); });
+      /* вся плашка открывает задачу, кроме кружка */
+      main.querySelectorAll('.tk-card').forEach(x => x.onclick = (e) => { if (main.dataset.justDragged || e.target.closest('.tk-ck')) return; editModal(x.dataset.id, draw); });
       main.querySelectorAll('[data-move]').forEach(x => x.onclick = () => { const before = list(), t = iso(today()); save(before.map(y => !y.done && y.date && y.date < t ? Object.assign({}, y, { date: t }) : y)); draw(); toast('Перенесено на сегодня', before, draw); });
       /* стрелки листают недели целиком (Пн–Вс), «Сегодня» возвращает к текущей */
       main.querySelectorAll('[data-wk]').forEach(x => x.onclick = () => { const k = +x.dataset.wk; wk = k ? Math.max(0, wk + k) : 0; boardX = -1; draw(); });
     }
-    mount.querySelectorAll('#tk-navl [data-v]').forEach(x => x.onclick = () => { view = x.dataset.v; wk = 0; boardX = -1; draw(); });
-    if (window.TabsCustom) TabsCustom.apply(mount.querySelector('#tk-navl'), 'tasks', 'data-v', () => draw());
     mount.querySelector('#tk-new').onclick = () => quickAdd(draw);
     mount.querySelector('#tk-add-h').onclick = () => quickAdd(draw);
     bindDrag(main, draw);

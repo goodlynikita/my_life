@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v143';
+const CACHE = 'nik-system-v144';
 
 const STATIC = [
   './',
@@ -31,6 +31,7 @@ const STATIC = [
   './js/router.js',
   './js/firebase-sync.js',
   './js/features.js',
+  './js/tabs-custom.js',
   './js/slide-kit.js',
   './js/slides.js',
   './js/feedback.js',

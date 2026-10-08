@@ -2153,3 +2153,13 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 /* колонка «Рост»: стрелка всегда своей ширины, цифры ровно по краю во всех тренировках */
 .tr-ww-table .tr-arr{display:inline-block;width:1.1em;text-align:right;font-style:normal;font-size:.85em}
 .tr-ww-table thead th:last-child{padding-right:calc(10px + 1.1em)}
+
+/* тренировка из чата → в план */
+.ch-toplan{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;height:40px;border-radius:10px;border:1px solid rgba(90,130,230,.45);background:rgba(58,98,201,.18);color:#BFD0FF;font:700 13.5px Montserrat,sans-serif;cursor:pointer}
+.ch-plan-sum{display:flex;flex-direction:column;gap:6px;margin:4px 0 14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);font-size:13px}
+.ch-plan-sum div{display:flex;justify-content:space-between;gap:10px}.ch-plan-sum span{color:rgba(255,255,255,.75);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch-plan-sum b{white-space:nowrap}
+
+/* вкладок стало больше (Программа, Разбор, Чат отдельно): каждая своей ширины, лента листается вбок */
+.tr-tabs { overflow-x: auto !important; scrollbar-width: none; }
+.tr-tabs .tr-tab { flex: 1 0 auto !important; min-width: auto !important; padding: 14px 12px !important; }
+@media (max-width: 600px) { .tr-tabs .tr-tab { padding: 13px 10px !important; font-size: 13px !important; } .tr-tabs .tr-tab-ai i { display: none; } }

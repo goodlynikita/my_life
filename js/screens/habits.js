@@ -421,6 +421,7 @@ window.Screens.habits = function(mount) {
       activeTab = btn.dataset.tab;
       render();
     });
+  if (window.TabsCustom) TabsCustom.apply(mount.querySelector('.hab-tabs'), 'habits', 'data-tab');
   });
 
   const content = document.getElementById('hab-content');

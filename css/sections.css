@@ -1825,3 +1825,15 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 .goals-paid-ic{margin-left:6px;font-size:13px;color:#977FE9;vertical-align:-1px}
 .goals-item-v3{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;transition:transform .15s}
 .goals-item-v3.dragging{transition:none;position:relative;z-index:5;background:#22252D!important;box-shadow:0 8px 24px rgba(0,0,0,.45);border-radius:10px}
+
+/* настройка вкладок (js/tabs-custom.js) */
+.tc-hidden{display:none!important}
+.tc-edit{flex:0 0 auto;width:40px;min-width:40px;align-self:stretch;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;color:inherit;opacity:.45;font-size:17px;cursor:pointer;margin-left:auto}
+.tc-edit:hover{opacity:.85}
+.tc-modal{max-width:380px}
+.tc-list{display:flex;flex-direction:column;gap:6px;margin:6px 0 16px}
+.tc-row{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 8px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.tc-row span{flex:1;font-weight:600;font-size:14px}
+.tc-row.off span{opacity:.4;text-decoration:line-through}
+.tc-eye,.tc-mv{width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,.06);color:inherit;font-size:17px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tc-mv:disabled{opacity:.25;cursor:default}

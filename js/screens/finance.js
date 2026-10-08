@@ -239,6 +239,7 @@ window.Screens.finance = function(mount) {
       activeTab=btn.dataset.tab;
       render();
     });
+  if (window.TabsCustom) TabsCustom.apply(mount.querySelector('.tochka-tabs'), 'finance', 'data-tab');
   });
 
   const content = document.getElementById('fin-content');

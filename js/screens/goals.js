@@ -332,6 +332,7 @@ window.Screens.goals = function(mount) {
     tabsEl.appendChild(btn);
   });
 
+  if (window.TabsCustom) TabsCustom.apply(tabsEl, 'goals', 'data-season');
   const content = document.getElementById('goals-content');
 
   function renderMonthBar() {

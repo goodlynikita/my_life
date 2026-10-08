@@ -1783,7 +1783,9 @@ window.Screens.training = function (mount) {
         <button class="tr-tab" data-tab="working-weight"><span class="tt-lg">Рабочий вес</span><span class="tt-sm">Веса</span></button>
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
-        <button class="tr-tab tr-tab-ai" data-tab="ai"><i class="ti ti-sparkles"></i> AI</button>
+        <button class="tr-tab tr-tab-ai" data-tab="ai"><i class="ti ti-sparkles"></i> Программа</button>
+        <button class="tr-tab tr-tab-ai" data-tab="ai-insights"><i class="ti ti-chart-dots"></i> Разбор</button>
+        ${window.APP_CONFIG && APP_CONFIG.aiChatUrl ? '<button class="tr-tab tr-tab-ai" data-tab="ai-chat"><i class="ti ti-message-chatbot"></i> Чат</button>' : ''}
       </div>
       <div class="tr-body" id="tr-content"></div>
     </div>
@@ -2202,7 +2204,10 @@ window.Screens.training = function (mount) {
   }
 
   function renderTab(tab) {
-    const prevTab = content.dataset.tab; content.dataset.tab = tab;
+    /* Программа, Разбор и Чат AI-тренера: отдельные вкладки на всю ширину, внутри один модуль TrainingAI */
+    const AIV = { 'ai': 'plan', 'ai-insights': 'insights', 'ai-chat': 'chat' }, aiTab = tab;
+    if (AIV[tab]) { window._aiView = AIV[tab]; window._aiHideViews = true; tab = 'ai'; }
+    const prevTab = content.dataset.tab; content.dataset.tab = aiTab;
     refreshUndoState();
     let plan = getPlan();
 
@@ -2223,7 +2228,7 @@ window.Screens.training = function (mount) {
       if (!hasAnyPlan && tab === 'ai' && window.TrainingAI) {
         TrainingAI.render(content, null, { getPlans: trGetPlans, savePlans: trSavePlans, afterTransfer: () => { refreshUndoState(); },
           createPlan: () => { currentPlanId = trCreateNextPlan(); collapsedWeeks = []; populatePlanSelect(); return trGetPlans().find(p => p && p.id === currentPlanId); },
-          rerender: () => renderTab('ai') });
+          rerender: () => renderTab(aiTab) });
         return;
       }
       if (!hasAnyPlan) {
@@ -2366,7 +2371,7 @@ window.Screens.training = function (mount) {
         afterTransfer: () => { refreshUndoState(); },
         /* план создаётся сам, если его ещё нет: одна кнопка в AI */
         createPlan: () => { currentPlanId = trCreateNextPlan(); collapsedWeeks = []; populatePlanSelect(); return trGetPlans().find(p => p && p.id === currentPlanId); },
-        rerender: () => renderTab('ai'),
+        rerender: () => renderTab(aiTab),
         openPlan: () => { const b = document.querySelector('.tr-tab[data-tab="plan"]'); if (b) b.click();
           /* к началу сегодняшней карточки, а не к последнему упражнению */
           setTimeout(() => { const d = document.querySelector('.tr-day-today'); if (d) { d.scrollIntoView({ block: 'start' }); window.scrollBy(0, -120); } }, 200); },
@@ -2477,7 +2482,9 @@ window.Screens.training = function (mount) {
       mount.querySelectorAll('.tr-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       renderTab(tab.dataset.tab);
+      { const bar = tab.parentElement; const l = tab.offsetLeft - bar.offsetLeft, r = l + tab.offsetWidth; if (l < bar.scrollLeft || r > bar.scrollLeft + bar.clientWidth) bar.scrollTo({ left: Math.max(0, l - 40), behavior: 'smooth' }); }
     });
+  if (window.TabsCustom && !window.__coachMode) TabsCustom.apply(mount.querySelector('.tr-tabs'), 'training', 'data-tab');
   });
 
   /* Тоггл выбора плана — состояние сохраняется */
@@ -2517,7 +2524,8 @@ window.Screens.training = function (mount) {
     });
   }
 
-  renderTab('plan');
+  { const first = window.TabsCustom && !window.__coachMode ? TabsCustom.firstVisible('training', [...mount.querySelectorAll('.tr-tab')].map(t => t.dataset.tab)) : 'plan';
+    mount.querySelectorAll('.tr-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === first)); renderTab(first); }
 
   /* Данные обновились с Firebase — не перерисовываем если юзер редактирует */
   function _onRemoteUpdate() {

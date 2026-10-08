@@ -1273,6 +1273,7 @@ window.TrainingAI = (function () {
   const TYPE = 'Тренажерный зал';
 
   function viewTabs() {
+    if (window._aiHideViews) return '';
     const v = window._aiView || 'plan';
     const fresh = new Date().getDay() === 1 ? '<i class="ai-view-dot"></i>' : '';
     /* вкладка чата появляется, когда подключена облачная функция (адрес в config.js) */
@@ -1641,7 +1642,7 @@ window.TrainingAI = (function () {
           <button class="ai-regen" id="ai-go-ins" style="margin-top:14px"><i class="ti ti-chart-dots"></i> Открыть разбор</button>
         </div></div>`;
       bindViews(content, plan, h);
-      const gi = content.querySelector('#ai-go-ins'); if (gi) gi.onclick = () => { window._aiView = 'insights'; render(content, plan, h); };
+      const gi = content.querySelector('#ai-go-ins'); if (gi) gi.onclick = () => { const t = window._aiHideViews && document.querySelector('.tr-tab[data-tab="ai-insights"]'); if (t) { t.click(); return; } window._aiView = 'insights'; render(content, plan, h); };
       return;
     }
     /* плана ещё нет: анкета и одна кнопка, план создастся сам */
@@ -1870,6 +1871,22 @@ window.TrainingAI = (function () {
     return true;
   }
 
+  /* тренировка из чата с AI: кладём в день плана как обычную (не очередь AI), веса как в ответе */
+  function addFromChat(plan, h, date, exercises) {
+    const pd = planDayAt(plan, date); if (!pd) return 'nodays';
+    const plans = h.getPlans(); const p = plans.find(x => x && x.id === plan.id) || plan;
+    const day = toArr(p.weeks)[pd.wi] && toArr(p.weeks[pd.wi].days)[pd.di]; if (!day) return 'nodays';
+    if (typeof trSnapshotBeforeChange === 'function') trSnapshotBeforeChange();
+    if (typeof trMigrateDayToSessions === 'function') trMigrateDayToSessions(day);
+    day.sessions = toArr(day.sessions);
+    const groups = [...new Set(exercises.map(e => (classify(e.name) || {}).group).filter(Boolean))].slice(0, 4);
+    day.sessions.push({ type: TYPE, groups: groups.length ? groups : ['FULL BODY'], fromChat: true,
+      exercises: exercises.map(e => ({ kind: 'strength', name: e.name, sets: e.sets, reps: e.reps, weight: e.weight || 0 })) });
+    h.savePlans(plans.map(x => x && x.id === p.id ? p : x));
+    return 'ok';
+  }
+  function dayHasWorkout(plan, date) { const pd = planDayAt(plan, date); return !!(pd && toArr(pd.day.sessions).some(s => s && s.type !== 'Отдых' && toArr(s.exercises).length)); }
+
   function openMove(content, plan, h, wk, dk) {
     const a = load(); const d = a.weeks[wk].days[dk];
     const weeks = toArr(plan.weeks);
@@ -1912,6 +1929,6 @@ window.TrainingAI = (function () {
       if (!(day && toArr(day.sessions).some(s2 => s2 && s2.ai && s2.aiQ === qid(q)))) { Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); ch = true; } });
     if (ch) save(a);
   }
-  return { resyncQueue, orphanList, dropOrphans, toast: qToast, render, generate, regenKeep, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
+  return { addFromChat, dayHasWorkout, resyncQueue, orphanList, dropOrphans, toast: qToast, render, generate, regenKeep, analyze, collect, classify, buildContext, autoAdjust, chosenPlans, prefsGet, exKey, sigOf, load, save,
     GOALS, EQUIP, equipOf, stepFor, SLOTS, REGION_LABEL, DOW, toArr, esc, currentWeekIdx, planDayDate, weekKey, _progression: progression };
 })();

@@ -24,6 +24,10 @@ PWA «YOU»: трекер жизни (тренировки, привычки, ф
 - Тренировки: `js/screens/training.js` (план, окна), `training-ai.js` (AI-план, контекст для чата `buildContext`), `training-chat.js` (чат), `training-insights.js` (разбор).
 - Финансы: `js/screens/finance.js` (вкладки Месяц/Год/Всё время/Баланс), `finance-spend.js` (вкладка «Расходы»: сколько можно потратить, запись одной строкой, обучение категориям), `finance-piggy.js` (копилка).
 - Подсказки для новичков: `js/tour.js` (SCREENS и TABS). Палитра «Яркие/Пастельные»: `js/palette.js`.
+- Помощник по деньгам: `js/screens/finance-ask.js` (вкладка «Помощник», `ai-coach` с `mode: 'finance'`).
+- Настройка вкладок (порядок/скрытие) во всех разделах: `js/tabs-custom.js`, хранится в `home.tabs.<раздел>`.
+- Расписание тренера у клиента: тренер пишет копию записи в `clientSlots/{ключ клиента}/{trainerUid}_{id}`, клиент читает через `FirebaseSync.slotsOn(date)` (план и «Фокус дня»).
+- Личный лимит AI: `userIndex/{uid}/aiLimit` (ставится в админке), счётчик `aiUsage/{uid}/{YYYY-MM}`.
 - Стили: `css/training.css`, `css/sections.css`, `css/tochka.css` (финансы, токены `--tk-*`), `css/light.css` (светлая тема через invert-фильтр + палитры).
 
 ## Обязательные правила

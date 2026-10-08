@@ -564,3 +564,4 @@ button.sp-day{width:100%;background:none;border:none;font:inherit;cursor:pointer
 .tochka-tab, .fin-dark .tochka-tab { flex: 1 0 auto !important; overflow: visible !important; text-overflow: clip !important; padding-left: 12px !important; padding-right: 12px !important; }
 .fa-t b { color: #fff; }
 .fa-msg.bot { color: #EDEAF7; } .fa-msg.bot b { color: #fff; } .fa-msg.err { color: #F5B5B0; }
+.plan-dlt{font-style:normal;font-size:11px;font-weight:700;margin-left:6px;padding:1px 6px;border-radius:999px;white-space:nowrap}.plan-dlt.up{color:#E0B252;background:rgba(224,178,82,.12)}.plan-dlt.dn{color:#4ADE80;background:rgba(74,222,128,.10)}

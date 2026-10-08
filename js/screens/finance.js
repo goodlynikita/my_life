@@ -475,6 +475,11 @@ window.Screens.finance = function(mount) {
     const monthName = FIN_MONTHS[now.getMonth()];
     /* траты по категориям за месяц и где мы в месяце (для отметки «сегодня» на полосках) */
     const spentBy = FS ? FS.catSpent(FS.ymKey(now)) : {};
+    /* то же число прошлого месяца: «+4 200 ₽ к прошлому месяцу» по каждой категории */
+    const prevBy = {}; try { const pd = new Date(now.getFullYear(), now.getMonth() - 1, 1), cut = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate(), 23, 59).getTime();
+      const arr = Object.values(((Store.get().finance || {}).spend || {})[FS.ymKey(pd)] || {}); arr.forEach(x => { if (x && !x.once && +x.at <= cut) { const k = x.cat || '_other'; prevBy[k] = (prevBy[k] || 0) + (+x.amt || 0); } }); } catch (e) {}
+    const hasPrev = Object.keys(prevBy).length > 0;
+    const dlt = (id) => { if (!hasPrev) return ''; const d = (spentBy[id] || 0) - (prevBy[id] || 0); if (Math.abs(d) < 300) return ''; return `<em class="plan-dlt ${d > 0 ? 'up' : 'dn'}" title="к этому же дню прошлого месяца">${d > 0 ? '+' : '−'}${finFmtFull(Math.abs(d))}</em>`; };
     const dimB = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const monthPos = Math.round(now.getDate() / dimB * 100);
     /* кольцо месяца: сколько плана уже потрачено против того, сколько месяца прошло */
@@ -552,7 +557,7 @@ window.Screens.finance = function(mount) {
           ${cats.length ? cats.map(c => { const sp = spentBy[c.id] || 0, amt = +c.amt || 0, over = amt > 0 && sp > amt, fill = amt > 0 ? Math.min(100, Math.round(sp / amt * 100)) : (sp ? 100 : 0), day = +c.day >= 1 && +c.day <= 31 ? Math.round(+c.day) : 0; return `
             <div class="plan-cat plan-cat-sp" data-id="${escH(c.id)}" role="button" tabindex="0">
               <span class="plan-dot" style="background:${colH(c.color)};"></span>
-              <span class="plan-cat-name"><span class="plan-cat-nm">${escH(c.name)}</span>${day ? `<em class="plan-day" title="платёж ${day} числа"><i class="ti ti-calendar-event"></i>${day}</em>` : ''}</span>
+              <span class="plan-cat-name"><span class="plan-cat-nm">${escH(c.name)}</span>${day ? `<em class="plan-day" title="платёж ${day} числа"><i class="ti ti-calendar-event"></i>${day}</em>` : ''}${dlt(c.id)}</span>
               <span class="plan-cat-amt">${sp ? `<em class="${over ? 'over' : ''}">${finFmtFull(sp)}</em> из ` : ''}${finFmtFull(amt)}</span>
               <span class="plan-cat-pct">${pctOf(amt)}%</span>
               ${amt > 0 ? `<span class="plan-cat-bar"><span data-k="bal:${escH(c.id)}" data-w="${fill}" style="width:0;background:${over ? '#EB5850' : colH(c.color)}"></span><i style="left:${monthPos}%" title="где должен быть сегодня"></i></span>` : ''}

@@ -231,3 +231,12 @@ html[data-theme="light"] .hab-dark .hab-cell.done, html[data-theme="light"] .goa
 .tr-tabs .tr-tab, .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 13.5px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
 .tr-tabs .tr-tab.active, .hab-screen .hab-tabs .hab-tab.active, .goals-season-tabs .goals-season-tab.active, .tochka-tab.active, .fin-dark .tochka-tab.active { font-weight: 600 !important; }
 @media (max-width: 600px) { .tr-tabs .tr-tab, .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 13px !important; } }
+
+/* Окна в цвет карточек своего раздела */
+html[data-sec="training"] .tr-modal-overlay:not(.tk-ov) .tr-modal { background: #161D2E !important; border: 1px solid rgba(110,148,255,.16) !important; }
+html[data-sec="habits"] .tr-modal-overlay:not(.tk-ov) .tr-modal { background: linear-gradient(rgba(255,255,255,.024), rgba(0,0,0,0) 40%), #16211A !important; border: 1px solid rgba(74,222,128,.16) !important; }
+html[data-sec="goals"] .tr-modal-overlay:not(.tk-ov) .tr-modal { background: linear-gradient(135deg, #2E2820, #1A1A1A 75%) !important; border: 1px solid rgba(242,169,59,.16) !important; }
+html[data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal { background: #211E2A !important; border: 1px solid rgba(151,127,233,.16) !important; }
+html[data-sec="habits"] .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { background: linear-gradient(135deg, #15803D, #22A35A) !important; color: #fff !important; }
+html[data-sec="goals"] .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { background: linear-gradient(135deg, #B45309, #E08A2C) !important; color: #fff !important; }
+html[data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { background: linear-gradient(135deg, #7C5CE0, #977FE9) !important; color: #fff !important; }

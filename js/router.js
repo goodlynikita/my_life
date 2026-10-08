@@ -83,6 +83,8 @@ const Router = (() => {
       return;
     }
     const handler = routes[path] || routes['/login'];
+    /* раздел на <html>: окна (модалки) красятся в цвет карточек раздела */
+    document.documentElement.setAttribute('data-sec', String(path || '').replace(/^\//, '').split('/')[0] || 'home');
     try {
       handler();
       pinTabs(); setTimeout(pinTabs, 300); setTimeout(pinTabs, 1200);

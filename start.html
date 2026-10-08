@@ -923,6 +923,117 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   .cc{padding:16px}.cc-kp b{font-size:16px}
 }
 
+
+/* ═══ v4: живые экраны по разделам ═══ */
+.dx{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center;margin-top:110px}
+.dx:first-of-type{margin-top:70px}
+.dx.rev .dx-t{order:2}
+.dx-fin{--dc:#8B5CF6}.dx-hab{--dc:#4ADE80}.dx-goal{--dc:#F2A93B}.dx-cal{--dc:#4A7CFF}
+.dx-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:999px;font-size:13px;font-weight:800;color:#fff;background:color-mix(in srgb,var(--dc) 18%,transparent);border:1px solid color-mix(in srgb,var(--dc) 40%,transparent);margin-bottom:16px}
+.dx-tag i{width:24px;height:24px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;background:var(--dc);color:#0B0E17}
+.dx h3{font-size:clamp(28px,3.4vw,44px);line-height:1.08;letter-spacing:-.03em;margin:0 0 16px;font-weight:900}
+.dx .ai-feats{margin-top:26px}
+.dx .ai-feat i{color:var(--dc)}
+.dx-ph{position:relative;display:flex;justify-content:center;align-items:center;min-height:640px}
+.dx-glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--dc) 45%,transparent),transparent);filter:blur(30px);opacity:.55}
+.dx-ph .phone{position:relative;width:290px;z-index:2}
+.dx-scr{display:flex;flex-direction:column;background:#0E1220!important}
+.dx-top{display:flex;align-items:center;gap:9px;padding:46px 16px 12px;color:#fff;font-weight:800;font-size:15px;background:linear-gradient(180deg,color-mix(in srgb,var(--dc) 70%,#000),color-mix(in srgb,var(--dc) 50%,#000))}
+.dx-top i{font-size:18px;opacity:.85}.dx-top span{margin-left:auto;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.16)}
+.dx-body{flex:1;padding:12px;display:flex;flex-direction:column;overflow:hidden}
+.dx-body .fd-top{padding:12px}.dx-body .fd-top>b{font-size:26px}
+.dx-body .fd-in{font-size:13px}
+.dx-body .hb-streak{padding:11px}.dx-body .hb-fire{width:48px;height:48px}.dx-body .hb-fire i{font-size:32px}.dx-body .hb-streak b{font-size:16px}
+.dx-body .hb-row{padding:9px 11px;font-size:13px}
+.dx-body .gl{padding:11px 12px}.dx-body .gl-t{font-size:13px}
+.dx-ph.in .gl-bar span{width:var(--w)}
+.dx-float{position:absolute;z-index:3;width:250px;padding:14px;border-radius:20px;background:rgba(18,23,38,.94);border:1px solid color-mix(in srgb,var(--dc) 40%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 24px 60px rgba(0,0,0,.5);animation:float 7s ease-in-out infinite;animation-delay:-3s}
+.dx-fh{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--soft);margin-bottom:8px}.dx-fh i{font-size:16px;color:var(--dc)}
+.dx-f-ask{right:-10px;bottom:70px}
+.dx-fin .fd-ask{margin:0}
+.dx-f-goal{left:-60px;bottom:70px}
+.dx-fg{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}.dx-fg em{font-style:normal;font-weight:800;color:#4ADE80;font-size:13px}
+.dx-fbar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);margin:8px 0 10px;overflow:hidden}.dx-fbar span{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#8FD17F,#4CAF50);transition:width 1.4s var(--ease) .3s}
+.dx-ph.in .dx-fbar span{width:94%}
+.dx-badges{display:flex;gap:6px}.dx-badges span{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#5E6475;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+.dx-badges .got{color:#0E1A10;background:linear-gradient(135deg,#A6E096,#5DBB63);border-color:transparent}.dx-badges .nx{border:1px dashed rgba(143,209,127,.7);color:#8FD17F}
+.dx-goal .gl-pay{right:-14px;bottom:110px;width:auto;margin:0}
+.dx-ph.in .gl-pay{opacity:1;transform:none}
+.dx-f-note{left:-24px;top:70px;display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;width:270px;padding:12px;border-radius:18px;opacity:0;transform:translateY(-12px) scale(.97);transition:opacity .5s,transform .6s var(--ease)}
+.dx-f-note.on{opacity:1;transform:none}
+.dx-f-note img{width:34px;height:34px;border-radius:9px}.dx-f-note b{display:block;font-size:12px}.dx-f-note span{display:block;font-size:12.5px;color:#DCE3FF}.dx-f-note small{align-self:start;font-size:10.5px;color:var(--faint)}
+/* календарь в телефоне */
+.cl-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.cl-d{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 6px;border-radius:10px;font-size:10px;color:var(--faint);font-weight:700;transition:background .35s,color .35s}
+.cl-d b{font-size:14px;color:#E6EAF5}
+.cl-d i{display:flex;gap:2px;height:5px}.cl-d i u{width:5px;height:5px;border-radius:50%;background:var(--c)}
+.cl-d.on{background:linear-gradient(160deg,#3A62C9,#2C4FA8);color:#DCE6FF}.cl-d.on b{color:#fff}
+.cl-d.today b{color:#8EB0FF}.cl-d.on.today b{color:#fff}
+.cl-day{margin:14px 2px 8px;font-size:13px;font-weight:800;color:#fff}
+.cl-day span{color:var(--soft);font-weight:600;margin-left:6px}
+.cl-list{display:flex;flex-direction:column;gap:7px}
+.cl-e{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;padding:10px 11px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-left:3px solid var(--c);animation:fdIn .45s var(--ease) both}
+.cl-e:nth-child(2){animation-delay:.08s}.cl-e:nth-child(3){animation-delay:.16s}
+.cl-e time{font-size:12.5px;font-weight:800;color:#fff}.cl-e time:empty::before{content:'весь день';font-size:10px;color:var(--faint);font-weight:700}
+.cl-e b{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700}.cl-e b i{color:var(--c);font-size:15px}
+.cl-e small{display:block;font-size:11px;color:var(--soft);margin-top:1px}
+@media (max-width:980px){.dx{grid-template-columns:1fr;gap:26px;margin-top:80px}.dx.rev .dx-t{order:0}.dx-ph{min-height:0;padding:10px 0 30px}}
+@media (max-width:560px){.dx-ph{flex-direction:column}.dx-ph .phone{width:262px}.dx-float,.dx-goal .gl-pay{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:min(300px,100%);margin:-46px auto 0;padding:12px}.dx-f-note{position:absolute;left:-4px;top:40px;width:240px;margin:0}.dx-glow{width:300px;height:300px}
+  .dx .ai-feats{grid-template-columns:1fr 1fr;gap:8px}.dx .ai-feat{padding:12px}.dx .ai-feat b{font-size:13px}.dx .ai-feat span{font-size:11.5px;line-height:1.4}}
+/* подпись в сцене «пять приложений»: читается на любом фоне */
+.merge-cap{width:fit-content;max-width:min(640px,calc(100% - 32px));color:#E6EAF5;padding:14px 22px;border-radius:18px;background:rgba(9,11,20,.72);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.35);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+/* было и стало: без зачёркивания */
+.ab:not(.yes) .ab-r .a{text-decoration:none;color:#C3C9D8}
+.ab:not(.yes) .ab-r>i{color:#F59E8B;background:rgba(248,113,113,.1)}
+/* ═══ Орбита 3D ═══ */
+@media (max-width:560px){.orbit{aspect-ratio:1/.95}}
+.orbit{perspective:1100px;aspect-ratio:1/.82;width:min(600px,100%)}
+.orbit .ring{display:none}
+.orb-plane{position:absolute;left:50%;top:50%;width:var(--pw,86%);aspect-ratio:1;transform:translate(-50%,-50%) rotateX(72deg);transform-style:preserve-3d;pointer-events:none}
+.orb-plane i{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(139,92,246,.35);box-shadow:0 0 30px rgba(139,92,246,.18),inset 0 0 30px rgba(74,124,255,.12);animation:orbSpin 26s linear infinite}
+.orb-plane i:nth-child(2){inset:17%;border-color:rgba(74,124,255,.35);border-style:dashed;animation-duration:38s;animation-direction:reverse}
+.orb-plane i:nth-child(3){inset:34%;border-color:rgba(167,139,250,.45);animation-duration:18s;background:radial-gradient(closest-side,rgba(139,92,246,.22),transparent)}
+.orb-plane i::after{content:'';position:absolute;left:50%;top:-5px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#A78BFA;box-shadow:0 0 14px 4px rgba(167,139,250,.7)}
+.orb-plane i:nth-child(2)::after{background:#60A5FA;box-shadow:0 0 14px 4px rgba(96,165,250,.7)}
+@keyframes orbSpin{to{transform:rotate(360deg)}}
+.orb-core{z-index:5;background:radial-gradient(circle at 35% 30%,rgba(110,148,255,.35),rgba(20,24,40,.95) 60%)!important;box-shadow:0 0 0 1px rgba(139,92,246,.45),0 0 60px rgba(99,102,241,.45),0 30px 60px rgba(0,0,0,.5),inset 0 -12px 30px rgba(0,0,0,.45)!important;animation:float 6s ease-in-out infinite}
+.orb-n{z-index:2;transition:filter .3s}
+.orb-n.front{z-index:8}
+.orb-n>div{transition:box-shadow .4s,border-color .4s}
+.orb-lines{z-index:1}
+@media (max-width:560px){.orbit{aspect-ratio:1/.95}}
+
+/* ═══ Тренерам: расписание ═══ */
+@media (min-width:981px){.c-sched .c-mg{grid-template-columns:1.25fr 1fr}}
+.cs-wrap{position:relative}
+.cs{background:linear-gradient(160deg,rgba(27,35,64,.9),rgba(14,18,30,.95));border:1px solid rgba(74,124,255,.3);border-radius:26px;padding:20px;box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 80px rgba(74,124,255,.15)}
+.cs-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cs-top b{display:block;font-size:18px}.cs-top span{font-size:12.5px;color:var(--soft)}
+.cs-top .cs-add{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:12px;background:var(--grad);color:#fff;font-weight:800;font-size:13px}
+.cs-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cs-c{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cs-h{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0;border-radius:10px;font-size:11px;font-weight:700;color:var(--faint)}
+.cs-h b{font-size:16px;color:#E6EAF5}
+.cs-c.today .cs-h{background:linear-gradient(160deg,#3A62C9,#2C4FA8);color:#DCE6FF}.cs-c.today .cs-h b{color:#fff}
+.cs-s{position:relative;min-width:0;padding:8px 6px;border-radius:10px;background:color-mix(in srgb,var(--c) 16%,rgba(255,255,255,.02));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-left:3px solid var(--c);font-size:11px;opacity:0;transform:translateY(8px) scale(.96);transition:opacity .45s,transform .5s var(--ease)}
+.cs.go .cs-s{opacity:1;transform:none;transition-delay:calc(var(--i) * 90ms)}
+.cs-s time{display:block;font-weight:800;color:#fff;font-size:11.5px}
+.cs-s b{display:block;font-weight:600;color:#D7DCEA;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs-s>i{position:absolute;top:6px;right:6px;font-size:12px;color:color-mix(in srgb,var(--c) 70%,#fff);opacity:.8}
+.cs-s.trial{border-style:dashed;border-left-style:solid}
+.cs-tr{display:block;font-size:9.5px;color:#5EEAD4;font-weight:700;margin-top:1px}
+.cs-s.now{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 45%,transparent),0 8px 22px rgba(74,124,255,.3)}
+.cs-done{display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:2px 6px;border-radius:999px;background:rgba(74,222,128,.15);color:#4ADE80;font-style:normal;font-weight:800;font-size:10px;opacity:0;transform:scale(.7);transition:all .4s var(--ease) 1.6s}
+.cs.go .cs-done{opacity:1;transform:none}
+.cs-free{padding:10px 0;text-align:center;font-size:10.5px;color:var(--faint);border:1px dashed var(--line2);border-radius:10px}
+.cs-phone{position:absolute;right:-18px;bottom:-34px;width:250px;padding:12px;border-radius:20px;background:rgba(18,23,38,.95);border:1px solid rgba(110,139,255,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 24px 60px rgba(0,0,0,.55);animation:float 7s ease-in-out infinite}
+.cs-ph-h{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--soft);margin-bottom:8px}.cs-ph-h i{color:#8EA8FF;font-size:15px}
+.cs-ph-c{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:linear-gradient(135deg,#2C4FA8,#3A62C9)}
+.cs-ph-i{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);display:inline-flex;align-items:center;justify-content:center;font-size:18px}
+.cs-ph-c b{display:block;font-size:14px}.cs-ph-c small{font-size:11.5px;color:#DCE6FF}
+@media (max-width:980px){.c-sched .c-mg>div:first-child{order:2}.c-sched .cs-wrap{margin-bottom:40px}}
+@media (max-width:560px){.cs{padding:14px}.cs-grid{grid-template-columns:repeat(3,1fr)}.cs-c{display:none}.cs-c:nth-child(2),.cs-c:nth-child(3),.cs-c:nth-child(4){display:flex}
+  .cs-s{font-size:12px;padding:9px 8px}.cs-s time{font-size:12.5px}.cs-phone{position:relative;right:auto;bottom:auto;width:min(280px,100%);margin:-18px 10px 0 auto}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
 </style>
 </head>
@@ -938,7 +1049,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <a href="#features">Возможности</a><a href="#ai">AI-тренер</a><a href="#money">Деньги</a><a href="#start">Как начать</a><a href="#faq">Вопросы</a>
   </div>
   <div class="nav-links" data-for="coach">
-    <a href="#c-pain">Зачем</a><a href="#c-feat">Возможности</a><a href="#c-how">Как начать</a><a href="#c-morning">Сводка</a><a href="#c-faq">Вопросы</a>
+    <a href="#c-pain">Зачем</a><a href="#c-feat">Возможности</a><a href="#c-how">Как начать</a><a href="#c-morning">Сводка</a><a href="#c-sched">Расписание</a><a href="#start">Установка</a><a href="#c-faq">Вопросы</a>
   </div>
   <div class="sp"></div>
   <a class="btn btn-ghost btn-sm nav-login" href="./#/login" data-for="me">Войти</a>
@@ -1147,43 +1258,85 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   </div>
 </div></section>
 
-<!-- Живые примеры: деньги, привычки, цели -->
+<!-- Живые примеры: деньги, привычки, цели, расписание -->
 <section class="demos" id="demos" data-for="me"><div class="wrap">
-  <div class="center"><span class="eyebrow">Деньги, привычки, цели</span><h2 class="rv">Как это выглядит <span class="grad-t">каждый день</span></h2></div>
-  <div class="dm-grid">
-    <div class="dm dm-fin rv" id="dm-fin">
-      <div class="dm-h"><span class="dm-ic"><i class="ti ti-wallet"></i></span><div><b>Деньги</b><small>гибче, чем в банке</small></div></div>
-      <div class="fd-top"><small>Свободно до 31 октября</small><b id="fd-free">38 400 ₽</b>
-        <div class="fd-bar"><span id="fd-bar"></span></div><div class="fd-r"><span>Сегодня</span><b id="fd-tod">420 ₽ из 1 600 ₽</b></div></div>
-      <div class="fd-in"><span id="fd-typing"></span><i class="ti ti-check"></i></div>
-      <div class="fd-list" id="fd-list">
-        <div class="fd-it"><span class="fd-c" style="--c:#60A5FA">Т</span><span>Такси<small>Транспорт</small></span><b>−420 ₽</b></div>
-      </div>
-      <div class="fd-ask" id="fd-ask"><div class="q">Сколько я трачу на кафе за год?</div><div class="a">Около <b>76 800 ₽</b>. Это почти вся цель «Отпуск» на 90 000 ₽.</div></div>
-      <ul class="dm-pts"><li>Трата одной строкой, категория подберётся сама</li><li>Копилка откладывает процент с каждого дохода</li><li>Платежи по датам и напоминания</li></ul>
+  <div class="center"><span class="eyebrow">Каждый день</span><h2 class="rv">Как это выглядит <span class="grad-t">каждый день</span></h2></div>
+  <div class="dx dx-fin">
+    <div class="dx-t">
+      <span class="dx-tag"><i class="ti ti-wallet"></i>Деньги</span>
+      <h3 class="rv">Деньги <span class="grad-t">гибче, чем в банке</span></h3>
+      <p class="sec-lead rv">Видно, сколько можно потратить сегодня, чтобы дожить до зарплаты и отложить. Трата записывается одной строкой, а помощник отвечает по твоим цифрам.</p>
+      <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-pencil-bolt"></i><b>Трата одной строкой</b><span>«такси 350+420», категория подберётся сама</span></div><div class="ai-feat"><i class="ti ti-pig-money"></i><b>Копилка</b><span>Откладывает процент с каждого дохода. Снять можно только после честной проверки</span></div><div class="ai-feat"><i class="ti ti-calendar-dollar"></i><b>Платежи по датам</b><span>Аренда, кредит, подписки. Напомнит в календаре телефона</span></div><div class="ai-feat"><i class="ti ti-sparkles"></i><b>Помощник по деньгам</b><span>«Сколько я трачу на кафе?» Посчитает по твоим тратам</span></div></div>
     </div>
-    <div class="dm dm-hab rv" id="dm-hab">
-      <div class="dm-h"><span class="dm-ic"><i class="ti ti-flame"></i></span><div><b>Привычки</b><small>серия, которую жалко прервать</small></div></div>
-      <div class="hb-streak" id="hb-streak"><div class="hb-fire"><i class="ti ti-flame"></i></div><div><b><span id="hb-n">46</span> дней подряд</b><small id="hb-s">Отметь больше половины, чтобы продлить</small></div></div>
-      <div class="hb-week" id="hb-week"></div>
-      <div class="hb-list" id="hb-list">
-        <button class="hb-row on"><i class="ti ti-sun"></i><span>Витамины утром</span><em></em></button>
-        <button class="hb-row"><i class="ti ti-book"></i><span>Читать 20 минут</span><em></em></button>
-        <button class="hb-row"><i class="ti ti-droplet"></i><span>Вода 2 литра</span><em></em></button>
-        <button class="hb-row"><i class="ti ti-moon"></i><span>Сон до 23:30</span><em></em></button>
-      </div>
-      <div class="hb-tip">Нажми на привычку</div>
-      <ul class="dm-pts"><li>Каждый день, по будням или 3 раза в неделю</li><li>Процент за месяц показывает, что подтянуть</li><li>Колесо жизни раз в месяц</li></ul>
+    <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
+      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-wallet"></i>Расходы<span>до зарплаты</span></div>
+        <div class="dx-body" id="dm-fin">
+          <div class="fd-top"><small>Свободно до 31 октября</small><b id="fd-free">38 400 ₽</b>
+            <div class="fd-bar"><span id="fd-bar"></span></div><div class="fd-r"><span>Сегодня</span><b id="fd-tod">420 ₽ из 1 600 ₽</b></div></div>
+          <div class="fd-in"><span id="fd-typing"></span><i class="ti ti-check"></i></div>
+          <div class="fd-list" id="fd-list"><div class="fd-it"><span class="fd-c" style="--c:#60A5FA">Т</span><span>Такси<small>Транспорт</small></span><b>−420 ₽</b></div></div>
+        </div></div></div>
+      <div class="dx-float dx-f-ask fd-ask" id="fd-ask"><div class="dx-fh"><i class="ti ti-sparkles"></i>Помощник</div><div class="q">Сколько я трачу на кафе за год?</div><div class="a">Около <b>76 800 ₽</b>. Это почти вся цель «Отпуск» на 90 000 ₽.</div></div>
     </div>
-    <div class="dm dm-goal rv" id="dm-goal">
-      <div class="dm-h"><span class="dm-ic"><i class="ti ti-target-arrow"></i></span><div><b>Цели</b><small>связаны с деньгами</small></div></div>
-      <div class="gl-list">
-        <div class="gl"><div class="gl-t"><span>Отпуск</span><b>90 000 ₽</b></div><div class="gl-bar"><span style="--w:42%"></span></div><div class="gl-s"><span>к маю</span><em>12 900 ₽ в месяц</em></div></div>
-        <div class="gl"><div class="gl-t"><span>Новый ноутбук</span><b>150 000 ₽</b></div><div class="gl-bar"><span style="--w:18%"></span></div><div class="gl-s"><span>к декабрю</span><em>41 000 ₽ в месяц</em></div></div>
-        <div class="gl"><div class="gl-t"><span>Стоматолог</span><b>20 000 ₽</b></div><div class="gl-bar"><span style="--w:100%"></span></div><div class="gl-s"><span>оплачено</span><em class="ok"><i class="ti ti-check"></i>закрыта</em></div></div>
-      </div>
-      <div class="gl-pay" id="gl-pay"><i class="ti ti-calendar-dollar"></i><div><b>«Отпуск» в платежах</b><small>напомню 1 мая, в «Свободно» учтётся</small></div></div>
-      <ul class="dm-pts"><li>Цели по сезонам и месяцам с суммами</li><li>Цель одной кнопкой уходит в платежи</li><li>Оплатил платёж, цель закрылась сама</li></ul>
+  </div>
+  <div class="dx rev dx-hab">
+    <div class="dx-t">
+      <span class="dx-tag"><i class="ti ti-flame"></i>Привычки</span>
+      <h3 class="rv">Серия, <span class="grad-t">которую жалко прервать</span></h3>
+      <p class="sec-lead rv">Отмечаешь привычки одним нажатием, а серия дней растёт. День засчитан, если сделано больше половины. За 7, 30 и 100 дней награды.</p>
+      <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-flame"></i><b>Серия дней</b><span>Огонь загорается, когда день засчитан. Рекорд виден всегда</span></div><div class="ai-feat"><i class="ti ti-calendar-repeat"></i><b>Своё расписание</b><span>Каждый день, по будням или 3 раза в неделю</span></div><div class="ai-feat"><i class="ti ti-chart-donut"></i><b>Процент за месяц</b><span>Сразу видно, какая привычка проседает</span></div><div class="ai-feat"><i class="ti ti-chart-radar"></i><b>Колесо жизни</b><span>Раз в месяц оцениваешь 8 сфер и видишь, где расти</span></div></div>
+    </div>
+    <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
+      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-checklist"></i>Привычки<span>октябрь</span></div>
+        <div class="dx-body" id="dm-hab">
+          <div class="hb-streak" id="hb-streak"><div class="hb-fire"><i class="ti ti-flame"></i></div><div><b><span id="hb-n">46</span> дней подряд</b><small id="hb-s">Отметь больше половины, чтобы продлить</small></div></div>
+          <div class="hb-week" id="hb-week"></div>
+          <div class="hb-list" id="hb-list">
+            <button class="hb-row on"><i class="ti ti-sun"></i><span>Витамины утром</span><em></em></button>
+            <button class="hb-row"><i class="ti ti-book"></i><span>Читать 20 минут</span><em></em></button>
+            <button class="hb-row"><i class="ti ti-droplet"></i><span>Вода 2 литра</span><em></em></button>
+            <button class="hb-row"><i class="ti ti-moon"></i><span>Сон до 23:30</span><em></em></button>
+          </div>
+          <div class="hb-tip">Нажми на привычку</div>
+        </div></div></div>
+      <div class="dx-float dx-f-goal"><div class="dx-fh"><i class="ti ti-award"></i>Следующая награда</div><div class="dx-fg"><b>Полсотни</b><em>47 / 50</em></div><div class="dx-fbar"><span></span></div><div class="dx-badges"><span class="got">7</span><span class="got">14</span><span class="got">30</span><span class="nx">50</span><span>100</span></div></div>
+    </div>
+  </div>
+  <div class="dx dx-goal">
+    <div class="dx-t">
+      <span class="dx-tag"><i class="ti ti-target-arrow"></i>Цели</span>
+      <h3 class="rv">Цели <span class="grad-t">связаны с деньгами</span></h3>
+      <p class="sec-lead rv">Не список в заметках, а план: сколько стоит, к какому месяцу и сколько откладывать. Цель одной кнопкой становится платежом и учитывается в бюджете.</p>
+      <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-calendar-month"></i><b>По сезонам и месяцам</b><span>Отпуск к маю, ноутбук к декабрю, у каждой цели сумма</span></div><div class="ai-feat"><i class="ti ti-calculator"></i><b>Сколько в месяц</b><span>Посчитает, сколько откладывать, чтобы успеть</span></div><div class="ai-feat"><i class="ti ti-calendar-dollar"></i><b>Цель в платежи</b><span>Выбираешь дату, и сумма учтётся в «Свободно»</span></div><div class="ai-feat"><i class="ti ti-circle-check"></i><b>Закрывается сама</b><span>Оплатил платёж, цель отмечена выполненной</span></div></div>
+    </div>
+    <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
+      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-target-arrow"></i>Цели 2026<span>403 000 ₽</span></div>
+        <div class="dx-body" id="dm-goal">
+          <div class="gl-list">
+            <div class="gl"><div class="gl-t"><span>Отпуск</span><b>90 000 ₽</b></div><div class="gl-bar"><span style="--w:42%"></span></div><div class="gl-s"><span>к маю</span><em>12 900 ₽ в месяц</em></div></div>
+            <div class="gl"><div class="gl-t"><span>Новый ноутбук</span><b>150 000 ₽</b></div><div class="gl-bar"><span style="--w:18%"></span></div><div class="gl-s"><span>к декабрю</span><em>41 000 ₽ в месяц</em></div></div>
+            <div class="gl"><div class="gl-t"><span>Стоматолог</span><b>20 000 ₽</b></div><div class="gl-bar"><span style="--w:100%"></span></div><div class="gl-s"><span>оплачено</span><em class="ok"><i class="ti ti-check"></i>закрыта</em></div></div>
+            <div class="gl"><div class="gl-t"><span>Горнолыжный сезон</span><b>90 000 ₽</b></div><div class="gl-bar"><span style="--w:8%"></span></div><div class="gl-s"><span>к зиме</span><em>22 500 ₽ в месяц</em></div></div>
+          </div>
+        </div></div></div>
+      <div class="dx-float gl-pay" id="gl-pay"><i class="ti ti-calendar-dollar"></i><div><b>«Отпуск» в платежах</b><small>1 мая, в «Свободно» учтётся</small></div></div>
+    </div>
+  </div>
+  <div class="dx rev dx-cal">
+    <div class="dx-t">
+      <span class="dx-tag"><i class="ti ti-calendar-week"></i>Расписание</span>
+      <h3 class="rv">Вся неделя <span class="grad-t">в одном календаре</span></h3>
+      <p class="sec-lead rv">Тренировки, время с тренером, платежи и цели по дням. Утром открываешь приложение и видишь, что сегодня, а напоминания приходят в календарь телефона.</p>
+      <div class="ai-feats rv"><div class="ai-feat"><i class="ti ti-barbell"></i><b>Тренировки по дням</b><span>План на неделю, тренировку можно перенести на другой день</span></div><div class="ai-feat"><i class="ti ti-user-star"></i><b>Время от тренера</b><span>Тренер ставит запись, у тебя в плане и на главной «С тренером в 18:30»</span></div><div class="ai-feat"><i class="ti ti-bell"></i><b>Платежи в календаре</b><span>Напоминание о платеже прямо в календарь телефона</span></div><div class="ai-feat"><i class="ti ti-layout-dashboard"></i><b>Фокус дня</b><span>На главной сразу видно, что сегодня по тренировкам, привычкам и деньгам</span></div></div>
+    </div>
+    <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
+      <div class="phone float"><div class="scr dx-scr"><div class="dx-top"><i class="ti ti-calendar-week"></i>Неделя<span>5–11 октября</span></div>
+        <div class="dx-body" id="dm-cal">
+          <div class="cl-strip" id="cl-strip"></div>
+          <div class="cl-day" id="cl-day"></div>
+          <div class="cl-list" id="cl-list"></div>
+        </div></div></div>
+      <div class="dx-float dx-f-note" id="cl-note"><img src="icon.png" alt=""><div><b>YOU · напоминание</b><span>Завтра аренда 35 000 ₽</span></div><small>сейчас</small></div>
     </div>
   </div>
 </div></section>
@@ -1208,6 +1361,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 <section class="coach-sec" id="c-feat" data-for="coach"><div class="wrap ai-grid">
   <div class="orbit rv" id="orbit" aria-label="Клиенты вокруг кабинета тренера">
     <div class="ring"></div><div class="ring r2"></div>
+    <div class="orb-plane" id="orb-plane"><i></i><i></i><i></i></div>
     <div class="orb-spin">
       <div class="orb-n" style="--a:-90deg;--c:#4A7CFF"><div><span class="av">А</span><span><b>Алексей</b><small>рекорд: жим 85×8</small></span></div></div>
       <div class="orb-n" style="--a:-30deg;--c:#34D399"><div><span class="av">М</span><span><b>Мария</b><small>сделала ноги</small></span></div></div>
@@ -1266,6 +1420,27 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="cf"><span class="cf-av" style="--c:#F87171">О</span><span class="cf-t"><b>Олег</b><small>не был 5 дней</small></span><em class="cf-tag w"><i class="ti ti-alert-triangle"></i>написать</em></div>
       <div class="cf"><span class="cf-av" style="--c:#2DD4BF">И</span><span class="cf-t"><b>Ирина</b><small>замеры: талия −2 см</small></span><em class="cf-tag c"><i class="ti ti-ruler-measure"></i>замеры</em></div>
     </div>
+  </div>
+</div></section>
+
+<section class="c-sched" id="c-sched" data-for="coach"><div class="wrap c-mg">
+  <div class="cs-wrap rv rv-l">
+    <div class="cs" id="cs">
+      <div class="cs-top"><div><b>Расписание</b><span>5–11 октября · 11 записей</span></div><span class="cs-add"><i class="ti ti-plus"></i>Запись</span></div>
+      <div class="cs-grid"><div class="cs-c"><div class="cs-h">Пн<b>5</b></div><div class="cs-s" style="--c:#4A7CFF;--i:1"><time>09:00</time><b>Алексей</b><i class="ti ti-repeat"></i></div><div class="cs-s" style="--c:#34D399;--i:2"><time>18:00</time><b>Мария</b><i class="ti ti-repeat"></i></div></div><div class="cs-c"><div class="cs-h">Вт<b>6</b></div><div class="cs-s" style="--c:#F2A93B;--i:3"><time>10:00</time><b>Игорь</b></div><div class="cs-s trial" style="--c:#2DD4BF;--i:4"><time>19:30</time><b>Ирина</b><small class="cs-tr">проба</small></div></div><div class="cs-c today"><div class="cs-h">Ср<b>7</b></div><div class="cs-s" style="--c:#F87171;--i:5"><time>08:00</time><b>Олег</b><i class="ti ti-repeat"></i></div><div class="cs-s now" style="--c:#4A7CFF;--i:6"><time>18:30</time><b>Алексей</b><i class="ti ti-repeat"></i><em class="cs-done"><i class="ti ti-check"></i>провёл</em></div></div><div class="cs-c"><div class="cs-h">Чт<b>8</b></div><div class="cs-s" style="--c:#34D399;--i:7"><time>18:00</time><b>Мария</b><i class="ti ti-repeat"></i></div></div><div class="cs-c"><div class="cs-h">Пт<b>9</b></div><div class="cs-s" style="--c:#4A7CFF;--i:8"><time>09:00</time><b>Алексей</b><i class="ti ti-repeat"></i></div><div class="cs-s" style="--c:#A78BFA;--i:9"><time>17:00</time><b>Дима</b></div></div><div class="cs-c"><div class="cs-h">Сб<b>10</b></div><div class="cs-s" style="--c:#C084FC;--i:10"><time>11:00</time><b>Ева</b></div></div><div class="cs-c"><div class="cs-h">Вс<b>11</b></div><div class="cs-free">свободно</div></div></div>
+    </div>
+    <div class="cs-phone"><div class="cs-ph-h"><i class="ti ti-device-mobile"></i>У Алексея в YOU</div><div class="cs-ph-c"><span class="cs-ph-i"><i class="ti ti-user-star"></i></span><div><b>С тренером в 18:30</b><small>сегодня · ноги, зал</small></div></div></div>
+  </div>
+  <div>
+    <span class="eyebrow">Расписание</span>
+    <h2 class="rv">Вся неделя<br><span class="grad-t">в одном календаре</span></h2>
+    <p class="sec-lead rv">Записи со временем и длительностью, повтор каждую неделю. Клиент сразу видит время у себя в плане и на главном экране, напоминать в мессенджере не нужно.</p>
+    <ul class="story-list rv">
+      <li><i class="ti ti-repeat"></i>Повтор каждую неделю, одну дату можно пропустить</li>
+      <li><i class="ti ti-user-plus"></i>Запись на клиента из списка или просто по имени</li>
+      <li><i class="ti ti-device-mobile"></i>У клиента «С тренером в 18:30» в плане и на главной</li>
+      <li><i class="ti ti-circle-check"></i>Отметка «Провёл тренировку» прямо в записи</li>
+    </ul>
   </div>
 </div></section>
 
@@ -1386,11 +1561,11 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 </div></section>
 
 <!-- Установка: наглядно -->
-<section id="start" data-for="me"><div class="wrap">
+<section id="start"><div class="wrap">
   <div class="center">
     <span class="eyebrow">Установка</span>
-    <h2 class="rv">На экран телефона за минуту</h2>
-    <p class="sec-lead rv">Без App Store и скачиваний. Приложение ставится прямо из браузера и открывается с иконки, как обычное.</p>
+    <h2 class="rv"><span data-for="me">На экран телефона за минуту</span><span data-for="coach">Кабинет на экран телефона за минуту</span></h2>
+    <p class="sec-lead rv"><span data-for="me">Без App Store и скачиваний. Приложение ставится прямо из браузера и открывается с иконки, как обычное.</span><span data-for="coach">Без App Store и скачиваний. Откройте you-app.ru/coach в браузере телефона и добавьте на экран: появится отдельная иконка «YOU Тренер».</span></p>
     <div class="os-switch rv" id="os-switch" role="tablist">
       <button class="on" data-os="ios"><i class="ti ti-brand-apple"></i> iPhone</button>
       <button data-os="android"><i class="ti ti-brand-android"></i> Android</button>
@@ -1406,14 +1581,14 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
         <!-- iPhone -->
         <div class="sc ios" data-s="0">
           <div class="st-bar"><span>9:41</span><span><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
-          <div class="mini-site"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span><em>Получить приложение</em><div class="ms-shot"><img src="img/landing/home_dark.webp?v=3" alt=""></div></div>
-          <div class="safari-bar"><div class="url"><i class="ti ti-lock"></i> you-app.ru</div><div class="tools"><i class="ti ti-chevron-left"></i><i class="ti ti-chevron-right"></i><i class="ti ti-share-2 hot" id="t-ios-share"><span class="tap"></span></i><i class="ti ti-book"></i><i class="ti ti-copy"></i></div></div>
+          <div class="mini-site"><img class="ins-ic" src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span><em>Получить приложение</em><div class="ms-shot"><img src="img/landing/home_dark.webp?v=3" alt=""></div></div>
+          <div class="safari-bar"><div class="url"><i class="ti ti-lock"></i> <span class="ins-url">you-app.ru</span></div><div class="tools"><i class="ti ti-chevron-left"></i><i class="ti ti-chevron-right"></i><i class="ti ti-share-2 hot" id="t-ios-share"><span class="tap"></span></i><i class="ti ti-book"></i><i class="ti ti-copy"></i></div></div>
         </div>
         <div class="sc ios" data-s="1">
           <div class="st-bar"><span>9:41</span><span><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
-          <div class="mini-site dim"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
+          <div class="mini-site dim"><img class="ins-ic" src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
           <div class="sheet">
-            <div class="sh-head"><img src="icon.png" alt=""><div><b>YOU</b><small>you-app.ru</small></div><span class="sh-x">×</span></div>
+            <div class="sh-head"><img class="ins-ic" src="icon.png" alt=""><div><b class="ins-name">YOU</b><small class="ins-url">you-app.ru</small></div><span class="sh-x">×</span></div>
             <div class="sh-apps"><span style="--c:#2F7CF6"><i class="ti ti-wifi"></i></span><span style="--c:#34C759"><i class="ti ti-message-circle"></i></span><span style="--c:#2AABEE"><i class="ti ti-brand-telegram"></i></span><span style="--c:#3478F6"><i class="ti ti-mail"></i></span></div>
             <div class="sh-list"><div>Скопировать<i class="ti ti-copy"></i></div><div>Добавить в избранное<i class="ti ti-star"></i></div><div class="hot">На экран «Домой»<i class="ti ti-square-plus"></i><span class="tap"></span></div><div>Добавить закладку<i class="ti ti-book"></i></div></div>
           </div>
@@ -1421,7 +1596,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
         <div class="sc ios" data-s="2">
           <div class="st-bar"><span>9:41</span><span><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
           <div class="add-top"><span>Отменить</span><b>На экран «Домой»</b><span class="hot-t">Добавить<span class="tap"></span></span></div>
-          <div class="add-card"><img src="icon.png" alt=""><div><div class="add-name">YOU<span class="caret"></span></div><small>you-app.ru</small></div></div>
+          <div class="add-card"><img class="ins-ic" src="icon.png" alt=""><div><div class="add-name"><span class="ins-name">YOU</span><span class="caret"></span></div><small class="ins-url">you-app.ru</small></div></div>
           <p class="add-note">На экране «Домой» появится значок для быстрого доступа к этому сайту.</p>
           <div class="kbd"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
         </div>
@@ -1429,20 +1604,20 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
         <!-- Android -->
         <div class="sc android" data-s="0">
           <div class="st-bar"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
-          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> you-app.ru</div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical hot"><span class="tap"></span></i></div>
-          <div class="mini-site"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span><em>Получить приложение</em><div class="ms-shot"><img src="img/landing/home_dark.webp?v=3" alt=""></div></div>
+          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> <span class="ins-url">you-app.ru</span></div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical hot"><span class="tap"></span></i></div>
+          <div class="mini-site"><img class="ins-ic" src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span><em>Получить приложение</em><div class="ms-shot"><img src="img/landing/home_dark.webp?v=3" alt=""></div></div>
         </div>
         <div class="sc android" data-s="1">
           <div class="st-bar"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
-          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> you-app.ru</div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical"></i></div>
-          <div class="mini-site dim"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
+          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> <span class="ins-url">you-app.ru</span></div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical"></i></div>
+          <div class="mini-site dim"><img class="ins-ic" src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
           <div class="a-menu"><div><i class="ti ti-plus"></i>Новая вкладка</div><div><i class="ti ti-history"></i>История</div><div><i class="ti ti-download"></i>Скачанные файлы</div><div><i class="ti ti-share"></i>Поделиться</div><div class="hot"><i class="ti ti-device-mobile-plus"></i>Установить приложение<span class="tap"></span></div><div><i class="ti ti-settings"></i>Настройки</div></div>
         </div>
         <div class="sc android" data-s="2">
           <div class="st-bar"><span>9:41</span><span><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
-          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> you-app.ru</div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical"></i></div>
-          <div class="mini-site dim"><img src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
-          <div class="a-dialog"><b>Установить приложение?</b><div class="ad-app"><img src="icon.png" alt=""><div><b>YOU</b><small>you-app.ru</small></div></div><div class="ad-btns"><span>Отмена</span><span class="hot-t">Установить<span class="tap"></span></span></div></div>
+          <div class="chrome-bar"><i class="ti ti-home"></i><div class="url"><i class="ti ti-lock"></i> <span class="ins-url">you-app.ru</span></div><i class="ti ti-square-number-1"></i><i class="ti ti-dots-vertical"></i></div>
+          <div class="mini-site dim"><img class="ins-ic" src="icon.png" alt=""><b>Тренировки, привычки, деньги</b><span class="grad-t">в одном месте.</span></div>
+          <div class="a-dialog"><b>Установить приложение?</b><div class="ad-app"><img class="ins-ic" src="icon.png" alt=""><div><b class="ins-name">YOU</b><small class="ins-url">you-app.ru</small></div></div><div class="ad-btns"><span>Отмена</span><span class="hot-t">Установить<span class="tap"></span></span></div></div>
         </div>
 
         <!-- Общий финал: иконка на экране -->
@@ -1452,16 +1627,16 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
             <span style="--c:#34C759"><i class="ti ti-phone"></i></span><span style="--c:#2F7CF6"><i class="ti ti-message-circle"></i></span><span style="--c:#FF9500"><i class="ti ti-photo"></i></span><span style="--c:#8E8E93"><i class="ti ti-settings"></i></span>
             <span style="--c:#FF2D55"><i class="ti ti-music"></i></span><span style="--c:#5856D6"><i class="ti ti-calendar"></i></span><span style="--c:#2AABEE"><i class="ti ti-brand-telegram"></i></span><span style="--c:#FFCC00"><i class="ti ti-notes"></i></span>
             <span style="--c:#30B0C7"><i class="ti ti-cloud"></i></span><span style="--c:#FF3B30"><i class="ti ti-heart"></i></span><span style="--c:#34C759"><i class="ti ti-map-pin"></i></span>
-            <span class="you"><img src="icon.png" alt=""><em>YOU</em></span>
+            <span class="you"><img class="ins-ic" src="icon.png" alt=""><em class="ins-name">YOU</em></span>
           </div>
           <div class="home-dock"><span style="--c:#34C759"><i class="ti ti-phone"></i></span><span style="--c:#2F7CF6"><i class="ti ti-world"></i></span><span style="--c:#34C759"><i class="ti ti-message"></i></span><span style="--c:#FF9500"><i class="ti ti-camera"></i></span></div>
-          <div class="home-toast"><img src="icon.png" alt=""><div><b>YOU установлено</b><small>Открывается с иконки, без адресной строки</small></div></div>
+          <div class="home-toast"><img class="ins-ic" src="icon.png" alt=""><div><b><span class="ins-name">YOU</span> установлено</b><small>Открывается с иконки, без адресной строки</small></div></div>
         </div>
 
       </div></div>
     </div>
   </div>
-  <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Начать бесплатно</a></div>
+  <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Начать бесплатно</a><a class="btn btn-main mag" href="coach.html" data-for="coach"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
 </div></section>
 
 <!-- CTA -->
@@ -1626,26 +1801,32 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 
   /* ── Установка: пошаговая демонстрация ── */
   (function(){
-    var STEPS={
+    var isCoach=function(){ return document.body.classList.contains('for-coach'); };
+    function insName(){ return isCoach() ? '«YOU Тренер»' : 'YOU'; }
+    function mkSteps(){ var c = isCoach(), u = c ? 'you-app.ru/coach' : 'you-app.ru';
+      var W = c ? { open: 'Откройте ', press: 'нажмите ', pick: 'Выберите ', scroll: 'Пролистайте список и нажмите ', ok: 'Подтвердите', name: 'Имя можно оставить.' }
+                : { open: 'Открой ', press: 'нажми ', pick: 'Выбери ', scroll: 'Пролистай список и нажми ', ok: 'Подтверди', name: 'Имя можно оставить.' };
+      var cap = function(t){ return t[0].toUpperCase() + t.slice(1); };
+      return {
       ios:[
-        ['Открой сайт в Safari','Внизу нажми <span class="kw"><i class="ti ti-share-2"></i> Поделиться</span>. Нужен именно Safari.'],
-        ['Выбери пункт в меню','Пролистай список и нажми <span class="kw">На экран «Домой»</span>.'],
-        ['Подтверди','Справа вверху нажми <span class="kw">Добавить</span>. Имя можно оставить.'],
-        ['Готово','Иконка YOU на экране. Открывается на весь экран, без адресной строки.']
+        [W.open + u + ' в Safari', 'Внизу ' + W.press + '<span class="kw"><i class="ti ti-share-2"></i> Поделиться</span>. Нужен именно Safari.'],
+        [W.pick + 'пункт в меню', W.scroll + '<span class="kw">На экран «Домой»</span>.'],
+        [W.ok, 'Справа вверху ' + W.press + '<span class="kw">Добавить</span>. ' + W.name],
+        ['Готово','Иконка '+insName()+' на экране. Открывается на весь экран, без адресной строки.']
       ],
       android:[
-        ['Открой сайт в Chrome','Справа вверху нажми <span class="kw"><i class="ti ti-dots-vertical"></i> меню</span>.'],
-        ['Выбери установку','Нажми <span class="kw">Установить приложение</span> или «Добавить на гл. экран».'],
-        ['Подтверди','В окне нажми <span class="kw">Установить</span>.'],
-        ['Готово','Иконка YOU на экране и в списке приложений. Открывается как обычное.']
+        [W.open + u + ' в Chrome', 'Справа вверху ' + W.press + '<span class="kw"><i class="ti ti-dots-vertical"></i> меню</span>.'],
+        [W.pick + 'установку', cap(W.press) + '<span class="kw">Установить приложение</span> или «Добавить на гл. экран».'],
+        [W.ok, 'В окне ' + W.press + '<span class="kw">Установить</span>.'],
+        ['Готово','Иконка '+insName()+' на экране и в списке приложений. Открывается как обычное.']
       ]
-    };
+    }; }
     var os=/android/i.test(navigator.userAgent)?'android':'ios', cur=0, timer=null, DUR=3600, visible=false;
     var list=document.getElementById('ins-steps'), ins=document.querySelector('.ins'), sw=document.getElementById('os-switch');
     function renderSteps(){
-      list.innerHTML=STEPS[os].map(function(s,i){return '<li data-i="'+i+'"><span class="n">'+(i+1)+'</span><div><b>'+s[0]+'</b><p>'+s[1]+'</p></div><span class="bar"></span></li>';}).join('');
+      list.innerHTML=mkSteps()[os].map(function(s,i){return '<li data-i="'+i+'"><span class="n">'+(i+1)+'</span><div><b>'+s[0]+'</b><p>'+s[1]+'</p></div><span class="bar"></span></li>';}).join('');
       [].forEach.call(list.children,function(li){ li.addEventListener('click',function(){ go(+li.dataset.i,true); }); });
-      var dots=document.getElementById('ins-dots'); dots.innerHTML=STEPS[os].map(function(_,i){return '<button data-i="'+i+'" aria-label="Шаг '+(i+1)+'"></button>';}).join('');
+      var dots=document.getElementById('ins-dots'); dots.innerHTML=mkSteps()[os].map(function(_,i){return '<button data-i="'+i+'" aria-label="Шаг '+(i+1)+'"></button>';}).join('');
       [].forEach.call(dots.children,function(b){ b.addEventListener('click',function(){ go(+b.dataset.i,true); }); });
     }
     function go(i,user){
@@ -1667,7 +1848,14 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     }
     sw.querySelectorAll('button').forEach(function(b){ b.addEventListener('click',function(){ setOs(b.dataset.os); }); });
     new IntersectionObserver(function(es){ visible=es[0].isIntersecting; list.classList.toggle('paused',!visible); if(visible) go(cur); else clearTimeout(timer); },{threshold:.35}).observe(ins);
-    setOs(os);
+    /* режим «для тренеров»: адрес /coach, иконка и имя «YOU Тренер» */
+    function insMode(){ var c = isCoach();
+      document.querySelectorAll('#start .ins-url').forEach(function(e){ e.textContent = c ? 'you-app.ru/coach' : 'you-app.ru'; });
+      document.querySelectorAll('#start .ins-name').forEach(function(e){ e.textContent = c ? 'YOU Тренер' : 'YOU'; });
+      document.querySelectorAll('#start .ins-ic').forEach(function(e){ e.src = c ? 'img/fav/coach-180.png' : 'icon.png'; });
+      renderSteps(); go(0, true); }
+    window.addEventListener('you-mode', insMode);
+    setOs(os); insMode();
   })();
 
   /* Живой счётчик мест: читаем из базы (публично доступны только эти два числа) */
@@ -1704,6 +1892,9 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   var KEY='you_site_mode';
   function set(m, scroll){
     document.body.classList.toggle('for-coach', m==='coach');
+    /* установка: у тренеров перед блоком «Бесплатно», у остальных перед призывом */
+    var st=document.getElementById('start'), anchor=document.getElementById(m==='coach'?'c-price':'get'); if(st&&anchor) anchor.parentNode.insertBefore(st, anchor);
+    window.dispatchEvent(new Event('you-mode'));
     document.querySelectorAll('.modesw button').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===m); });
     try{ localStorage.setItem(KEY,m); }catch(e){}
     var u=new URL(location.href); if(m==='coach') u.searchParams.set('for','coach'); else u.searchParams.delete('for'); history.replaceState(null,'',u.pathname+u.search+(location.hash&&location.hash!=='#coach'?location.hash:''));
@@ -1800,9 +1991,14 @@ if(t&&/^[A-Za-z0-9_-]{2,64}$/.test(t))localStorage.setItem('you_tref',t);}catch(
   var orbit = document.getElementById('orbit');
   if (orbit) { var ns = [].slice.call(orbit.querySelectorAll('.orb-n')), j = 0, oi = null, raf = null, ang = 0, last = 0;
     /* клиенты плывут по эллипсу, который влезает в ширину экрана; подписи всегда ровно */
+    /* 3D: клиенты идут по наклонённому кольцу, ближние крупнее и поверх кабинета, дальние меньше и тусклее */
+    var plane = document.getElementById('orb-plane');
     function place(){ var W = orbit.clientWidth, H = orbit.clientHeight, mw = 0; ns.forEach(function(n){ mw = Math.max(mw, n.firstElementChild.offsetWidth); });
-      var rx = Math.max(60, W / 2 - mw / 2 - 6), ry = Math.max(60, H / 2 - 26);
-      ns.forEach(function(n, q){ var a = ang + q / ns.length * Math.PI * 2 - Math.PI / 2; n.style.transform = 'translate(' + (Math.cos(a) * rx).toFixed(1) + 'px,' + (Math.sin(a) * ry).toFixed(1) + 'px)'; }); }
+      var rx = Math.max(60, W / 2 - mw / 2 - 6), k = innerWidth < 700 ? .9 : .42, ry = Math.max(50, Math.min(H / 2 - 30, rx * k));
+      if (plane) { plane.style.width = (rx * 2) + 'px'; plane.style.transform = 'translate(-50%,-50%) rotateX(' + Math.acos(Math.min(.99, ry / rx)).toFixed(3) + 'rad)'; }
+      ns.forEach(function(n, q){ var a = ang + q / ns.length * Math.PI * 2 - Math.PI / 2, z = Math.sin(a), d = (z + 1) / 2;
+        n.style.transform = 'translate(' + (Math.cos(a) * rx).toFixed(1) + 'px,' + (Math.sin(a) * ry).toFixed(1) + 'px) scale(' + (.8 + .2 * d).toFixed(3) + ')';
+        n.style.opacity = (.5 + .5 * d).toFixed(2); n.style.filter = z < -.55 ? 'blur(.7px)' : ''; n.classList.toggle('front', z > -.1); }); }
     function loop(t){ if (last) ang += Math.min(50, t - last) / 1000 * 0.09; last = t; place(); raf = requestAnimationFrame(loop); }
     place(); addEventListener('resize', place);
     new IntersectionObserver(function(es){ es.forEach(function(e){
@@ -1851,6 +2047,32 @@ if(t&&/^[A-Za-z0-9_-]{2,64}$/.test(t))localStorage.setItem('you_tref',t);}catch(
     /* если никто не нажимает, отмечаем сами: так видно, как загорается огонь */
     new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting || touched || reduce) return; [1, 2].forEach(function(k, q){ setTimeout(function(){ if (touched) return; rows[k].classList.add('on'); hbDraw(); }, 1200 + q * 900); }); }); }, { threshold: .5 }).observe(hb);
   }
+
+  /* ── Расписание: неделя листается сама, по дням тренировки, тренер, платежи ── */
+  var cal = document.getElementById('dm-cal');
+  if (cal) {
+    var CD = [['Пн', 5, 'понедельник', [['07:30', 'Привычки утра', 'ti-checklist', '#4ADE80', 'витамины, вода'], ['19:00', 'Грудь + руки', 'ti-barbell', '#60A5FA', 'зал, 5 упражнений']]],
+      ['Вт', 6, 'вторник', [['', 'Аренда 35 000 ₽', 'ti-calendar-dollar', '#A78BFA', 'платёж, напоминание в календаре']]],
+      ['Ср', 7, 'среда', [['18:30', 'С тренером: ноги', 'ti-user-star', '#60A5FA', 'Анна Смирнова · зал'], ['', 'Подписки 1 200 ₽', 'ti-calendar-dollar', '#A78BFA', 'платёж']]],
+      ['Чт', 8, 'четверг', [['', 'Отдых', 'ti-zzz', '#8A8F9C', 'восстановление']]],
+      ['Пт', 9, 'пятница', [['19:00', 'Спина + плечи', 'ti-barbell', '#60A5FA', 'зал, вес вверх в тяге'], ['', 'Отложить на «Отпуск»', 'ti-target-arrow', '#F2A93B', '12 900 ₽ в этом месяце']]],
+      ['Сб', 10, 'суббота', [['11:00', 'Теннис', 'ti-ball-tennis', '#60A5FA', '75 минут']]],
+      ['Вс', 11, 'воскресенье', [['20:00', 'Записать траты за неделю', 'ti-bell', '#A78BFA', 'напоминание']]]];
+    var strip = document.getElementById('cl-strip'), cday = document.getElementById('cl-day'), clist = document.getElementById('cl-list'), note = document.getElementById('cl-note'), ci = 2, cT = null;
+    var esc2 = function(t){ return String(t).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    strip.innerHTML = CD.map(function(d, i){ return '<span class="cl-d' + (i === 2 ? ' today' : '') + '" data-i="' + i + '">' + d[0] + '<b>' + d[1] + '</b><i>' + d[3].map(function(e){ return '<u style="--c:' + e[3] + '"></u>'; }).join('') + '</i></span>'; }).join('');
+    function cDraw(i){ ci = i; [].forEach.call(strip.children, function(el, k){ el.classList.toggle('on', k === i); });
+      var d = CD[i]; cday.innerHTML = (i === 2 ? 'Сегодня' : d[2][0].toUpperCase() + d[2].slice(1)) + '<span>' + d[1] + ' октября</span>';
+      clist.innerHTML = d[3].map(function(e){ return '<div class="cl-e" style="--c:' + e[3] + '"><time>' + e[0] + '</time><div><b><i class="ti ' + e[2] + '"></i>' + esc2(e[1]) + '</b><small>' + esc2(e[4]) + '</small></div></div>'; }).join('');
+      if (note) note.classList.toggle('on', i === 0 || i === 1); }
+    [].forEach.call(strip.children, function(el){ el.addEventListener('click', function(){ clearInterval(cT); cT = null; cDraw(+el.dataset.i); }); });
+    cDraw(2);
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting && !cT && !reduce) cT = setInterval(function(){ cDraw((ci + 1) % 7); }, 2400); else if (!e.isIntersecting && cT) { clearInterval(cT); cT = null; } }); }, { threshold: .4 }).observe(cal);
+  }
+
+  /* ── Тренерам: расписание, записи появляются по очереди ── */
+  var csEl = document.getElementById('cs');
+  if (csEl) new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) csEl.classList.add('go'); }); }, { threshold: .3 }).observe(csEl);
 
   /* ── Тренерам: было и стало ── */
   var ab = document.getElementById('ab');

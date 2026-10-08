@@ -782,6 +782,147 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   #ai .ai-feat b{margin:0 0 2px}
 }
 
+/* ═══ v3: результат в первом экране ═══ */
+.hero-res{display:flex;flex-wrap:wrap;gap:8px;margin:-8px 0 26px;opacity:0;animation:fadeup .9s .55s var(--ease) forwards}
+.hero-res span{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line2);font-size:13px;font-weight:700;color:#E3E8F7}
+.hero-res i{font-size:17px}.hero-res span:nth-child(1) i{color:#8EA8FF}.hero-res span:nth-child(2) i{color:#C4B5FD}.hero-res span:nth-child(3) i{color:#FF9600}.hero-res span:nth-child(4) i{color:#F2A93B}
+
+/* ═══ Живые примеры ═══ */
+.demos{padding-top:60px}
+.dm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;align-items:start}
+.dm{position:relative;background:linear-gradient(165deg,rgba(24,29,46,.92),rgba(13,16,26,.96));border:1px solid var(--line2);border-radius:26px;padding:20px;overflow:hidden}
+.dm::before{content:'';position:absolute;inset:-40% -20% auto;height:220px;background:radial-gradient(closest-side,var(--dc),transparent);opacity:.22;pointer-events:none}
+.dm-fin{--dc:#8B5CF6}.dm-hab{--dc:#FF8A00}.dm-goal{--dc:#F2A93B}
+.dm-h{display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative}
+.dm-ic{width:42px;height:42px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:21px;color:#fff;background:linear-gradient(135deg,var(--dc),color-mix(in srgb,var(--dc) 55%,#000))}
+.dm-h b{display:block;font-size:17px}.dm-h small{display:block;font-size:12.5px;color:var(--soft);margin-top:1px}
+.dm-pts{list-style:none;margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.dm-pts li{position:relative;padding-left:22px;font-size:13px;color:#C9D0E2;line-height:1.45}
+.dm-pts li::before{content:'';position:absolute;left:4px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--dc)}
+/* деньги */
+.fd-top{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:18px;padding:14px}
+.fd-top small{font-size:12px;color:var(--soft)}.fd-top>b{display:block;font-size:30px;font-weight:900;letter-spacing:-.02em;margin:2px 0 10px}
+.fd-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}.fd-bar span{display:block;height:100%;width:26%;border-radius:99px;background:linear-gradient(90deg,#977FE9,#C4B5FD);transition:width .8s var(--ease)}
+.fd-r{display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px;color:var(--soft)}.fd-r b{color:#fff}
+.fd-in{display:flex;align-items:center;gap:8px;margin:12px 0 8px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line2);font-size:14px;min-height:46px}
+.fd-in span{flex:1}.fd-in span:empty::before{content:'Что и сколько: такси 350';color:var(--faint)}
+.fd-in i{width:30px;height:30px;border-radius:10px;background:#977FE9;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:16px}
+.fd-list{display:flex;flex-direction:column;gap:6px;min-height:112px}
+.fd-it{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.03);font-size:13px;animation:fdIn .5s var(--ease)}
+.fd-it span:nth-child(2){flex:1}.fd-it small{display:block;font-size:11px;color:var(--faint)}.fd-it b{white-space:nowrap}
+.fd-c{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;background:color-mix(in srgb,var(--c) 30%,transparent);color:var(--c)}
+@keyframes fdIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.fd-ask{margin-top:10px;display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s var(--ease)}
+.fd-ask.on{opacity:1;transform:none}
+.fd-ask .q{align-self:flex-end;max-width:85%;padding:8px 12px;border-radius:14px 14px 4px 14px;background:#6D4FE0;font-size:12.5px}
+.fd-ask .a{align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:14px 14px 14px 4px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:12.5px;color:#E6EAF5;line-height:1.45}
+/* привычки */
+.hb-streak{display:flex;align-items:center;gap:14px;padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.hb-fire{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);flex-shrink:0;transition:background .4s}
+.hb-fire i{font-size:38px;color:#5A5650;transition:color .4s,filter .4s,transform .4s}
+.hb-streak.lit .hb-fire{background:radial-gradient(circle at 50% 60%,rgba(255,140,0,.38),rgba(255,140,0,.06) 70%)}
+.hb-streak.lit .hb-fire i{color:#FF9600;filter:drop-shadow(0 0 10px rgba(255,150,0,.65))}
+.hb-streak.pop .hb-fire i{animation:hbPop .6s cubic-bezier(.34,1.56,.64,1)}
+@keyframes hbPop{0%{transform:scale(.6)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+.hb-streak b{display:block;font-size:18px}.hb-streak small{display:block;font-size:12px;color:var(--soft);margin-top:2px}
+.hb-week{display:flex;gap:6px;margin:12px 0}
+.hb-d{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10.5px;color:var(--faint);font-weight:700}
+.hb-d i{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-size:14px;color:#fff;transition:all .4s}
+.hb-d.done i{background:linear-gradient(135deg,#FFB020,#FF7A00);box-shadow:0 2px 10px rgba(255,140,0,.4)}
+.hb-d.today i{box-shadow:0 0 0 2px rgba(255,150,0,.7)}.hb-d.today{color:#FF9600}
+.hb-list{display:flex;flex-direction:column;gap:6px}
+.hb-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--txt);font:600 13.5px Montserrat,sans-serif;cursor:pointer;text-align:left;transition:background .2s,border-color .2s}
+.hb-row i{font-size:18px;color:#C8A84B}.hb-row span{flex:1}
+.hb-row em{width:26px;height:26px;border-radius:8px;border:2px solid rgba(255,255,255,.18);display:inline-flex;align-items:center;justify-content:center;transition:all .25s}
+.hb-row.on{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3)}
+.hb-row.on em{background:#4ADE80;border-color:#4ADE80}.hb-row.on em::after{content:'✓';color:#0B1A10;font-weight:900;font-size:14px}
+.hb-tip{text-align:center;font-size:11.5px;color:var(--faint);margin-top:8px}
+/* цели */
+.gl-list{display:flex;flex-direction:column;gap:10px}
+.gl{padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.gl-t{display:flex;justify-content:space-between;font-size:14px;font-weight:700}.gl-t b{color:#F2A93B}
+.gl-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0 8px}
+.gl-bar span{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#F2A93B,#FFD08A);transition:width 1.2s var(--ease)}
+.dm-goal.in .gl-bar span{width:var(--w)}
+.gl-s{display:flex;justify-content:space-between;font-size:12px;color:var(--soft)}.gl-s em{font-style:normal;font-weight:700;color:#FFD08A}.gl-s em.ok{color:#4ADE80}
+.gl-pay{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(151,127,233,.12);border:1px solid rgba(151,127,233,.35);opacity:0;transform:translateY(10px);transition:opacity .6s 1.2s,transform .6s 1.2s var(--ease)}
+.dm-goal.in .gl-pay{opacity:1;transform:none}
+.gl-pay i{font-size:22px;color:#C4B5FD}.gl-pay b{display:block;font-size:13.5px}.gl-pay small{display:block;font-size:11.5px;color:var(--soft)}
+
+/* ═══ Тренерам: было и стало ═══ */
+.ab{display:grid;grid-template-columns:1.05fr 1fr;gap:28px;margin-top:46px;align-items:center}
+.ab-sw{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;padding:5px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid var(--line2);margin-bottom:18px}
+.ab-sw button{position:relative;z-index:1;height:42px;padding:0 26px;border:none;background:none;color:var(--soft);font:800 14px Montserrat,sans-serif;cursor:pointer;transition:color .3s}
+.ab-sw button.on{color:#fff}
+.ab-pill{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:12px;background:var(--grad);transition:transform .45s var(--ease)}
+.ab.yes .ab-pill{transform:translateX(100%)}
+.ab:not(.yes) .ab-pill{background:#3A3F4E}
+.ab-rows{display:flex;flex-direction:column;gap:8px}
+.ab-r{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line);transition:border-color .4s,background .4s}
+.ab-r>i{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,.05);color:var(--faint);transition:all .4s}
+.ab-r b{display:block;font-size:14.5px;margin-bottom:2px}
+.ab-r span{display:block;font-size:13px;line-height:1.45;color:var(--soft)}
+.ab-r .b{display:none}
+.ab.yes .ab-r .a{display:none}.ab.yes .ab-r .b{display:block;color:#DCE3FF;animation:fdIn .45s var(--ease)}
+.ab:not(.yes) .ab-r .a{text-decoration:line-through;text-decoration-color:rgba(248,113,113,.5)}
+.ab.yes .ab-r{border-color:rgba(139,92,246,.28);background:linear-gradient(135deg,rgba(74,124,255,.08),rgba(139,92,246,.06))}
+.ab.yes .ab-r>i{background:linear-gradient(135deg,#4A7CFF,#8B5CF6);color:#fff}
+.cc{position:relative;padding:20px;border-radius:26px;background:linear-gradient(165deg,rgba(27,33,56,.95),rgba(13,16,28,.97));border:1px solid rgba(139,92,246,.3);box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 90px rgba(99,102,241,.14);transition:opacity .5s,filter .5s,transform .5s var(--ease)}
+.ab:not(.yes) .cc{opacity:.35;filter:grayscale(1) blur(1px);transform:scale(.97)}
+.cc-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cc-av{width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;background:linear-gradient(135deg,#4A7CFF,#8B5CF6)}
+.cc-head b{display:block;font-size:15px}.cc-head small{font-size:12px;color:var(--soft)}
+.cc-ok{margin-left:auto;font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(74,222,128,.14);color:#86EFAC;white-space:nowrap}
+.cc-kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cc-kp div{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.cc-kp small{display:block;font-size:11px;color:var(--soft)}.cc-kp b{display:block;font-size:19px;font-weight:900;margin:2px 0}.cc-kp em{font-style:normal;font-size:11px;font-weight:700;color:#4ADE80}
+.cc-kp div:last-child em{color:var(--soft)}
+.cc-chart{margin:10px 0;padding:12px 12px 6px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.cc-ch{display:flex;justify-content:space-between;font-size:12px;color:var(--soft);margin-bottom:6px}.cc-ch b{color:#fff}
+.cc-chart svg{width:100%;height:100px;display:block;overflow:visible}
+.cc-line{stroke-dasharray:420;stroke-dashoffset:420;transition:stroke-dashoffset 1.8s var(--ease)}
+.cc-area{opacity:0;transition:opacity 1s .9s}.cc-dot{fill:#fff;opacity:0;transition:opacity .4s 1.6s}
+.ab.go .cc-line{stroke-dashoffset:0}.ab.go .cc-area{opacity:1}.ab.go .cc-dot{opacity:1}
+.cc-ai{display:flex;gap:10px;padding:12px;border-radius:16px;background:linear-gradient(135deg,rgba(74,124,255,.14),rgba(139,92,246,.12));border:1px solid rgba(139,92,246,.3)}
+.cc-ai>i{font-size:20px;color:#C4B5FD;margin-top:1px}.cc-ai b{display:block;font-size:13px}.cc-ai span{font-size:12.5px;color:#DCE3FF;line-height:1.45}
+.cc-week{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--soft)}.cc-week i{color:#8EA8FF}
+
+/* дашборд «утро»: понятные строки */
+.cf{padding:10px 12px!important;gap:12px!important}
+.cf-av{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:var(--c);flex-shrink:0}
+.cf-t{flex:1;min-width:0}.cf-t b{display:block;font-size:13.5px}.cf-t small{display:block;font-size:12px;color:var(--soft)}
+.cf-tag{font-style:normal;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:5px 9px;border-radius:999px;white-space:nowrap}
+.cf-tag i{font-size:13px!important}
+.cf-tag.g{background:rgba(252,211,77,.14);color:#FCD34D}.cf-tag.o{background:rgba(74,222,128,.14);color:#86EFAC}.cf-tag.w{background:rgba(248,113,113,.16);color:#FCA5A5}.cf-tag.c{background:rgba(103,232,249,.12);color:#67E8F9}
+
+/* орбита: стекло, линии к центру, свечение */
+.orbit .ring{border-color:rgba(139,92,246,.22)!important}
+.orbit .ring.r2{border-color:rgba(74,124,255,.12)!important}
+.orb-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.orb-lines line{stroke:url(#olg);stroke-width:1.2;opacity:.35;transition:opacity .4s}
+.orb-lines line.hot{opacity:1;stroke-width:2}
+.orb-core{background:radial-gradient(circle at 50% 30%,rgba(110,140,255,.45),rgba(16,20,36,.97) 68%)!important;box-shadow:0 0 0 8px rgba(139,92,246,.07),0 0 0 18px rgba(74,124,255,.04),0 0 80px rgba(99,102,241,.5)!important}
+.orb-core::after{content:'';position:absolute;inset:-3px;border-radius:50%;padding:2px;background:conic-gradient(from var(--a,0deg),transparent 0 60%,#8B5CF6,#4A7CFF,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 5s linear infinite}
+.orb-n>div{background:linear-gradient(160deg,rgba(30,36,58,.88),rgba(14,17,28,.92))!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)!important;border-radius:16px!important}
+.orb-n .av{background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 50%,#000))!important;box-shadow:0 0 0 2px rgba(255,255,255,.08)}
+.orb-n small{color:color-mix(in srgb,var(--c) 70%,#fff)!important;font-weight:600}
+.orb-n.hot>div{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 0 1px var(--c),0 0 30px color-mix(in srgb,var(--c) 40%,transparent),0 10px 30px rgba(0,0,0,.4)!important}
+.orb-n>div{transition:transform .4s var(--ease),box-shadow .4s!important}
+
+@media (max-width:980px){
+  .dm-grid{grid-template-columns:1fr;max-width:520px;margin-left:auto;margin-right:auto}
+  .ab{grid-template-columns:1fr;gap:20px}
+  .ab-side{display:flex;flex-direction:column;align-items:center}
+  .ab-rows{width:100%}
+}
+@media (max-width:560px){
+  .hero-res span{font-size:12px;padding:7px 10px}
+  .dm{padding:16px;border-radius:22px}
+  .fd-top>b{font-size:26px}
+  .ab-r{grid-template-columns:34px 1fr;gap:12px;padding:12px 14px}.ab-r>i{width:34px;height:34px;font-size:18px}
+  .cc{padding:16px}.cc-kp b{font-size:16px}
+}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
 </style>
 </head>
@@ -812,9 +953,10 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 <!-- Hero -->
 <header class="hero" id="top" data-for="me"><div class="wrap hero-in">
   <div>
-    <span class="pill"><span class="dot"></span><span id="pill-txt">Бесплатно для первых 1 000 пользователей</span></span>
-    <h1><span class="line"><span>Тренировки,</span></span><span class="line"><span>привычки, деньги</span></span><span class="line"><span class="grad-t">в одном месте.</span></span></h1>
-    <p class="lead">YOU считает прогресс за тебя. AI-тренер сам прибавляет вес, привычки отмечаются одним касанием, а в финансах сразу видно, сколько можно потратить сегодня, чтобы хватило до зарплаты.</p>
+    <span class="pill"><span class="dot"></span><span id="pill-txt">Сейчас бесплатно</span></span>
+    <h1><span class="line"><span>Зал, деньги, цели</span></span><span class="line"><span>и привычки.</span></span><span class="line"><span class="grad-t">Одно приложение.</span></span></h1>
+    <p class="lead">YOU упрощает жизнь и показывает результат. Прогресс в зале видно по цифрам, деньги распределяются грамотнее, чем в банковском приложении, цели связаны с бюджетом, а привычки отмечаются в одно касание.</p>
+    <div class="hero-res"><span><i class="ti ti-trending-up"></i>+5 кг к жиму за 2 месяца</span><span><i class="ti ti-wallet"></i>сколько можно тратить сегодня</span><span><i class="ti ti-flame"></i>47 дней подряд</span><span><i class="ti ti-beach"></i>отпуск к маю: 12 900 ₽ в месяц</span></div>
     <div class="hero-cta">
       <a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Получить приложение</a>
       <a class="btn btn-ghost" href="#features"><i class="ti ti-player-play"></i> Как это работает</a>
@@ -839,9 +981,9 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 <!-- ═══ ТРЕНЕРАМ ═══ -->
 <header class="hero c-hero" id="c-top" data-for="coach"><div class="wrap hero-in">
   <div>
-    <span class="pill"><span class="dot"></span>Кабинет тренера · до 50 клиентов бесплатно</span>
-    <h1><span class="line"><span>Все клиенты</span></span><span class="line"><span class="grad-t">в одном кабинете.</span></span></h1>
-    <p class="lead">Планы, прогресс, посещаемость и замеры всех клиентов в одном кабинете. Клиент тренируется по вашему плану в своём приложении YOU, а вы утром за минуту видите, кто молодец, кто пропал и кому что поменять.</p>
+    <span class="pill"><span class="dot"></span>Для тренеров тоже бесплатно</span>
+    <h1><span class="line"><span>Клиенты растут</span></span><span class="line"><span>быстрее, а вы</span></span><span class="line"><span class="grad-t">видите всё.</span></span></h1>
+    <p class="lead">План, прогресс, графики, итоги недели и AI-помощник по каждому клиенту в одном месте. Вы направляете клиента и вовремя меняете нагрузку, а не собираете отчёты по мессенджерам и таблицам.</p>
     <div class="hero-cta">
       <a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a>
       <a class="btn btn-ghost" href="#c-how"><i class="ti ti-player-play"></i> Как это работает</a>
@@ -858,12 +1000,29 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 </div></header>
 
 <section id="c-pain" data-for="coach"><div class="wrap">
-  <div class="center"><span class="eyebrow">Знакомо?</span><h2 class="rv">Клиентов много, и всё в разных местах</h2></div>
-  <div class="c-pains">
-    <div class="c-pain rv"><div class="c-was"><i class="ti ti-table"></i><b>Таблицы на каждого</b><span>Копируете программу, правите веса вручную, ищете, где что</span></div><div class="c-now"><i class="ti ti-template"></i>Шаблон программы назначается в два клика, веса подставятся из истории клиента</div></div>
-    <div class="c-pain rv"><div class="c-was"><i class="ti ti-messages"></i><b>Отчёты в мессенджерах</b><span>Скриншоты, голосовые, «я сделал, но не помню сколько»</span></div><div class="c-now"><i class="ti ti-activity"></i>Лента: кто потренировался, какие веса, рекорды и комментарии</div></div>
-    <div class="c-pain rv"><div class="c-was"><i class="ti ti-ghost"></i><b>Клиент пропал</b><span>Замечаете через две недели, когда он уже ушёл</span></div><div class="c-now"><i class="ti ti-alert-triangle"></i>«Нужно внимание»: пропуски, плато и паузы видны в тот же день</div></div>
-    <div class="c-pain rv"><div class="c-was"><i class="ti ti-chart-line"></i><b>Прогресс не видно</b><span>Сложно показать клиенту, за что он платит</span></div><div class="c-now"><i class="ti ti-send"></i>Итоги недели с цифрами и графики веса, объёмов и силы</div></div>
+  <div class="center"><span class="eyebrow">Было и стало</span><h2 class="rv">Как вы ведёте клиентов сейчас <span class="grad-t">и как в YOU</span></h2></div>
+  <div class="ab rv" id="ab">
+    <div class="ab-side">
+      <div class="ab-sw" id="ab-sw" role="tablist"><button data-ab="0">Сейчас</button><button data-ab="1" class="on">В YOU</button><span class="ab-pill"></span></div>
+      <div class="ab-rows">
+        <div class="ab-r"><i class="ti ti-clipboard-list"></i><div><b>Программа</b><span class="a">Таблица на каждого, веса правите руками</span><span class="b">План из шаблона за пару минут, веса подставятся из истории клиента</span></div></div>
+        <div class="ab-r"><i class="ti ti-messages"></i><div><b>Отчёты</b><span class="a">Скриншоты и голосовые в мессенджере</span><span class="b">Клиент отмечает тренировку, вы видите веса и комментарии в ленте</span></div></div>
+        <div class="ab-r"><i class="ti ti-user-exclamation"></i><div><b>Кто пропал</b><span class="a">Замечаете через пару недель, когда уже поздно</span><span class="b">В тот же день: пропуски и паузы в блоке «Нужно внимание»</span></div></div>
+        <div class="ab-r"><i class="ti ti-chart-line"></i><div><b>Прогресс</b><span class="a">На глаз, сложно показать, за что клиент платит</span><span class="b">Графики веса и силы, итоги недели от вашего имени</span></div></div>
+        <div class="ab-r"><i class="ti ti-sparkles"></i><div><b>Подсказки</b><span class="a">Сами ищете, где клиент застрял</span><span class="b">AI-помощник видит плато и предлагает, что поменять</span></div></div>
+      </div>
+    </div>
+    <div class="cc" id="cc">
+      <div class="cc-head"><span class="cc-av">А</span><div><b>Алексей Соколов</b><small>8 неделя · масса</small></div><span class="cc-ok">3 из 3 на неделе</span></div>
+      <div class="cc-kp"><div><small>Жим лёжа</small><b>85 кг</b><em>+7,5 кг</em></div><div><small>Вес тела</small><b>78,4</b><em>+2,1 кг</em></div><div><small>Тренировок</small><b>23</b><em>за 8 недель</em></div></div>
+      <div class="cc-chart"><div class="cc-ch"><span>Жим лёжа, рабочий вес</span><b>77,5 → 85 кг</b></div>
+        <svg viewBox="0 0 320 110" preserveAspectRatio="none"><defs><linearGradient id="ccg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".45"/><stop offset="1" stop-color="#4A7CFF" stop-opacity="0"/></linearGradient><linearGradient id="ccl" x1="0" x2="1"><stop offset="0" stop-color="#4A7CFF"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs>
+          <path class="cc-area" d="M0 92 C40 88 60 80 90 76 S150 66 180 58 S250 40 280 30 L320 22 L320 110 L0 110 Z" fill="url(#ccg)"/>
+          <path class="cc-line" d="M0 92 C40 88 60 80 90 76 S150 66 180 58 S250 40 280 30 L320 22" fill="none" stroke="url(#ccl)" stroke-width="3" stroke-linecap="round"/>
+          <circle class="cc-dot" cx="320" cy="22" r="5"/></svg></div>
+      <div class="cc-ai"><i class="ti ti-sparkles"></i><div><b>Помощник</b><span>Тяга в наклоне стоит 3 недели на 70 кг. Предложить 4×10 по 65 кг и вернуться к 72,5 через две недели?</span></div></div>
+      <div class="cc-week"><i class="ti ti-send"></i><span>Итоги недели уйдут клиенту в воскресенье от вашего имени</span></div>
+    </div>
   </div>
 </div></section>
 
@@ -941,15 +1100,6 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   </div>
 </div></section>
 
-<!-- Ленты экранов -->
-<section class="lanes-sec" data-for="me">
-  <div class="wrap center"><span class="eyebrow">Внутри</span><h2 class="rv">Всё это уже работает</h2></div>
-  <div class="lanes" id="lanes">
-    <div class="lane" data-dir="1"></div>
-    <div class="lane" data-dir="-1"></div>
-  </div>
-</section>
-
 <!-- AI-тренер -->
 <section class="ai" id="ai" data-for="me"><div class="wrap ai-grid ai-x">
   <div>
@@ -994,6 +1144,47 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="aid-in"><span id="aid-typing"></span><i class="ti ti-send"></i></div>
     </div></div>
     <div class="aid-plan" id="aid-plan"><div class="aid-plan-h"><i class="ti ti-calendar-event"></i><b id="aid-plan-t">Сегодня · ноги</b></div><div id="aid-rows"></div></div>
+  </div>
+</div></section>
+
+<!-- Живые примеры: деньги, привычки, цели -->
+<section class="demos" id="demos" data-for="me"><div class="wrap">
+  <div class="center"><span class="eyebrow">Деньги, привычки, цели</span><h2 class="rv">Как это выглядит <span class="grad-t">каждый день</span></h2></div>
+  <div class="dm-grid">
+    <div class="dm dm-fin rv" id="dm-fin">
+      <div class="dm-h"><span class="dm-ic"><i class="ti ti-wallet"></i></span><div><b>Деньги</b><small>гибче, чем в банке</small></div></div>
+      <div class="fd-top"><small>Свободно до 31 октября</small><b id="fd-free">38 400 ₽</b>
+        <div class="fd-bar"><span id="fd-bar"></span></div><div class="fd-r"><span>Сегодня</span><b id="fd-tod">420 ₽ из 1 600 ₽</b></div></div>
+      <div class="fd-in"><span id="fd-typing"></span><i class="ti ti-check"></i></div>
+      <div class="fd-list" id="fd-list">
+        <div class="fd-it"><span class="fd-c" style="--c:#60A5FA">Т</span><span>Такси<small>Транспорт</small></span><b>−420 ₽</b></div>
+      </div>
+      <div class="fd-ask" id="fd-ask"><div class="q">Сколько я трачу на кафе за год?</div><div class="a">Около <b>76 800 ₽</b>. Это почти вся цель «Отпуск» на 90 000 ₽.</div></div>
+      <ul class="dm-pts"><li>Трата одной строкой, категория подберётся сама</li><li>Копилка откладывает процент с каждого дохода</li><li>Платежи по датам и напоминания</li></ul>
+    </div>
+    <div class="dm dm-hab rv" id="dm-hab">
+      <div class="dm-h"><span class="dm-ic"><i class="ti ti-flame"></i></span><div><b>Привычки</b><small>серия, которую жалко прервать</small></div></div>
+      <div class="hb-streak" id="hb-streak"><div class="hb-fire"><i class="ti ti-flame"></i></div><div><b><span id="hb-n">46</span> дней подряд</b><small id="hb-s">Отметь больше половины, чтобы продлить</small></div></div>
+      <div class="hb-week" id="hb-week"></div>
+      <div class="hb-list" id="hb-list">
+        <button class="hb-row on"><i class="ti ti-sun"></i><span>Витамины утром</span><em></em></button>
+        <button class="hb-row"><i class="ti ti-book"></i><span>Читать 20 минут</span><em></em></button>
+        <button class="hb-row"><i class="ti ti-droplet"></i><span>Вода 2 литра</span><em></em></button>
+        <button class="hb-row"><i class="ti ti-moon"></i><span>Сон до 23:30</span><em></em></button>
+      </div>
+      <div class="hb-tip">Нажми на привычку</div>
+      <ul class="dm-pts"><li>Каждый день, по будням или 3 раза в неделю</li><li>Процент за месяц показывает, что подтянуть</li><li>Колесо жизни раз в месяц</li></ul>
+    </div>
+    <div class="dm dm-goal rv" id="dm-goal">
+      <div class="dm-h"><span class="dm-ic"><i class="ti ti-target-arrow"></i></span><div><b>Цели</b><small>связаны с деньгами</small></div></div>
+      <div class="gl-list">
+        <div class="gl"><div class="gl-t"><span>Отпуск</span><b>90 000 ₽</b></div><div class="gl-bar"><span style="--w:42%"></span></div><div class="gl-s"><span>к маю</span><em>12 900 ₽ в месяц</em></div></div>
+        <div class="gl"><div class="gl-t"><span>Новый ноутбук</span><b>150 000 ₽</b></div><div class="gl-bar"><span style="--w:18%"></span></div><div class="gl-s"><span>к декабрю</span><em>41 000 ₽ в месяц</em></div></div>
+        <div class="gl"><div class="gl-t"><span>Стоматолог</span><b>20 000 ₽</b></div><div class="gl-bar"><span style="--w:100%"></span></div><div class="gl-s"><span>оплачено</span><em class="ok"><i class="ti ti-check"></i>закрыта</em></div></div>
+      </div>
+      <div class="gl-pay" id="gl-pay"><i class="ti ti-calendar-dollar"></i><div><b>«Отпуск» в платежах</b><small>напомню 1 мая, в «Свободно» учтётся</small></div></div>
+      <ul class="dm-pts"><li>Цели по сезонам и месяцам с суммами</li><li>Цель одной кнопкой уходит в платежи</li><li>Оплатил платёж, цель закрылась сама</li></ul>
+    </div>
   </div>
 </div></section>
 
@@ -1063,22 +1254,17 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     </ul>
   </div>
   <div class="c-dash" id="c-dash" aria-hidden="true">
-    <div class="cd-top"><div><b>Сегодня</b><span>среда, 30 сентября</span></div><span class="cd-live"><i></i>онлайн</span></div>
+    <div class="cd-top"><div><b>Доброе утро</b><span>среда, 30 сентября · 8 клиентов</span></div><span class="cd-live"><i></i>онлайн</span></div>
     <div class="cd-kp">
       <div><b data-count="7" data-suf="/8">0</b><span>активны</span></div>
       <div><b data-count="23">0</b><span>тренировок за неделю</span></div>
       <div><b data-count="91" data-suf="%">0</b><span>посещаемость</span></div>
     </div>
-    <div class="cd-chart">
-      <div class="cd-bars"><div class="cdb" style="--h:55%;--p:70%;--d:0ms"><i></i><em></em></div><div class="cdb" style="--h:70%;--p:75%;--d:90ms"><i></i><em></em></div><div class="cdb" style="--h:62%;--p:70%;--d:180ms"><i></i><em></em></div><div class="cdb" style="--h:80%;--p:85%;--d:270ms"><i></i><em></em></div><div class="cdb" style="--h:75%;--p:80%;--d:360ms"><i></i><em></em></div><div class="cdb" style="--h:90%;--p:92%;--d:450ms"><i></i><em></em></div><div class="cdb" style="--h:85%;--p:88%;--d:540ms"><i></i><em></em></div><div class="cdb" style="--h:95%;--p:100%;--d:630ms"><i></i><em></em></div></div>
-      <svg class="cd-wline" viewBox="0 0 300 70" preserveAspectRatio="none"><path d="M0 18 C 40 20, 60 26, 90 30 S 150 40, 180 44 S 250 55, 300 58"/></svg>
-      <div class="cd-leg"><span><i class="b"></i>тренировки по неделям</span><span><i class="l"></i>вес клиента</span></div>
-    </div>
     <div class="cd-feed">
-      <div class="cf"><i class="ti ti-trophy g"></i><span><b>Алексей</b> рекорд: жим 85×8</span></div>
-      <div class="cf"><i class="ti ti-circle-check o"></i><span><b>Мария</b> сделала тренировку: ноги</span></div>
-      <div class="cf"><i class="ti ti-alert-triangle w"></i><span><b>Олег</b> пауза 5 дней</span></div>
-      <div class="cf"><i class="ti ti-ruler-measure c"></i><span><b>Ирина</b> внесла замеры: талия −2 см</span></div>
+      <div class="cf"><span class="cf-av" style="--c:#4A7CFF">А</span><span class="cf-t"><b>Алексей</b><small>рекорд: жим 85×8</small></span><em class="cf-tag g"><i class="ti ti-trophy"></i>рекорд</em></div>
+      <div class="cf"><span class="cf-av" style="--c:#34D399">М</span><span class="cf-t"><b>Мария</b><small>сделала тренировку: ноги</small></span><em class="cf-tag o"><i class="ti ti-check"></i>сделала</em></div>
+      <div class="cf"><span class="cf-av" style="--c:#F87171">О</span><span class="cf-t"><b>Олег</b><small>не был 5 дней</small></span><em class="cf-tag w"><i class="ti ti-alert-triangle"></i>написать</em></div>
+      <div class="cf"><span class="cf-av" style="--c:#2DD4BF">И</span><span class="cf-t"><b>Ирина</b><small>замеры: талия −2 см</small></span><em class="cf-tag c"><i class="ti ti-ruler-measure"></i>замеры</em></div>
     </div>
   </div>
 </div></section>
@@ -1276,11 +1462,6 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     </div>
   </div>
   <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register"><i class="ti ti-rocket"></i> Начать бесплатно</a></div>
-</div></section>
-
-<!-- Зачем YOU: текст проявляется по словам -->
-<section class="manifest" data-for="me"><div class="wrap">
-  <p id="manifest">Ты и так знаешь, что делать. Не хватает одного места, где видно всё сразу: растут ли веса, держатся ли привычки, сколько денег свободно и сколько осталось до цели. YOU собирает это вместе и каждый день подсказывает <span data-g>следующий шаг.</span></p>
 </div></section>
 
 <!-- CTA -->
@@ -1628,6 +1809,69 @@ if(t&&/^[A-Za-z0-9_-]{2,64}$/.test(t))localStorage.setItem('you_tref',t);}catch(
       if (e.isIntersecting) { if (!reduce && !raf) { last = 0; raf = requestAnimationFrame(loop); } if (!oi) oi = setInterval(function(){ ns.forEach(function(n, q){ n.classList.toggle('hot', q === j % ns.length); }); j++; }, 1400); }
       else { if (raf) { cancelAnimationFrame(raf); raf = null; } if (oi) { clearInterval(oi); oi = null; } } }); }).observe(orbit); }
 
+
+  /* ── Деньги: живой пример ── */
+  var fdBox = document.getElementById('dm-fin');
+  if (fdBox) {
+    var fdFree = document.getElementById('fd-free'), fdBar = document.getElementById('fd-bar'), fdTod = document.getElementById('fd-tod'), fdType = document.getElementById('fd-typing'), fdList = document.getElementById('fd-list'), fdAsk = document.getElementById('fd-ask');
+    var fmt = function(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽'; };
+    var FD = [['кофе 350', 'Кофе', 'Кафе', 350, '#A78BFA'], ['продукты 1,2к', 'Продукты', 'Еда', 1200, '#34D399'], ['такси 350+420', 'Такси', 'Транспорт', 770, '#60A5FA']];
+    var fdRun = false, fdT = [], free0 = 38400, tod0 = 420;
+    var FT = function(f, ms){ fdT.push(setTimeout(f, ms)); };
+    function fdReset(){ free0 = 38400; tod0 = 420; fdFree.textContent = fmt(free0); fdTod.textContent = fmt(tod0) + ' из ' + fmt(1600); fdBar.style.width = (tod0 / 1600 * 100) + '%'; fdType.textContent = ''; fdAsk.classList.remove('on');
+      fdList.innerHTML = '<div class="fd-it"><span class="fd-c" style="--c:#60A5FA">Т</span><span>Такси<small>Транспорт</small></span><b>−420 ₽</b></div>'; }
+    function fdCount(from, to){ var t0 = performance.now(); (function st(t){ var k = Math.min(1, (t - t0) / 700); fdFree.textContent = fmt(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(st); })(t0); }
+    function fdPlay(i){
+      if (i >= FD.length) { FT(function(){ fdAsk.classList.add('on'); }, 400); FT(function(){ fdReset(); fdPlay(0); }, 6500); return; }
+      var x = FD[i], c = 0;
+      (function ty(){ if (c <= x[0].length) { fdType.textContent = x[0].slice(0, c++); FT(ty, 70); } else FT(add, 450); })();
+      function add(){ fdType.textContent = ''; var d = document.createElement('div'); d.className = 'fd-it'; d.innerHTML = '<span class="fd-c" style="--c:' + x[4] + '">' + x[1][0] + '</span><span>' + x[1] + '<small>' + x[2] + '</small></span><b>−' + fmt(x[3]) + '</b>';
+        fdList.insertBefore(d, fdList.firstChild); while (fdList.children.length > 3) fdList.removeChild(fdList.lastChild);
+        fdCount(free0, free0 - x[3]); free0 -= x[3]; tod0 += x[3]; fdTod.textContent = fmt(tod0) + ' из ' + fmt(1600); fdBar.style.width = Math.min(100, tod0 / 1600 * 100) + '%';
+        FT(function(){ fdPlay(i + 1); }, 1300); }
+    }
+    fdReset();
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting && !fdRun) { fdRun = true; if (reduce) { fdAsk.classList.add('on'); return; } fdPlay(0); } else if (!e.isIntersecting && fdRun) { fdRun = false; fdT.forEach(clearTimeout); fdT = []; fdReset(); } }); }, { threshold: .4 }).observe(fdBox);
+  }
+
+  /* ── Привычки: нажми и смотри, как растёт серия ── */
+  var hb = document.getElementById('dm-hab');
+  if (hb) {
+    var rows = [].slice.call(hb.querySelectorAll('.hb-row')), wk = document.getElementById('hb-week'), st = document.getElementById('hb-streak'), hn = document.getElementById('hb-n'), hs = document.getElementById('hb-s');
+    var DW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'], todayI = 3, base = 46, lit = false, touched = false;
+    function hbDraw(){
+      var on = rows.filter(function(r){ return r.classList.contains('on'); }).length, ok = on * 2 > rows.length;
+      wk.innerHTML = DW.map(function(d, i){ var cls = i < todayI ? 'done' : i === todayI ? ('today' + (ok ? ' done' : '')) : ''; return '<span class="hb-d ' + cls + '"><i>' + (cls.indexOf('done') >= 0 ? '<i class="ti ti-flame"></i>' : '') + '</i>' + d + '</span>'; }).join('');
+      hn.textContent = base + (ok ? 1 : 0); hs.textContent = ok ? 'Сегодня засчитан · рекорд ' + (base + 1) : 'Отметь больше половины, чтобы продлить';
+      if (ok && !lit) { st.classList.add('lit'); st.classList.remove('pop'); void st.offsetWidth; st.classList.add('pop'); try { navigator.vibrate && navigator.vibrate(20); } catch (e) {} }
+      if (!ok) st.classList.remove('lit'); lit = ok;
+    }
+    rows.forEach(function(r){ r.addEventListener('click', function(){ touched = true; r.classList.toggle('on'); hbDraw(); }); });
+    hbDraw();
+    /* если никто не нажимает, отмечаем сами: так видно, как загорается огонь */
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting || touched || reduce) return; [1, 2].forEach(function(k, q){ setTimeout(function(){ if (touched) return; rows[k].classList.add('on'); hbDraw(); }, 1200 + q * 900); }); }); }, { threshold: .5 }).observe(hb);
+  }
+
+  /* ── Тренерам: было и стало ── */
+  var ab = document.getElementById('ab');
+  if (ab) {
+    var abSet = function(v){ ab.classList.toggle('yes', v); ab.querySelectorAll('[data-ab]').forEach(function(b){ b.classList.toggle('on', (b.dataset.ab === '1') === v); }); };
+    var abTouched = false; abSet(false);
+    ab.querySelectorAll('[data-ab]').forEach(function(b){ b.addEventListener('click', function(){ abTouched = true; abSet(b.dataset.ab === '1'); }); });
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return; ab.classList.add('go'); if (!abTouched) setTimeout(function(){ if (!abTouched) abSet(true); }, 1600); }); }, { threshold: .35 }).observe(ab);
+  }
+
+  /* ── Орбита: линии от кабинета к клиентам ── */
+  if (orbit) {
+    var NS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(NS, 'svg'); sv.setAttribute('class', 'orb-lines');
+    sv.innerHTML = '<defs><linearGradient id="olg" x1="0" x2="1"><stop offset="0" stop-color="#4A7CFF"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs>';
+    var lns = [].slice.call(orbit.querySelectorAll('.orb-n')).map(function(){ var l = document.createElementNS(NS, 'line'); sv.appendChild(l); return l; });
+    orbit.insertBefore(sv, orbit.querySelector('.orb-spin'));
+    var nodes = [].slice.call(orbit.querySelectorAll('.orb-n'));
+    (function lineLoop(){ var W = orbit.clientWidth / 2, H = orbit.clientHeight / 2;
+      nodes.forEach(function(n, q){ var m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(n.style.transform || ''); if (!m) return; var l = lns[q]; l.setAttribute('x1', W); l.setAttribute('y1', H); l.setAttribute('x2', W + +m[1]); l.setAttribute('y2', H + +m[2]); l.classList.toggle('hot', n.classList.contains('hot')); });
+      requestAnimationFrame(lineLoop); })();
+  }
   /* ── Ленты экранов ── */
   var lanes = document.getElementById('lanes');
   if (lanes) {

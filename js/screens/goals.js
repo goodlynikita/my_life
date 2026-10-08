@@ -400,15 +400,9 @@ window.Screens.goals = function(mount) {
     /* ── Hero ── */
     let heroHtml = '';
     if (activeSeason==='all') {
-      const goalItems = all.filter(g=>g.cat==='Цель');
-      const goalTotal = goalItems.filter(g=>!g.done).reduce((s,g)=>s+g.amount,0);
-      const otherItems = all.filter(g=>g.cat!=='Цель'&&g.season!=='all');
-      const otherTotal = otherItems.reduce((s,g)=>s+((g.done||g.maybe)?0:g.amount),0);
-      /* grandTotal = все незакрытые (Цель + сезонные) */
-      const grandTotal = goalTotal + otherTotal;
-      /* Закрыто = все закрытые с суммой */
-      /* те же цели, что и в «Осталось»: «Без сезона» (кроме категории «Цель») в суммы не входят, иначе при закрытии итог прыгает */
-      const doneTotal = all.filter(g=>g.done&&g.amount>0&&(g.cat==='Цель'||g.season!=='all')).reduce((s,g)=>s+g.amount,0);
+      /* все цели, включая «Без сезона»: Осталось = открытые (кроме «под вопросом»), Закрыто = закрытые с суммой */
+      const grandTotal = all.reduce((s,g)=>s+((g.done||g.maybe)?0:(+g.amount||0)),0);
+      const doneTotal = all.filter(g=>g.done).reduce((s,g)=>s+(+g.amount||0),0);
       /* На год = открытые + закрытые, Осталось = открытые */
       const naGodTotal = grandTotal + doneTotal;
       const remainTotal = Math.max(0, grandTotal);

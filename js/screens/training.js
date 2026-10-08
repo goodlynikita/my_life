@@ -858,7 +858,8 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const diffStr = (progress.diff !== undefined && progress.diff !== 0)
     ? ' ' + (progress.diff > 0 ? '+' : '') + String(Math.round(progress.diff * 10) / 10).replace('.', ',') + ' кг'
     : '';
-  let progressBadge = '<span class="tr-progress '+progress.dir+'">'+(arrow ? arrow+' ' : '')+sign+progress.pct+'%'+diffStr+'</span>';
+  /* рост к первой неделе плана; без изменений бейдж не показываем, чтобы не висели «0%» */
+  let progressBadge = progress.pct ? '<span class="tr-progress '+progress.dir+'" title="К первой неделе плана">'+(arrow ? arrow+' ' : '')+sign+progress.pct+'%'+diffStr+'</span>' : '';
   /* Двунаправленный прогресс-бар: центр = 0%, вправо = рост, влево = падение */
   const clampedPct = Math.min(50, Math.abs(progress.pct) / 2); /* макс ±50% от центра */
   const barColor = progress.dir === 'up' ? '#A8C97F' : progress.dir === 'down' ? '#FF5C5C' : '#3A3D45';
@@ -2679,7 +2680,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
           <td class="tr-ww-num num">${trEsc(ex.sets)}</td>
           <td class="tr-ww-num num">${trEsc(ex.reps)}</td>
           <td class="tr-ww-num num tr-ww-weight">${trEsc(String(ex.weight).replace(".", ","))}&nbsp;кг</td>
-          <td class="tr-ww-num num tr-progress ${progress.dir}">${sign}${progress.pct}% ${arrow}</td>
+          <td class="tr-ww-num num tr-progress ${progress.dir}">${progress.pct ? sign + progress.pct + '%' : '0'}<i class="tr-arr">${arrow}</i></td>
         </tr>`;
     }).join('');
 
@@ -2687,7 +2688,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       <div class="tr-ww-group">
         <div class="tr-ww-group-label fb-accent">${trEsc(trGL(cat))}</div>
         <table class="tr-ww-table">
-          <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th>Рост</th></tr></thead>
+          <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th title="К первой неделе плана">Рост</th></tr></thead>
           <tbody>${exerciseRows}</tbody>
         </table>
       </div>`;

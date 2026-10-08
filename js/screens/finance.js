@@ -171,7 +171,8 @@ window.Screens.finance = function(mount) {
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
-  let activeTab = (window.__keepUi && window.__ui && window.__ui.fin) || 'expenses'; /* чаще всего нужно «сколько можно потратить», поэтому открываемся на «Расходах» */
+  let activeTab = (window.__keepUi && window.__ui && window.__ui.fin) || (function(){ try { return localStorage.getItem('you_fin_tab'); } catch(e) { return null; } })() || 'month'; /* открываемся на последней выбранной вкладке */
+  if (!['month','expenses','balance','year','all'].includes(activeTab)) activeTab = 'month';
 
   mount.innerHTML = `
     <div class="tochka-screen">
@@ -187,7 +188,7 @@ window.Screens.finance = function(mount) {
       </div>
       <div class="tochka-tabs" style="position:sticky;top:0;z-index:10;">
         <button class="tochka-tab" data-tab="month">Месяц</button>
-        <button class="tochka-tab active" data-tab="expenses">Расходы</button>
+        <button class="tochka-tab" data-tab="expenses">Расходы</button>
         <button class="tochka-tab" data-tab="balance">Баланс</button>
         <button class="tochka-tab" data-tab="year">Год</button>
         <button class="tochka-tab" data-tab="all">Всё время</button>
@@ -841,6 +842,7 @@ window.Screens.finance = function(mount) {
 
   function render(){
     window.__ui = Object.assign(window.__ui || {}, { fin: activeTab }); /* вкладка переживает фоновую перерисовку */
+    try { localStorage.setItem('you_fin_tab', activeTab); } catch(e) {}
     mount.querySelectorAll('.tochka-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
     if(activeTab==='month')renderMonth();
     else if(activeTab==='expenses')renderExpenses();

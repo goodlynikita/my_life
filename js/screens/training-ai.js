@@ -1094,6 +1094,7 @@ window.TrainingAI = (function () {
     const cw = currentWeekIdx(plan);
     L.push(`Текущий план №${plan.number || '?'}, неделя ${Math.min(toArr(plan.weeks).length, cw + 1)} из ${toArr(plan.weeks).length}.`);
     L.push(`Тренировок в истории: ${an.workouts} за ${an.weeks} нед. Обычно ${an.freq} в неделю, дни: ${an.trainDays.map(d => DOW[d]).join(', ')}.`);
+    { const lastD = history.reduce((m, h) => Math.max(m, +h.date || 0), 0); if (lastD) { const gap = Math.floor((Date.now() - lastD) / DAY); L.push(`Перерыв: последняя силовая ${gap} дн. назад${gap >= 14 ? ' (долгий перерыв, веса снижать)' : ''}.`); } }
     if (an.combos.length) L.push('Связки мышц: ' + an.combos.slice(0, 6).map(c => `${c.groups.join('+')} (${c.c})`).join(', ') + '.');
     /* объём за последние 2 недели по группам */
     const vol = {}; const since = Date.now() - 14 * DAY;
@@ -1510,8 +1511,8 @@ window.TrainingAI = (function () {
     if ($('#q-gen')) $('#q-gen').onclick = () => { window.Analytics && Analytics.ev('ai'); const res = generate(plans, plan, {}); if (res.error) { alert('Не получилось составить план'); return; } save(res); render(content, plan, h); qToast('План готов'); };
     if ($('#q-regen')) $('#q-regen').onclick = () => { if (!confirm('Пересобрать с учётом последних тренировок? То, что уже стоит в плане, не тронется.')) return; regenKeep(plans, plan, prefs); render(content, plan, h); qToast('План пересобран'); };
     /* будущие AI-тренировки, которые ты ещё не менял: их можно снять из Плана */
-    const removable = (withToday) => { const a = load(); const tk = todayK; return a ? a.queue.map((q, i) => i).filter(i => { const q = a.queue[i]; return q.transferred && q.date && (withToday ? q.date >= tk : q.date > tk) && !q.ok && !qEdited(plan, h, q); }) : []; };
-    const unplace = (idxs) => { const a = load(); idxs.forEach(i => { const q = a.queue[i]; untransfer(plan, h, q); Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); }); save(a); h.afterTransfer && h.afterTransfer(); return idxs.length; };
+    const removable = (withToday) => { const a = load(); const tk = todayK; return a && Array.isArray(a.queue) ? a.queue.map((q, i) => i).filter(i => { const q = a.queue[i]; return q.transferred && q.date && (withToday ? q.date >= tk : q.date > tk) && !q.ok && !qEdited(plan, h, q); }) : []; };
+    const unplace = (idxs) => { const a = load(); if (!a || !Array.isArray(a.queue)) return 0; idxs.forEach(i => { const q = a.queue[i]; untransfer(plan, h, q); Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); }); save(a); h.afterTransfer && h.afterTransfer(); return idxs.length; };
     if ($('#q-unall')) $('#q-unall').onclick = () => { const ids = removable(); if (!ids.length) { qToast('Убирать нечего: в будущих днях AI-тренировок нет'); return; }
       if (!confirm(`Убрать из Плана ${ids.length} ${pl(ids.length, 'тренировку', 'тренировки', 'тренировок')} от AI? Сделанные и те, где ты менял веса, останутся.`)) return;
       const n = unplace(ids); render(content, plan, h); qToast(`Убрал ${n} ${pl(n, 'тренировку', 'тренировки', 'тренировок')}, они снова в списке AI`); };
@@ -1523,7 +1524,7 @@ window.TrainingAI = (function () {
     /* поставить тренировку очереди на дату */
     const dayBusy = (date) => { const pd = planDayAt(plan, date); return pd && toArr(pd.day.sessions).some(x => x && x.type !== 'Отдых'); };
     const putOn = (i, date, quiet) => {
-      const a = load(), q = a.queue[i]; const pd = planDayAt(plan, date);
+      const a = load(); if (!a || !Array.isArray(a.queue)) { render(content, plan, h); return; } const q = a.queue[i]; const pd = planDayAt(plan, date);
       if (!pd) { if (!quiet) alert('Этот день уже за пределами плана. Создай следующий план, и я продолжу'); return false; }
       if (!quiet && dayBusy(date) && !confirm('На этот день уже есть тренировка. Добавить ещё одну?')) return false;
       if (!transfer(plan, h, pd.wi, pd.di, { ...q, qid: qid(q) })) return false;
@@ -1538,18 +1539,18 @@ window.TrainingAI = (function () {
         <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" data-x>Отмена</button></div>`);
       ov.querySelector('[data-x]').onclick = () => ov.remove();
       ov.querySelectorAll('[data-d]').forEach(x => x.onclick = () => { const d = fromYmdQ(x.dataset.d);
-        if (move) { const a = load(); untransfer(plan, h, a.queue[i]); Object.assign(a.queue[i], { transferred: false, date: null, wi: null, di: null, ok: false }); save(a); }
+        if (move) { const a = load(); if (a && Array.isArray(a.queue)) { untransfer(plan, h, a.queue[i]); Object.assign(a.queue[i], { transferred: false, date: null, wi: null, di: null, ok: false }); save(a); } }
         if (putOn(i, d)) { ov.remove(); done('В Плане на ' + fmtDay(d)); } else if (move) { ov.remove(); render(content, plan, h); } });
     };
     content.querySelectorAll('[data-today]').forEach(b => b.onclick = () => { if (putOn(+b.dataset.today, today)) done('Добавил во вкладку План на сегодня'); });
     content.querySelectorAll('[data-add]').forEach(b => b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); pickDay(+b.dataset.add); });
     content.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => pickDay(+b.dataset.mv, true));
-    content.querySelectorAll('[data-un]').forEach(b => b.onclick = () => { const a = load(), q = a.queue[+b.dataset.un];
+    content.querySelectorAll('[data-un]').forEach(b => b.onclick = () => { const a = load(); if (!a || !Array.isArray(a.queue)) { render(content, plan, h); return; } const q = a.queue[+b.dataset.un];
       untransfer(plan, h, q); Object.assign(q, { transferred: false, date: null, wi: null, di: null, ok: false }); save(a); done('Убрал из Плана, тренировка снова в списке AI'); });
-    content.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const a = load(), q = a.queue[+b.dataset.del];
+    content.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const a = load(); if (!a || !Array.isArray(a.queue)) { render(content, plan, h); return; } const q = a.queue[+b.dataset.del];
       a.removed = [...new Set([...toArr(a.removed), q.r + ':' + q.t])]; a.queue.splice(+b.dataset.del, 1); save(a); render(content, plan, h); qToast('Убрал из списка'); });
     if ($('#q-more')) $('#q-more').onclick = () => { window._aiShowAll = true; render(content, plan, h); };
-    if ($('#q-restore')) $('#q-restore').onclick = () => { const a = load(); a.removed = []; save(a); regenKeep(plans, plan, prefs); render(content, plan, h); qToast('Убранные тренировки вернулись'); };
+    if ($('#q-restore')) $('#q-restore').onclick = () => { const a = load(); if (!a || !Array.isArray(a.queue)) { render(content, plan, h); return; } a.removed = []; save(a); regenKeep(plans, plan, prefs); render(content, plan, h); qToast('Убранные тренировки вернулись'); };
     /* расписать наперёд: отмечаешь дни, тренировки встают по очереди */
     if ($('#q-week')) $('#q-week').onclick = () => {
       /* выбираешь дни недели (выходные просто не отмечаешь), и весь список AI встаёт по очереди до конца плана.
@@ -1591,9 +1592,9 @@ window.TrainingAI = (function () {
     };
 
     /* сходил или пропустил */
-    if ($('#q-yes')) $('#q-yes').onclick = () => { const a = load(); a.queue[askIdx].ok = true; save(a); markOk(plan, h, a.queue[askIdx]); render(content, plan, h); qToast('Отлично, веса подстрою по записи'); };
+    if ($('#q-yes')) $('#q-yes').onclick = () => { const a = load(); if (!a || !Array.isArray(a.queue)) { render(content, plan, h); return; } a.queue[askIdx].ok = true; save(a); markOk(plan, h, a.queue[askIdx]); render(content, plan, h); qToast('Отлично, веса подстрою по записи'); };
     if ($('#q-no')) $('#q-no').onclick = () => {
-      const a = load(); const sk = a.queue[askIdx];
+      const a = load(); if (!a || !Array.isArray(a.queue)) { render(content, plan, h); return; } const sk = a.queue[askIdx];
       untransfer(plan, h, sk); Object.assign(sk, { transferred: false, date: null, wi: null, di: null, ok: false });
       save(a); h.afterTransfer && h.afterTransfer(); render(content, plan, h);
       qToast(`Тренировка ${sk.t + 1} снова в списке AI, поставь её на удобный день`);

@@ -89,7 +89,6 @@ html[data-theme="light"] .home2-tile-goals    .home2-tile-desc { color: #7A4A12 
 
 /* Светлые финансы: серые подписи темнее */
 .tochka-screen:not(.fin-dark) :is(.tochka-hero-label, .tochka-date-label, .tochka-stat-label, .tochka-stat-sub, .tochka-list-title, .tochka-row-label,
-  .fin2-year-label, .plan-sub, .plan-desc, .plan-cat-pct, .plan-val span, .pg-row-sub, .pg-muted, .xp-sub, .xp-sum-cell span, .xp-table th, .tk-op-sub) { color: #4B5563 !important; }
 .tochka-screen:not(.fin-dark) .tochka-tab:not(.active) { color: #4B5563 !important; }
 html[data-theme="light"] .hh-bar span { filter: invert(1) hue-rotate(180deg); }
 
@@ -137,4 +136,3 @@ html[data-app="coach"][data-pal="bright"] .c-sh.c-sh-amber { background: linear-
 html[data-theme="light"] .home2-tile-tasks { background: linear-gradient(135deg, #FFE9E6 0%, #FFCFC8 100%) !important; border: 1px solid #F5B1A7 !important; }
 html[data-theme="light"] .home2-tile-tasks .home2-tile-name, html[data-theme="light"] .home2-tile-tasks i { color: #C2352A !important; }
 html[data-theme="light"] .home2-tile-tasks .home2-tile-desc { color: #9A3A30 !important; }
-html[data-theme="light"] .tk-header { filter: invert(1) hue-rotate(180deg) contrast(0.893); }

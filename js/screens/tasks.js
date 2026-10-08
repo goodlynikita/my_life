@@ -11,7 +11,7 @@ window.Tasks = (function () {
   const MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
   const MONN = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
   const DOW = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-  const PRIO = { 1: '#E5484D', 2: '#F59E0B', 3: '#4A7CFF', 4: '' };
+  const PRIO = { 1: '#D1453B', 2: '#EB8909', 3: '#246FE0', 4: '' }; /* цвета приоритетов как в Todoist */
   const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const parse = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || '')); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
   const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -212,6 +212,8 @@ window.Tasks = (function () {
   function screen(mount) {
     if (!isOwner()) { Router.go('/home'); return; }
     /* всегда открываем «Предстоящее», если его не спрятали в настройке вкладок */
+    /* у Задач свои цвета светлой темы (как в Todoist), без общего инвертирования */
+    document.documentElement.classList.add('tk-on');
     view = window.TabsCustom && TabsCustom.isHidden('tasks', 'week') ? TabsCustom.firstVisible('tasks', ['inbox', 'today', 'week']) : 'week'; weekFrom = null;
     mount.innerHTML = `<div class="tk-screen">
       <div class="tk-header"><button class="tk-back" id="tk-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><p>Задачи</p>

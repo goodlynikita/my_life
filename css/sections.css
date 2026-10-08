@@ -2072,3 +2072,73 @@ body.tk-drag-on,body.tk-drag-on *{cursor:grabbing!important;user-select:none!imp
 @media (max-width:640px){.tk-day-h{padding-bottom:10px}.tk-card-main{padding:16px}.tk-week{gap:18px}}
 .tk-menu{position:static;margin-top:6px;box-shadow:none}
 @media (max-width:640px){.tk-ov{padding:10px;align-items:center}.tk-card{border-radius:16px;max-height:90vh}}
+
+/* ═══ Задачи: палитра Todoist (тёмная и светлая), светлая без общего инвертирования ═══ */
+.tk-screen,.tk-ov{--t-bg:#1E1E1E;--t-card:#282828;--t-side:#262626;--t-line:#3D3D3D;--t-line2:#333;--t-text:#E6E6E6;--t-text2:#A6A6A6;--t-muted:#808080;--t-acc:#DC4C3E;--t-acc-wash:rgba(220,76,62,.14);--t-hover:#333333;--t-head:#DC4C3E;--t-shadow:0 1px 2px rgba(0,0,0,.35);--t-ok:#4FB062}
+html[data-theme="light"].tk-on{filter:none!important;background:#fff}
+html[data-theme="light"].tk-on .tk-header,html[data-theme="light"].tk-on .tk-screen img{filter:none!important}
+html[data-theme="light"] .tk-screen,html[data-theme="light"] .tk-ov{--t-bg:#FFFFFF;--t-card:#FFFFFF;--t-side:#FCFAF8;--t-line:#E6E6E6;--t-line2:#F0F0F0;--t-text:#202020;--t-text2:#666666;--t-muted:#808080;--t-acc:#DC4C3E;--t-acc-wash:#FFEFE5;--t-hover:#F5F3F0;--t-head:#DC4C3E;--t-shadow:0 1px 3px rgba(0,0,0,.08);--t-ok:#058527}
+html[data-theme="light"].tk-on body{background:#fff}
+.tk-screen{background:var(--t-bg)!important;color:var(--t-text)}
+.tk-header{background:var(--t-head)!important}
+.tk-tabs{background:var(--t-side)!important;border-bottom:1px solid var(--t-line)!important}
+.tk-tabs button[data-v]{color:var(--t-text2)!important}
+.tk-tabs button[data-v].on{color:var(--t-acc)!important;border-bottom-color:var(--t-acc)!important}
+.tk-tabs .tc-edit{color:var(--t-muted)}
+.tk-n{color:var(--t-acc)}
+.tk-wk-nav b{color:var(--t-text)}
+.tk-wk-nav div{border-color:var(--t-line)}
+.tk-wk-nav button{background:var(--t-bg);color:var(--t-text2)}
+.tk-wk-nav button+button{border-left-color:var(--t-line)}
+.tk-wk-nav button:hover{background:var(--t-hover)}
+.tk-day-h,.tk-day-h span,.tk-day.now .tk-day-h,.tk-day.late .tk-day-h span{color:var(--t-text)!important}
+.tk-day-h i{color:var(--t-muted)}
+.tk-day .tk-row{background:var(--t-card)!important;border-color:var(--t-line)!important;box-shadow:var(--t-shadow)!important}
+.tk-day .tk-row:hover{border-color:var(--t-muted)!important}
+.tk-row{border-bottom-color:var(--t-line2)}
+.tk-tt,.tk-tt>span:first-child{color:var(--t-text)!important}
+.tk-row.done .tk-tt span{color:var(--t-muted)}
+.tk-tt em,.tk-tt em.tk-subs,.tk-tt em.tk-hasdesc{color:var(--t-text2)}
+.tk-tt em.late{color:var(--t-acc)}
+.tk-tt em:not(.late):not(.tk-subs):not(.tk-hasdesc){color:var(--t-ok)}
+.tk-ck{border-color:var(--t-muted)}
+.tk-ck:hover{border-color:var(--t-acc)}
+.tk-ck.p{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 12%,transparent)}
+.tk-row.done .tk-ck,.tk-row.pop .tk-ck{background:var(--t-acc);border-color:var(--t-acc)}
+.tk-add,.tk-add i{color:var(--t-acc)}
+.tk-add input{color:var(--t-text)}
+.tk-add input::placeholder,.tk-day .tk-add input::placeholder{color:var(--t-muted)}
+.tk-add:focus-within{border-bottom-color:var(--t-acc)}
+.tk-sec{color:var(--t-text2)}.tk-sec.late{color:var(--t-acc)}
+.tk-move{color:var(--t-acc)}
+.tk-empty{color:var(--t-muted)}
+.tk-ph{border-color:var(--t-acc);background:var(--t-acc-wash)}
+.tk-ghost{background:var(--t-card)!important;border-color:var(--t-acc)!important;color:var(--t-text)}
+html[data-theme="light"] .tk-ghost{--t-card:#fff;--t-text:#202020;--t-acc:#DC4C3E;--t-text2:#666;--t-line:#E6E6E6}
+.tk-ov{background:rgba(0,0,0,.45)}
+.tk-card{background:var(--t-bg)!important;border-color:var(--t-line)!important}
+.tk-card-top{border-bottom-color:var(--t-line)!important;color:var(--t-text2)}
+.tk-x{color:var(--t-muted)}.tk-x:hover{background:var(--t-hover)}
+.tk-card textarea,#tk-c-t{color:var(--t-text)}
+#tk-c-d{color:var(--t-text2)}
+.tk-card textarea::placeholder{color:var(--t-muted)}
+.tk-desc{color:var(--t-muted)}
+.tk-card-side{background:var(--t-side)!important;border-color:var(--t-line)!important}
+.tk-side-l{color:var(--t-text2)}
+.tk-pick{border-bottom-color:var(--t-line)}
+.tk-pick-b{color:var(--t-text)}.tk-pick-b:hover{background:var(--t-hover)}
+.tk-pick-b .ti-calendar.ok,.tk-pick-b .ti-calendar-event{color:var(--t-ok)}
+.tk-menu{background:var(--t-card);border-color:var(--t-line)}
+.tk-menu button,.tk-menu label{color:var(--t-text)}
+.tk-menu button:hover,.tk-menu button.on{background:var(--t-hover)}
+.tk-menu label input{background:var(--t-bg);border-color:var(--t-line);color:var(--t-text)}
+html[data-theme="light"] .tk-menu label input,html[data-theme="light"] #tk-c-date{color-scheme:light}
+.tk-subs-h{color:var(--t-text);border-bottom-color:var(--t-line2)}
+.tk-subs-h span,.tk-subs-h i{color:var(--t-muted)}
+.tk-sub{border-bottom-color:var(--t-line2)}
+.tk-sub input{color:var(--t-text)}
+.tk-sub.done input{color:var(--t-muted)}
+.tk-sub.done .tk-ck,.tk-card-title .tk-ck.on{background:var(--t-acc);border-color:var(--t-acc)}
+.tk-card-title .tk-ck.on.p{background:var(--pc);border-color:var(--pc)}
+.tk-sub-x{color:var(--t-muted)}
+.tk-flag{color:var(--t-muted)}

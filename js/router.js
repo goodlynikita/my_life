@@ -76,7 +76,7 @@ const Router = (() => {
       return;
     }
 
-    document.documentElement.classList.remove('fin-dark-on', 'fin-inv-on'); /* тёмные финансы — только на своём экране */
+    document.documentElement.classList.remove('fin-dark-on', 'fin-inv-on', 'tk-on'); /* тёмные финансы — только на своём экране */
     /* Тренеру доступны только тренировки */
     if (loggedIn && Auth.role() === 'coach' && path !== '/training') {
       location.hash = '/training';

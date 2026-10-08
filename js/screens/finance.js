@@ -575,14 +575,13 @@ window.Screens.finance = function(mount) {
             </div>`; }).join('')}
         </div>` : ''}
 
-        <div class="plan-step">
-          <div class="plan-ico" style="--c:${shortAmt ? '#DC2626' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-alert-triangle' : 'ti-target-arrow'}"></i></div>
+        ${inc > 0 ? `<div class="plan-step">
+          <div class="plan-ico" style="--c:${shortAmt ? '#E0B252' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-scale' : 'ti-target-arrow'}"></i></div>
           <div class="plan-main">
-            <div class="plan-name">${shortAmt ? 'Доход меньше обязательных трат' : 'Свободно на цели'}</div>
-            <div class="plan-desc">${shortAmt ? 'Доход меньше, чем копилка и базовые расходы' : ''}</div>
+            <div class="plan-name">${shortAmt ? 'Не хватает до плана' : 'Свободно на цели'}</div>
           </div>
-          <div class="plan-val"><b style="color:${shortAmt ? '#DC2626' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctOf(freeAmt) + '%'}</span></div>
-        </div>
+          <div class="plan-val"><b style="color:${shortAmt ? '#E0B252' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctOf(freeAmt) + '%'}</span></div>
+        </div>` : ''}
 
         <div class="plan-step plan-step-last">
           <div class="plan-ico" style="--c:#F59E0B;"><i class="ti ti-umbrella"></i></div>

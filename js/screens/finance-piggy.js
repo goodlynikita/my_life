@@ -113,8 +113,7 @@ window.FinPiggy = (function () {
           <button class="pg-gear" id="pg-settings" aria-label="Настройки копилки"><i class="ti ti-adjustments-horizontal"></i></button>
         </div>
         <div class="pg-balance">${fmt(balance)}</div>
-        <div class="pg-sub">${cur && cur.auto ? '+' + finFmtFull(cur.auto) + ' за ' + FIN_MONTHS[cur.m].toLowerCase() : 'В этом месяце доходов ещё нет'}
-          <span class="pg-dot">·</span> считаю с ${MONTHS_GEN[start.m]} ${start.y}</div>
+        <div class="pg-sub">${cur && cur.auto ? '+' + finFmtFull(cur.auto) + ' за ' + FIN_MONTHS[cur.m].toLowerCase() : 'с ' + MONTHS_GEN[start.m] + ' ' + start.y}</div>
         <div class="pg-actions">
           <button class="pg-btn pg-btn-out" id="pg-withdraw"><i class="ti ti-arrow-down-right"></i> Снять</button>
           <button class="pg-btn" id="pg-deposit"><i class="ti ti-plus"></i> Пополнить</button>

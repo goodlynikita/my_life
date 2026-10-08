@@ -146,6 +146,26 @@ function goalsMonthsLeft(season) {
   return sMths.filter(m => m >= curMonth).length;
 }
 
+/* цель → разовый платёж в Финансах (finance.planned). Дата: выбранный месяц, иначе конец сезона, иначе конец года */
+function goalsPayDate(g) {
+  const now = new Date(); let y = now.getFullYear();
+  const END = { spring: [4, 31], summer: [7, 31], autumn: [10, 30], winter: [1, 28] };
+  let d;
+  if (g.month) { d = new Date(y, g.month, 0); if (d < new Date(now.getFullYear(), now.getMonth(), now.getDate())) d = new Date(y + 1, g.month, 0); } /* последний день месяца */
+  else if (END[g.season]) { const [m, dd] = END[g.season]; d = new Date(y + (g.season === 'winter' && now.getMonth() >= 2 ? 1 : 0), m, dd); if (d < now) d = new Date(d.getFullYear() + 1, m, dd); }
+  else d = new Date(y, 11, 31);
+  return d;
+}
+function goalsInPlanned(g) { if (!g || !g.payId) return false; const pl = (Store.get().finance || {}).planned; return Object.values(pl || {}).some(x => x && x.id === g.payId); }
+function goalsToPlanned(g) {
+  const fin = Store.get().finance || {}; const arr = Object.values(fin.planned || {}).filter(Boolean);
+  const d = goalsPayDate(g), iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const id = 'o' + Date.now().toString(36);
+  arr.push({ id, name: String(g.name).slice(0, 60), amt: Math.round(g.amount), date: iso, done: false, createdAt: Date.now(), goal: g.id });
+  Store.set('finance.planned', arr);
+  return id;
+}
+
 function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   const isEdit = !!(existing && (existing.id || existing.name)); /* «+» передаёт только сезон и категорию: это новая цель */
   const overlay = document.createElement('div');
@@ -169,41 +189,20 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
       </div>
       <div class="goals-modal-field">
         <div class="goals-modal-label">Категория</div>
-        <select class="goals-modal-select" id="g-cat-sel">
-          ${catOpts}
-          <option value="_new"${isNewCat?' selected':''}>+ Новая категория…</option>
-        </select>
+        <div class="gm-chips" id="g-cat-chips">${existingCats.map(c=>`<button type="button" class="gm-chip${!isNewCat&&existing?.cat===c?' sel':''}" data-v="${goalsEsc(c)}">${goalsEsc(c)}</button>`).join('')}<button type="button" class="gm-chip gm-chip-new${isNewCat?' sel':''}" data-v="_new">+ Новая</button></div>
         <input class="goals-modal-input" type="text" id="g-cat" value="${goalsEsc(isNewCat?existing?.cat||'':'')}" placeholder="Название новой категории" style="margin-top:8px;display:${isNewCat?'block':'none'};">
       </div>
-      <div class="goals-modal-2col">
-        <div class="goals-modal-field">
-          <div class="goals-modal-label">Сезон</div>
-          <select class="goals-modal-select" id="g-season">
-            <option value="all"${existing?.season==='all'?' selected':''}>Без сезона</option>
-            <option value="spring"${existing?.season==='spring'?' selected':''}>Весна</option>
-            <option value="summer"${existing?.season==='summer'?' selected':''}>Лето</option>
-            <option value="autumn"${existing?.season==='autumn'?' selected':''}>Осень</option>
-            <option value="winter"${existing?.season==='winter'?' selected':''}>Зима</option>
-          </select>
-        </div>
-        <div class="goals-modal-field">
-          <div class="goals-modal-label">Месяц</div>
-          <select class="goals-modal-select" id="g-month">
-            <option value=""${!existing?.month?' selected':''}>Не указан</option>
-            <option value="1"${existing?.month===1?' selected':''}>Январь</option>
-            <option value="2"${existing?.month===2?' selected':''}>Февраль</option>
-            <option value="3"${existing?.month===3?' selected':''}>Март</option>
-            <option value="4"${existing?.month===4?' selected':''}>Апрель</option>
-            <option value="5"${existing?.month===5?' selected':''}>Май</option>
-            <option value="6"${existing?.month===6?' selected':''}>Июнь</option>
-            <option value="7"${existing?.month===7?' selected':''}>Июль</option>
-            <option value="8"${existing?.month===8?' selected':''}>Август</option>
-            <option value="9"${existing?.month===9?' selected':''}>Сентябрь</option>
-            <option value="10"${existing?.month===10?' selected':''}>Октябрь</option>
-            <option value="11"${existing?.month===11?' selected':''}>Ноябрь</option>
-            <option value="12"${existing?.month===12?' selected':''}>Декабрь</option>
-          </select>
-        </div>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Сезон</div>
+        <div class="gm-chips gm-seg" id="g-season">${[['all','Без сезона'],['spring','Весна'],['summer','Лето'],['autumn','Осень'],['winter','Зима']].map(([k,l])=>`<button type="button" class="gm-chip${(existing?.season||'all')===k?' sel':''}" data-v="${k}">${l}</button>`).join('')}</div>
+      </div>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Месяц</div>
+        <div class="gm-months" id="g-month">${['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'].map((l,i)=>`<button type="button" class="gm-chip${existing?.month===i+1?' sel':''}" data-v="${i+1}">${l}</button>`).join('')}</div>
+      </div>
+      <div class="goals-modal-field">
+        <div class="goals-modal-label">Комментарий или ссылка</div>
+        <input class="goals-modal-input" type="text" id="g-note" maxlength="300" value="${goalsEsc(existing?.note||'')}" placeholder="https://… или заметка">
       </div>
       <div class="goals-modal-field">
         <div class="goals-modal-label">Статус</div>
@@ -213,6 +212,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
           <button class="gm-status ${existing?.maybe?'sel':''}" data-val="maybe">Под вопросом</button>
         </div>
       </div>
+      ${isEdit && !existing?.done ? `<button class="gm-topay" id="g-topay"><i class="ti ti-calendar-dollar"></i> ${goalsInPlanned(existing)?'Уже в платежах':'В платежи'}</button>` : ''}
       <div class="goals-modal-actions">
         <button class="goals-modal-cancel" id="g-cancel">Отмена</button>
         <button class="goals-modal-save" id="g-save">Сохранить</button>
@@ -224,15 +224,37 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   overlay.querySelector('#g-cancel')?.addEventListener('click',()=>overlay.remove());
   overlay.querySelector('#g-del')?.addEventListener('click',()=>{if(!confirm('Удалить?'))return;onSave(null);overlay.remove();});
 
-  /* Показать поле новой категории */
-  overlay.querySelector('#g-cat-sel').addEventListener('change', function(){
-    const inp = overlay.querySelector('#g-cat');
-    inp.style.display = this.value==='_new'?'block':'none';
-  });
+  /* выбор чипами вместо системных выпадашек */
+  const pick = (box, multiOff) => box.querySelectorAll('.gm-chip').forEach(c => c.addEventListener('click', () => {
+    const was = c.classList.contains('sel');
+    box.querySelectorAll('.gm-chip').forEach(x => x.classList.remove('sel'));
+    if (!(multiOff && was)) c.classList.add('sel');
+    if (box.id === 'g-cat-chips') { const inp = overlay.querySelector('#g-cat'); inp.style.display = c.dataset.v === '_new' ? 'block' : 'none'; if (c.dataset.v === '_new') inp.focus(); }
+  }));
+  pick(overlay.querySelector('#g-cat-chips')); pick(overlay.querySelector('#g-season')); pick(overlay.querySelector('#g-month'), true);
+  const selOf = (id) => { const c = overlay.querySelector('#' + id + ' .gm-chip.sel'); return c ? c.dataset.v : ''; };
+  const readForm = () => {
+    const name = overlay.querySelector('#g-name').value.trim();
+    const selCat = selOf('g-cat-chips'), newCat = overlay.querySelector('#g-cat').value.trim();
+    const cat = selCat === '_new' || !selCat ? (newCat || existing?.cat || 'Разное') : selCat;
+    const note = overlay.querySelector('#g-note').value.trim().slice(0, 300);
+    const out = Object.assign({}, existing || {}, {
+      id: existing?.id || 'g_' + Date.now(), name,
+      amount: Math.min(1e10, Math.max(0, parseFloat(String(overlay.querySelector('#g-amount').value).replace(/\s/g, '').replace(',', '.')) || 0)),
+      cat, season: selOf('g-season') || 'all', month: parseInt(selOf('g-month')) || null,
+      done: selStatus === 'done', maybe: selStatus === 'maybe', note: note || null });
+    delete out.newCat; return out;
+  };
+  const tp = overlay.querySelector('#g-topay');
+  if (tp) { if (goalsInPlanned(existing)) tp.disabled = true;
+    tp.addEventListener('click', () => { const g = readForm(); if (!g.name || !(g.amount > 0)) { alert('Укажи название и сумму'); return; }
+      const pid = goalsToPlanned(g); g.payId = pid; onSave(g); overlay.remove();
+      if (window.FinSpend && FinSpend.toast) FinSpend.toast('Добавил в «Ближайшие платежи» к ' + goalsPayDate(g).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })); }); }
 
   /* Статус кнопки */
   let selStatus = existing?.done?'done':existing?.maybe?'maybe':'active';
   const _seasonAccent = (GOALS_SEASONS.find(s=>s.key===(_activeSeasonOverride||window._goalsActiveSeason||'all'))||{color:'#F2A93B'}).color;
+  overlay.style.setProperty('--gm-acc', _seasonAccent);
   overlay.querySelectorAll('.gm-status').forEach(btn=>{
     btn.addEventListener('click',()=>{
       selStatus=btn.dataset.val;
@@ -256,17 +278,8 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   });
 
   overlay.querySelector('#g-save').addEventListener('click',()=>{
-    const name=overlay.querySelector('#g-name').value.trim(); if(!name)return;
-    const selCat=overlay.querySelector('#g-cat-sel').value;
-    const newCat=overlay.querySelector('#g-cat').value.trim();
-    const cat = selCat==='_new'?(newCat||'Разное'):selCat;
-    onSave({
-      id:existing?.id||'g_'+Date.now(), name,
-      amount:Math.min(1e10, Math.max(0, parseFloat(String(overlay.querySelector('#g-amount').value).replace(/\s/g,'').replace(',','.'))||0)),
-      cat, season:overlay.querySelector('#g-season').value,
-      month: parseInt(overlay.querySelector('#g-month').value)||null,
-      done:selStatus==='done', maybe:selStatus==='maybe'
-    });
+    const g = readForm(); if (!g.name) return;
+    onSave(g);
     overlay.remove();
   });
 }
@@ -492,7 +505,10 @@ window.Screens.goals = function(mount) {
               + checkIcon + '</div>'
               + seasonDot
               + '<span class="goals-item-v3-name" style="'+(g.done?'text-decoration:line-through;':'')+'">'
-              + goalsEsc(g.name)+'<span style="font-size:10px;color:#9D9A92;">'+mt+'</span></span>'
+              + goalsEsc(g.name)+'<span style="font-size:10px;color:#9D9A92;">'+mt+'</span>'
+              + (g.note ? (/^https?:\/\/\S+$/i.test(g.note) ? '<a class="goals-note-link" href="'+goalsEsc(g.note)+'" target="_blank" rel="noopener" title="'+goalsEsc(g.note)+'"><i class="ti ti-link"></i></a>' : '<span class="goals-note">'+goalsEsc(g.note)+'</span>') : '')
+              + (g.payId ? '<i class="ti ti-calendar-dollar goals-paid-ic" title="В платежах"></i>' : '')
+              + '</span>'
               + '<span class="goals-item-v3-amt">'+amtDisplay+'</span>'
               + '</div>';
           }).join('');
@@ -537,7 +553,7 @@ window.Screens.goals = function(mount) {
     /* Редактирование по клику на имя/сумму */
     content.querySelectorAll('.goals-item-v3').forEach(el=>{
       el.addEventListener('click', e=>{
-        if(e.target.closest('.goals-check-v3')) return;
+        if(e.target.closest('.goals-check-v3') || e.target.closest('.goals-note-link') || el.dataset.dragged) return;
         const gid = el.dataset.gid;
         const list = goalsGet();
         const item = list.find(g=>g.id===gid);
@@ -553,6 +569,30 @@ window.Screens.goals = function(mount) {
           }
           render();
         });
+      });
+    });
+
+    /* перетаскивание целей внутри категории: удержи строку и тяни */
+    content.querySelectorAll('.goals-cat-v3').forEach(box => {
+      box.querySelectorAll('.goals-item-v3').forEach(row => {
+        let timer = null, start = null, drag = false, rows = [], h = 0, from = 0, to = 0, pid = null;
+        const down = (e) => { if (e.button > 0 || e.target.closest('.goals-check-v3,.goals-note-link')) return; start = { x: e.clientX, y: e.clientY }; pid = e.pointerId;
+          timer = setTimeout(() => { drag = true; row.classList.add('dragging'); rows = [...box.querySelectorAll('.goals-item-v3')]; from = rows.indexOf(row); to = from; h = row.getBoundingClientRect().height || 40;
+            try { row.setPointerCapture(pid); } catch (_) {} try { navigator.vibrate && navigator.vibrate(10); } catch (_) {} }, 320); };
+        const move = (e) => { if (!start) return; const dy = e.clientY - start.y;
+          if (!drag) { if (Math.abs(dy) > 8 || Math.abs(e.clientX - start.x) > 8) { clearTimeout(timer); start = null; } return; }
+          e.preventDefault(); row.style.transform = 'translateY(' + dy + 'px)';
+          to = Math.max(0, Math.min(rows.length - 1, from + Math.round(dy / h)));
+          rows.forEach((r, i) => { if (r === row) return; let sh = 0; if (from < to && i > from && i <= to) sh = -h; if (from > to && i < from && i >= to) sh = h; r.style.transform = sh ? 'translateY(' + sh + 'px)' : ''; }); };
+        const up = () => { clearTimeout(timer);
+          if (drag) { row.dataset.dragged = '1'; setTimeout(() => { delete row.dataset.dragged; }, 60); rows.forEach(r => { r.style.transform = ''; }); row.classList.remove('dragging');
+            if (to !== from) { const list = goalsGet(); const ids = rows.map(r => r.dataset.gid); const mv = ids.splice(from, 1)[0]; ids.splice(to, 0, mv);
+              const pos = ids.map(id => list.findIndex(g => g.id === id)).filter(i => i >= 0).sort((a, b) => a - b); const its = ids.map(id => list.find(g => g.id === id)).filter(Boolean);
+              if (pos.length === its.length) { pos.forEach((p, i) => { list[p] = its[i]; }); goalsSave(list); render(); } } }
+          drag = false; start = null; };
+        row.addEventListener('pointerdown', down); row.addEventListener('pointermove', move); row.addEventListener('pointerup', up); row.addEventListener('pointercancel', up);
+        row.addEventListener('touchmove', (e) => { if (drag) e.preventDefault(); }, { passive: false });
+        row.addEventListener('contextmenu', (e) => { if (drag || start) e.preventDefault(); });
       });
     });
 

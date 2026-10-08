@@ -130,7 +130,7 @@ var Slides = (() => {
         const fmt = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+'₽';
         const color = cushion>=0?'#4ADE80':'#F87171';
         /* та же цифра и тот же «≈», что во вкладке «Расходы» */
-        try { if (window.FinSpend) { const c = FinSpend.calc(); if (!c.inc) return `<div class="hero-stat-num">0₽</div><div class="hero-stat-lbl">добавь доход месяца</div>`; return `<div class="hero-stat-num" style="color:${c.free >= 0 ? '#4ADE80' : '#F87171'}">${c.est ? '≈ ' : ''}${c.free < 0 ? '−' : ''}${fmt(c.free)}</div><div class="hero-stat-lbl">свободно, ~${fmt(c.perDay)} в день</div>`; } } catch (e) {}
+        try { if (window.FinSpend) { const c = FinSpend.calc(); if (!c.inc) return `<div class="hero-stat-num">0₽</div><div class="hero-stat-lbl">добавь доход месяца</div>`; return `<div class="hero-stat-num" style="color:${c.free > 0 ? '#4ADE80' : 'inherit'}">${c.est ? '≈ ' : ''}${fmt(Math.max(0, c.free))}</div><div class="hero-stat-lbl">свободно, ~${fmt(c.perDay)} в день</div>`; } } catch (e) {}
         /* доходов в этом месяце ещё нет: показываем ожидаемые расходы, а не красный «дефицит» */
         if (!income) return `<div class="hero-stat-num">${fmt(expenses)}</div><div class="hero-stat-lbl">расходы месяца</div>`;
         return `<div class="hero-stat-num" style="color:${color}">${cushion<0?'−':''}${fmt(cushion)}</div><div class="hero-stat-lbl">${cushion>=0?'свободно':'не хватает'}</div>`;

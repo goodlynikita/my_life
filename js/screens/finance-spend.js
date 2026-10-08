@@ -83,7 +83,13 @@ window.FinSpend = (function () {
       if (!p.done && pd >= p.amt && p.amt > 0) { ch = true; return Object.assign(p, { done: true, doneAt: Date.now(), auto: true }); }
       if (p.done && (p.auto || pd > 0) && pd < p.amt) { ch = true; return Object.assign(p, { done: false, doneAt: null, auto: null }); }
       return p; });
-    if (ch) savePlanned(next);
+    if (ch) { savePlanned(next); goalSync(next); }
+  }
+  /* оплатил платёж, созданный из цели: цель закрывается сама (и открывается обратно, если оплату удалили) */
+  function goalSync(arr) {
+    try { const g = (Store.get().goals || {}).directions; if (!g) return; const list = (Array.isArray(g) ? g : Object.values(g)).filter(Boolean); let ch = false;
+      arr.forEach(p => { if (!p.goal) return; const x = list.find(y => y.id === p.goal); if (x && !!x.done !== !!p.done) { x.done = !!p.done; x.maybe = false; ch = true; } });
+      if (ch) Store.set('goals.directions', list); } catch (e) {}
   }
   function income(d) {
     if (demoOn()) { const n = new Date(); return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() ? 180000 : 0; }
@@ -141,7 +147,7 @@ window.FinSpend = (function () {
       return n === pn || (pw.length > 0 && pw.length <= 3 && pw.every(x => nw.includes(x))); });
     return cand.sort((a, b) => pDate(a.date) - pDate(b.date))[0] || null;
   }
-  function markPlanned(id, done) { savePlanned(planned().map(x => x.id === id ? Object.assign(x, done ? { done: true, doneAt: Date.now() } : { done: false, doneAt: null }) : x)); }
+  function markPlanned(id, done) { const next = planned().map(x => x.id === id ? Object.assign(x, done ? { done: true, doneAt: Date.now() } : { done: false, doneAt: null }) : x); savePlanned(next); goalSync(next); }
   /* напоминание в календарь телефона: файл .ics, событие на весь день и два напоминания (за 3 дня и накануне, в 9:00) */
   function icsDownload(p) {
     const d = pDate(p.date), d2 = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
@@ -184,19 +190,20 @@ window.FinSpend = (function () {
     /* разовые платежи этого периода и просроченные: резервируем целиком, пока не оплачены */
     const paidO = oncePaid();
     const onceLeft = planned().filter(p => !p.done && pDate(p.date) < per.end).reduce((s, p) => s + Math.max(0, p.amt - (paidO[p.id] || 0)), 0);
-    const free = inc - save - planLeft - onceLeft - spent;
+    /* «Свободно» = заработано − копилка − реально потраченное. Планы и будущие платежи не вычитаем: они показаны отдельно в «Ближайших платежах» */
+    const free = inc - save - spent;
+    const afterPays = free - planLeft - onceLeft;
     const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dim = Math.round((per.end - per.start) / 864e5); /* дней в периоде */
     const daysLeft = Math.max(1, Math.round((per.end - t0) / 864e5));
     /* «свободные» траты сегодня: без категории или сверх плана категории (траты в рамках плана уже учтены выше) */
     const todayKey = now.toDateString();
-    const todayBy = {}; items.filter(x => !x.once && new Date(x.at).toDateString() === todayKey).forEach(x => { const k = x.cat && planOf[x.cat] != null ? x.cat : '_other'; todayBy[k] = (todayBy[k] || 0) + x.amt; });
-    const todaySpent = Object.entries(todayBy).reduce((s, [k, v]) => s + (k === '_other' ? v : Math.min(v, Math.max(0, (sp[k] || 0) - planOf[k]))), 0);
+    const todaySpent = items.filter(x => new Date(x.at).toDateString() === todayKey).reduce((s, x) => s + x.amt, 0);
     /* норма на день считается от свободного на утро: сегодняшние траты не уменьшают сегодняшнюю норму */
     const perDay = Math.max(0, Math.floor((free + todaySpent) / daysLeft));
     /* сколько ушло именно в плановые категории (для кольца в «Балансе») */
     const planSpent = planCats.reduce((s, c) => s + (sp[c.id] || 0), 0);
-    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, onceLeft, planTotal, planSpent, spent, free, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo, sample: demoOn() };
+    return { ym, P, start: per.start, end: per.end, items, inc, est, estFrom, save, savePct: b.savePct, planLeft, onceLeft, planTotal, planSpent, spent, free, afterPays, daysLeft, dim, perDay, todaySpent, cats: b.cats, sp, demo: b.demo, sample: demoOn() };
   }
 
   /* плановые платежи месяца: категории с днём оплаты, оплачено = потрачено ≥ плана */
@@ -296,7 +303,8 @@ window.FinSpend = (function () {
   }
 
   function parse(text, cats, forced) {
-    const raw = String(text || '').trim().slice(0, 200);
+    /* «такси 350+420» → «такси 770» */
+    const raw = String(text || '').trim().slice(0, 200).replace(/\d+(?:[.,]\d{1,2})?(?:\s*\+\s*\d+(?:[.,]\d{1,2})?)+/g, m => String(Math.round(m.split('+').reduce((a, x) => a + (parseFloat(x.trim().replace(',', '.')) || 0), 0) * 100) / 100).replace('.', ','));
     if (!raw) return null;
     cats = cats || budget().cats;
     const all = amounts(raw);
@@ -373,7 +381,23 @@ window.FinSpend = (function () {
     const w = d + ' · ' + (p.diff === 0 ? 'сегодня' : p.diff === 1 ? 'завтра' : 'через ' + p.diff + ' ' + plural(p.diff, ['день', 'дня', 'дней']));
     return w;
   }
-  let showPays = false, showAll = false, lastCommit = { sig: '', t: 0 }, soft = false;
+  let showPays = false, showAll = false, openDays = null, lastCommit = { sig: '', t: 0 }, soft = false;
+
+  /* раз в неделю (вс и пн) просим проверить траты за неделю; «Готово» прячет до следующей недели */
+  const weekId = (d) => { const m = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7) - (d.getDay() === 1 ? 7 : 0)); return isoDate(m); };
+  function weekAsk(now, c) {
+    if (c.sample || !(now.getDay() === 0 || now.getDay() === 1)) return false;
+    try { return localStorage.getItem('you_fin_week') !== weekId(now); } catch (e) { return false; }
+  }
+  /* повторяющееся напоминание в календарь телефона: каждое воскресенье в 20:00 */
+  function weekIcs() {
+    const d = new Date(); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); const ymd = isoDate(d).replace(/-/g, '');
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//YOU//Finance//RU', 'BEGIN:VEVENT', 'UID:week-spend@you-app.ru', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''),
+      'DTSTART:' + ymd + 'T200000', 'DTEND:' + ymd + 'T201500', 'RRULE:FREQ=WEEKLY;BYDAY=SU', 'SUMMARY:YOU: запиши траты за неделю', 'URL:https://you-app.ru/#/finance',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Запиши траты за неделю', 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'you-traty-nedelya.ics'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
 
   function render(content, rerenderOuter) {
     /* перерисовка после записи/правки «мягкая»: без вылета карточек, цифры едут от прошлых значений */
@@ -396,16 +420,19 @@ window.FinSpend = (function () {
     const groups = [];
     shown.forEach(x => { const d = new Date(x.at); const k = d.toDateString(); let g = groups.find(z => z.k === k); if (!g) { g = { k, d, items: [] }; groups.push(g); } g.items.push(x); });
     const noInc = !c.inc;
-    const bigTxt = (c.est ? '≈ ' : '') + fmt(noInc ? 0 : c.free);
+    const bigTxt = (c.est ? '≈ ' : '') + fmt(noInc ? 0 : Math.max(0, c.free));
 
     content.classList.toggle('sp-first', first);
     content.innerHTML = `${c.sample ? `
       <div class="sp-card sp-demo"><i class="ti ti-sparkles"></i><div><b>Это пример</b><span>Так будет выглядеть, когда запишешь доход и траты</span></div><button id="sp-demo-off">Убрать</button></div>` : ''}
+      ${weekAsk(now, c) ? `<div class="sp-card sp-week"><i class="ti ti-calendar-week"></i><div><b>Неделя закончилась</b><span>Всё записал? Проверь траты за неделю</span></div>
+        <button id="sp-week-ics" aria-label="Напоминать по воскресеньям" title="Напоминать по воскресеньям"><i class="ti ti-bell-plus"></i></button><button id="sp-week-ok">Готово</button></div>` : ''}
       <div class="sp-card sp-hero">
         <div class="sp-hero-top">
           <div class="sp-hero-m">
             <button class="sp-lbl sp-per" id="sp-per">${c.P ? 'До зарплаты ' + dm(c.end) : 'Свободно до ' + dm(monthEnd)}<i class="ti ti-chevron-down"></i></button>
-            <div class="sp-big${!noInc && c.free < 0 ? ' neg' : ''}${noInc ? ' mute' : ''}${bigTxt.length > 11 ? ' long' : ''}">${c.est ? '<small>≈</small>' : ''}<span id="sp-num">${fmt(noInc ? 0 : c.free)}</span></div>
+            <div class="sp-big${noInc ? ' mute' : ''}${bigTxt.length > 11 ? ' long' : ''}">${c.est ? '<small>≈</small>' : ''}<span id="sp-num">${fmt(noInc ? 0 : Math.max(0, c.free))}</span></div>
+            ${!noInc && c.free < 0 ? `<div class="sp-over">потрачено сверх заработанного ${fmt(-c.free)}</div>` : ''}
           </div>
           <button class="sp-help" id="sp-help" aria-label="Подсказки"><i class="ti ti-help"></i></button>
         </div>
@@ -420,14 +447,11 @@ window.FinSpend = (function () {
           <div class="sp-today-h"><span>Сегодня</span><b>${fmt(c.todaySpent)} <em>из ${fmt(c.perDay)}</em></b></div>
           <div class="sp-bar"><span data-k="today" data-w="${pctToday}" class="${c.todaySpent > c.perDay ? 'over' : ''}"></span></div>
         </div>`}
-        <details class="sp-how"><summary>Как рассчитано <i class="ti ti-chevron-down"></i></summary>
-          <div class="sp-how-r"><span>${c.est ? 'Доход (как в ' + MON_PREP[c.estFrom] + ')' : c.P ? 'Доход за ' + MON_NOM[c.start.getMonth()] : 'Доход за месяц'}</span><b>${fmt(c.inc)}</b></div>
+        <details class="sp-how"><summary>Откуда цифра <i class="ti ti-chevron-down"></i></summary>
+          <div class="sp-how-r"><span>${c.est ? 'Заработано (как в ' + MON_PREP[c.estFrom] + ')' : 'Заработано'}</span><b>${fmt(c.inc)}</b></div>
           <div class="sp-how-r"><span>В копилку, ${c.savePct}%</span><b>−${fmt(c.save)}</b></div>
-          <div class="sp-how-r"><span>План по категориям, ещё не потрачено</span><b>−${fmt(c.planLeft)}</b></div>
-          ${c.onceLeft ? `<div class="sp-how-r"><span>Разовые платежи до ${dm(monthEnd)}</span><b>−${fmt(c.onceLeft)}</b></div>` : ''}
-          <div class="sp-how-r"><span>${c.P ? 'Уже потрачено с ' + dm(c.start) : 'Уже потрачено в этом месяце'}</span><b>−${fmt(c.spent)}</b></div>
+          <div class="sp-how-r"><span>Потрачено</span><b>−${fmt(c.spent)}</b></div>
           <div class="sp-how-r sp-how-t"><span>Свободно</span><b>${fmt(c.free)}</b></div>
-          <div class="sp-how-r"><span>Осталось дней, с сегодняшним</span><b>${c.daysLeft}</b></div>
         </details>
       </div>
 
@@ -443,7 +467,7 @@ window.FinSpend = (function () {
 
       <div class="sp-card sp-add">
         <div class="sp-add-row">
-          <input id="sp-in" type="text" autocomplete="off" autocapitalize="sentences" enterkeyhint="done" maxlength="200" placeholder="Кофе 420 с Т-Банка">
+          <input id="sp-in" type="text" autocomplete="off" autocapitalize="sentences" enterkeyhint="done" maxlength="200" placeholder="Что и сколько: такси 350">
           <button id="sp-ok" aria-label="Записать"><i class="ti ti-check"></i></button>
         </div>
         <div class="sp-chips" id="sp-chips"></div>
@@ -452,11 +476,11 @@ window.FinSpend = (function () {
 
       <div class="sp-card sp-list">
         <div class="sp-list-h">${c.P ? 'Траты с ' + dm(c.start) : 'Траты за ' + MON_NOM[now.getMonth()]}<b>${fmt(c.spent)}</b></div>
-        ${groups.length ? groups.map(g => `<div class="sp-day">${dayLabel(g.d)}<span>${fmt(g.items.reduce((s, x) => s + x.amt, 0))}</span></div>
-          ${g.items.map(x => { const ct = catById[x.cat]; return `<button class="sp-row" data-id="${esc(x.id)}" data-ym="${esc(x.ym)}">
+        ${groups.length ? groups.map((g, gi) => { const op = openDays ? openDays.has(g.k) : gi === 0; return `<button class="sp-day${op ? ' open' : ''}" data-day="${esc(g.k)}"><span class="sp-day-l"><i class="ti ti-chevron-right"></i>${dayLabel(g.d)}${op ? '' : `<em>${g.items.length}</em>`}</span><span>${fmt(g.items.reduce((s, x) => s + x.amt, 0))}</span></button>
+          ${!op ? '' : g.items.map(x => { const ct = catById[x.cat]; return `<button class="sp-row" data-id="${esc(x.id)}" data-ym="${esc(x.ym)}">
             <i class="sp-ico" style="--c:${ct ? col(ct.color) : '#737373'}">${esc((String(x.note || '?').trim()[0] || '?').toUpperCase())}</i>
             <span class="sp-row-m"><b>${esc(x.note || 'Трата')}</b><em>${esc(ct ? ct.name : 'Другое')}${x.src ? ' · ' + esc(x.src) : ''}</em></span>
-            <span class="sp-row-a">−${fmt(x.amt)}</span></button>`; }).join('')}`).join('')
+            <span class="sp-row-a">−${fmt(x.amt)}</span></button>`; }).join('')}`; }).join('')
           + (items.length > shown.length ? `<button class="sp-more" id="sp-more">Показать все ${items.length}</button>` : '')
           : `<div class="sp-empty"><i class="ti ti-receipt"></i>${c.P ? 'Трат с зарплаты пока нет' : 'Трат в этом месяце пока нет'}</div>`}
       </div>`;
@@ -498,6 +522,8 @@ window.FinSpend = (function () {
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); if (!e.repeat) commit(); } });
     const hb = content.querySelector('#sp-help'); if (hb) hb.onclick = () => { if (window.Tour && Tour.play) Tour.play(TIPS.filter(t => document.querySelector(t.sel)), 'tab:finance.expenses'); };
     const tm = content.querySelector('#sp-to-month'); if (tm) tm.onclick = () => { const t = document.querySelector('.tochka-tab[data-tab="month"]'); if (t) t.click(); };
+    /* дни сворачиваются: по умолчанию раскрыт только последний день с тратами */
+    content.querySelectorAll('.sp-day[data-day]').forEach(b => b.onclick = () => { if (!openDays) openDays = new Set(groups.length ? [groups[0].k] : []); openDays.has(b.dataset.day) ? openDays.delete(b.dataset.day) : openDays.add(b.dataset.day); rerender(); });
     const more = content.querySelector('#sp-more'); if (more) more.onclick = () => { showAll = true; rerender(); };
     ['#sp-pay-add', '#sp-pay-empty'].forEach(q => { const el = content.querySelector(q); if (el) el.onclick = () => payModal(rerender); });
     /* платёж из списка: подставляем строку с суммой остатка, Enter запишет его в нужную категорию */
@@ -514,6 +540,8 @@ window.FinSpend = (function () {
     }));
     /* в примере траты не редактируются: подсказываем, как начать по-настоящему */
     content.querySelectorAll('.sp-row').forEach(b => b.addEventListener('click', () => { if (c.sample) { toast('Это пример. Запиши свою трату строкой выше'); return; } editModal(b.dataset.ym || c.ym, b.dataset.id, cats, rerender); }));
+    const wk = content.querySelector('#sp-week-ok'); if (wk) wk.onclick = () => { try { localStorage.setItem('you_fin_week', weekId(now)); } catch (e) {} rerender(); };
+    const wi = content.querySelector('#sp-week-ics'); if (wi) wi.onclick = weekIcs;
     const dOff = content.querySelector('#sp-demo-off'); if (dOff) dOff.onclick = () => { Store.set('finance.spendDemoOff', true); rerender(); };
     const pb = content.querySelector('#sp-per'); if (pb) pb.onclick = () => periodModal(rerender);
     const qb = content.querySelector('#sp-quick'); if (qb) qb.onclick = quickModal;
@@ -523,7 +551,7 @@ window.FinSpend = (function () {
     else if (window.__spendFocus) { window.__spendFocus = false; setTimeout(() => { inp.focus(); inp.scrollIntoView({ block: 'center' }); }, 300); }
 
     animate(content, !first);
-    const to = noInc ? 0 : c.free;
+    const to = noInc ? 0 : Math.max(0, c.free);
     countUp(content.querySelector('#sp-num'), first || prevFree == null ? 0 : prevFree, to);
     prevFree = to;
   }
@@ -531,10 +559,10 @@ window.FinSpend = (function () {
   /* подсказки вместо описаний на экране: по кнопке «?» и один раз при первом входе (Tour) */
   const TIPS = [
     { sel: '.sp-per', t: 'До конца месяца или до зарплаты', d: 'Нажми, чтобы выбрать, до какого дня считать деньги.' },
-    { sel: '.sp-big', t: 'Свободно', d: 'Доход минус копилка, минус обязательные платежи и уже потраченное. Знак ≈: доходов в этом месяце ещё нет, считаю по прошлому. Красная цифра: трат больше, чем дохода.' },
-    { sel: '.sp-today', t: 'Сегодня', d: 'Сколько можно потратить сегодня, чтобы хватило до конца. Покупки по плану (продукты, аренда) сюда не входят.' },
+    { sel: '.sp-big', t: 'Свободно', d: 'Заработано минус копилка и минус то, что уже потратил. Будущие платежи не вычитаются, они ниже в «Ближайших платежах». Знак ≈: доходов в этом месяце ещё нет, считаю по прошлому.' },
+    { sel: '.sp-today', t: 'Сегодня', d: 'Свободное, поделённое на оставшиеся дни. Столько можно тратить в день, чтобы хватило до конца.' },
     { sel: '.sp-pay', t: 'Ближайшие платежи', d: 'Платежи по датам. «+»: каждый месяц (аренда, кредит, подписка) или один раз к дате (брекеты, отпуск, страховка). Для разового покажу, сколько откладывать в месяц, и поставлю напоминание в календарь. Нажми на платёж, чтобы записать оплату.' },
-    { sel: '#sp-in', t: 'Запись одной строкой', d: 'Пиши как есть: «кофе 420», «такси 350 тинькофф», «продукты 2,3к». Поменяешь категорию у траты, в следующий раз такая строка попадёт туда сама.' },
+    { sel: '#sp-in', t: 'Запись одной строкой', d: 'Пиши как есть: «кофе 420», «такси 350 тинькофф», «продукты 2,3к», «такси 350+420» сложу сам. Поменяешь категорию у траты, в следующий раз такая строка попадёт туда сама.' },
     { sel: '.sp-row, .sp-empty', t: 'Траты', d: 'Нажми на трату, чтобы поменять сумму, категорию или дату либо удалить.' },
   ];
 

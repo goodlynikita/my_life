@@ -292,7 +292,7 @@ html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893
   .sb-h{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 0;border:1px solid transparent;border-radius:12px;background:none;color:var(--faint);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
   .sb-h b{font-size:18px;color:var(--txt)}
   .sb-h:hover{background:rgba(255,255,255,.04)}
-  .sb-c.today .sb-h{background:linear-gradient(160deg,#3A62C9,#2C4FA8);color:#DCE6FF}.sb-c.today .sb-h b{color:#fff}
+  .sb-c.today .sb-h{background:linear-gradient(160deg,var(--acc),var(--acc2));color:rgba(255,255,255,.85)}.sb-c.today .sb-h b{color:#fff}
   .sb-c.on:not(.today) .sb-h{border-color:var(--line2);background:rgba(255,255,255,.04)}
   .sb-s{position:relative;min-width:0;padding:9px 8px 8px;border-radius:11px;background:color-mix(in srgb,var(--c) 16%,rgba(255,255,255,.02));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-left:3px solid var(--c);cursor:pointer;transition:transform .15s,box-shadow .15s}
   .sb-s:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.3)}
@@ -309,9 +309,9 @@ html[data-theme="light"] .c-sh{filter:invert(1) hue-rotate(180deg) contrast(.893
   .sb-c:hover .sb-add{opacity:1}
 }
 /* телефон: полоса дней и записи в том же стиле */
-.sc .sc-d.is-today:not(.on){background:linear-gradient(160deg,rgba(58,98,201,.35),rgba(44,79,168,.25));border-color:rgba(110,148,255,.5)}
+.sc .sc-d.is-today:not(.on){background:color-mix(in srgb,var(--acc) 22%,transparent);border-color:color-mix(in srgb,var(--acc) 55%,transparent)}
 .sc .sc-it{border-left:3px solid var(--c,var(--line2))}
-.sc-cal-all{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:8px;border:none;background:none;color:#E8C49A;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.sc-cal-all i{font-size:17px}
+.sc-cal-all{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:8px;border:none;background:none;color:#F2B566;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.sc-cal-all i{font-size:17px}
 .sc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px} .sc-top b{font-size:14.5px;text-align:center}
 .sc-nav{width:38px;height:38px;border-radius:12px;font-size:18px}
 .sc-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:14px}
@@ -589,17 +589,17 @@ details.more .more-b{padding-top:12px;border-top:1px solid var(--line)}
 .c-sh.c-sh-blue{background:linear-gradient(135deg,#2C4470 0%,#3A5690 100%)!important}
 .c-sh.c-sh-green{background:linear-gradient(135deg,#2B5247 0%,#386A5C 100%)!important}
 .c-sh.c-sh-violet{background:linear-gradient(135deg,#40386A 0%,#524987 100%)!important}
-.c-sh.c-sh-amber{background:linear-gradient(135deg,#5E4632 0%,#7A5B42 100%)!important}
+.c-sh.c-sh-amber{background:linear-gradient(135deg,#7A4716 0%,#A2621F 100%)!important}
 body.sec-blue{--acc:#6F8FD0;--acc2:#5873AE}
 body.sec-green{--acc:#62A48C;--acc2:#4B8573;--line:rgba(120,190,165,.12);--line2:rgba(120,190,165,.2)}
 body.sec-violet{--acc:#8F82C6;--acc2:#7266AA;--line:rgba(160,150,210,.12);--line2:rgba(160,150,210,.21)}
-body.sec-amber{--acc:#C29A73;--acc2:#A27D5A;--line:rgba(210,175,140,.12);--line2:rgba(210,175,140,.2)}
+body.sec-amber{--acc:#D08A3C;--acc2:#A8661F;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14)}
 body.sec-green .card{background:linear-gradient(160deg,rgba(30,48,43,.78),rgba(15,20,19,.92))}
 body.sec-violet .card{background:linear-gradient(160deg,rgba(38,34,62,.78),rgba(16,15,26,.92))}
-body.sec-amber .card{background:linear-gradient(160deg,rgba(48,38,30,.78),rgba(20,17,14,.92))}
+body.sec-amber .card{background:linear-gradient(160deg,rgba(30,32,42,.82),rgba(17,18,25,.94))}
 body.sec-green{background:radial-gradient(1200px 600px at 50% -200px,rgba(98,164,140,.07),transparent),var(--bg)}
 body.sec-violet{background:radial-gradient(1200px 600px at 50% -200px,rgba(143,130,198,.08),transparent),var(--bg)}
-body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(194,154,115,.07),transparent),var(--bg)}
+body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(217,139,43,.06),transparent),var(--bg)}
 .btn-main{background:linear-gradient(135deg,var(--acc),var(--acc2))}
 /* расписание в тех же спокойных тонах: без ярко-оранжевого и зелёного */
 .sc .sc-d.on{background:linear-gradient(135deg,var(--acc2),var(--acc));color:#fff} .sc .sc-d.on b{color:#fff} .sc .sc-d.on em{background:rgba(255,255,255,.22);color:#fff}

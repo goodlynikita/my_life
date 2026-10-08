@@ -33,14 +33,14 @@ html.tk-on.tk-on-light, html.tk-on.tk-on-light body { background: #FFFFFF; }
 .tk-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .tk-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: var(--t-bg); color: var(--t-text); color-scheme: var(--t-scheme); overflow: hidden; }
 /* вкладки сверху (как в других разделах): Входящие / Сегодня / Предстоящее */
-.tk-side { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 28px; background: var(--t-side); border-bottom: 1px solid var(--t-line2); box-sizing: border-box; }
+.tk-side { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: var(--t-side); border-bottom: 1px solid var(--t-line2); box-sizing: border-box; }
 .tk-plus { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
-.tk-new { order: 2; margin-left: auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: none; border-radius: 6px; background: none; color: var(--t-acc); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.tk-new { display: none; order: 2; margin-left: auto; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: none; border-radius: 6px; background: none; color: var(--t-acc); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .tk-new .tk-plus { background: var(--t-acc); color: #fff; font-size: 15px; }
 .tk-new:hover { background: var(--t-hover); }
-.tk-navl { display: flex; align-items: center; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tk-navl { flex: 1; display: flex; align-items: center; gap: 0; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .tk-navl::-webkit-scrollbar { display: none; }
-.tk-navl button[data-v] { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; height: 46px; padding: 0 12px; border: none; border-bottom: 2px solid transparent; background: none; color: var(--t-text); font-size: 14px; cursor: pointer; }
+.tk-navl button[data-v] { flex: 1 0 auto; justify-content: center; display: flex; align-items: center; gap: 6px; height: 46px; padding: 0 12px; border: none; border-bottom: 2px solid transparent; background: none; color: var(--t-text); font-size: 13.5px; cursor: pointer; }
 .tk-navl button[data-v] i { display: none; }
 .tk-navl button[data-v] em { font-style: normal; font-size: 12px; color: var(--t-muted); }
 .tk-navl button[data-v]:hover { color: var(--t-acc); }
@@ -54,7 +54,7 @@ html.tk-on.tk-on-light, html.tk-on.tk-on-light body { background: #FFFFFF; }
 .tk-page-w { max-width: none; height: 100%; display: flex; flex-direction: column; padding: 24px 0 0; }
 .tk-ph { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
 .tk-page-w .tk-ph { padding: 0 40px; margin-bottom: 4px; }
-.tk-ph h1 { margin: 0; font-size: 26px; font-weight: 700; line-height: 35px; color: var(--t-text); letter-spacing: 0; }
+.tk-ph h1 { margin: 0; font-size: 24px; font-weight: 700; line-height: 35px; color: var(--t-text); letter-spacing: 0; }
 .tk-cnt { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--t-muted); }
 .tk-cnt i { font-size: 15px; }
 
@@ -64,12 +64,13 @@ html.tk-on.tk-on-light, html.tk-on.tk-on-light body { background: #FFFFFF; }
 .tk-nav { display: flex; border: 1px solid var(--t-line); border-radius: 6px; overflow: hidden; }
 .tk-nav button { height: 28px; min-width: 28px; padding: 0 10px; border: none; background: var(--t-bg); color: var(--t-text2); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .tk-nav button + button { border-left: 1px solid var(--t-line); }
-.tk-nav button:hover { background: var(--t-hover); color: var(--t-text); }
+.tk-nav button:hover:not(:disabled) { background: var(--t-hover); color: var(--t-text); }
+.tk-nav button:disabled { color: var(--t-faint); cursor: default; opacity: .5; }
 .tk-nav button i { font-size: 16px; }
 .tk-board { flex: 1; min-height: 0; display: flex; gap: 0; overflow-x: auto; overflow-y: hidden; padding: 0 26px; scroll-behavior: auto; scrollbar-width: thin; scrollbar-color: var(--t-line) transparent; }
 .tk-board::-webkit-scrollbar { height: 8px; } .tk-board::-webkit-scrollbar-thumb { background: var(--t-line); border-radius: 8px; }
 .tk-col { flex: 0 0 264px; width: 264px; display: flex; flex-direction: column; padding: 0 20px; min-height: 0; box-sizing: content-box; }
-.tk-col header { display: flex; align-items: center; gap: 6px; height: 50px; flex-shrink: 0; font-size: 14px; font-weight: 600; color: var(--t-text); white-space: nowrap; }
+.tk-col header { display: flex; align-items: center; gap: 6px; height: 50px; flex-shrink: 0; font-size: 13.5px; font-weight: 600; color: var(--t-text); white-space: nowrap; }
 .tk-col header i { font-style: normal; font-weight: 400; color: var(--t-muted); font-size: 13px; }
 .tk-col.late header { color: var(--t-text); }
 .tk-col header .tk-move { margin-left: auto; }
@@ -78,7 +79,7 @@ html.tk-on.tk-on-light, html.tk-on.tk-on-light body { background: #FFFFFF; }
 
 /* карточка задачи на доске */
 .tk-card { position: relative; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
-.tk-col .tk-card { margin-bottom: 12px; padding: 12px 12px 12px 13px; gap: 6px; border: 1px solid var(--t-line); border-radius: 10px; background: var(--t-card); box-shadow: var(--t-shadow); transition: box-shadow .15s, border-color .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.tk-col .tk-card { min-height: 74px; box-sizing: border-box; margin-bottom: 12px; padding: 12px 12px 12px 13px; gap: 6px; border: 1px solid var(--t-line); border-radius: 10px; background: var(--t-card); box-shadow: var(--t-shadow); transition: box-shadow .15s, border-color .15s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .tk-col .tk-card:hover { box-shadow: var(--t-shadow2); }
 .tk-ck { flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px; padding: 0; border-radius: 50%; border: 1px solid var(--t-muted); background: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: transparent; font-size: 12px; transition: background .15s, border-color .15s, color .15s; }
 .tk-ck i { font-size: 11px; }
@@ -88,7 +89,7 @@ html.tk-on.tk-on-light, html.tk-on.tk-on-light body { background: #FFFFFF; }
 .tk-card.done .tk-ck, .tk-card.pop .tk-ck, .tk-ck.on { background: var(--pc, var(--t-muted)); border-color: var(--pc, var(--t-muted)); color: #fff; }
 .tk-card.pop { opacity: .5; transition: opacity .28s; }
 .tk-c-b { flex: 1; min-width: 0; }
-.tk-c-t { font-size: 14px; line-height: 21px; color: var(--t-text); word-break: break-word; }
+.tk-c-t { font-size: 13.5px; font-weight: 400; line-height: 20px; color: var(--t-text); word-break: break-word; }
 .tk-card.done .tk-c-t { color: var(--t-muted); text-decoration: line-through; }
 .tk-d { display: block; font-size: 12px; line-height: 18px; color: var(--t-text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tk-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 2px; }
@@ -99,7 +100,7 @@ html.tk-on.tk-on-light, html.tk-on.tk-on-light body { background: #FFFFFF; }
 .tk-m.ok { color: var(--t-ok); } .tk-m.late { color: var(--t-acc); }
 
 /* «Добавить задачу» */
-.tk-addb { display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 2px; border: none; background: none; color: var(--t-muted); font-size: 14px; cursor: pointer; text-align: left; }
+.tk-addb { display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 2px; border: none; background: none; color: var(--t-muted); font-size: 13.5px; cursor: pointer; text-align: left; }
 .tk-addb .tk-plus { color: var(--t-acc); font-size: 17px; }
 .tk-addb:hover { color: var(--t-acc); }
 .tk-addb:hover .tk-plus { background: var(--t-acc); color: #fff; font-size: 14px; }
@@ -188,17 +189,19 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 /* ── телефон: меню сверху, колонки по ширине экрана ── */
 @media (max-width: 900px) {
   .tk-app { font-size: 13px; }
-  .tk-c-t { font-size: 13.5px; line-height: 20px; }
-  .tk-addb { font-size: 13.5px; }
+  .tk-hb-add { display: none !important; }
+  .tk-new { display: flex; }
+  .tk-c-t { font-size: 13px; line-height: 19px; }
+  .tk-addb { font-size: 13px; }
   .tk-m { font-size: 11.5px; line-height: 18px; }
-  .tk-col header, .tk-wbar b, .tk-sec { font-size: 13.5px !important; }
-  .tk-col .tk-card { padding: 11px 11px 11px 12px; margin-bottom: 10px; }
+  .tk-col header, .tk-wbar b, .tk-sec { font-size: 13px !important; }
+  .tk-col .tk-card { padding: 11px 11px 11px 12px; margin-bottom: 10px; min-height: 68px; }
   .tk-col .tk-meta { margin-top: 8px; }
   .tk-new { position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 50; width: 56px; height: 56px; padding: 0; border-radius: 50%; justify-content: center; background: var(--t-acc); color: #fff; font-size: 0; box-shadow: 0 6px 18px rgba(220, 76, 62, .45); margin: 0; order: 0; }
   .tk-new .tk-plus { background: none; font-size: 26px; width: auto; height: auto; }
   .tk-side { padding: 0 6px; }
   .tk-navl { flex: 1; }
-  .tk-navl button[data-v] { flex: 1 0 auto; justify-content: center; height: 44px; font-size: 13.5px; padding: 0 10px; }
+  .tk-navl button[data-v] { flex: 1 0 auto; justify-content: center; height: 44px; font-size: 13px; padding: 0 10px; }
   .tk-page { padding: 18px 16px 100px; }
   .tk-page-w { padding: 18px 0 0; }
   .tk-page-w .tk-ph, .tk-wbar { padding-left: 16px; padding-right: 16px; }

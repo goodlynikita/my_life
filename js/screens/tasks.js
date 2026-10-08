@@ -91,10 +91,10 @@ window.Tasks = (function () {
 
   function weekView() {
     const all = list(), td = iso(today());
-    const m0 = addDays(monday(today()), wk * 7), ws = iso(monday(today()));
-    /* «Просрочено» только у текущей недели и только то, что раньше её понедельника: остальное лежит в своём дне */
-    const late = wk === 0 ? all.filter(t => !t.done && t.date && t.date < ws).sort((x, y) => x.date < y.date ? -1 : 1) : [];
-    const days = Array.from({ length: 7 }, (_, i) => addDays(m0, i)), d6 = days[6];
+    const m0 = addDays(monday(today()), wk * 7);
+    /* как в Todoist: у текущей недели дни начинаются с сегодня, всё невыполненное раньше лежит в «Просрочено» */
+    const late = wk === 0 ? all.filter(t => !t.done && t.date && t.date < td).sort((x, y) => x.date < y.date ? -1 : 1) : [];
+    const days = Array.from({ length: 7 }, (_, i) => addDays(m0, i)).filter(d => iso(d) >= td), d6 = addDays(m0, 6);
     const mn = m0.getMonth() === d6.getMonth() ? MONN[m0.getMonth()] + ' ' + m0.getFullYear() : MONN[m0.getMonth()] + (m0.getFullYear() !== d6.getFullYear() ? ' ' + m0.getFullYear() : '') + ' – ' + MONN[d6.getMonth()] + ' ' + d6.getFullYear();
     const col = (d) => { const ds = iso(d), items = all.filter(t => t.date === ds).sort(byOrd), lb = dayLabel(ds), nd = items.filter(t => !t.done).length;
       const name = lb === 'Сегодня' || lb === 'Завтра' || lb === 'Вчера' ? lb : DOW[d.getDay()];
@@ -102,7 +102,7 @@ window.Tasks = (function () {
         <div class="tk-col-l" data-list="${ds}">${items.map(t => card(t, { inCol: true })).join('')}${addBtn(ds)}</div></section>`; };
     return `<div class="tk-page tk-page-w"><div class="tk-ph"><h1>Предстоящее</h1></div>
       <div class="tk-wbar"><b id="tk-month">${mn}</b>
-        <div class="tk-nav"><button data-wk="-1" aria-label="Раньше"><i class="ti ti-chevron-left"></i></button><button data-wk="0">Сегодня</button><button data-wk="1" aria-label="Позже"><i class="ti ti-chevron-right"></i></button></div></div>
+        <div class="tk-nav"><button data-wk="-1" aria-label="Раньше"${wk <= 0 ? ' disabled' : ''}><i class="ti ti-chevron-left"></i></button><button data-wk="0">Сегодня</button><button data-wk="1" aria-label="Позже"><i class="ti ti-chevron-right"></i></button></div></div>
       <div class="tk-board" id="tk-board">
         ${late.length ? `<section class="tk-col late"><header>Просрочено<i>${late.length}</i><button class="tk-move" data-move>Перенести</button></header><div class="tk-col-l">${late.map(t => card(t)).join('')}</div></section>` : ''}
         ${days.map(col).join('')}
@@ -213,7 +213,7 @@ window.Tasks = (function () {
       const x = st.cx, y = st.cy; st.ghost.style.transform = `translate3d(${x - st.dx}px,${y - st.dy}px,0) rotate(2deg)`;
       const el = document.elementFromPoint(x, y); const lst = el && el.closest('[data-list]');
       box.querySelectorAll('.tk-drop').forEach(d => { if (d !== lst) d.classList.remove('tk-drop'); });
-      if (!lst || !box.contains(lst)) return; lst.classList.add('tk-drop'); st.over = lst;
+      if (!lst || !box.contains(lst) || (lst.dataset.list && lst.dataset.list < iso(today()))) return; lst.classList.add('tk-drop'); st.over = lst;
       const cards = [...lst.querySelectorAll(':scope > .tk-card:not(.tk-dragging)')];
       const next = cards.find(c => { const rr = c.getBoundingClientRect(); return y < rr.top + rr.height / 2; }) || lst.querySelector(':scope > .tk-addb, :scope > .tk-addf');
       if (next) { if (st.ph.nextSibling !== next) lst.insertBefore(st.ph, next); } else if (st.ph.parentNode !== lst) lst.appendChild(st.ph);
@@ -231,7 +231,7 @@ window.Tasks = (function () {
       if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
     };
     const down = e => {
-      const c = e.target.closest('.tk-card'); if (!c || !box.contains(c) || e.target.closest('.tk-ck') || e.button > 0 || c.closest('.late')) return;
+      const c = e.target.closest('.tk-card'); if (!c || !box.contains(c) || e.target.closest('.tk-ck') || e.button > 0) return;
       st = { card: c, id: c.dataset.id, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, touch: e.pointerType !== 'mouse', on: false };
       if (st.touch) { document.addEventListener('touchmove', block, { passive: false }); st.timer = setTimeout(() => { if (st) start(); }, 200); }
       else e.preventDefault(); /* без выделения текста при перетаскивании мышью */
@@ -242,7 +242,8 @@ window.Tasks = (function () {
       e.preventDefault(); cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (st && st.on) place(); });
     };
     const end = () => {
-      if (!st) return; const was = st.on, id = st.id, lst = st.over, ph = st.ph; let ids = null;
+      if (!st) return; if (st.on) { cancelAnimationFrame(raf); place(); } /* последняя точка, даже если кадр ещё не отрисован */
+      const was = st.on, id = st.id, lst = st.over, ph = st.ph; let ids = null;
       if (was && lst && ph && ph.parentNode === lst) ids = [...lst.children].filter(c => c === ph || (c.classList.contains('tk-card') && !c.classList.contains('tk-dragging'))).map(c => c === ph ? id : c.dataset.id);
       const to = lst ? lst.dataset.list : undefined; clear();
       if (!was) return;
@@ -266,6 +267,7 @@ window.Tasks = (function () {
     view = window.TabsCustom && TabsCustom.isHidden('tasks', 'week') ? TabsCustom.firstVisible('tasks', ['inbox', 'today', 'week']) : 'week'; boardX = -1; wk = 0;
     mount.innerHTML = `<div class="tk-app ${themeCls()}" id="tk-app">
       <header class="tk-hdr"><button class="tk-hb" id="tk-back" aria-label="На главную"><i class="ti ti-arrow-left"></i></button><p>Задачи</p>
+        <button class="tk-hb tk-hb-add" id="tk-add-h" aria-label="Добавить задачу" title="Добавить задачу"><i class="ti ti-plus"></i></button>
         <button class="tk-hb" id="tk-theme" aria-label="Светлые или тёмные задачи" title="Светлые / тёмные задачи"><i class="ti"></i></button></header>
       <div class="tk-wrap">
       <aside class="tk-side">
@@ -287,8 +289,7 @@ window.Tasks = (function () {
       main.innerHTML = view === 'week' ? weekView() : listView(view);
       const bd = main.querySelector('#tk-board');
       if (bd) { if (boardX < 0) { /* новая неделя: у текущей показываем со вчерашнего дня, как Todoist */
-          const now = bd.querySelector('.tk-col.now'), wide = innerWidth > 900, pv = now && wide && now.previousElementSibling && now.previousElementSibling.dataset.day ? now.previousElementSibling : now;
-          bd.scrollLeft = pv ? pv.offsetLeft - bd.firstElementChild.offsetLeft : 0; boardX = bd.scrollLeft; } else bd.scrollLeft = boardX; }
+          bd.scrollLeft = 0; boardX = 0; } else bd.scrollLeft = boardX; }
       bindMain();
     };
     function bindMain() {
@@ -302,11 +303,12 @@ window.Tasks = (function () {
       main.querySelectorAll('[data-ed]').forEach(x => x.onclick = () => { if (main.dataset.justDragged) return; editModal(x.dataset.ed, draw); });
       main.querySelectorAll('[data-move]').forEach(x => x.onclick = () => { const before = list(), t = iso(today()); save(before.map(y => !y.done && y.date && y.date < t ? Object.assign({}, y, { date: t }) : y)); draw(); toast('Перенесено на сегодня', before, draw); });
       /* стрелки листают недели целиком (Пн–Вс), «Сегодня» возвращает к текущей */
-      main.querySelectorAll('[data-wk]').forEach(x => x.onclick = () => { const k = +x.dataset.wk; wk = k ? wk + k : 0; boardX = -1; draw(); });
+      main.querySelectorAll('[data-wk]').forEach(x => x.onclick = () => { const k = +x.dataset.wk; wk = k ? Math.max(0, wk + k) : 0; boardX = -1; draw(); });
     }
     mount.querySelectorAll('#tk-navl [data-v]').forEach(x => x.onclick = () => { view = x.dataset.v; wk = 0; boardX = -1; draw(); });
     if (window.TabsCustom) TabsCustom.apply(mount.querySelector('#tk-navl'), 'tasks', 'data-v', () => draw());
     mount.querySelector('#tk-new').onclick = () => quickAdd(draw);
+    mount.querySelector('#tk-add-h').onclick = () => quickAdd(draw);
     bindDrag(main, draw);
     draw();
   }

@@ -145,7 +145,7 @@ window.TrainingChat = (function () {
           <textarea id="ch-text" rows="1" placeholder="${off ? 'Чат скоро заработает' : 'Спроси тренера…'}" ${off || left === 0 ? 'disabled' : ''}></textarea>
           <button id="ch-send" aria-label="Отправить" ${off || left === 0 || busy ? 'disabled' : ''}><i class="ti ti-send"></i></button>
         </div>
-        <div class="ch-foot">${off ? 'Чат подключается' : `Бесплатно ${LIMIT()} сообщений в месяц${list.length ? ' · <button class="ch-clear" id="ch-clear">Очистить переписку</button>' : ''}`}</div>
+        <div class="ch-foot">${off ? 'Чат подключается' : `${usage ? usage.limit : LIMIT()} сообщений в месяц${list.length ? ' · <button class="ch-clear" id="ch-clear">Очистить переписку</button>' : ''}`}</div>
       </div>
     </div>`;
     bindTabs && bindTabs();

@@ -605,7 +605,7 @@ function dt(iso){ const d=new Date(iso); return isNaN(d)?'':d.toLocaleString('ru
 const isOwner = (u) => !!u && !!u.email && u.email.toLowerCase() === OWNER;
 function denied(e){ return e && (e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message||'')); }
 function rulesWarn(){ $('#a-rules').classList.remove('hidden');
-  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы: Firebase → Realtime Database → Rules, вставь текст из файла <b>FIREBASE_RULES_v143.json</b>.'; }
+  $('#a-rules-txt').innerHTML = 'Firebase не отдаёт данные админки. Обнови правила базы: Firebase → Realtime Database → Rules, вставь текст из файла <b>FIREBASE_RULES_v144.json</b>.'; }
 
 /* ── Вход ── */
 async function doLogin(){
@@ -645,6 +645,7 @@ function start(){
   sub('trainers', v=>{ TRAINERS=v||{}; renderTrainers(); renderDash(); });
   sub('trainerClients', v=>{ TCL=v||{}; renderTrainers(); renderDash(); renderEcon(); });
   sub('aiStats', v=>{ AISTATS=v||{}; renderEcon(); });
+  sub('aiUsage', v=>{ AIUSE=v||{}; if(openUid) openUser(openUid,true); });
   /* настройки калькулятора лежат в nik-data: читать и писать их может только владелец */
   sub('nik-data/adminEconomics', v=>{ if(v && typeof v==='object' && !econTyping()){ E=Object.assign({},ECON_DEF,v); econFill(); renderEcon(); } });
 }
@@ -724,10 +725,13 @@ function renderDash() {
         ${refRows.length ? refRows.slice(0, 8).map(r => `<div class="db-ref"><span>${esc(r.who)}</span><em>${[r.cl ? r.cl + ' клиент.' : '', r.fr ? r.fr + ' друз.' : '', r.tr ? r.tr + ' трен.' : ''].filter(Boolean).join(' · ')}</em><b>${r.n}</b></div>`).join('') : '<div class="db-empty">Ссылки: «Позови друга» в меню YOU, QR и ссылка в кабинете тренера</div>'}
       </div>
     </div>
-    <div class="db-card"><div class="db-h"><b><i class="ti ti-bug"></i> Ошибки у пользователей</b><span>${errs.length ? 'последние ' + Math.min(10, errs.length) : 'всё чисто'}</span></div>
-      ${errs.length ? errs.slice(0, 10).map(e => `<div class="db-err"><div><b>${esc(e.msg)}</b><span>${esc(e.who)} · ${esc(e.scr || '')} · ${esc(e.src || '')} · ${esc(device(e.ua))}</span></div><em>${ago(e.at)}</em></div>`).join('') : '<div class="db-empty">Ошибок нет. Если у кого-то что-то упадёт, увидишь здесь: где и на каком устройстве</div>'}
+    <div class="db-card"><div class="db-h"><b><i class="ti ti-bug"></i> Ошибки у пользователей</b>${errs.length ? `<button class="btn btn-ghost btn-sm" id="db-errs-clear"><i class="ti ti-trash"></i> Очистить ${errs.length}</button>` : '<span>всё чисто</span>'}</div>
+      ${errs.length ? errs.slice(0, 20).map(e => `<div class="db-err"><div><b>${esc(e.msg)}</b><span>${esc(e.who)} · ${esc(e.scr || '')} · ${esc(e.src || '')} · ${esc(device(e.ua))}</span></div><em>${ago(e.at)}</em></div>`).join('') : '<div class="db-empty">Ошибок нет. Если у кого-то что-то упадёт, увидишь здесь: где и на каком устройстве</div>'}
     </div>
   </div>`;
+  const ec = $('#db-errs-clear'); if (ec) ec.onclick = async () => { if (!confirm('Очистить все ошибки? Новые появятся, если что-то упадёт снова.')) return;
+    const upd = {}; M.list.forEach(u => { if (u.errs) upd[u.uid + '/errs'] = null; });
+    try { await update(ref(db, 'userIndex'), upd); toast('Ошибки очищены'); } catch (e) { console.error(e); if (denied(e)) rulesWarn(); toast('Не получилось'); } };
 }
 
 function limit(){ return Number(SETTINGS.freeUsersLimit) || (window.APP_CONFIG&&APP_CONFIG.freeUsersLimit) || 1000; }
@@ -920,7 +924,7 @@ function openUser(uid, silent){
   const msgs=Object.entries(FEED).filter(([,m])=>m&&(m.uid===uid||(u.email&&m.email===u.email))).map(([id,m])=>({...m,id})).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   const tg=(msgs.find(m=>m.telegram)||{}).telegram;
   let ov=document.getElementById('dr-ov');
-  const keepNote = ov && document.activeElement && ['u-note','u-notice'].includes(document.activeElement.id);
+  const keepNote = ov && document.activeElement && ['u-note','u-notice','a-ai-lim'].includes(document.activeElement.id);
   if(keepNote && silent) return; /* не сбиваем ввод */
   if(!ov){ ov=document.createElement('div'); ov.id='dr-ov'; ov.className='dr-ov'; document.body.appendChild(ov);
     ov.addEventListener('click',e=>{ if(e.target===ov) closeUser(); }); }
@@ -972,6 +976,17 @@ function openUser(uid, silent){
     </div>
 
     <div class="dr-sec">
+      <div class="dr-t">AI-тренер</div>
+      ${(()=>{ const mk=new Date(Date.now()+3*3600e3).toISOString().slice(0,7), us=(AIUSE[uid]||{})[mk]||{}, used=+us.count||0, lim=+u.aiLimit||((window.APP_CONFIG&&APP_CONFIG.aiChatLimit)||20);
+        return `<div class="info"><div><small>В этом месяце</small><b>${used} из ${lim}</b></div><div><small>Последнее сообщение</small><b>${us.last?ago(new Date(us.last).toISOString()):'не писал'}</b></div></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-ghost btn-sm" id="a-ai-reset" ${used?'':'disabled'}><i class="ti ti-refresh"></i> Обнулить счётчик</button>
+          <input class="set-in" id="a-ai-lim" type="number" inputmode="numeric" min="0" max="10000" placeholder="${(window.APP_CONFIG&&APP_CONFIG.aiChatLimit)||20}" value="${u.aiLimit||''}" style="width:100px;height:36px;font-size:13px" title="Личный лимит в месяц">
+          <button class="btn btn-ghost btn-sm" id="a-ai-lim-save"><i class="ti ti-device-floppy"></i> Лимит</button>
+        </div>`; })()}
+    </div>
+
+    <div class="dr-sec">
       <div class="dr-t">Личное сообщение в приложении</div>
       <textarea class="ta" id="u-notice" placeholder="Человек увидит это окном при следующем входе. Например: «Привет! Добавили то, что ты просил»"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-main btn-sm" id="a-notice"><i class="ti ti-send"></i> Отправить</button>
@@ -1016,6 +1031,10 @@ function openUser(uid, silent){
     const t=ov.querySelector('#u-notice').value.trim(); if(!t){ toast('Напиши текст'); return; }
     try{ await set(ref(db,path+'/notice'),{text:t,at:new Date().toISOString()}); ov.querySelector('#u-notice').value=''; toast('Отправлено'); }catch(e){ fail(e); }
   };
+  const ar=ov.querySelector('#a-ai-reset'); if(ar) ar.onclick=async()=>{ const mk=new Date(Date.now()+3*3600e3).toISOString().slice(0,7);
+    try{ await set(ref(db,'aiUsage/'+uid+'/'+mk+'/count'),0); toast('Счётчик обнулён'); }catch(e){ fail(e); } };
+  const al=ov.querySelector('#a-ai-lim-save'); if(al) al.onclick=async()=>{ const v=parseInt(ov.querySelector('#a-ai-lim').value,10);
+    try{ await set(ref(db,path+'/aiLimit'), v>0?Math.min(10000,v):null); toast(v>0?'Лимит: '+v+' в месяц':'Лимит по умолчанию'); }catch(e){ fail(e); } };
   const nd=ov.querySelector('#a-notice-del'); if(nd) nd.onclick=async()=>{ try{ await set(ref(db,path+'/notice'),null); toast('Отозвано'); }catch(e){ fail(e); } };
   ov.querySelectorAll('[data-tag]').forEach(b=>b.onclick=async()=>{ try{ await set(ref(db,path+'/tag'),b.dataset.tag||null); }catch(e){ fail(e); } });
   const note=ov.querySelector('#u-note'); let nt;
@@ -1027,7 +1046,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUser(); });
 
 /* ── Экономика: калькулятор подписок ──
    Все суммы в месяц. Настройки сохраняются в nik-data/adminEconomics. */
-let AISTATS={};
+let AISTATS={}, AIUSE={};
 /* Модель: бесплатного тарифа нет. Все платят после пробной недели; кто не оплатил, просто уходит
    и стоит нам только AI-сообщения за пробную неделю */
 const ECON_DEF={ trainers:100, perTrainer:7.5, solo:300, trials:400, trialConv:25, msgTrial:10,
@@ -1036,31 +1055,31 @@ const ECON_DEF={ trainers:100, perTrainer:7.5, solo:300, trials:400, trialConv:2
 let E=Object.assign({},ECON_DEF), econBuilt=false, econT=null;
 const ECON_F=[
   ['Кто платит', 'ti-users', [
-    ['trainers','Тренеров с подпиской',0,2000,1],
-    ['perTrainer','Клиентов у тренера, в среднем',0,50,0.5],
-    ['solo','Пользователей без тренера с подпиской',0,50000,10],
+    ['trainers','Тренеров с подпиской',0,1000,5],
+    ['perTrainer','Клиентов у тренера, в среднем',0,30,0.5],
+    ['solo','Пользователей без тренера с подпиской',0,20000,50],
   ]],
   ['Пробная неделя', 'ti-clock-hour-4', [
-    ['trials','Начинают пробную неделю, в месяц',0,20000,10],
+    ['trials','Начинают пробную неделю, в месяц',0,10000,50],
     ['trialConv','Из пробной в оплату, %',0,100,1],
-    ['msgTrial','Сообщений AI за пробную неделю',0,100,1],
+    ['msgTrial','Сообщений AI за пробную неделю',0,50,1],
   ]],
   ['Цены', 'ti-tag', [
-    ['priceUser','Подписка пользователя, ₽',0,2000,1],
-    ['priceTrainer','Подписка тренера, ₽',0,10000,10],
+    ['priceUser','Подписка пользователя, ₽',0,1000,10],
+    ['priceTrainer','Подписка тренера, ₽',0,5000,50],
   ]],
   ['Расходы', 'ti-receipt', [
-    ['kassaPct','Касса, % от оплат',0,10,0.1],
-    ['taxPct','Налог, % от выручки',0,20,0.5],
+    ['kassaPct','Касса, % от оплат',0,10,0.5],
+    ['taxPct','Налог, % от выручки',0,20,1],
     ['refPct','Рефералка, % от выручки',0,50,1],
-    ['server','Сервер, хостинг, бот, ₽ в месяц',0,100000,500],
-    ['marketing','Реклама, ₽ в месяц',0,1000000,1000],
+    ['server','Сервер, хостинг, бот, ₽ в месяц',0,50000,500],
+    ['marketing','Реклама, ₽ в месяц',0,500000,5000],
   ]],
   ['AI-тренер', 'ti-sparkles', [
-    ['aiPrice1k','Цена 1000 токенов, ₽',0,10,0.05],
-    ['tokPerMsg','Токенов на одно сообщение',0,20000,100],
-    ['msgClient','Сообщений в месяц у клиента',0,200,1],
-    ['msgTrainer','Сообщений в месяц у тренера',0,500,5],
+    ['aiPrice1k','Цена 1000 токенов, ₽',0,5,0.1],
+    ['tokPerMsg','Токенов на одно сообщение',0,10000,500],
+    ['msgClient','Сообщений в месяц у клиента',0,100,1],
+    ['msgTrainer','Сообщений в месяц у тренера',0,300,5],
   ]],
 ];
 const ECON_PRESETS={
@@ -1196,13 +1215,16 @@ function setHead(){
     settings:['Настройки','Регистрация, цели, рассылка'],
   }[CUR];
   t.textContent=H[0]; s.textContent=H[1];
-  const want=CUR==='msgs'&&fresh?'msgs':CUR==='users'?'users':'';
+  const doneN=msgs.filter(m=>m.status==='done').length;
+  const want=CUR==='msgs'?'msgs'+(fresh?'f':'')+(doneN?'d':''):CUR==='users'?'users':'';
   if(act.dataset.k!==want){ act.dataset.k=want;
-    act.innerHTML=want==='msgs'?'<button class="btn btn-ghost btn-sm" id="ph-readall"><i class="ti ti-checks"></i> Прочитать все</button>'
+    act.innerHTML=want.startsWith('msgs')?(want.includes('f')?'<button class="btn btn-ghost btn-sm" id="ph-readall"><i class="ti ti-checks"></i> Прочитать все</button>':'')+(want.includes('d')?'<button class="btn btn-ghost btn-sm" id="ph-deldone"><i class="ti ti-trash"></i> Удалить отвеченные</button>':'')
       :want==='users'?'<button class="btn btn-ghost btn-sm" id="ph-csv"><i class="ti ti-download"></i> Скачать CSV</button>':'';
     const ra=$('#ph-readall'); if(ra) ra.onclick=async()=>{ const ids=Object.entries(FEED).filter(([,m])=>m&&(m.status||'new')==='new').map(([id])=>id); if(!ids.length) return;
       try{ await update(ref(db,'feedback'),Object.fromEntries(ids.map(id=>[id+'/status','read']))); toast('Прочитано: '+ids.length); }catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось'); } };
     const cv=$('#ph-csv'); if(cv) cv.onclick=usersCsv;
+    const dd=$('#ph-deldone'); if(dd) dd.onclick=async()=>{ const ids=Object.entries(FEED).filter(([,m])=>m&&m.status==='done').map(([id])=>id); if(!ids.length||!confirm('Удалить отвеченные сообщения: '+ids.length+'?')) return;
+      try{ await update(ref(db,'feedback'),Object.fromEntries(ids.map(id=>[id,null]))); toast('Удалено: '+ids.length); }catch(e){ console.error(e); if(denied(e)) rulesWarn(); toast('Не получилось'); } };
   }
 }
 function openTab(name){

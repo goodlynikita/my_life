@@ -91,7 +91,7 @@ module.exports.handler = async function (event, context) {
   if (method !== 'POST') return reply(405, { error: 'method' });
 
   const env = process.env;
-  const LIMIT = parseInt(env.LIMIT || '20', 10);
+  let LIMIT = parseInt(env.LIMIT || '20', 10);
   let body = {};
   try { body = JSON.parse(event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : (event.body || '{}')); }
   catch (e) { return reply(400, { error: 'json' }); }
@@ -109,6 +109,9 @@ module.exports.handler = async function (event, context) {
   /* заблокированный в админке не пишет тренеру */
   const bl = await j(`${db}/userIndex/${uid}/blocked.json?auth=${env.FIREBASE_DB_SECRET}`);
   if (bl.data === true) return reply(403, { error: 'blocked' });
+  /* личный лимит из админки (userIndex/{uid}/aiLimit), иначе общий */
+  const ul = await j(`${db}/userIndex/${uid}/aiLimit.json?auth=${env.FIREBASE_DB_SECRET}`);
+  if (+ul.data > 0) LIMIT = Math.min(10000, Math.round(+ul.data));
 
   /* 2. Лимит на месяц */
   const month = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 7); /* по Москве */

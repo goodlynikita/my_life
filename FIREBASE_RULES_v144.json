@@ -149,6 +149,8 @@
       }
     },
     "aiUsage": {
+      ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
+      ".write": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
       "$uid": {
         ".read": "auth != null && $uid === auth.uid"
       }

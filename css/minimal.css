@@ -254,3 +254,8 @@ html:has(.ch-list), html:has(.ch-list) body { overflow: hidden !important; overs
   .tr-tabs .tc-edit, .tochka-tabs .tc-edit { flex: 0 0 30px !important; width: 30px !important; min-width: 30px !important; padding: 0 !important; }
 }
 @media (max-width: 380px) { .tr-tabs .tr-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 11.5px !important; padding: 13px 2px !important; } }
+
+/* Вкладки везде как в Задачах: системный шрифт, обычная толщина (по просьбе Ника) */
+.tr-tabs .tr-tab, .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tochka-tab, .fin-dark .tochka-tab,
+.tr-tabs .tr-tab.active, .hab-screen .hab-tabs .hab-tab.active, .goals-season-tabs .goals-season-tab.active, .tochka-tab.active, .fin-dark .tochka-tab.active {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important; font-weight: 400 !important; -webkit-font-smoothing: antialiased; }

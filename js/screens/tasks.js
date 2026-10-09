@@ -36,9 +36,9 @@ window.Tasks = (function () {
   function save(arr) { Store.set('tasks.list', arr.map(t => JSON.parse(JSON.stringify(t)))); }
   const ord = (t) => (t.order != null && isFinite(+t.order)) ? +t.order : +t.createdAt || 0;
   const byOrd = (x, y) => (x.done - y.done) || (ord(x) - ord(y));
-  function add(title, date, desc, proj, time) { title = String(title || '').trim().slice(0, 200); if (!title) return; const a = list();
+  function add(title, date, desc, proj, time, prio) { title = String(title || '').trim().slice(0, 200); if (!title) return; const a = list();
     const same = a.filter(t => (t.date || null) === (date || null)); const mx = same.length ? Math.max(...same.map(ord)) : 0;
-    a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: 4, desc: String(desc || '').trim().slice(0, 2000) || null, proj: proj || null, time: (date && time) || null }); save(a); }
+    a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: [1, 2, 3].includes(prio) ? prio : 4, desc: String(desc || '').trim().slice(0, 2000) || null, proj: proj || null, time: (date && time) || null }); save(a); }
   function patch(id, p) { save(list().map(t => t.id === id ? Object.assign({}, t, p) : t)); }
   function remove(id) { save(list().filter(t => t.id !== id)); }
   function todayCount() { const t = iso(today()); return list().filter(x => !x.done && x.date && x.date <= t).length; }
@@ -75,7 +75,41 @@ window.Tasks = (function () {
     </div>`;
   }
   const addBtn = (date, proj) => `<button class="tk-addb" data-add="${date || ''}"${proj ? ` data-proj="${esc(proj)}"` : ''}><span class="tk-plus"><i class="ti ti-plus"></i></span>Добавить задачу</button>`;
-  const addForm = (date) => `<form class="tk-addf" data-date="${date || ''}"><input class="tk-af-t" maxlength="200" placeholder="Название задачи" autocomplete="off"><input class="tk-af-d" maxlength="2000" placeholder="Описание" autocomplete="off">
+  /* ── Умный ввод как в Todoist: время, дата, приоритет и #проект прямо в названии ── */
+  const WD = [[/^(вс|воскресенье)$/, 0], [/^(пн|понедельник)$/, 1], [/^(вт|вторник)$/, 2], [/^(ср|среда|среду)$/, 3], [/^(чт|четверг)$/, 4], [/^(пт|пятница|пятницу)$/, 5], [/^(сб|суббота|субботу)$/, 6]];
+  function smart(raw) {
+    const out = { date: null, time: null, prio: null, proj: null, chips: [] }; const tk = String(raw || '').split(/\s+/).filter(Boolean); const keep = [];
+    const hm = (h, m) => (h >= 0 && h < 24 && m >= 0 && m < 60) ? String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') : null;
+    for (let i = 0; i < tk.length; i++) {
+      const w = tk[i], lw = w.toLowerCase().replace(/[.,!?;]+$/, ''), nx = (tk[i + 1] || '').toLowerCase(); let m;
+      if (!out.time && (m = /^(\d{1,2})[:.](\d{2})$/.exec(lw)) && hm(+m[1], +m[2])) { out.time = hm(+m[1], +m[2]); continue; }
+      if (!out.time && (m = /^(\d{3,4})$/.exec(lw)) && !/^(₽|р|руб|рублей|кг|км|шт|%|г|мл|мин)/.test(nx)) { const v = m[1].padStart(4, '0'), t = hm(+v.slice(0, 2), +v.slice(2)); if (t) { out.time = t; continue; } }
+      if (!out.time && lw === 'в' && (m = /^(\d{1,2})(?:[:.](\d{2}))?$/.exec(nx)) && hm(+m[1], +(m[2] || 0))) { out.time = hm(+m[1], +(m[2] || 0)); i++; continue; }
+      if (!out.date && lw === 'сегодня') { out.date = iso(today()); continue; }
+      if (!out.date && lw === 'завтра') { out.date = iso(addDays(today(), 1)); continue; }
+      if (!out.date && lw === 'послезавтра') { out.date = iso(addDays(today(), 2)); continue; }
+      if (!out.date && lw === 'через' && nx.replace(/[.,]$/, '') === 'неделю') { out.date = iso(addDays(today(), 7)); i++; continue; }
+      if (!out.date) { const pre = (lw === 'в' || lw === 'во') ? nx.replace(/[.,]$/, '') : null, cand = pre || lw, f = WD.find(x => x[0].test(cand));
+        if (f) { const d0 = today(); out.date = iso(addDays(d0, (f[1] - d0.getDay() + 7) % 7)); if (pre) i++; continue; } }
+      if (!out.prio && (lw === 'важно' || lw === 'срочно')) { out.prio = 1; continue; }
+      if (!out.prio && (m = /^(?:p|р|!)([1-4])$/.exec(lw))) { out.prio = +m[1]; continue; }
+      if (!out.proj && w.startsWith('#') && w.length > 1) { const pn = w.slice(1).toLowerCase(), pr = projects().find(p => p.name.toLowerCase() === pn || p.name.toLowerCase().replace(/\s+/g, '') === pn); if (pr) { out.proj = pr.id; continue; } }
+      keep.push(w);
+    }
+    out.title = keep.join(' ');
+    if (out.date) out.chips.push(['ti-calendar', dayLabel(out.date)]);
+    if (out.time) out.chips.push(['ti-clock', out.time]);
+    if (out.prio) out.chips.push(['flag', 'P' + out.prio]);
+    if (out.proj) { const pr = projOf(out.proj); out.chips.push(['dot', pr.name, pr.color]); }
+    return out;
+  }
+  const chipsHtml = (sm) => sm.chips.map(c => `<span class="tk-sm">${c[0] === 'flag' ? flag(sm.prio, 14) : c[0] === 'dot' ? `<i class="tk-pdot" style="background:${c[2]}"></i>` : `<i class="ti ${c[0]}"></i>`}${esc(c[1])}</span>`).join('');
+  function bindSmart(inp, box) { const up = () => { box.innerHTML = chipsHtml(smart(inp.value)); }; inp.addEventListener('input', up); up(); }
+  /* добавить с разбором названия; явные значения формы идут по умолчанию */
+  function addSmart(title, date, desc, proj, time) { const sm = smart(title); const t = sm.title || String(title).trim(), tm = sm.time || time || null;
+    add(t, sm.date || date || (tm ? iso(today()) : null), desc, sm.proj || proj || null, tm, sm.prio || 4); }
+
+  const addForm = (date) => `<form class="tk-addf" data-date="${date || ''}"><input class="tk-af-t" maxlength="200" placeholder="Название задачи" autocomplete="off"><div class="tk-sms"></div><input class="tk-af-d" maxlength="2000" placeholder="Описание" autocomplete="off">
       <div class="tk-af-b"><button type="button" class="tk-btn ghost" data-cancel>Отмена</button><button type="submit" class="tk-btn red">Добавить задачу</button></div></form>`;
 
   function listView(kind) {
@@ -207,18 +241,18 @@ window.Tasks = (function () {
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay tk-ov tk-qov ' + themeCls();
     let d = view === 'inbox' || view.startsWith('p:') ? '' : iso(today()), pj = view.startsWith('p:') ? view.slice(2) : '';
     const chips = () => [['', 'Входящие', 'ti-inbox'], [iso(today()), 'Сегодня', 'ti-calendar-event'], [iso(addDays(today(), 1)), 'Завтра', 'ti-sun']].map(([v, l, ic]) => `<button type="button" data-qd="${v}" class="${d === v ? 'on' : ''}"><i class="ti ${ic}"></i>${l}</button>`).join('');
-    ov.innerHTML = `<form class="tk-quick"><input class="tk-af-t" maxlength="200" placeholder="Название задачи" autocomplete="off"><input class="tk-af-d" maxlength="2000" placeholder="Описание" autocomplete="off">
+    ov.innerHTML = `<form class="tk-quick"><input class="tk-af-t" maxlength="200" placeholder="Название задачи" autocomplete="off"><div class="tk-sms"></div><input class="tk-af-d" maxlength="2000" placeholder="Описание" autocomplete="off">
       <div class="tk-q-chips">${chips()}</div>
       <div class="tk-q-row"><label><i class="ti ti-clock"></i><input type="time" class="tk-q-time"></label>${projects().length ? `<label><i class="ti ti-folder"></i><select class="tk-q-proj"><option value="">Входящие</option>${projects().map(p => `<option value="${esc(p.id)}"${p.id === pj ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>` : ''}</div>
       <div class="tk-af-b"><button type="button" class="tk-btn ghost" data-cancel>Отмена</button><button type="submit" class="tk-btn red">Добавить задачу</button></div></form>`;
     document.body.appendChild(ov);
-    const f = ov.querySelector('form'); f.querySelector('.tk-af-t').focus();
+    const f = ov.querySelector('form'); f.querySelector('.tk-af-t').focus(); bindSmart(f.querySelector('.tk-af-t'), f.querySelector('.tk-sms'));
     const bindC = () => ov.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => { d = b.dataset.qd; ov.querySelector('.tk-q-chips').innerHTML = chips(); bindC(); });
     bindC();
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
     ov.querySelector('[data-cancel]').onclick = () => ov.remove();
     f.addEventListener('submit', e => { e.preventDefault(); const t = f.querySelector('.tk-af-t').value.trim(); if (!t) return; const tm = f.querySelector('.tk-q-time').value || null, sp = f.querySelector('.tk-q-proj');
-      add(t, d || (tm ? iso(today()) : null), f.querySelector('.tk-af-d').value, sp ? sp.value || null : pj || null, tm); ov.remove(); redraw(); });
+      addSmart(t, d || null, f.querySelector('.tk-af-d').value, sp ? sp.value || null : pj || null, tm); ov.remove(); redraw(); });
   }
 
   function toast(text, undo, redraw) {
@@ -373,9 +407,9 @@ window.Tasks = (function () {
     };
     function bindMain() {
       main.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const d = b.dataset.add, pj = b.dataset.proj || null; b.insertAdjacentHTML('beforebegin', addForm(d)); const f = b.previousElementSibling; b.remove();
-        const t = f.querySelector('.tk-af-t'); t.focus();
+        const t = f.querySelector('.tk-af-t'); t.focus(); bindSmart(t, f.querySelector('.tk-sms'));
         f.querySelector('[data-cancel]').onclick = () => draw();
-        f.addEventListener('submit', e => { e.preventDefault(); if (!t.value.trim()) return; add(t.value, d || null, f.querySelector('.tk-af-d').value, pj); draw(); const nb = main.querySelector(`[data-add="${d}"]`); if (nb) nb.click(); });
+        f.addEventListener('submit', e => { e.preventDefault(); if (!t.value.trim()) return; addSmart(t.value, d || null, f.querySelector('.tk-af-d').value, pj); draw(); const nb = main.querySelector(`[data-add="${d}"]`); if (nb) nb.click(); });
         f.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); draw(); } }); });
       main.querySelectorAll('[data-ck]').forEach(x => x.onclick = () => { const t = list().find(y => y.id === x.dataset.ck); if (!t) return; x.closest('.tk-card').classList.add('pop');
         setTimeout(() => { const before = list(); patch(t.id, { done: !t.done, doneAt: !t.done ? Date.now() : null }); draw(); if (!t.done) toast('Задача выполнена', before, draw); }, t.done ? 0 : 280); });

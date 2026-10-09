@@ -267,3 +267,10 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 /* вкладки спрятаны: остаётся только кнопка меню в шапке */
 .tk-app.tabs-off .tk-navl { display: none; }
 .tk-app.tabs-off .tk-side { border-bottom: none; padding: 0; min-height: 0; }
+
+/* что распознано в названии: дата, время, приоритет, проект */
+.tk-sms { display: flex; flex-wrap: wrap; gap: 5px; }
+.tk-sms:empty { display: none; }
+.tk-sms { margin: 2px 0 4px; }
+.tk-sm { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 7px; border-radius: 5px; background: var(--t-acc-wash); color: var(--t-acc); font-size: 12px; font-weight: 600; }
+.tk-sm i.ti { font-size: 13px; } .tk-sm .tk-pdot { width: 8px; height: 8px; } .tk-sm .tk-flag { width: 13px; height: 13px; }

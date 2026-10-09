@@ -36,6 +36,16 @@ function finWhen(p) { const M = ['янв', 'фев', 'мар', 'апр', 'мая
   return p.late ? d + ', просрочен' : p.diff === 0 ? 'сегодня' : p.diff === 1 ? 'завтра' : d + ', через ' + p.diff + ' дн'; }
 function finSpentMonth() { try { return window.FinSpend ? Object.values(FinSpend.catSpent(FinSpend.ymKey(new Date()))).reduce((a, b) => a + b, 0) : 0; } catch (e) { return 0; } }
 
+/* задачи на сегодня и просроченные, по времени, потом по порядку */
+function tasksToday() {
+  try {
+    const n = new Date(), td = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+    const raw = (Store.get().tasks || {}).list; const arr = Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? Object.values(raw) : [];
+    return arr.filter(t => t && t.title && !t.done && t.date && t.date <= td).map(t => ({ title: t.title, time: /^\d{2}:\d{2}$/.test(t.time || '') ? t.time : '', late: t.date < td, o: t.order != null ? +t.order : +t.createdAt || 0 }))
+      .sort((x, y) => (y.late - x.late) || ((x.time || '99') < (y.time || '99') ? -1 : (x.time || '99') > (y.time || '99') ? 1 : x.o - y.o));
+  } catch (e) { return []; }
+}
+
 var Slides = (() => {
 
   /* ── Библиотека блоков ──
@@ -345,6 +355,37 @@ var Slides = (() => {
         return `<div class="hero-pays">${all.slice(0, 3).map(p => `<div class="hero-pay"><b>${p.day}</b><span>${SlideKit.esc(p.name)}</span><em>${finRub(p.left)}</em></div>`).join('')}</div>${left ? `<div class="hero-stat-lbl">ещё ${finRub(left)} до конца месяца</div>` : ''}`;
       },
     },
+    /* ── Задачи на сегодня ── */
+    {
+      id: 'tasks_today_list', section: 'Задачи',
+      name: 'Задачи на сегодня',
+      desc: 'Список задач на сегодня и просроченных',
+      render: () => {
+        const a = tasksToday();
+        if (!a.length) return `<div class="hero-stat-num">✓</div><div class="hero-stat-lbl">на сегодня всё сделано</div>`;
+        return `<div class="hero-pays">${a.slice(0, 3).map(t => `<div class="hero-pay"><b><i class="ti ti-${t.late ? 'alert-circle' : 'circle'}"></i></b><span>${SlideKit.esc(t.title)}</span><em>${t.time || ''}</em></div>`).join('')}</div>${a.length > 3 ? `<div class="hero-stat-lbl">и ещё ${a.length - 3}</div>` : ''}`;
+      },
+    },
+    {
+      id: 'tasks_today_n', section: 'Задачи',
+      name: 'Задач на сегодня',
+      desc: 'Сколько задач осталось сегодня',
+      render: () => {
+        const a = tasksToday(), l = a.filter(t => t.late).length;
+        return `<div class="hero-stat-num">${a.length || '✓'}</div><div class="hero-stat-lbl">${a.length ? 'задач на сегодня' + (l ? ', просрочено ' + l : '') : 'всё сделано'}</div>`;
+      },
+    },
+    {
+      id: 'tasks_next', section: 'Задачи',
+      name: 'Ближайшая задача',
+      desc: 'Следующая задача со временем',
+      render: () => {
+        const now = new Date(), hm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        const a = tasksToday().filter(t => t.time && !t.late && t.time >= hm).sort((x, y) => x.time < y.time ? -1 : 1), t = a[0] || tasksToday()[0];
+        if (!t) return `<div class="hero-stat-num">✓</div><div class="hero-stat-lbl">задач нет</div>`;
+        return `<div class="hero-stat-num" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${SlideKit.esc(t.title)}</div><div class="hero-stat-lbl">${t.time ? 'сегодня в ' + t.time : t.late ? 'просрочено' : 'сегодня'}</div>`;
+      },
+    },
     /* ── Цели: доп блоки ── */
     {
       id: 'goals_done_count', section: 'Цели',
@@ -463,6 +504,7 @@ var Slides = (() => {
     { id: 'money', name: 'Деньги месяца', desc: 'доход, расходы, накопления', slide: { label: 'ДЕНЬГИ МЕСЯЦА', icon: 'ti-wallet', cssClass: 'slide-finance', glowClass: 'slide-glow-green', route: '/finance', layout: 'list', blocks: ['finance_income', 'finance_expenses', 'finance_balance', 'finance_savings_pct'], views: {} } },
     { id: 'goals', name: 'Цели сезона', desc: 'прогресс и сколько осталось', slide: { label: 'ЦЕЛИ СЕЗОНА', icon: 'ti-target-arrow', cssClass: 'slide-goals', glowClass: 'slide-glow-purple', route: '/goals', layout: 'center', blocks: ['goals_season_pct', 'goals_season_left', 'goals_done_count'], views: { goals_season_pct: 'ring' } } },
     { id: 'pays', name: 'Платежи', desc: 'ближайший платёж и что ещё платить', slide: { label: 'БЛИЖАЙШИЕ ПЛАТЕЖИ', icon: 'ti-calendar-dollar', cssClass: 'slide-indigo', glowColor: '#977FE9', route: '/finance', layout: 'auto', blocks: ['fin_pay_list'], views: {} } },
+    { id: 'tasks', name: 'Задачи дня', desc: 'список на сегодня и сколько осталось', slide: { label: 'ЗАДАЧИ НА СЕГОДНЯ', icon: 'ti-list-check', cssClass: 'slide-red', glowColor: '#F87171', route: '/tasks', layout: 'auto', blocks: ['tasks_today_list', 'tasks_today_n', 'tasks_next'], views: {} } },
     { id: 'mind', name: 'Настрой', desc: 'дата и фраза дня', slide: { label: 'НАСТРОЙ', icon: 'ti-bolt', cssClass: 'slide-amber', glowColor: '#F59E0B', layout: 'center', blocks: ['motivational_quote', 'day_of_week'], views: {} } },
     { id: 'empty', name: 'Пустой', desc: 'соберу сам', slide: { label: 'НОВЫЙ СЛАЙД', cssClass: 'slide-slate', glowColor: '#64748B', layout: 'auto', blocks: [], views: {} } },
   ];
@@ -554,7 +596,7 @@ var Slides = (() => {
        bg:'linear-gradient(135deg,#001a0d 0%,#00401f 40%,#005c2b 70%,#002a14 100%)'},
     ];
 
-    const SECTION_ORDER = ['Тренировки','Привычки','Финансы','Цели','Общее','Кастом'];
+    const SECTION_ORDER = ['Тренировки','Привычки','Финансы','Цели','Задачи','Общее','Кастом'];
 
     function slideBg(s) {
       const c = SLIDE_COLORS.find(x => (s.cssClass && x.cssClass === s.cssClass) || (!s.cssClass && s.color && x.val === s.color));
@@ -589,7 +631,7 @@ var Slides = (() => {
       panel.querySelector('#se-add').style.display = 'none';
       SlideKit.form(panel.querySelector('#se-body'), {
         draft: sl[idx] || {}, blocks: BLOCK_LIBRARY.map(b => ({ id: b.id, name: b.name, desc: b.desc, sec: b.section })), sections: SECTION_ORDER,
-        colors: SLIDE_COLORS, routes: [['', 'Никуда'], ['/training', 'Тренировки'], ['/habits', 'Привычки'], ['/finance', 'Финансы'], ['/goals', 'Цели']],
+        colors: SLIDE_COLORS, routes: [['', 'Никуда'], ['/training', 'Тренировки'], ['/habits', 'Привычки'], ['/finance', 'Финансы'], ['/goals', 'Цели'], ['/tasks', 'Задачи']],
         preview: (d) => renderSlide(d, Store.get()), views: viewsOf,
         cfgHtml: (bid, c) => {
           if (bid === 'custom_text') return `<div class="sf-cfg"><input type="text" class="sf-in" data-cfg="text" data-bid="${bid}" placeholder="Заголовок" value="${escT(c.text)}"><input type="text" class="sf-in" data-cfg="sub" data-bid="${bid}" placeholder="Подпись" value="${escT(c.sub)}"></div>`;

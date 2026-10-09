@@ -1555,3 +1555,18 @@ html.no-anim *, html.no-anim *::before, html.no-anim *::after{animation-duration
 .tiles-v88 .home2-tile-tasks::after  { animation: blobG2 11s infinite ease-in-out !important; }
 .home2-tile-tasks { background: linear-gradient(135deg, #1C0806 0%, #2C0F0B 100%) !important; }
 .home2-tile-tasks::before { background: rgba(240,100,90,0.75); }
+
+/* ── Шаблоны для 5 плиток: колонна слева/справа и 2 + 3 ── */
+.home2-grid.layout-tall, .home2-grid.layout-tallr { grid-template-columns: 1fr 1fr; grid-auto-flow: row dense; }
+.home2-grid.layout-tall .tile-tall, .home2-grid.layout-tallr .tile-tall { grid-row: span 2; }
+.home2-grid.layout-tallr .tile-tall { grid-column: 2; }
+.home2-grid.layout-23 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.home2-grid.layout-23 .home2-tile { grid-column: span 2; }
+.home2-grid.layout-23 .home2-tile.tile-w3 { grid-column: span 3; }
+.home2-grid.layout-23 .home2-tile.tile-solo { grid-column: 1 / -1; }
+.home2-grid.lay-special .home2-tile.tile-wide { grid-column: 1 / -1; }
+/* высокая плитка: иконка и текст внизу, как у остальных, свободное место сверху */
+.home2-grid .home2-tile.tile-tall .home2-tile-content { justify-content: flex-end; }
+/* узкие плитки в 2 + 3: текст помещается */
+.home2-grid.layout-23 .home2-tile:not(.tile-w3) .home2-tile-desc { font-size: 11px; }
+.home2-grid.layout-23 .home2-tile:not(.tile-w3) .home2-tile-name { font-size: 14px; }

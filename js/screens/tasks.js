@@ -1,5 +1,5 @@
 /* ============================================================
-   ЗАДАЧИ (пока только для владельца, по ownerEmail). Устроены как Todoist.
+   ЗАДАЧИ (для всех). Устроены как Todoist.
    Сверху вкладки (Входящие / Сегодня / Предстоящее), как в других разделах.
    «Предстоящее»: одна неделя Пн–Вс колонками, стрелки листают недели, «Сегодня» возвращает к текущей,
    задачи перетаскиваются между днями и внутри дня (поле order).
@@ -22,10 +22,10 @@ window.Tasks = (function () {
   const uid = () => 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   const plural = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
 
+  /* раньше только для владельца, теперь для всех, кто вошёл (имя функции оставлено для совместимости) */
   function isOwner() {
     const u = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null;
-    const owner = (window.AUTH_CONFIG && AUTH_CONFIG.ownerEmail || '').toLowerCase();
-    return !!(u && u.email && owner && u.email.toLowerCase() === owner);
+    return !!u;
   }
   function norm(t) { return Object.assign({}, t, { subs: toArr(t.subs).filter(s => s && s.title), prio: [1, 2, 3, 4].includes(+t.prio) ? +t.prio : 4, time: /^\d{2}:\d{2}$/.test(t.time || '') ? t.time : null, proj: t.proj || null }); }
   const PCOL = ['#DB4035', '#FF9933', '#E5B800', '#7ECC49', '#299438', '#14AAF5', '#4073FF', '#884DFF', '#AF38EB', '#EB96EB', '#808080'];

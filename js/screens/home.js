@@ -171,6 +171,18 @@ window.Screens.home = function(mount) {
         id: 'biglast', label: 'Акцент 2', layout: 'layout-biglast', order: [0,1,2,3],
         svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="11" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="28" y="1" width="23" height="11" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="1" y="16" width="50" height="10" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/><rect x="1" y="30" width="50" height="9" rx="3" fill="#C084FC33" stroke="#C084FC" stroke-width="1.5"/></svg>'
       },
+      {
+        id: 'tall', label: 'Колонна слева', layout: 'layout-tall', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="24" rx="3" fill="#F8717133" stroke="#F87171" stroke-width="1.5"/><rect x="28" y="1" width="23" height="11" rx="3" fill="#F8717133" stroke="#F87171" stroke-width="1.5"/><rect x="28" y="14" width="23" height="11" rx="3" fill="#F8717133" stroke="#F87171" stroke-width="1.5"/><rect x="1" y="29" width="23" height="10" rx="3" fill="#F8717133" stroke="#F87171" stroke-width="1.5"/><rect x="28" y="29" width="23" height="10" rx="3" fill="#F8717133" stroke="#F87171" stroke-width="1.5"/></svg>'
+      },
+      {
+        id: 'tallr', label: 'Колонна справа', layout: 'layout-tallr', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="11" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="1" y="14" width="23" height="11" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="28" y="1" width="23" height="24" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="1" y="29" width="23" height="10" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="28" y="29" width="23" height="10" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/></svg>'
+      },
+      {
+        id: '23', label: '2 + 3', layout: 'layout-23', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="28" y="1" width="23" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="1" y="22" width="14" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="19" y="22" width="14" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="37" y="22" width="14" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/></svg>'
+      },
     ];
 
     var savedLayout = (Store.get().home && Store.get().home.tileLayout) || '2x2';
@@ -209,7 +221,7 @@ window.Screens.home = function(mount) {
           + 'border:2px solid '+(isActive?'#4ADE80':'#2A2D35')+';'
           + 'border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">'
           + tmpl.svg
-          + '<div style="font-size:10px;color:'+(isActive?'#4ADE80':'#9D9A92')+';font-weight:600;white-space:nowrap;">'+tmpl.label+'</div>'
+          + '<div style="font-size:10px;color:'+(isActive?'#4ADE80':'#9D9A92')+';font-weight:600;text-align:center;line-height:1.2;">'+tmpl.label+'</div>'
           + '</button>';
       }).join('');
 
@@ -220,7 +232,7 @@ window.Screens.home = function(mount) {
         + '</div>'
         + '<div style="padding:16px 20px;">'
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:10px;">Сетка</div>'
-        + '<div style="display:flex;gap:8px;margin-bottom:20px;">' + tmplBtns + '</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:20px;">' + tmplBtns + '</div>'
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;letter-spacing:.06em;margin-bottom:6px;">Порядок</div>'
         + '<div style="font-size:12px;color:#555;margin-bottom:10px;">Стрелками или перетащи за ⠿</div>'
         + '<div id="tile-sort-list" style="display:flex;flex-direction:column;gap:8px;">' + tileItems + '</div>'
@@ -332,7 +344,7 @@ window.Screens.home = function(mount) {
     var savedLayout = h.tileLayout || '2x2';
     var savedHidden = Array.isArray(h.tileHidden) ? h.tileHidden : (h.tileHidden ? Object.values(h.tileHidden) : []);
     var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals','home2-tile-tasks'];
-    var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast'};
+    var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast','tall':'layout-tall','tallr':'layout-tallr','23':'layout-23'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
     Object.values(LAYOUT_MAP).forEach(function(cls) { grid.classList.remove(cls); });
@@ -350,12 +362,25 @@ window.Screens.home = function(mount) {
       var ti = TILE_CLS.findIndex(function(c){ return el.classList.contains(c); });
       var isHidden = savedHidden.indexOf(ti) !== -1;
       el.classList.toggle('tile-hidden', isHidden);
-      el.classList.remove('tile-wide');
+      el.classList.remove('tile-wide', 'tile-tall', 'tile-w3');
       if (!isHidden) { if (wide.indexOf(vis) !== -1) el.classList.add('tile-wide'); vis++; }
     });
     /* Плитка, оставшаяся одна в ряду, растягивается на всю ширину, чтобы не было дырки (в любом шаблоне) */
     var visTiles = tiles.filter(function(el){ return !el.classList.contains('tile-hidden'); });
-    for (var k = 0; k < visTiles.length; k++) {
+    var nv = visTiles.length;
+    /* колонна: первая плитка высокая на два ряда, рядом две, ниже парами */
+    if ((savedLayout === 'tall' || savedLayout === 'tallr') && nv >= 3) {
+      visTiles[0].classList.add('tile-tall');
+      if ((nv - 3) % 2 === 1) visTiles[nv - 1].classList.add('tile-wide');
+    }
+    /* 2 + 3: сверху две большие, снизу три (при 4 плитках две и две) */
+    else if (savedLayout === '23') {
+      var w3 = nv === 5 ? 2 : nv === 4 || nv === 2 ? nv : 0;
+      for (var q = 0; q < w3; q++) visTiles[q].classList.add('tile-w3');
+    }
+    var special = (savedLayout === 'tall' || savedLayout === 'tallr' || savedLayout === '23') && nv > 1;
+    grid.classList.toggle('lay-special', special);
+    for (var k = 0; !special && k < visTiles.length; k++) {
       if (visTiles[k].classList.contains('tile-wide')) continue;
       var nx = visTiles[k + 1];
       if (!nx || nx.classList.contains('tile-wide')) visTiles[k].classList.add('tile-wide'); else k++;

@@ -336,9 +336,11 @@ window.Tasks = (function () {
   function screen(mount) {
     if (!isOwner()) { Router.go('/home'); return; }
     document.documentElement.classList.add('tk-on');
+    const tabsOff = () => !!(Store.get().tasks || {}).tabsOff;
     const vis0 = tabIds().vis; view = vis0.includes('week') ? 'week' : vis0[0]; boardX = -1; wk = 0;
     mount.innerHTML = `<div class="tk-app ${themeCls()}" id="tk-app">
       <header class="tk-hdr"><button class="tk-hb" id="tk-back" aria-label="На главную"><i class="ti ti-arrow-left"></i></button><p>Задачи</p>
+        <button class="tk-hb" id="tk-views" aria-label="Разделы задач" title="Разделы"><i class="ti ti-layout-list"></i></button>
         <button class="tk-hb tk-hb-add" id="tk-add-h" aria-label="Добавить задачу" title="Добавить задачу"><i class="ti ti-plus"></i></button>
         <button class="tk-hb" id="tk-theme" aria-label="Светлые или тёмные задачи" title="Светлые / тёмные задачи"><i class="ti"></i></button></header>
       <div class="tk-wrap">
@@ -347,6 +349,7 @@ window.Tasks = (function () {
         <nav class="tk-navl" id="tk-navl"></nav>
       </aside>
       <main class="tk-main" id="tk-main"></main></div></div>`;
+    mount.querySelector('#tk-app').classList.toggle('tabs-off', tabsOff());
     const app = mount.querySelector('#tk-app'), main = mount.querySelector('#tk-main');
     const paintTheme = () => { const l = isLight(); app.classList.toggle('tkl', l); app.classList.toggle('tkd', !l); document.documentElement.classList.toggle('tk-on-light', l); mount.querySelector('#tk-theme i').className = 'ti ' + (l ? 'ti-moon' : 'ti-sun'); };
     paintTheme();
@@ -384,6 +387,29 @@ window.Tasks = (function () {
     }
     mount.querySelector('#tk-new').onclick = () => quickAdd(draw);
     mount.querySelector('#tk-add-h').onclick = () => quickAdd(draw);
+    /* кнопка как «Планы» в Тренировках: все разделы и проекты одним списком, вкладки сверху можно спрятать */
+    mount.querySelector('#tk-views').onclick = (e) => {
+      e.stopPropagation(); const old = document.querySelector('.tk-vmenu'); if (old) { old.remove(); return; }
+      const all = list(), td = iso(today()), ic = { inbox: 'ti-inbox', today: 'ti-calendar-event', week: 'ti-calendar-week' };
+      const cnt = (k) => k === 'inbox' ? all.filter(t => !t.date && !t.proj && !t.done).length : k === 'today' ? all.filter(t => !t.done && t.date && t.date <= td).length : k.startsWith('p:') ? all.filter(t => t.proj === k.slice(2) && !t.done).length : 0;
+      const nm = (k) => k.startsWith('p:') ? (projOf(k.slice(2)) || {}).name || '' : NAME[k];
+      const m = document.createElement('div'); m.className = 'tk-vmenu ' + themeCls();
+      m.innerHTML = tabIds().all.map(k => { const pr = k.startsWith('p:') ? projOf(k.slice(2)) : null, n = cnt(k);
+        return `<button data-go="${esc(k)}" class="${k === view ? 'on' : ''}">${pr ? `<i class="tk-pdot" style="background:${pr.color}"></i>` : `<i class="ti ${ic[k]}"></i>`}<span>${esc(nm(k))}</span><em>${n || ''}</em></button>`; }).join('')
+        + `<form class="tk-pj-new"><i class="ti ti-plus"></i><input maxlength="40" placeholder="Новый проект"></form>
+        <div class="tk-vm-sep"></div>
+        <button data-tg><i class="ti ti-${tabsOff() ? 'eye' : 'eye-off'}"></i><span>${tabsOff() ? 'Показать вкладки' : 'Скрыть вкладки'}</span></button>
+        <button data-cfg><i class="ti ti-adjustments-horizontal"></i><span>Настроить вкладки</span></button>`;
+      mount.querySelector('#tk-app').appendChild(m);
+      const off = (ev) => { if (!m.contains(ev.target)) { m.remove(); document.removeEventListener('click', off, true); } };
+      setTimeout(() => document.addEventListener('click', off, true), 0);
+      const shut = () => { m.remove(); document.removeEventListener('click', off, true); };
+      m.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { view = b.dataset.go; wk = 0; boardX = -1; shut(); draw(); });
+      m.querySelector('[data-tg]').onclick = () => { Store.set('tasks.tabsOff', tabsOff() ? null : true); mount.querySelector('#tk-app').classList.toggle('tabs-off', tabsOff()); shut(); };
+      m.querySelector('[data-cfg]').onclick = () => { shut(); tabsEditor(draw); };
+      m.querySelector('.tk-pj-new').addEventListener('submit', ev => { ev.preventDefault(); const v = m.querySelector('.tk-pj-new input').value.trim().slice(0, 40); if (!v) return;
+        const ps = projects(), np = { id: 'p' + uid(), name: v, color: PCOL[ps.length % PCOL.length] }; saveProjects(ps.concat(np)); view = 'p:' + np.id; shut(); draw(); });
+    };
     bindDrag(main, draw);
     draw();
   }

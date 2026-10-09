@@ -137,7 +137,8 @@ const FirebaseSync = (() => {
   }
 
   function scheduleSave(path, value) {
-    if (!_loaded) return;
+    /* запуск без связи: правки копим и отправим, как только данные с сервера подтянутся */
+    if (!_loaded) { if (_offline && userRoot() && !isCoachUser(_auth.currentUser)) _queue.set(path, value); return; }
     _queue.set(path, value);
     if (_flushTimer) clearTimeout(_flushTimer);
     _flushTimer = setTimeout(_flushQueue, 600);
@@ -217,7 +218,7 @@ const FirebaseSync = (() => {
     try {
       const snap = await Promise.race([
         get(ref(_db, root)),
-        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 6000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
       const hasData = remote && (
@@ -235,8 +236,35 @@ const FirebaseSync = (() => {
       console.error('pullIntoStore failed', e);
       setStatus('Нет связи', true);
       _loaded = false;
+      _offline = true; _startRetry();
       return 'error';
     }
+  }
+
+  /* Приложение открылось без связи (данные из копии на телефоне). Пробуем подтянуть сервер,
+     как только появится сеть: сервер становится основой, а правки, сделанные без связи, ложатся сверху и уходят на сервер */
+  let _offline = false, _retryT = null;
+  function _startRetry() {
+    if (_retryT) return;
+    _retryT = setInterval(_retryPull, 20000);
+    window.addEventListener('online', _retryPull);
+  }
+  async function _retryPull() {
+    const root = userRoot();
+    if (_loaded || !_offline || !root || !_auth.currentUser || isCoachUser(_auth.currentUser)) return;
+    try {
+      const snap = await Promise.race([get(ref(_db, root)), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
+      if (_loaded) return;
+      const remote = snap.exists() ? snap.val() : null;
+      const local = [..._queue.entries()]; _queue.clear();
+      if (remote) Store.replaceAll(remote);
+      _loaded = true; _offline = false;
+      clearInterval(_retryT); _retryT = null; window.removeEventListener('online', _retryPull);
+      if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);
+      local.forEach(([p, v]) => { try { Store.set(p, v); } catch (e) {} });
+      setStatus('Данные загружены');
+      window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: Object.keys(Store.get() || {}) } }));
+    } catch (e) {}
   }
 
   /* При сворачивании отправляем ТОЛЬКО несохранённые правки.

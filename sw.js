@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v182';
+const CACHE = 'nik-system-v183';
 
 const STATIC = [
   './',
@@ -63,14 +63,23 @@ const STATIC = [
   './js/screens/tasks.js',
 ];
 
-/* Установка — кешируем всё */
+/* Библиотеки с CDN: без них приложение не стартует, поэтому тоже кешируем заранее (версии зафиксированы) */
+const CDN = [
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js',
+  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.48.0/dist/tabler-icons.min.css',
+];
+
+/* Установка: кешируем всё. CDN по одному, чтобы сбой одного не ломал установку */
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(STATIC)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(STATIC).then(() => Promise.all(CDN.map(u => c.add(new Request(u, { mode: 'cors' })).catch(() => {})))))
+      .then(() => self.skipWaiting())
   );
 });
 
-/* Активация — чистим старый кеш */
+/* Активация: чистим старый кеш */
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -79,21 +88,31 @@ self.addEventListener('activate', e => {
   );
 });
 
-/* Запросы — сначала сеть, при ошибке — кеш */
-self.addEventListener('fetch', e => {
-  /* Firebase запросы — только через сеть */
-  if (e.request.url.includes('firebase') || e.request.url.includes('googleapis')) return;
+/* Запросы к данным Firebase (база, вход) только через сеть, их не трогаем */
+const LIVE = /firebaseio\.com|firebasedatabase\.app|identitytoolkit|securetoken|firebaseinstallations|apis\.google\.com|accounts\.google|functions\.yandexcloud|storage\.yandexcloud/;
 
+function putCache(req, res) {
+  if (res && (res.ok || res.type === 'opaque') && req.method === 'GET') { const cl = res.clone(); caches.open(CACHE).then(c => c.put(req, cl)).catch(() => {}); }
+  return res;
+}
+
+self.addEventListener('fetch', e => {
+  const req = e.request, url = req.url;
+  if (req.method !== 'GET' || LIVE.test(url) || !/^https?:/.test(url)) return;
+  /* Страница (index.html, coach.html): свежая из сети, но не дольше 3 секунд, потом из кеша.
+     Так на плохой связи приложение открывается сразу, а при хорошей берёт новую версию */
+  if (req.mode === 'navigate') {
+    e.respondWith(new Promise(resolve => {
+      let done = false;
+      const fromCache = () => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match('./index.html')).then(r => r || caches.match('./'));
+      const t = setTimeout(() => { fromCache().then(r => { if (r && !done) { done = true; resolve(r); } }); }, 3000);
+      fetch(req).then(res => { putCache(req, res); if (!done) { done = true; clearTimeout(t); resolve(res); } })
+        .catch(() => fromCache().then(r => { if (!done) { done = true; clearTimeout(t); resolve(r || Response.error()); } }));
+    }));
+    return;
+  }
+  /* Скрипты, стили, иконки, шрифты: сразу из кеша (кеш свой у каждой версии, CACHE меняется при каждом обновлении), иначе сеть */
   e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        /* Обновляем кеш свежим ответом */
-        if (res.ok && e.request.method === 'GET') {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('./')))
+    caches.match(req).then(hit => hit || fetch(req).then(res => putCache(req, res)).catch(() => caches.match(req, { ignoreSearch: true })))
   );
 });

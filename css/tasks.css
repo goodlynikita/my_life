@@ -274,3 +274,4 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 .tk-sms { margin: 2px 0 4px; }
 .tk-sm { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 7px; border-radius: 5px; background: var(--t-acc-wash); color: var(--t-acc); font-size: 12px; font-weight: 600; }
 .tk-sm i.ti { font-size: 13px; } .tk-sm .tk-pdot { width: 8px; height: 8px; } .tk-sm .tk-flag { width: 13px; height: 13px; }
+.tk-empty { padding: 40px 0; text-align: center; color: var(--t-muted); font-size: 13.5px; }

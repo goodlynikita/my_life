@@ -41,7 +41,7 @@ function tasksToday() {
   try {
     const n = new Date(), td = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
     const raw = (Store.get().tasks || {}).list; const arr = Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? Object.values(raw) : [];
-    return arr.filter(t => t && t.title && !t.done && t.date && t.date <= td).map(t => ({ title: t.title, time: /^\d{2}:\d{2}$/.test(t.time || '') ? t.time : '', late: t.date < td, o: t.order != null ? +t.order : +t.createdAt || 0 }))
+    return arr.filter(t => t && t.title && !t.done && t.date === td).map(t => ({ title: t.title, time: /^\d{2}:\d{2}$/.test(t.time || '') ? t.time : '', late: t.date < td, o: t.order != null ? +t.order : +t.createdAt || 0 }))
       .sort((x, y) => (y.late - x.late) || ((x.time || '99') < (y.time || '99') ? -1 : (x.time || '99') > (y.time || '99') ? 1 : x.o - y.o));
   } catch (e) { return []; }
 }
@@ -359,7 +359,7 @@ var Slides = (() => {
     {
       id: 'tasks_today_list', section: 'Задачи',
       name: 'Задачи на сегодня',
-      desc: 'Список задач на сегодня и просроченных',
+      desc: 'Список задач на сегодня',
       render: () => {
         const a = tasksToday();
         if (!a.length) return `<div class="hero-stat-num">✓</div><div class="hero-stat-lbl">на сегодня всё сделано</div>`;

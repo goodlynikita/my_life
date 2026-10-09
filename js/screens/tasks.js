@@ -41,7 +41,7 @@ window.Tasks = (function () {
     a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: [1, 2, 3].includes(prio) ? prio : 4, desc: String(desc || '').trim().slice(0, 2000) || null, proj: proj || null, time: (date && time) || null }); save(a); }
   function patch(id, p) { save(list().map(t => t.id === id ? Object.assign({}, t, p) : t)); }
   function remove(id) { save(list().filter(t => t.id !== id)); }
-  function todayCount() { const t = iso(today()); return list().filter(x => !x.done && x.date && x.date <= t).length; }
+  function todayCount() { const t = iso(today()); return list().filter(x => !x.done && x.date === t).length; }
 
   /* своя тема раздела, как светлые финансы */
   const isLight = () => ((Store.get().tasks || {}).theme || 'light') === 'light';
@@ -132,9 +132,8 @@ window.Tasks = (function () {
     }
     const late = all.filter(t => !t.done && t.date && t.date < td).sort((x, y) => x.date < y.date ? -1 : x.date > y.date ? 1 : byOrd(x, y));
     const now = all.filter(t => !t.done && t.date === td).sort(byOrd);
-    const n = late.length + now.length;
+    const n = now.length; /* просроченные живут в «Предстоящем», в «Сегодня» только сегодняшние */
     return `<div class="tk-page"><div class="tk-ph"><h1>Сегодня</h1><span class="tk-cnt">${n ? '<i class="ti ti-circle-check"></i>' + n + ' ' + plural(n, 'задача', 'задачи', 'задач') : ''}</span></div>
-      ${late.length ? `<div class="tk-sec"><span>Просрочено</span><button class="tk-move" data-move>Перенести</button></div><div class="tk-list">${late.map(t => card(t)).join('')}</div>` : ''}
       <div class="tk-sec"><span>${today().getDate()} ${MON[today().getMonth()]} · Сегодня · ${DOW[today().getDay()]}</span></div>
       <div class="tk-list" data-list="${td}">${now.map(t => card(t, { noDate: true })).join('')}${addBtn(td)}</div></div>`;
   }
@@ -399,7 +398,7 @@ window.Tasks = (function () {
     mount.querySelector('#tk-theme').onclick = () => { Store.set('tasks.theme', isLight() ? 'dark' : 'light'); paintTheme(); };
     const draw = () => {
       const all = list(), td = iso(today());
-      const n = { inbox: all.filter(t => !t.date && !t.proj && !t.done).length, today: all.filter(t => !t.done && t.date && t.date <= td).length, week: '' };
+      const n = { inbox: all.filter(t => !t.date && !t.proj && !t.done).length, today: all.filter(t => !t.done && t.date === td).length, week: '' };
       projects().forEach(p => { n['p:' + p.id] = all.filter(t => t.proj === p.id && !t.done).length; });
       const tv = tabIds(); if (!tv.vis.includes(view) && !tv.all.includes(view)) view = tv.vis[0];
       const nm = (k) => k.startsWith('p:') ? (projOf(k.slice(2)) || {}).name || '' : NAME[k];
@@ -433,7 +432,7 @@ window.Tasks = (function () {
     mount.querySelector('#tk-views').onclick = (e) => {
       e.stopPropagation(); const old = document.querySelector('.tk-vmenu'); if (old) { old.remove(); return; }
       const all = list(), td = iso(today()), ic = ICO;
-      const cnt = (k) => k === 'inbox' ? all.filter(t => !t.date && !t.proj && !t.done).length : k === 'today' ? all.filter(t => !t.done && t.date && t.date <= td).length : k.startsWith('p:') ? all.filter(t => t.proj === k.slice(2) && !t.done).length : 0;
+      const cnt = (k) => k === 'inbox' ? all.filter(t => !t.date && !t.proj && !t.done).length : k === 'today' ? all.filter(t => !t.done && t.date === td).length : k.startsWith('p:') ? all.filter(t => t.proj === k.slice(2) && !t.done).length : 0;
       const nm = (k) => k.startsWith('p:') ? (projOf(k.slice(2)) || {}).name || '' : NAME[k];
       const m = document.createElement('div'); m.className = 'tk-vmenu ' + themeCls();
       m.innerHTML = tabIds().all.map(k => { const pr = k.startsWith('p:') ? projOf(k.slice(2)) : null, n = cnt(k);

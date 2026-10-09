@@ -23,6 +23,8 @@ jobs:
           cd dist
           find . -name '*.js' -not -path './js/vendor/*' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
           find . -name '*.css' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
+          # сжатие gzip: код и страницы весят в 3-4 раза меньше, браузер распаковывает сам (на сайте отдаются с Content-Encoding: gzip)
+          find . \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.json' -o -name '*.webmanifest' \) -not -path './dl/*' -print0 | while IFS= read -r -d '' f; do gzip -9 -n -c "$f" > "$f.gz" && mv "$f.gz" "$f"; done
 
       - name: Загрузка в Яндекс
         env:
@@ -33,15 +35,15 @@ jobs:
           S3="aws s3 --endpoint-url=https://storage.yandexcloud.net"
           # картинки, видео, шрифты: кэш на сутки
           $S3 sync dist s3://you-app.ru --delete --cache-control "public, max-age=86400" \
-            --exclude "*.html" --exclude "*.js" --exclude "*.css" --exclude "*.json" --exclude "*.webmanifest"
+            --exclude "*.html" --exclude "*.js" --exclude "*.css" --exclude "*.json" --exclude "*.webmanifest" --exclude "dl/*"
           # код и страницы: всегда проверять свежую версию
-          $S3 sync dist s3://you-app.ru --cache-control "no-cache" \
+          $S3 sync dist s3://you-app.ru --cache-control "no-cache" --content-encoding gzip \
             --exclude "*" --include "*.html" --include "*.js" --include "*.css" --include "*.json"
-          $S3 cp dist/coach.webmanifest s3://you-app.ru/coach.webmanifest --cache-control "no-cache" --content-type "application/manifest+json"
-          $S3 cp dist/manifest.json s3://you-app.ru/manifest.json --cache-control "no-cache" --content-type "application/manifest+json"
+          $S3 cp dist/coach.webmanifest s3://you-app.ru/coach.webmanifest --cache-control "no-cache" --content-encoding gzip --content-type "application/manifest+json"
+          $S3 cp dist/manifest.json s3://you-app.ru/manifest.json --cache-control "no-cache" --content-encoding gzip --content-type "application/manifest+json"
           # короткие ссылки: you-app.ru/start (лендинг) и you-app.ru/coach (кабинет тренера) без .html
-          $S3 cp dist/start.html s3://you-app.ru/start --cache-control "no-cache" --content-type "text/html; charset=utf-8"
-          $S3 cp dist/coach.html s3://you-app.ru/coach --cache-control "no-cache" --content-type "text/html; charset=utf-8"
+          $S3 cp dist/start.html s3://you-app.ru/start --cache-control "no-cache" --content-encoding gzip --content-type "text/html; charset=utf-8"
+          $S3 cp dist/coach.html s3://you-app.ru/coach --cache-control "no-cache" --content-encoding gzip --content-type "text/html; charset=utf-8"
           # команды для iPhone: отдаём как файл, иначе Safari покажет их текстом
           $S3 cp dist/dl s3://you-app.ru/dl --recursive --cache-control "no-cache" --content-type "application/octet-stream" --content-disposition "attachment"
           # служебные файлы и старые копии, которых не должно быть на сайте

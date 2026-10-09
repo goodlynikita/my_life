@@ -617,8 +617,13 @@ window.Screens.habits = function(mount) {
       </div>`;
 
     /* таблица сразу открывается на сегодня: сегодняшний день виден у правого края, слева прошлые дни */
-    { const tc = content.querySelector('th.hab-col-today'); const wrap = tc && tc.closest('div');
-      if (tc && wrap) { const colW = tc.offsetWidth || 30; wrap.scrollLeft = Math.max(0, tc.offsetLeft + colW * 2 - wrap.clientWidth); } }
+    /* повторяем после отрисовки и загрузки шрифта: на телефоне ширина колонок меняется уже после первого расчёта */
+    { let last = null; /* если человек уже сам листнул таблицу, больше не трогаем */
+      const toToday = () => { const tc = content.querySelector('th.hab-col-today'); const wrap = tc && tc.closest('div');
+        if (!tc || !wrap || !wrap.clientWidth) return; if (last != null && Math.abs(wrap.scrollLeft - last) > 2) return;
+        const colW = tc.offsetWidth || 30; wrap.scrollLeft = Math.max(0, tc.offsetLeft + colW * 2 - wrap.clientWidth); last = wrap.scrollLeft; };
+      toToday(); requestAnimationFrame(toToday); setTimeout(toToday, 250); setTimeout(toToday, 900);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(toToday).catch(() => {}); }
 
     /* Клики по ячейкам */
     content.querySelectorAll('.hab-cell.hab-active').forEach(el => {

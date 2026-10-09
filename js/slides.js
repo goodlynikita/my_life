@@ -107,6 +107,7 @@ var Slides = (() => {
               break;
             }
           }
+          if (typeof habStreak === 'function') max = habStreak(h, store); /* как у привычки в Привычках */
           if (max > best) { best = max; bestName = h.name; }
         });
         const c = best>=14?'#FF4500':best>=7?'#F59E0B':best>=3?'#FB923C':'#9D9A92';
@@ -264,7 +265,9 @@ var Slides = (() => {
             else if (m==='missed') total++;
           }
         });
-        const pct = total ? Math.round(done/total*100) : 0;
+        let pct = total ? Math.round(done/total*100) : 0;
+        /* считаем так же, как «Итог месяца» в Привычках, чтобы цифры совпадали */
+        if (typeof habProgress === 'function' && list.length) { const ps = list.map(h => habProgress(h, marks, now.getFullYear(), now.getMonth())); pct = Math.round(ps.reduce((a, p) => a + p.pct, 0) / ps.length); }
         const c = pct>=80?'#4ADE80':pct>=50?'#F59E0B':'#F87171';
         return `<div class="hero-stat-num" style="color:${c}">${pct}%</div><div class="hero-stat-lbl">привычек в месяц</div>`;
       },
@@ -272,12 +275,14 @@ var Slides = (() => {
     {
       id: 'discipline_streak', section: 'Привычки',
       name: 'Стрик дисциплины',
-      desc: 'Число дней подряд с хотя бы одной выполненной привычкой',
+      desc: 'Серия дней, как в карточке Привычек',
       render: (store) => {
         const list = (store.habits?.list||[]).filter(Boolean);
         const months = store.habits?.months||{};
         const now = new Date(); let streak = 0;
-        for(let i=0;i<365;i++){
+        /* та же серия, что в карточке Привычек (день засчитан, если сделано больше половины) */
+        if (typeof habSeries === 'function') streak = habSeries(store).cur;
+        else for(let i=0;i<365;i++){
           const d = new Date(now); d.setDate(d.getDate()-i);
           const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
           const hasDone = list.some(h=>months[mk]?.[h.id]?.[d.getDate()]==='done');

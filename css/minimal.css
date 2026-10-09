@@ -240,3 +240,17 @@ html[data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal { b
 html[data-sec="habits"] .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { background: linear-gradient(135deg, #15803D, #22A35A) !important; color: #fff !important; }
 html[data-sec="goals"] .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { background: linear-gradient(135deg, #B45309, #E08A2C) !important; color: #fff !important; }
 html[data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { background: linear-gradient(135deg, #7C5CE0, #977FE9) !important; color: #fff !important; }
+
+/* Чаты помощников: страница стоит, листается только переписка */
+html:has(.ch-list), html:has(.ch-list) body { overflow: hidden !important; overscroll-behavior: none; }
+.ch-list { overscroll-behavior: contain; }
+
+/* Вкладки: толщина не меняется у выбранной (не прыгают), на телефоне все помещаются без прокрутки */
+.tr-tabs .tr-tab.active, .hab-screen .hab-tabs .hab-tab.active, .goals-season-tabs .goals-season-tab.active, .tochka-tab.active, .fin-dark .tochka-tab.active { font-weight: 500 !important; }
+@media (max-width: 600px) {
+  .tr-tabs, .fin-dark .tochka-tabs, .tochka-tabs { overflow: hidden !important; flex-wrap: nowrap !important; scroll-snap-type: none !important; }
+  .tr-tabs .tr-tab, .tochka-tab, .fin-dark .tochka-tab { flex: 1 1 auto !important; min-width: 0 !important; padding: 13px 3px !important; font-size: 12px !important; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+  .tr-tabs .tr-tab i, .tochka-tab i { display: none !important; }
+  .tr-tabs .tc-edit, .tochka-tabs .tc-edit { flex: 0 0 30px !important; width: 30px !important; min-width: 30px !important; padding: 0 !important; }
+}
+@media (max-width: 380px) { .tr-tabs .tr-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 11.5px !important; padding: 13px 2px !important; } }

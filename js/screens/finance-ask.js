@@ -91,6 +91,7 @@ window.FinAsk = (function () {
         <button id="fa-send" aria-label="Спросить" ${off || left === 0 || busy ? 'disabled' : ''}><i class="ti ti-send"></i></button></div>
       <div class="ch-foot">${usage ? usage.limit + ' сообщений в месяц' : 'Общий лимит с чатом тренера'}${list.length ? ' · <button class="ch-clear" id="fa-clear">Очистить переписку</button>' : ''}</div>
     </div>`;
+    if (window.chFit) window.chFit();
     const box = content.querySelector('#fa-list'); if (box) box.scrollTop = box.scrollHeight;
     const again = () => { if (content.isConnected && content.querySelector('#fa-list')) render(content); };
     const ta = content.querySelector('#fa-text');

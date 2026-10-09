@@ -199,7 +199,9 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
   .tk-col .tk-card { padding: 11px 11px 11px 12px; margin-bottom: 10px; min-height: 68px; }
   .tk-col .tk-meta { margin-top: 8px; }
   .tk-new { position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 50; width: 56px; height: 56px; padding: 0; border-radius: 50%; justify-content: center; background: var(--t-acc); color: #fff; font-size: 0; box-shadow: 0 6px 18px rgba(220, 76, 62, .45); margin: 0; order: 0; }
-  .tk-new .tk-plus { background: none; font-size: 26px; width: auto; height: auto; }
+  .tk-new { gap: 0 !important; }
+  .tk-new .tk-plus { background: none; font-size: 26px; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; }
+  .tk-new .tk-plus i { display: block; line-height: 1; }
   .tk-side { padding: 0 6px; }
   .tk-navl { flex: 1; }
   .tk-navl button[data-v] { flex: 1 0 auto; justify-content: center; height: 44px; font-size: 13px; padding: 0 10px; }

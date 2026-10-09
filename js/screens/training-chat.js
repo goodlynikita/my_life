@@ -115,6 +115,19 @@ window.TrainingChat = (function () {
     });
   }
 
+  /* Чат закреплён: страница не листается (html:has(.ch-list) в CSS), окно чата ровно до низа экрана, листается только переписка */
+  function chFit() {
+    const l = [...document.querySelectorAll('.ch-list')].find(x => x.offsetParent); if (!l) return;
+    if (window.scrollY) window.scrollTo(0, 0);
+    const card = l.closest('.ch-card') || l.parentElement; let after = 0;
+    for (let n = l.nextElementSibling; n; n = n.nextElementSibling) after += n.offsetHeight + (parseFloat(getComputedStyle(n).marginTop) || 0);
+    const cs = getComputedStyle(card), vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const hgt = Math.max(160, Math.floor(vh - l.getBoundingClientRect().top - after - (parseFloat(cs.paddingBottom) || 0) - (parseFloat(cs.borderBottomWidth) || 0) - 14));
+    l.style.height = hgt + 'px'; l.style.maxHeight = 'none'; l.style.minHeight = '0';
+  }
+  window.chFit = chFit;
+  window.addEventListener('resize', () => chFit());
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => chFit());
   function render(content, plan, h, tabsHtml, bindTabs) {
     if (!cfg().aiChatUrl) {
       content.innerHTML = `<div class="ai-wrap">${tabsHtml}
@@ -157,6 +170,7 @@ window.TrainingChat = (function () {
       </div>
     </div>`;
     bindTabs && bindTabs();
+    chFit();
     const box = content.querySelector('#ch-list');
     if (box) {
       /* новый ответ тренера показываем с начала, остальное прокручиваем вниз */

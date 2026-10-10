@@ -1078,6 +1078,25 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   .dx-glow{width:260px;height:260px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none;filter:none}h1 .line span{transform:none}.lead,.hero-cta,.hero-note{opacity:1}}
+/* Импорт со скрина и из текста */
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.imp-demo{position:relative;display:grid;grid-template-columns:1fr 46px 1fr;align-items:center;gap:10px}
+.imp-shot{background:#F4F5F8;color:#1B1F2A;border-radius:18px;padding:14px 14px 10px;font-size:12px;box-shadow:0 20px 50px rgba(0,0,0,.45);transform:rotate(-2deg)}
+.imp-shot h5{margin:0 0 8px;font-size:12px;color:#6B7285;font-weight:700}
+.imp-shot div{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid #E3E6EE}
+.imp-shot div b{font-weight:600}.imp-shot div span{white-space:nowrap;font-weight:700}
+.imp-ar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--grad);color:#fff;font-size:22px;box-shadow:0 10px 30px rgba(139,92,246,.45)}
+.imp-res{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:12px}
+.imp-res h5{margin:0 0 8px;font-size:12px;color:var(--soft);font-weight:700;display:flex;align-items:center;gap:6px}
+.imp-it{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;background:rgba(255,255,255,.04);margin-top:6px;font-size:12px;opacity:0;transform:translateX(14px);transition:opacity .5s,transform .5s var(--ease)}
+.imp-it i{width:18px;height:18px;border-radius:6px;background:#977FE9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.imp-it b{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.imp-it small{color:var(--soft);white-space:nowrap}
+.imp-demo.in .imp-it{opacity:1;transform:none}
+.imp-demo.in .imp-it:nth-child(3){transition-delay:.5s}.imp-demo.in .imp-it:nth-child(4){transition-delay:.7s}.imp-demo.in .imp-it:nth-child(5){transition-delay:.9s}.imp-demo.in .imp-it:nth-child(2){transition-delay:.3s}
+.imp-btn{margin-top:10px;padding:9px;border-radius:10px;background:#977FE9;color:#fff;text-align:center;font-size:12px;font-weight:700}
+.imp-where{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
+@media (max-width:980px){.imp-grid{grid-template-columns:1fr;gap:36px}}
+@media (max-width:560px){.imp-demo{grid-template-columns:1fr;gap:12px}.imp-ar{margin:0 auto;transform:rotate(90deg)}.imp-shot{transform:none}.imp-where{gap:8px}.imp-where .ai-feat{padding:12px}.imp-where .ai-feat b{font-size:13px}.imp-where .ai-feat span{font-size:11.5px;line-height:1.4}}
 </style>
 </head>
 <body>
@@ -1299,6 +1318,37 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   </div>
 </div></section>
 
+<!-- Скрин или длинный текст: разбор в записи -->
+<section class="imp" id="import" data-for="me"><div class="wrap imp-grid">
+  <div>
+    <span class="eyebrow">Скрины и длинные тексты</span>
+    <h2 class="rv">Кинул скрин, <span class="grad-t">AI разложил по полочкам</span></h2>
+    <p class="sec-lead rv">Выписка из банка, программа от тренера в мессенджере, список дел на неделю. Прикрепи скрин или вставь текст: YOU покажет, что нашёл, ты отметишь нужное и нажмёшь «Добавить».</p>
+    <div class="imp-where rv">
+      <div class="ai-feat"><i class="ti ti-receipt"></i><b>Траты</b><span>Скрин или выписка из банка. Суммы, даты и категории сами встанут в расходы</span></div>
+      <div class="ai-feat"><i class="ti ti-barbell"></i><b>Тренировки</b><span>Программа текстом или скрином. Упражнения, подходы и веса лягут в план</span></div>
+      <div class="ai-feat"><i class="ti ti-checklist"></i><b>Задачи</b><span>Длинный список на неделю. Помощник раскидает по дням и расставит важность</span></div>
+      <div class="ai-feat"><i class="ti ti-eye-check"></i><b>Ничего лишнего</b><span>Сначала список найденного. Добавится только то, что ты отметил</span></div>
+    </div>
+  </div>
+  <div class="imp-demo rv rv-r" aria-label="Пример: скрин выписки превращается в траты">
+    <div class="imp-shot"><h5>Выписка · 08 окт</h5>
+      <div><b>Пятёрочка</b><span>−1 240 ₽</span></div>
+      <div><b>Яндекс Такси</b><span>−386 ₽</span></div>
+      <div><b>Кофейня</b><span>−290 ₽</span></div>
+      <div><b>Аптека</b><span>−615 ₽</span></div>
+    </div>
+    <div class="imp-ar"><i class="ti ti-sparkles"></i></div>
+    <div class="imp-res"><h5><i class="ti ti-list-check"></i>Нашёл 4 траты</h5>
+      <div class="imp-it"><i class="ti ti-check"></i><b>Продукты</b><small>1 240 ₽</small></div>
+      <div class="imp-it"><i class="ti ti-check"></i><b>Такси</b><small>386 ₽</small></div>
+      <div class="imp-it"><i class="ti ti-check"></i><b>Кафе</b><small>290 ₽</small></div>
+      <div class="imp-it"><i class="ti ti-check"></i><b>Здоровье</b><small>615 ₽</small></div>
+      <div class="imp-btn">Добавить</div>
+    </div>
+  </div>
+</div></section>
+
 <!-- Живые примеры: деньги, привычки, цели, расписание -->
 <section class="demos" id="demos" data-for="me"><div class="wrap">
   <div class="center"><span class="eyebrow">Каждый день</span><h2 class="rv">Как это выглядит <span class="grad-t">каждый день</span></h2></div>
@@ -1388,6 +1438,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="ai-feat"><i class="ti ti-layout-dashboard"></i><b>Главная и лента</b><span>Кто тренируется сегодня, рекорды, пропуски и комментарии. Слайды и плитки настраиваете под себя</span></div>
       <div class="ai-feat"><i class="ti ti-chart-bar"></i><b>Обзор клиента</b><span>Оценка по четырём пунктам: регулярность, сила, нагрузка и тело. И что делать дальше</span></div>
       <div class="ai-feat"><i class="ti ti-calendar-event"></i><b>Расписание</b><span>Записи с временем и повтором. Клиент видит время тренировки у себя в приложении</span></div>
+      <div class="ai-feat"><i class="ti ti-photo-scan"></i><b>Расписание со скрина</b><span>Прикрепили скрин старого календаря или вставили текст. Записи сами встанут по клиентам</span></div>
       <div class="ai-feat"><i class="ti ti-ruler-measure"></i><b>Замеры тела</b><span>Вес, обхваты и пропорции с выводами. Замерили в зале, внесли сами</span></div>
       <div class="ai-feat"><i class="ti ti-template"></i><b>Шаблоны программ</b><span>Собрали раз, назначаете в два клика. Веса подставятся из истории клиента</span></div>
       <div class="ai-feat"><i class="ti ti-wallet"></i><b>Оплаты клиентов</b><span>Цена тренировки, отметили «провёл» и сумма начислилась. Видно долг и на сколько тренировок хватит</span></div>

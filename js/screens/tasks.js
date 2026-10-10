@@ -104,7 +104,7 @@ window.Tasks = (function () {
     return out;
   }
   const chipsHtml = (sm) => sm.chips.map(c => `<span class="tk-sm">${c[0] === 'flag' ? flag(sm.prio, 14) : c[0] === 'dot' ? `<i class="tk-pdot" style="background:${c[2]}"></i>` : `<i class="ti ${c[0]}"></i>`}${esc(c[1])}</span>`).join('');
-  function bindSmart(inp, box) { const up = () => { box.innerHTML = chipsHtml(smart(inp.value)); }; inp.addEventListener('input', up); up(); }
+  function bindSmart(inp, box, onDate) { const up = () => { const sm = smart(inp.value); box.innerHTML = chipsHtml(sm); if (onDate) onDate(sm.date); }; inp.addEventListener('input', up); up(); }
   /* добавить с разбором названия; явные значения формы идут по умолчанию */
   function addSmart(title, date, desc, proj, time) { const sm = smart(title); const t = sm.title || String(title).trim(), tm = sm.time || time || null;
     add(t, sm.date || date || (tm ? iso(today()) : null), desc, sm.proj || proj || null, tm, sm.prio || 4); }
@@ -249,7 +249,7 @@ window.Tasks = (function () {
       <div class="tk-q-row"><label><i class="ti ti-clock"></i><input type="time" class="tk-q-time"></label>${projects().length ? `<label><i class="ti ti-folder"></i><select class="tk-q-proj"><option value="">Входящие</option>${projects().map(p => `<option value="${esc(p.id)}"${p.id === pj ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>` : ''}</div>
       <div class="tk-af-b"><button type="button" class="tk-btn ghost" data-cancel>Отмена</button><button type="submit" class="tk-btn red">Добавить задачу</button></div></form>`;
     document.body.appendChild(ov);
-    const f = ov.querySelector('form'); f.querySelector('.tk-af-t').focus(); bindSmart(f.querySelector('.tk-af-t'), f.querySelector('.tk-sms'));
+    const f = ov.querySelector('form'); f.querySelector('.tk-af-t').focus(); bindSmart(f.querySelector('.tk-af-t'), f.querySelector('.tk-sms'), (sd) => ov.querySelectorAll('[data-qd]').forEach(b => b.classList.toggle('on', sd ? b.dataset.qd === sd : b.dataset.qd === d)));
     const bindC = () => ov.querySelectorAll('[data-qd]').forEach(b => b.onclick = () => { d = b.dataset.qd; ov.querySelector('.tk-q-chips').innerHTML = chips(); bindC(); });
     bindC();
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
@@ -409,7 +409,9 @@ window.Tasks = (function () {
       main.innerHTML = view === 'week' ? weekView() : listView(view);
       const bd = main.querySelector('#tk-board');
       if (bd) { if (boardX < 0) { /* новая неделя: у текущей показываем со вчерашнего дня, как Todoist */
-          bd.scrollLeft = 0; boardX = 0; } else bd.scrollLeft = boardX; }
+          /* телефон: открываем на сегодняшнем дне (просроченные левее, до них можно долистать) */
+          const now = innerWidth <= 900 && wk === 0 ? bd.querySelector('.tk-col.now') : null;
+          bd.scrollLeft = now ? now.offsetLeft - bd.firstElementChild.offsetLeft : 0; boardX = bd.scrollLeft; } else bd.scrollLeft = boardX; }
       bindMain();
     };
     function bindMain() {

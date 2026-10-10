@@ -100,6 +100,30 @@ const SYSTEM_FIN = `Ты финансовый помощник этого чел
 ТЕМЫ
 Его деньги: траты, доходы, платежи, копилка, цели, кредиты, планы покупок. На другое отвечай одной фразой и возвращай к деньгам.`;
 
+/* ── Планировщик задач: разбирает план своими словами в задачи по дням, следит за просроченными ── */
+const SYSTEM_TASKS = `Ты помощник по планированию в приложении YOU (раздел «Задачи»). Человек пишет свои планы своими словами, ты превращаешь их в конкретные задачи с датами и следишь, чтобы он их делал.
+
+КАК РАБОТАЕШЬ
+Разбиваешь большие цели на конкретные шаги, каждый шаг можно сделать за один подход (до 1–3 часов).
+Расставляешь даты с учётом загрузки: смотришь, сколько задач уже стоит на каждый день в ДАННЫХ, и не ставишь больше 3–5 задач в день. Выходные легче.
+Учитываешь порядок: сначала подготовка, потом то, что от неё зависит. Регулярные процессы («час в день») ставишь отдельными задачами на несколько ближайших дней.
+Если в ДАННЫХ есть просроченные задачи, спроси коротко, что помешало, и предложи перенести их в moves, разгрузив дни.
+Время ставишь только если человек его назвал или это явно встреча/звонок.
+Приоритет: 1 срочно и важно, 2 важно, 3 обычное, 4 по умолчанию.
+Проект (proj) бери из списка проектов в ДАННЫХ, если подходит по смыслу, иначе null.
+
+ФОРМАТ ОТВЕТА: строго один JSON без текста вокруг и без markdown:
+{"reply":"2–4 строки по-русски на «ты»: что запланировал и почему так, или вопрос","tasks":[{"title":"короткое название","date":"YYYY-MM-DD или null","time":"HH:MM или null","prio":4,"proj":"название проекта или null","subs":["подзадача"]}],"moves":[{"id":"id задачи из ДАННЫХ","date":"YYYY-MM-DD"}]}
+Если человек просто спрашивает или нужно уточнение, tasks и moves пустые. Не дублируй задачи, которые уже есть в ДАННЫХ.`;
+
+/* ── Разбор текста или текста со скрина в данные приложения ── */
+const PARSE = {
+  tasks: `Из текста ниже достань задачи и дела. Ответ строго JSON без markdown: {"items":[{"title":"","date":"YYYY-MM-DD или null","time":"HH:MM или null"}]}. Даты считай от СЕГОДНЯ, дни недели переводи в ближайшие даты.`,
+  sched: `Это расписание (часто из другого приложения). Достань записи. Ответ строго JSON без markdown: {"items":[{"date":"YYYY-MM-DD или null","dow":"пн..вс или null","time":"HH:MM","dur":60,"name":"имя клиента или название","note":""}]}. Если указан только день недели, ставь dow.`,
+  spend: `Это траты (выписка банка, чек, список, скрин приложения). Достань каждую трату. Ответ строго JSON без markdown: {"items":[{"amt":0,"note":"на что, коротко","cat":"категория из списка КАТЕГОРИИ или null","date":"YYYY-MM-DD или null"}]}. Поступления и переводы себе пропускай. Суммы числом в рублях.`,
+  workout: `Это план тренировок или одна тренировка. Разложи по дням. Ответ строго JSON без markdown: {"days":[{"day":"пн..вс или номер дня 1..7","title":"название, например Ноги","exercises":[{"name":"упражнение по-русски","sets":3,"reps":"10 или 8-10","weight":0}]}]}. Вес числом в кг, если не указан 0.`,
+};
+
 async function j(url, opts) {
   const r = await fetch(url, opts);
   const t = await r.text();
@@ -162,11 +186,27 @@ module.exports.handler = async function (event, context) {
   const used = res.used - 1;
 
   /* 3. Вопрос к YandexGPT */
+  const iam0 = context && context.token && context.token.access_token;
+  /* скрин: сначала Yandex Vision OCR достаёт текст (нужна роль ai.vision.user у сервисного аккаунта функции) */
+  let ocr = '';
+  if (body.image && iam0) {
+    const b64 = String(body.image).replace(/^data:[^,]+,/, '').slice(0, 4500000);
+    const o = await j('https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${iam0}`, 'x-folder-id': env.YANDEX_FOLDER_ID },
+      body: JSON.stringify({ mimeType: 'image/jpeg', languageCodes: ['ru', 'en'], model: 'page', content: b64 }) });
+    ocr = (o.ok && o.data && o.data.result && o.data.result.textAnnotation && o.data.result.textAnnotation.fullText) || '';
+    if (!ocr) { console.error('ocr', o.status, (o.text || '').slice(0, 300)); await bump(-1); return reply(502, { error: o.status === 403 ? 'ocr-access' : 'ocr' }); }
+  }
+  if (body.mode === 'parse') {
+    const kind = PARSE[body.kind] ? body.kind : 'tasks';
+    body.messages = [{ role: 'user', text: (ocr ? 'ТЕКСТ СО СКРИНА:\n' + ocr.slice(0, 6000) + '\n\n' : '') + (body.text ? 'ТЕКСТ:\n' + String(body.text).slice(0, 6000) : '') }];
+  }
   const ctx = String(body.context || '').slice(0, 14000);
   const hist = (Array.isArray(body.messages) ? body.messages : []).slice(-8)
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && m.text)
-    .map(m => ({ role: m.role, text: String(m.text).slice(0, 1500) }));
+    .map(m => ({ role: m.role, text: String(m.text).slice(0, body.mode === 'parse' ? 12000 : body.mode === 'tasks' ? 4000 : 1500) }));
   if (!hist.length || hist[hist.length - 1].role !== 'user') { await bump(-1); return reply(400, { error: 'empty' }); }
+  if (ocr && body.mode !== 'parse') hist[hist.length - 1].text += '\n\nТЕКСТ СО СКРИНА:\n' + ocr.slice(0, 6000);
 
   /* имя из профиля: тренер иногда обращается по имени */
   const name = String(user.displayName || '').trim().slice(0, 60);
@@ -179,8 +219,8 @@ module.exports.handler = async function (event, context) {
     body: JSON.stringify({
       /* MODEL: yandexgpt (по умолчанию), yandexgpt-lite или с веткой, например yandexgpt/rc */
       modelUri: `gpt://${env.YANDEX_FOLDER_ID}/${model.includes('/') ? model : model + '/latest'}`,
-      completionOptions: { stream: false, temperature: body.mode === 'finance' ? 0.3 : 0.55, maxTokens: '1000' },
-      messages: [{ role: 'system', text: (body.mode === 'coach' ? COACH_PRE + (body.client ? '\n\nИМЯ КЛИЕНТА: ' + String(body.client).slice(0, 60) : '') + '\n\n' + SYSTEM + '\n\nДАННЫЕ КЛИЕНТА:\n' : body.mode === 'finance' ? SYSTEM_FIN + (name ? '\n\nИМЯ (обращайся только по имени): ' + name : '') + '\n\nДАННЫЕ:\n' : SYSTEM + (name ? '\n\nИМЯ УЧЕНИКА (обращайся только по имени, без фамилии): ' + name : '') + '\n\nДАННЫЕ УЧЕНИКА:\n') + ctx }, ...hist],
+      completionOptions: { stream: false, temperature: body.mode === 'finance' || body.mode === 'tasks' || body.mode === 'parse' ? 0.3 : 0.55, maxTokens: body.mode === 'tasks' || body.mode === 'parse' ? '2500' : '1000' },
+      messages: [{ role: 'system', text: (body.mode === 'parse' ? PARSE[PARSE[body.kind] ? body.kind : 'tasks'] + '\n\nСЕГОДНЯ И СПРАВКА:\n' : body.mode === 'tasks' ? SYSTEM_TASKS + (name ? '\n\nИМЯ: ' + name : '') + '\n\nДАННЫЕ:\n' : body.mode === 'coach' ? COACH_PRE + (body.client ? '\n\nИМЯ КЛИЕНТА: ' + String(body.client).slice(0, 60) : '') + '\n\n' + SYSTEM + '\n\nДАННЫЕ КЛИЕНТА:\n' : body.mode === 'finance' ? SYSTEM_FIN + (name ? '\n\nИМЯ (обращайся только по имени): ' + name : '') + '\n\nДАННЫЕ:\n' : SYSTEM + (name ? '\n\nИМЯ УЧЕНИКА (обращайся только по имени, без фамилии): ' + name : '') + '\n\nДАННЫЕ УЧЕНИКА:\n') + ctx }, ...hist],
     }),
   });
   const text = gpt.ok && gpt.data && gpt.data.result && gpt.data.result.alternatives && gpt.data.result.alternatives[0]
@@ -198,5 +238,5 @@ module.exports.handler = async function (event, context) {
   await j(statUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages: ((st.data && st.data.messages) || 0) + 1, tokens: ((st.data && st.data.tokens) || 0) + (+(gpt.data.result.usage && gpt.data.result.usage.totalTokens) || 0) }) });
 
-  return reply(200, { text: text.replace(/\s+—\s+/g, ', '), used: used + 1, limit: LIMIT });
+  return reply(200, { text: body.mode === 'parse' || body.mode === 'tasks' ? text : text.replace(/\s+—\s+/g, ', '), used: used + 1, limit: LIMIT });
 };

@@ -1793,6 +1793,7 @@ window.Screens.training = function (mount) {
       <div class="tr-plan-bar" id="tr-plan-bar" style="display:none;">
         <select class="tr-plan-select" id="tr-plan-select"></select>
         <button class="tr-plan-new" id="tr-new-plan"><i class="ti ti-plus"></i> Новый план</button>
+        ${window.AIKit && (window.APP_CONFIG || {}).aiChatUrl ? '<button class="tr-plan-new" id="tr-imp-plan" title="Вставить тренировки из текста или скрина"><i class="ti ti-photo-scan"></i> Из текста</button>' : ''}
         ${role === 'coach' ? '' : '<button class="tr-plan-new tr-plan-share" id="tr-share-plan" title="Поделиться планом" aria-label="Поделиться планом"><i class="ti ti-share"></i></button>'}
       </div>
       <div class="tr-tabs">
@@ -2523,6 +2524,26 @@ window.Screens.training = function (mount) {
       if (!isVisible) window.scrollTo({ top: 0, behavior: 'smooth' }); /* панель вверху: иначе открылась бы за экраном */
     });
   }
+  /* тренировки из текста или скрина: AI раскладывает по дням текущей недели, ты отмечаешь нужные */
+  const impBtn = document.getElementById('tr-imp-plan');
+  if (impBtn) impBtn.addEventListener('click', () => {
+    const plan = getPlan(); if (!plan) { alert('Сначала создай план'); return; }
+    const W = { 'пн': 1, 'вт': 2, 'ср': 3, 'чт': 4, 'пт': 5, 'сб': 6, 'вс': 0 };
+    const dateFor = (day) => { const t = new Date(); t.setHours(0, 0, 0, 0); const k = String(day || '').toLowerCase().slice(0, 2);
+      let dow = W[k]; if (dow == null && /^\d$/.test(String(day))) dow = (+day) % 7;
+      if (dow == null) return t; const d = new Date(t); d.setDate(t.getDate() + ((dow - t.getDay() + 7) % 7)); return d; };
+    const DW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+    AIKit.importModal({ title: 'Тренировки из текста или скрина', kind: 'workout',
+      hint: 'Вставь план от тренера или из заметок: «Пн ноги: присед 4×8 80 кг, жим ногами 3×12…». Или прикрепи скрин',
+      toItems: (d) => (Array.isArray(d.days) ? d.days : []).map(x => ({ day: x.day, title: String(x.title || '').slice(0, 60), exs: (Array.isArray(x.exercises) ? x.exercises : []).filter(e => e && e.name).slice(0, 20).map(e => ({ name: String(e.name).slice(0, 80), sets: Math.min(20, Math.max(1, parseInt(e.sets) || 3)), reps: String(e.reps || 10).slice(0, 8), weight: Math.max(0, parseFloat(String(e.weight || 0).replace(',', '.')) || 0) })) })).filter(x => x.exs.length),
+      render: (x) => { const d = dateFor(x.day); return `<b>${trEsc(DW[d.getDay()])} ${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}${x.title ? ' · ' + trEsc(x.title) : ''}</b><span>${x.exs.map(e => trEsc(e.name) + ' ' + e.sets + '×' + trEsc(e.reps) + (e.weight ? ' ' + e.weight + ' кг' : '')).join(', ')}</span>`; },
+      apply: (items) => { let n = 0, out = 0; const h = { getPlans: () => trGetPlans(), savePlans: (ps) => trSavePlans(ps) };
+        items.forEach(x => { const r = TrainingAI.addFromChat(getPlan(), h, dateFor(x.day), x.exs); if (r === 'ok') n++; else out++; });
+        populatePlanSelect(); renderTab(document.querySelector('.tr-tab.active')?.dataset.tab || 'plan');
+        return 'Добавлено тренировок: ' + n + (out ? ', вне плана: ' + out : ''); },
+      toast: (m) => window.TrainingAI && TrainingAI.toast && TrainingAI.toast(m),
+    });
+  });
   const backBtn = document.getElementById('tr-back');
   if (backBtn) backBtn.addEventListener('click', () => Router.go('/home'));
   const logoutBtn = document.getElementById('tr-logout');

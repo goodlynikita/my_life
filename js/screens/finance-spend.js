@@ -471,6 +471,7 @@ window.FinSpend = (function () {
           <button id="sp-ok" aria-label="Записать"><i class="ti ti-check"></i></button>
         </div>
         <div class="sp-chips" id="sp-chips"></div>
+        ${window.AIKit && (window.APP_CONFIG || {}).aiChatUrl ? '<button class="sp-quick" id="sp-imp"><i class="ti ti-photo-scan"></i>Из скрина или выписки</button>' : ''}
         ${QUICK_ON ? '<button class="sp-quick" id="sp-quick"><i class="ti ti-device-mobile-plus"></i>Записывать с рабочего стола</button>' : ''}
       </div>
 
@@ -545,6 +546,20 @@ window.FinSpend = (function () {
     const dOff = content.querySelector('#sp-demo-off'); if (dOff) dOff.onclick = () => { Store.set('finance.spendDemoOff', true); rerender(); };
     const pb = content.querySelector('#sp-per'); if (pb) pb.onclick = () => periodModal(rerender);
     const qb = content.querySelector('#sp-quick'); if (qb) qb.onclick = quickModal;
+    /* траты со скрина или из выписки: AI разбирает, ты отмечаешь нужные, они записываются как обычные траты */
+    const ib = content.querySelector('#sp-imp'); if (ib) ib.onclick = () => AIKit.importModal({
+      title: 'Траты из скрина или текста', kind: 'spend', cls: 'modal-finance',
+      hint: 'Вставь выписку или список: «кофе 420, такси 350…». Или прикрепи скрин из банка',
+      context: () => 'КАТЕГОРИИ: ' + cats.map(x => x.name).join(', '),
+      toItems: (d) => toArr(d.items).map(x => ({ amt: Math.round(Math.abs(+String(x.amt).replace(/[^\d.,]/g, '').replace(',', '.') || 0)), note: String(x.note || '').slice(0, 120), cat: x.cat || null, date: /^\d{4}-\d{2}-\d{2}$/.test(x.date || '') ? x.date : null })).filter(x => x.amt > 0 && x.amt < 1e8),
+      render: (x) => { const ct = cats.find(k => x.cat && k.name.toLowerCase() === String(x.cat).toLowerCase()) || (parse(x.note + ' ' + x.amt, cats) || {}); return `<b>${esc(x.note || 'Трата')}</b> · ${fmt(x.amt)}<span>${esc(ct.name || ct.catName || 'Другое')}${x.date ? ' · ' + x.date.split('-').reverse().slice(0, 2).join('.') : ''}</span>`; },
+      apply: (items) => { const by = {};
+        items.forEach(x => { const ct = cats.find(k => x.cat && k.name.toLowerCase() === String(x.cat).toLowerCase()); const pr = ct ? null : parse(x.note + ' ' + x.amt, cats);
+          const at = x.date ? new Date(x.date + 'T12:00:00').getTime() : Date.now(), ym = ymKey(new Date(at));
+          (by[ym] = by[ym] || []).push({ id: uid('s'), amt: x.amt, cat: ct ? ct.id : (pr && pr.cat) || null, note: x.note || 'трата', src: 'import', at }); });
+        Object.keys(by).forEach(ym => saveList(ym, rawList(ym).concat(by[ym]))); rerender(); return 'Записано трат: ' + items.length; },
+      toast: (m) => toast(m),
+    });
 
     /* быстрая запись по ссылке: ?spend=кофе 290 (Команды на iPhone) или ?add=1 (ярлык на иконке) */
     if (window.__spendQuick) { const q = window.__spendQuick; window.__spendQuick = null; inp.value = q; refresh(); syncBtn(); setTimeout(commit, 350); }

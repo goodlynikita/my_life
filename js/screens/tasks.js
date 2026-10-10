@@ -369,6 +369,76 @@ window.Tasks = (function () {
     document.body.appendChild(ov);
   }
 
+  /* ── Помощник по планированию: свои планы словами → задачи по дням, проверка просроченных ── */
+  function aiHist() { return toArr((Store.get().tasks || {}).ai).filter(m => m && m.text).slice(-20); }
+  function aiCtx() {
+    const all = list(), td = iso(today()), open = all.filter(t => !t.done), late = open.filter(t => t.date && t.date < td);
+    const load = Array.from({ length: 14 }, (_, i) => { const ds = iso(addDays(today(), i)); return ds + ': ' + open.filter(t => t.date === ds).length; }).join(', ');
+    const pj = (id) => (projOf(id) || {}).name || '';
+    return [AIKit.todayInfo(), 'ПРОЕКТЫ: ' + (projects().map(p => p.name).join(', ') || 'нет'), 'ЗАГРУЗКА ПО ДНЯМ (задач): ' + load,
+      'ПРОСРОЧЕНО: ' + (late.map(t => `[${t.id}] ${t.title} (${t.date})`).join('; ') || 'нет'),
+      'ОТКРЫТЫЕ ЗАДАЧИ:\n' + open.slice(0, 80).map(t => `[${t.id}] ${t.title} | ${t.date || 'без даты'}${t.time ? ' ' + t.time : ''} | P${t.prio}${t.proj ? ' | ' + pj(t.proj) : ''}`).join('\n')].join('\n');
+  }
+  function aiPanel(redraw, prefill, focusEnd) {
+    if (!window.AIKit) return;
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay tk-ov ' + themeCls();
+    let busy = false, img = null;
+    const saveHist = (h) => Store.set('tasks.ai', h.slice(-20).map(m => JSON.parse(JSON.stringify(m))));
+    const propHtml = (m, i) => { const P = m.prop || {}, ts = toArr(P.tasks), mv = toArr(P.moves); if (!ts.length && !mv.length) return '';
+      return `<div class="tk-ai-prop${m.applied ? ' done' : ''}">${ts.map((t, k) => `<label class="tk-ai-t"><input type="checkbox" data-t="${i}:${k}" ${m.applied ? 'disabled' : 'checked'}><div><b>${esc(t.title)}</b><span>${t.date ? dayLabel(t.date) : 'без срока'}${t.time ? ' ' + esc(t.time) : ''}${t.prio && t.prio < 4 ? ' · P' + t.prio : ''}${t.proj ? ' · ' + esc(t.proj) : ''}${toArr(t.subs).length ? ' · подзадач: ' + toArr(t.subs).length : ''}</span></div></label>`).join('')}
+        ${mv.map((x, k) => { const t = list().find(y => y.id === x.id); return t ? `<label class="tk-ai-t mv"><input type="checkbox" data-m="${i}:${k}" ${m.applied ? 'disabled' : 'checked'}><div><b>Перенести «${esc(t.title)}»</b><span>на ${dayLabel(x.date).toLowerCase()}</span></div></label>` : ''; }).join('')}
+        ${m.applied ? '<div class="tk-ai-ok"><i class="ti ti-check"></i>Добавлено</div>' : `<button class="tk-btn red" data-apply="${i}">Добавить в задачи</button>`}</div>`; };
+    const draw = () => {
+      const h = aiHist();
+      ov.innerHTML = `<div class="tk-ai"><div class="tk-tm-h"><b><i class="ti ti-sparkles"></i> Помощник</b><button class="tk-x" data-close aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
+        <div class="tk-ai-list" id="tk-ai-list">${h.length ? h.map((m, i) => `<div class="tk-ai-m ${m.role === 'user' ? 'me' : 'bot'}">${esc(m.text).replace(/\n/g, '<br>')}${m.img ? '<div class="tk-ai-img"><i class="ti ti-photo"></i> скрин</div>' : ''}</div>${m.role !== 'user' ? propHtml(m, i) : ''}`).join('')
+          : `<div class="tk-ai-empty"><b>Расскажи, что нужно сделать</b><span>Например: «Подготовка: упаковка, продуктовая линейка, бот. Потом фокус на блог и охваты. Параллельно час в день касания экспертам». Разложу по дням с учётом загрузки.</span></div>`}
+          ${busy ? '<div class="tk-ai-m bot tk-ai-typing"><span></span><span></span><span></span></div>' : ''}</div>
+        ${img ? `<div class="tk-ai-att"><img src="${img}" alt=""><button data-noimg aria-label="Убрать скрин"><i class="ti ti-x"></i></button></div>` : ''}
+        <div class="tk-ai-in"><button class="tk-ib" data-img title="Прикрепить скрин"><i class="ti ti-photo-plus"></i></button><textarea rows="2" placeholder="Планы своими словами…" ${busy ? 'disabled' : ''}></textarea><button class="tk-btn red" data-send ${busy ? 'disabled' : ''}><i class="ti ti-send"></i></button></div>
+        ${h.length ? '<button class="tk-ai-clear" data-clear>Очистить переписку</button>' : ''}</div>`;
+      const $ = (q) => ov.querySelector(q), ta = $('textarea'), lst = $('#tk-ai-list');
+      lst.scrollTop = lst.scrollHeight;
+      $('[data-close]').onclick = () => { ov.remove(); redraw(); };
+      if ($('[data-clear]')) $('[data-clear]').onclick = () => { if (confirm('Очистить переписку с помощником?')) { Store.set('tasks.ai', null); draw(); } };
+      $('[data-img]').onclick = async () => { const keep = ta.value; const d = await AIKit.pickImage(); if (d) { img = d; draw(); ov.querySelector('textarea').value = keep; } };
+      if ($('[data-noimg]')) $('[data-noimg]').onclick = () => { const keep = ta.value; img = null; draw(); ov.querySelector('textarea').value = keep; };
+      const send = async () => {
+        const text = ta.value.trim(); if ((!text && !img) || busy) return;
+        const h0 = aiHist().concat([{ role: 'user', text: text || 'Разбери скрин', img: img ? 1 : null, ts: Date.now() }]); saveHist(h0);
+        const im = img; img = null; busy = true; draw();
+        try {
+          const d = await AIKit.call({ mode: 'tasks', context: aiCtx(), image: im || undefined, messages: h0.slice(-6).map(m => ({ role: m.role, text: m.role === 'user' ? m.text : (m.text + (m.prop ? '\n' + JSON.stringify({ tasks: m.prop.tasks || [] }).slice(0, 1500) : '')) })) });
+          const js = AIKit.json(d.text) || { reply: d.text, tasks: [], moves: [] };
+          const okD = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : null, okT = (v) => /^\d{2}:\d{2}$/.test(v || '') ? v : null;
+          const prop = { tasks: toArr(js.tasks).filter(t => t && t.title).slice(0, 40).map(t => ({ title: String(t.title).slice(0, 200), date: okD(t.date), time: okT(t.time), prio: [1, 2, 3, 4].includes(+t.prio) ? +t.prio : 4, proj: t.proj ? String(t.proj).slice(0, 40) : null, subs: toArr(t.subs).map(String).filter(Boolean).slice(0, 10) })),
+            moves: toArr(js.moves).filter(x => x && x.id && okD(x.date)).slice(0, 40) };
+          saveHist(aiHist().concat([{ role: 'assistant', text: String(js.reply || 'Готово').slice(0, 2000), prop: prop.tasks.length || prop.moves.length ? prop : null, ts: Date.now() }]));
+        } catch (e) { saveHist(aiHist().concat([{ role: 'assistant', text: AIKit.errText(e), ts: Date.now() }])); }
+        busy = false; draw();
+      };
+      $('[data-send]').onclick = send;
+      ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && innerWidth > 900) { e.preventDefault(); send(); } });
+      ov.querySelectorAll('[data-apply]').forEach(b => b.onclick = () => {
+        const i = +b.dataset.apply, h = aiHist(), m = h[i]; if (!m || !m.prop) return;
+        const before = list(); let n = 0, mv = 0;
+        toArr(m.prop.tasks).forEach((t, k) => { const c = ov.querySelector(`[data-t="${i}:${k}"]`); if (!c || !c.checked) return;
+          let pid = null; if (t.proj) { const ex = projects().find(p => p.name.toLowerCase() === t.proj.toLowerCase()); if (ex) pid = ex.id; }
+          add(t.title, t.date, '', pid, t.time, t.prio);
+          if (t.subs && t.subs.length) { const a = list(), last = a[a.length - 1]; if (last) patch(last.id, { subs: t.subs.map(x => ({ id: uid(), title: x.slice(0, 200), done: false })) }); }
+          n++; });
+        toArr(m.prop.moves).forEach((x, k) => { const c = ov.querySelector(`[data-m="${i}:${k}"]`); if (!c || !c.checked) return; patch(x.id, { date: x.date }); mv++; });
+        m.applied = true; saveHist(h); draw(); redraw();
+        toast((n ? 'Добавлено задач: ' + n : '') + (n && mv ? ', ' : '') + (mv ? 'перенесено: ' + mv : '') || 'Готово', before, redraw);
+      });
+      if (prefill != null) { ta.value = prefill; prefill = null; }
+      setTimeout(() => { ta.focus(); if (focusEnd) ta.setSelectionRange(ta.value.length, ta.value.length); }, 50);
+    };
+    draw();
+    ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); redraw(); } });
+    document.body.appendChild(ov);
+  }
+
   /* ── Экран ── */
   function screen(mount) {
     if (!isOwner()) { Router.go('/home'); return; }
@@ -382,6 +452,7 @@ window.Tasks = (function () {
     mount.innerHTML = `<div class="tk-app ${themeCls()}" id="tk-app">
       <header class="tk-hdr"><button class="tk-hb" id="tk-back" aria-label="На главную"><i class="ti ti-arrow-left"></i></button><p>Задачи</p>
         <button class="tk-hb" id="tk-views" aria-label="Разделы задач" title="Разделы"><i class="ti ti-layout-list"></i></button>
+        <button class="tk-hb" id="tk-ai" aria-label="Помощник" title="Помощник по планированию"><i class="ti ti-sparkles"></i></button>
         <button class="tk-hb tk-hb-add" id="tk-add-h" aria-label="Добавить задачу" title="Добавить задачу"><i class="ti ti-plus"></i></button>
         <button class="tk-hb" id="tk-theme" aria-label="Светлые или тёмные задачи" title="Светлые / тёмные задачи"><i class="ti"></i></button></header>
       <div class="tk-wrap">
@@ -407,6 +478,10 @@ window.Tasks = (function () {
       mount.querySelector('#tk-tabs-ed').onclick = () => tabsEditor(draw);
       const ob = main.querySelector('#tk-board'); if (ob && boardX >= 0) boardX = ob.scrollLeft;
       main.innerHTML = view === 'week' ? weekView() : listView(view);
+      { const late = all.filter(t => !t.done && t.date && t.date < td), tdk = (Store.get().tasks || {}).aiCheck;
+        const host = main.querySelector('.tk-page-w .tk-ph, .tk-page .tk-ph');
+        if (late.length && tdk !== td && host && (view === 'week' || view === 'today')) host.insertAdjacentHTML('afterend', `<div class="tk-check"><i class="ti ti-message-question"></i><div><b>${late.length === 1 ? 'Одна задача не сделана' : 'Не сделано: ' + late.length + ' ' + plural(late.length, 'задача', 'задачи', 'задач')}</b><span>${esc(late.slice(0, 2).map(t => t.title).join(', '))}${late.length > 2 ? ' и ещё ' + (late.length - 2) : ''}. Что помешало?</span>
+          <div class="tk-check-b"><button data-ck-move>На сегодня</button><button data-ck-ai><i class="ti ti-sparkles"></i> Разобрать с помощником</button><button data-ck-x aria-label="Скрыть"><i class="ti ti-x"></i></button></div></div></div>`); }
       const bd = main.querySelector('#tk-board');
       if (bd) { if (boardX < 0) { /* новая неделя: у текущей показываем со вчерашнего дня, как Todoist */
           /* телефон: открываем на сегодняшнем дне (просроченные левее, до них можно долистать) */
@@ -415,6 +490,11 @@ window.Tasks = (function () {
       bindMain();
     };
     function bindMain() {
+      const ckDone = () => Store.set('tasks.aiCheck', iso(today()));
+      main.querySelectorAll('[data-ck-x]').forEach(b => b.onclick = () => { ckDone(); draw(); });
+      main.querySelectorAll('[data-ck-move]').forEach(b => b.onclick = () => { const before = list(), t = iso(today()); ckDone(); save(before.map(y => !y.done && y.date && y.date < t ? Object.assign({}, y, { date: t }) : y)); draw(); toast('Перенесено на сегодня', before, draw); });
+      main.querySelectorAll('[data-ck-ai]').forEach(b => b.onclick = () => { ckDone(); const t = iso(today()), late = list().filter(y => !y.done && y.date && y.date < t);
+        aiPanel(draw, 'Не успел: ' + late.map(y => '«' + y.title + '»').join(', ') + '. Причина: ', true); });
       main.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const d = b.dataset.add, pj = b.dataset.proj || null; b.insertAdjacentHTML('beforebegin', addForm(d)); const f = b.previousElementSibling; b.remove();
         const t = f.querySelector('.tk-af-t'); t.focus(); bindSmart(t, f.querySelector('.tk-sms'));
         f.querySelector('[data-cancel]').onclick = () => draw();
@@ -431,6 +511,7 @@ window.Tasks = (function () {
     mount.querySelector('#tk-new').onclick = () => quickAdd(draw);
     mount.querySelector('#tk-add-h').onclick = () => quickAdd(draw);
     /* кнопка как «Планы» в Тренировках: все разделы и проекты одним списком, вкладки сверху можно спрятать */
+    mount.querySelector('#tk-ai').onclick = () => aiPanel(draw);
     mount.querySelector('#tk-views').onclick = (e) => {
       e.stopPropagation(); const old = document.querySelector('.tk-vmenu'); if (old) { old.remove(); return; }
       const all = list(), td = iso(today()), ic = ICO;

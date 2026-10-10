@@ -259,6 +259,21 @@ body.sec-amber .sheet,body.sec-amber .tr-modal{background:linear-gradient(160deg
 body.sec-green .sheet,body.sec-green .tr-modal{background:linear-gradient(160deg,rgba(95,175,144,.11),rgba(95,175,144,0) 60%),linear-gradient(160deg,#1E2029,#121319)!important;border-color:var(--line2)!important}
 body.sec-violet .sheet,body.sec-violet .tr-modal{background:linear-gradient(160deg,rgba(148,136,214,.12),rgba(148,136,214,0) 60%),linear-gradient(160deg,#1E2029,#121319)!important;border-color:var(--line2)!important}
 .ctabs button{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif!important;font-weight:400!important;font-size:13.5px!important;-webkit-font-smoothing:antialiased}
+.pay-top{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+.pay-bal{flex:1 1 200px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line2)}
+.pay-bal span{display:block;font-size:12px;color:var(--soft);font-weight:700}.pay-bal b{display:block;font-size:28px;font-weight:900;margin-top:2px}.pay-bal em{font-style:normal;font-size:12.5px;color:var(--soft)}
+.pay-bal.neg{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.07)}.pay-bal.neg b{color:#F87171}
+.pay-bal.pos{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.06)}.pay-bal.pos b{color:#4ADE80}
+.pay-st{flex:2 1 260px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pay-st>div{padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}.pay-st b{display:block;font-size:16px;font-weight:800}.pay-st span{font-size:11.5px;color:var(--faint)}
+.pay-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.pay-acts .btn{flex:1 1 120px;height:44px}
+.pay-list{display:flex;flex-direction:column}
+.pay-r{display:flex;align-items:center;gap:12px;padding:10px 2px;border-top:1px solid var(--line)}.pay-r:first-child{border-top:none}
+.pay-r>i{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,.05);color:var(--soft);flex-shrink:0}
+.pay-r.pay>i{background:rgba(74,222,128,.12);color:#4ADE80}
+.pay-r>div{flex:1;min-width:0}.pay-r b{display:block;font-size:13.5px}.pay-r span{font-size:12px;color:var(--faint)}
+.pay-r em{font-style:normal;font-weight:800;font-size:14px}.pay-r.pay em{color:#4ADE80}
+.pay-x{width:28px;height:28px;border:none;background:none;color:var(--faint);cursor:pointer;font-size:15px}
 body.sec-green{background:radial-gradient(1200px 600px at 50% -200px,rgba(34,197,94,.10),transparent),var(--bg)}
 body.sec-violet{background:radial-gradient(1200px 600px at 50% -200px,rgba(139,92,246,.12),transparent),var(--bg)}
 body.sec-amber{background:radial-gradient(1200px 600px at 50% -200px,rgba(245,158,11,.10),transparent),var(--bg)}
@@ -947,7 +962,7 @@ async function boot(u) {
     return;
   }
   show('appv');
-  await Promise.all([loadClients(), loadTemplates(), loadSchedule()]);
+  await Promise.all([loadClients(), loadTemplates(), loadSchedule(), loadPays()]);
   /* разовая выгрузка записей клиентам (для записей, созданных до того, как клиенты стали их видеть) */
   try { const today = ymd(new Date()); schedule.filter(it => it.ck && !it.demo && (it.rep || it.d >= today)).forEach(it => mirrorSlot(it)); } catch (e) {}
   if (isDemo()) schedule = schedule.concat(demoSlots());
@@ -1436,7 +1451,7 @@ function renderHome(body) {
         <div class="cl" data-i="${i}">
           <div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>
           <div class="cl-m"><b>${esc(cname(c))}</b><span>${c.ok ? ago(c.stat.days) : 'отключился'}</span>
-            <div class="cl-tags">${c.stat.today ? '<span class="tag g">сегодня</span>' : ''}${c.stat.att != null ? `<span class="tag${c.stat.att >= 80 ? ' g' : c.stat.att < 50 ? ' b' : ' w'}">посещаемость ${c.stat.att}%</span>` : ''}${c.stat.plat.length ? `<span class="tag w">плато ${c.stat.plat.length}</span>` : ''}</div></div>
+            <div class="cl-tags">${payTag(c)}${c.stat.today ? '<span class="tag g">сегодня</span>' : ''}${c.stat.att != null ? `<span class="tag${c.stat.att >= 80 ? ' g' : c.stat.att < 50 ? ' b' : ' w'}">посещаемость ${c.stat.att}%</span>` : ''}${c.stat.plat.length ? `<span class="tag w">плато ${c.stat.plat.length}</span>` : ''}</div></div>
           <div class="cl-r"><b>${c.stat.wk}</b><span>за 7 дн.</span></div>
         </div>`).join('')}</div>
     </div>
@@ -1446,6 +1461,110 @@ function renderHome(body) {
   body.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => { const i = clients.findIndex(c => c.k === el.dataset.ck); if (i >= 0) openClient(i); });
   { const dof = $('#demo-off'); if (dof) dof.onclick = hideDemo; }
   coachTips('clients');
+}
+
+/* ═══ Оплаты клиентов ═══
+   trainerPay/{тренер}/{ключ клиента} = { prices: { id: { from:'YYYY-MM-DD', p:2000 } }, pays: { id: { d, amt, note } }, adj: { id: { d, amt, note } } }
+   Начисления считаются сами: каждая проведённая тренировка (отметка «Провёл» в расписании или в плане клиента)
+   стоит цену, действующую в этот день. Ручные начисления (программа, консультация) лежат в adj. Баланс = оплачено − начислено */
+let pays = {};
+async function loadPays() {
+  try { const s = await get(ref(db, 'trainerPay/' + trainer.uid)); pays = s.exists() ? s.val() || {} : {}; } catch (e) { pays = {}; }
+  if (isDemo() && !pays['demo-a']) pays['demo-a'] = { prices: { p0: { from: '2020-01-01', p: 2000 } }, pays: { x1: { d: ymd(new Date(Date.now() - 20 * DAY)), amt: 16000, note: 'абонемент 8 тренировок' } } };
+}
+const payOf = (ck) => pays[ck] || {};
+const rubF = (n) => (n < 0 ? '−' : '') + Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + '₽';
+function priceList(ck) { return Object.values(payOf(ck).prices || {}).filter(x => x && x.from && +x.p >= 0).sort((a, b) => a.from < b.from ? -1 : 1); }
+function priceAt(ck, d) { const l = priceList(ck).filter(x => x.from <= d); return l.length ? +l[l.length - 1].p : null; }
+function curPrice(ck) { return priceAt(ck, ymd(new Date())); }
+/* даты проведённых тренировок клиента: расписание + план, по одному разу в день */
+function heldDates(c) {
+  const ds = new Set();
+  schedule.filter(it => it.ck === c.k).forEach(it => Object.keys(it.done || {}).forEach(d => { if (it.done[d]) ds.add(d); }));
+  try { (c.d && c.d.past || []).forEach(x => { if (x.day && x.day.done && x.day.done.by === 'coach') ds.add(ymd(x.date)); }); } catch (e) {}
+  return [...ds].sort();
+}
+function payCalc(c) {
+  const P = payOf(c.k), rows = [];
+  heldDates(c).forEach(d => { const p = priceAt(c.k, d); if (p != null) rows.push({ k: 'tr', d, amt: -p }); });
+  Object.entries(P.adj || {}).forEach(([id, a]) => a && rows.push({ k: 'adj', id, d: a.d, amt: -Math.abs(+a.amt || 0), note: a.note || '' }));
+  Object.entries(P.pays || {}).forEach(([id, a]) => a && rows.push({ k: 'pay', id, d: a.d, amt: Math.abs(+a.amt || 0), note: a.note || '' }));
+  rows.sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0);
+  const paid = rows.filter(r => r.k === 'pay').reduce((s, r) => s + r.amt, 0), charged = -rows.filter(r => r.k !== 'pay').reduce((s, r) => s + r.amt, 0);
+  const price = curPrice(c.k), bal = paid - charged;
+  return { rows, paid, charged, bal, price, left: price ? Math.floor(bal / price) : null, held: rows.filter(r => r.k === 'tr').length, on: price != null || rows.length > 0 };
+}
+async function savePay(ck, path, val) {
+  const P = pays[ck] = pays[ck] || {}; const parts = path.split('/'); let o = P;
+  for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]] = o[parts[i]] || {};
+  if (val == null) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = val;
+  if (String(ck).startsWith('demo-')) return;
+  try { await set(ref(db, 'trainerPay/' + trainer.uid + '/' + ck + '/' + path), val == null ? null : clean(val)); } catch (e) { toast('Не сохранилось. Проверьте связь'); }
+}
+function payTag(c) {
+  const r = payCalc(c); if (!r.on) return '';
+  if (r.bal < 0) return `<span class="tag b">долг ${rubF(-r.bal)}</span>`;
+  if (r.price && r.left != null) return `<span class="tag${r.left <= 1 ? ' w' : ' g'}">оплачено ${r.left} ${pl(r.left, 'тренировка', 'тренировки', 'тренировок')}</span>`;
+  return r.bal > 0 ? `<span class="tag g">аванс ${rubF(r.bal)}</span>` : '';
+}
+const fmtDay = (d) => { const x = fromYmd(d); return x.getDate() + ' ' + MON[x.getMonth()]; };
+function renderPay(c, body) {
+  const r = payCalc(c), price = r.price;
+  body.innerHTML = `<div class="card pay">
+      <div class="pay-top">
+        <div class="pay-bal ${r.bal < 0 ? 'neg' : r.bal > 0 ? 'pos' : ''}"><span>${r.bal < 0 ? 'Долг' : r.bal > 0 ? 'Аванс' : 'Баланс'}</span><b>${rubF(Math.abs(r.bal))}</b>
+          ${price ? `<em>${r.bal >= 0 ? `хватит на ${r.left} ${pl(r.left, 'тренировку', 'тренировки', 'тренировок')}` : `это ${Math.ceil(-r.bal / price)} ${pl(Math.ceil(-r.bal / price), 'тренировка', 'тренировки', 'тренировок')}`}</em>` : ''}</div>
+        <div class="pay-st"><div><b>${rubF(r.paid)}</b><span>оплачено</span></div><div><b>${r.held}</b><span>проведено</span></div><div><b>${price != null ? rubF(price) : '–'}</b><span>за тренировку</span></div></div>
+      </div>
+      <div class="pay-acts"><button class="btn btn-main" id="pay-add"><i class="ti ti-plus"></i> Оплата</button><button class="btn btn-ghost" id="pay-price"><i class="ti ti-tag"></i> Цена</button><button class="btn btn-ghost" id="pay-adj"><i class="ti ti-receipt"></i> Начислить</button></div>
+    </div>
+    <div class="card"><div class="card-h"><div><b>История</b><span>${r.rows.length ? r.rows.length + ' ' + pl(r.rows.length, 'запись', 'записи', 'записей') : 'пока пусто'}</span></div></div>
+      ${r.rows.length ? `<div class="pay-list">${r.rows.slice(0, 120).map(x => `<div class="pay-r ${x.k}">
+        <i class="ti ${x.k === 'pay' ? 'ti-cash' : x.k === 'tr' ? 'ti-barbell' : 'ti-receipt'}"></i>
+        <div><b>${x.k === 'pay' ? 'Оплата' : x.k === 'tr' ? 'Тренировка' : esc(x.note || 'Начисление')}</b><span>${fmtDay(x.d)}${x.k === 'pay' && x.note ? ' · ' + esc(x.note) : ''}</span></div>
+        <em>${x.amt > 0 ? '+' : '−'}${rubF(Math.abs(x.amt))}</em>${x.id ? `<button class="pay-x" data-del="${x.k}:${esc(x.id)}" aria-label="Удалить"><i class="ti ti-x"></i></button>` : ''}</div>`).join('')}</div>`
+      : `<div class="empty" style="padding:18px 0"><i class="ti ti-wallet"></i>${price == null ? 'Поставьте цену тренировки: проведённые будут начисляться сами' : 'Отметьте оплату, когда клиент заплатит'}</div>`}
+    </div>`;
+  const rer = () => { renderPay(c, body); };
+  body.querySelector('#pay-add').onclick = () => payModal(c, 'pay', rer);
+  body.querySelector('#pay-adj').onclick = () => payModal(c, 'adj', rer);
+  body.querySelector('#pay-price').onclick = () => priceModal(c, rer);
+  body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const [k, id] = b.dataset.del.split(':'); if (!confirm('Удалить запись?')) return; await savePay(c.k, (k === 'pay' ? 'pays/' : 'adj/') + id, null); rer(); });
+  coachTips('pay');
+}
+function payModal(c, kind, done) {
+  const price = curPrice(c.k), today = ymd(new Date());
+  const quick = kind === 'pay' && price ? [1, 4, 8, 12].map(n => `<button type="button" class="chip" data-q="${n * price}" data-n="${n}">${n} × ${rubF(price)}</button>`).join('') : '';
+  const ov = sheet(`<h3>${kind === 'pay' ? 'Оплата' : 'Начислить'}: ${esc(cname(c))}</h3>
+    ${quick ? `<div class="chips" style="margin-bottom:10px">${quick}</div>` : ''}
+    <input class="field" id="pa-amt" inputmode="numeric" placeholder="Сумма, ₽">
+    <input class="field" id="pa-d" type="date" value="${today}">
+    <input class="field" id="pa-note" maxlength="80" placeholder="${kind === 'pay' ? 'Комментарий, например «абонемент 8»' : 'За что, например «программа питания»'}">
+    <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Сохранить</button></div>`);
+  ov.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { ov.querySelector('#pa-amt').value = b.dataset.q; if (!ov.querySelector('#pa-note').value) ov.querySelector('#pa-note').value = 'абонемент ' + b.dataset.n; });
+  ov.querySelector('#x').onclick = () => ov.remove();
+  ov.querySelector('#ok').onclick = async () => {
+    const amt = Math.round(+String(ov.querySelector('#pa-amt').value).replace(/[^\d]/g, '')), d = ov.querySelector('#pa-d').value || today;
+    if (!amt || amt > 10000000) { toast('Введите сумму'); return; }
+    await savePay(c.k, (kind === 'pay' ? 'pays/' : 'adj/') + 'p' + Date.now().toString(36), { d, amt, note: ov.querySelector('#pa-note').value.trim().slice(0, 80) || null });
+    ov.remove(); toast(kind === 'pay' ? 'Оплата записана' : 'Начислено'); done && done();
+  };
+}
+function priceModal(c, done) {
+  const cur = curPrice(c.k), today = ymd(new Date());
+  const ov = sheet(`<h3>Цена тренировки: ${esc(cname(c))}</h3>
+    <input class="field" id="pr-p" inputmode="numeric" placeholder="Например 2000" value="${cur != null ? cur : ''}">
+    <label class="faint" style="display:block;font-size:12px;margin:0 0 4px 2px">Действует с</label><input class="field" id="pr-d" type="date" value="${today}">
+    <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Сохранить</button></div>`);
+  ov.querySelector('#x').onclick = () => ov.remove();
+  ov.querySelector('#ok').onclick = async () => {
+    const p = Math.round(+String(ov.querySelector('#pr-p').value).replace(/[^\d]/g, '')), d = ov.querySelector('#pr-d').value || today;
+    if (!(p >= 0) || p > 1000000) { toast('Введите цену'); return; }
+    /* одна цена на дату: если на эту дату уже была, заменяем */
+    const same = Object.entries(payOf(c.k).prices || {}).find(([, x]) => x && x.from === d);
+    await savePay(c.k, 'prices/' + (same ? same[0] : 'p' + Date.now().toString(36)), { from: d, p });
+    ov.remove(); toast('Цена сохранена'); done && done();
+  };
 }
 
 let feedFilter = 'all';
@@ -1566,7 +1685,8 @@ async function toggleDone(e, k) {
       await savePlans(e.c, plans);
     }
     if (e.it) { const it = Object.assign({}, e.it, { done: Object.assign({}, e.it.done || {}) }); if (want) it.done[k] = true; else delete it.done[k]; await saveSlot(it); }
-    toast(want ? 'Отмечено' : 'Отметка снята');
+    const pc = e.c ? priceAt(e.c.k, k) : null;
+    toast(want ? (pc != null ? 'Провёл · начислено ' + rubF(pc) : 'Отмечено') : 'Отметка снята');
 }
 
 function entryMenu(e, date, done) {
@@ -1755,6 +1875,9 @@ const CT = {
     { sel: '#k-in', t: 'Ключ от клиента', d: 'Клиент создаёт ключ в приложении YOU и присылает вам. Введите его здесь, и клиент появится в списке с фамилией и именем.' },
     { sel: '.inv', t: 'Или ссылка', d: 'Можно наоборот: отправьте клиенту ссылку, он откроет её и подключится сам.' },
     { sel: '.tier', t: 'Лимит', d: 'Бесплатно до 50 клиентов.' },
+  ],
+  pay: [
+    { sel: '.pay-top', t: 'Оплата клиента', d: 'Поставьте цену тренировки. Каждая тренировка с отметкой «Провёл» начисляется сама. Внесите оплату, и здесь будет видно долг или на сколько тренировок хватит.' }
   ],
   ai: [
     { sel: '#cbody', t: 'AI-помощник', d: 'AI предлагает, вы решаете. Кнопка «В план» добавит тренировку клиенту от вашего имени. Клиент свой AI-план не видит, чтобы не было двух разных планов.' }
@@ -2046,7 +2169,7 @@ function renderClient() {
     return;
   }
   liveClient(c);
-  const tabs = [['dash', 'ti-layout-dashboard', 'Обзор'], ['plan', 'ti-calendar', 'План'], ['ai', 'ti-sparkles', 'AI'], ['note', 'ti-notes', 'Заметки']];
+  const tabs = [['dash', 'ti-layout-dashboard', 'Обзор'], ['plan', 'ti-calendar', 'План'], ['ai', 'ti-sparkles', 'AI'], ['pay', 'ti-wallet', 'Оплата'], ['note', 'ti-notes', 'Заметки']];
   $('#main').innerHTML = `
     <div class="c-head"><div class="ava">${esc(initials(c))}<i class="st-${c.stat.st}"></i></div>
       <div style="min-width:0;flex:1"><b>${esc(cname(c))}</b><span>${esc(c.email || '')} · ${ago(c.stat.days)}</span></div></div>
@@ -2067,6 +2190,7 @@ function renderClient() {
     window.TrainingAI.render(body, p, h());
     coachTips('ai');
   }
+  else if (view.tab === 'pay') renderPay(c, body);
   else renderNote(c, body);
 }
 

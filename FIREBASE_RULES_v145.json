@@ -148,6 +148,12 @@
         ".write": "auth != null && $t === auth.uid"
       }
     },
+    "trainerPay": {
+      "$t": {
+        ".read": "auth != null && $t === auth.uid",
+        ".write": "auth != null && $t === auth.uid"
+      }
+    },
     "aiUsage": {
       ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
       ".write": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",

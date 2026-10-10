@@ -20,12 +20,13 @@ window.BodyProgress = (function () {
   const FIELDS = {
     'Вес': { u: 'кг', dir: 0 }, 'Талия': { u: 'см', dir: -1 }, 'Плечи': { u: 'см', dir: 1 }, 'Грудь': { u: 'см', dir: 1 },
     'Лев рука': { u: 'см', dir: 1 }, 'Прав рука': { u: 'см', dir: 1 }, 'Лев нога': { u: 'см', dir: 1 }, 'Прав нога': { u: 'см', dir: 1 },
+    'Лев предплечье': { u: 'см', dir: 1 }, 'Прав предплечье': { u: 'см', dir: 1 },
     'Бедро': { u: 'см', dir: 0 }, 'Пропорция': { u: '', dir: 1 }, 'Мышечная масса': { u: 'кг', dir: 1 }, '% жира': { u: '%', dir: -1 }, 'Оценка InBody': { u: '', dir: 1 },
   };
   const PROP = 'Пропорция';
   let PROP_TOP = 'Плечи';
   const ORDER = Object.keys(FIELDS);
-  const SHORT = { 'Мышечная масса': 'Мышцы', 'Оценка InBody': 'InBody', 'Лев рука': 'Рука лев.', 'Прав рука': 'Рука прав.', 'Лев нога': 'Нога лев.', 'Прав нога': 'Нога прав.' };
+  const SHORT = { 'Лев предплечье': 'Предпл. лев.', 'Прав предплечье': 'Предпл. прав.', 'Мышечная масса': 'Мышцы', 'Оценка InBody': 'InBody', 'Лев рука': 'Рука лев.', 'Прав рука': 'Рука прав.', 'Лев нога': 'Нога лев.', 'Прав нога': 'Нога прав.' };
 
   function parseDate(s) {
     const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/); if (!m) return null;
@@ -160,6 +161,7 @@ window.BodyProgress = (function () {
         ${mw.length >= 2 ? weightChart(mw, mu, main === PROP ? 2 : 1) : ''}
         ${main === PROP ? '<div class="bp-note">Во сколько раз верх шире талии. Растёт, значит фигура становится атлетичнее, даже если вес стоит на месте.</div>' : ''}</div>` : ''}
       ${ins.length ? `<div class="bp-ins">${ins.map(x => `<div class="bp-in ${x.k}"><i class="ti ${x.i}"></i><div><b>${esc(x.t)}</b><span>${esc(x.s)}</span></div></div>`).join('')}</div>` : ''}
+      <details class="bp-all"${openAll ? ' open' : ''}><summary><span>Все замеры</span><em>последний ${fmtD(last)}</em><i class="ti ti-chevron-down"></i></summary>
       <div class="bp-grid-l">${keys.map(k => {
         const s = win(by[k], from), all = by[k], cur = all[all.length - 1];
         const d = s.length >= 2 ? s[s.length - 1].v - s[0].v : null, prev = all.length >= 2 ? cur.v - all[all.length - 2].v : null;
@@ -168,10 +170,12 @@ window.BodyProgress = (function () {
         const isP = k === PROP, fv = (v) => isP ? String(v).replace('.', ',') : f1(v), fd = (v) => isP ? (v > 0 ? '+' : v < 0 ? '−' : '') + String(Math.abs(Math.round(v * 100) / 100)).replace('.', ',') : sg(v);
         return `<div class="bp-m${k === main && mw.length >= 2 ? ' on' : ''}"${by[k].length >= 2 ? ` data-bpm="${esc(k)}" title="Показать на графике"` : ''}><div class="bp-m-t"><span>${esc(isP ? PROP_TOP + ' к талии' : (SHORT[k] || k))}</span>${spark(s)}</div>
           <div class="bp-m-v"><b>${fv(cur.v)}<small> ${u}</small></b>${d != null ? `<em class="${isP ? (Math.abs(d) < 0.01 ? '' : d > 0 ? 'good' : 'bad') : cls}">${fd(d)}</em>` : ''}</div>
-          ${prev != null && all.length > 2 ? `<div class="bp-m-p">с прошлого ${fd(prev)}</div>` : isP ? '<div class="bp-m-p">во сколько раз шире талии</div>' : ''}</div>`; }).join('')}</div>
+          ${prev != null && all.length > 2 ? `<div class="bp-m-p">с прошлого ${fd(prev)}</div>` : isP ? '<div class="bp-m-p">во сколько раз шире талии</div>' : ''}</div>`; }).join('')}</div></details>
     </div>`;
   }
+  let openAll = false; /* раскрыт ли список всех замеров (помним между перерисовками) */
   function bind(root, rerender) {
+    root.querySelectorAll('.bp-all').forEach(d => d.addEventListener('toggle', () => { openAll = d.open; }));
     root.querySelectorAll('[data-bp]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); rerender(b.dataset.bp, undefined); }));
     root.querySelectorAll('[data-bpm]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); rerender(undefined, b.dataset.bpm); }));
   }
@@ -198,10 +202,11 @@ window.BodyProgress = (function () {
     ['Главное', ['Вес', 'Талия', '% жира']],
     ['Объёмы', ['Плечи', 'Грудь', 'Бедро']],
     ['Руки', ['Лев рука', 'Прав рука']],
+    ['Предплечья', ['Лев предплечье', 'Прав предплечье']],
     ['Ноги', ['Лев нога', 'Прав нога']],
   ];
   const EXTRA = ['Мышечная масса', 'Оценка InBody'];
-  const LABEL = { 'Лев рука': 'Левая', 'Прав рука': 'Правая', 'Лев нога': 'Левая', 'Прав нога': 'Правая', '% жира': 'Жир' };
+  const LABEL = { 'Лев предплечье': 'Левое', 'Прав предплечье': 'Правое', 'Лев рука': 'Левая', 'Прав рука': 'Правая', 'Лев нога': 'Левая', 'Прав нога': 'Правая', '% жира': 'Жир' };
   function toISO(s) { const d = parseDate(s) || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function field(f, v, prev) {
     const u = (FIELDS[f] || {}).u || '';
@@ -214,8 +219,19 @@ window.BodyProgress = (function () {
     return `<div class="mf">
       <label class="mf-date"><i class="ti ti-calendar"></i><span>Дата замера</span><input type="date" data-mf-date value="${toISO(dateStr)}"></label>
       ${GROUPS.map(([t, fs]) => `<div class="mf-g"><div class="mf-h">${t}</div><div class="mf-row c${fs.length}">${fs.map(f => field(f, values[f], prevValues[f])).join('')}</div></div>`).join('')}
+      ${(() => { const own = [...new Set(Object.keys(prevValues).concat(Object.keys(values)))].filter(f => !FIELDS[f] && f !== PROP);
+        return `<div class="mf-g"><div class="mf-h">Свои замеры</div><div class="mf-row c2 mf-own">${own.map(f => field(f, values[f], prevValues[f])).join('')}</div>
+          <div class="mf-add"><input data-mf-new maxlength="30" placeholder="Название, например «Икра»"><button type="button" data-mf-add><i class="ti ti-plus"></i></button></div></div>`; })()}
       <details class="mf-g mf-x"${hasExtra ? ' open' : ''}><summary class="mf-h">InBody и мышцы <i class="ti ti-chevron-down"></i></summary><div class="mf-row c2">${EXTRA.map(f => field(f, values[f], prevValues[f])).join('')}</div></details>
     </div>`;
+  }
+  /* «Свои замеры»: добавить пункт прямо в форме. Имя без символов, запрещённых в ключах Firebase */
+  function bindForm(root) {
+    const btn = root.querySelector('[data-mf-add]'), inp = root.querySelector('[data-mf-new]'); if (!btn || !inp) return;
+    const addF = () => { const nm = inp.value.replace(/[.#$\/\[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30); if (!nm) return;
+      if (root.querySelector(`input[data-field="${nm.replace(/"/g, '')}"]`)) { inp.value = ''; return; }
+      root.querySelector('.mf-own').insertAdjacentHTML('beforeend', field(nm, '', null)); inp.value = ''; root.querySelector(`.mf-own input[data-field="${nm.replace(/"/g, '')}"]`)?.focus(); };
+    btn.onclick = addF; inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addF(); } });
   }
   function readForm(root) {
     const values = {};
@@ -229,5 +245,5 @@ window.BodyProgress = (function () {
     if (di && di.value) { const [y, m, d] = di.value.split('-'); date = d + '.' + m + '.' + y; }
     return { date, values, bad };
   }
-  return { html, bind, weekDelta, series, summary, formHtml, readForm, FIELDS };
+  return { html, bind, weekDelta, series, summary, formHtml, bindForm, readForm, FIELDS };
 })();

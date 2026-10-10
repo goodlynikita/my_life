@@ -116,6 +116,7 @@ window.Screens.home = function(mount) {
       + '<button id="hm-tiles" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-layout-grid" style="font-size:18px;color:#9D9A92;"></i>Настройка плиток</button>'
       + '<div style="padding:14px 18px 6px;font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.06);">Ещё</div>'
       + (window._isTrainer ? '<button id="hm-coach" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#C7D2FE;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-users" style="font-size:18px;color:#8EA8FF;"></i>Кабинет тренера</button>' : '')
+      + '<button id="hm-account" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-user-circle" style="font-size:18px;color:#9D9A92;"></i>Аккаунт</button>'
       + '<button id="hm-tour" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-help-circle" style="font-size:18px;color:#9D9A92;"></i>Подсказки по приложению</button>'
       + '<button id="hm-logout" style="width:100%;padding:14px 18px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.06);color:#F87171;font-size:14px;font-family:Montserrat,sans-serif;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;"><i class="ti ti-logout" style="font-size:18px;"></i>Выйти</button>'
       + '</div>';
@@ -127,6 +128,7 @@ window.Screens.home = function(mount) {
     ov.querySelector('#hm-trainer').addEventListener('click', function(){ ov.remove(); if (!window.TrainerLink) return; if (FirebaseSync.myTrainerCached && FirebaseSync.myTrainerCached()) TrainerLink.info(); else TrainerLink.connect(); });
     ov.querySelector('#hm-friend').addEventListener('click', function(){ ov.remove(); window.Analytics && Analytics.inviteFriend(); });
     if (window.Palette) Palette.bind(ov);
+    ov.querySelector('#hm-account').addEventListener('click', function(){ ov.remove(); openAccount(); });
     ov.querySelector('#hm-tour').addEventListener('click', function(){ ov.remove(); window.Tour && Tour.restart(); });
     ov.querySelector('#hm-logout').addEventListener('click', function(){ if (!confirm('Выйти из аккаунта?')) return; ov.remove(); Auth.logout().then(function(){ Router.go('/login'); }); });
   });
@@ -142,6 +144,38 @@ window.Screens.home = function(mount) {
 
 
 
+
+  /* ── Аккаунт: имя, почта, пароль ── */
+  function openAccount() {
+    var u = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null;
+    if (!u) return;
+    var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var ov = document.createElement('div'); ov.className = 'tr-modal-overlay acc-ov';
+    ov.innerHTML = '<div class="tr-modal acc">'
+      + '<p class="tr-modal-title">Аккаунт</p>'
+      + '<div class="acc-sec"><div class="acc-h">Имя</div><div class="acc-row"><input id="acc-name" maxlength="60" value="' + esc(u.displayName || '') + '" placeholder="Как к тебе обращаться"><button class="acc-btn" id="acc-name-ok">Сохранить</button></div></div>'
+      + '<div class="acc-sec"><div class="acc-h">Почта</div><div class="acc-cur">' + esc(u.email || '') + '</div>'
+      + '<details class="acc-more"><summary>Сменить почту</summary><input id="acc-email" type="email" placeholder="Новая почта" autocomplete="email"><input id="acc-email-pass" type="password" placeholder="Текущий пароль" autocomplete="current-password"><button class="acc-btn" id="acc-email-ok">Отправить письмо</button></details></div>'
+      + '<div class="acc-sec"><div class="acc-h">Пароль</div>'
+      + '<details class="acc-more"><summary>Сменить пароль</summary><input id="acc-pass-cur" type="password" placeholder="Текущий пароль" autocomplete="current-password"><input id="acc-pass-new" type="password" placeholder="Новый пароль, от 6 символов" autocomplete="new-password"><input id="acc-pass-new2" type="password" placeholder="Новый пароль ещё раз" autocomplete="new-password"><button class="acc-btn" id="acc-pass-ok">Сменить пароль</button></details></div>'
+      + '<div class="acc-msg" id="acc-msg"></div>'
+      + '<div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="acc-close">Закрыть</button></div></div>';
+    document.body.appendChild(ov);
+    var $ = function (q) { return ov.querySelector(q); };
+    var msg = function (t, ok) { var m = $('#acc-msg'); m.textContent = t; m.className = 'acc-msg ' + (ok ? 'ok' : 'bad'); };
+    var busy = function (b, on) { b.disabled = on; b.style.opacity = on ? '.6' : ''; };
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+    $('#acc-close').onclick = function () { ov.remove(); };
+    $('#acc-name-ok').onclick = async function () { var b = this; busy(b, true); var r = await FirebaseSync.accountSetName($('#acc-name').value); busy(b, false); msg(r.ok ? 'Имя сохранено' : r.err, r.ok); };
+    $('#acc-email-ok').onclick = async function () { var b = this, e = $('#acc-email').value.trim(), p = $('#acc-email-pass').value;
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { msg('Почта написана с ошибкой'); return; } if (!p) { msg('Введи текущий пароль'); return; }
+      busy(b, true); var r = await FirebaseSync.accountSetEmail(p, e); busy(b, false);
+      msg(r.ok ? 'Отправили письмо на ' + e + '. Открой его и нажми ссылку, почта сменится. Входить потом с новой почтой' : r.err, r.ok); };
+    $('#acc-pass-ok').onclick = async function () { var b = this, c = $('#acc-pass-cur').value, n = $('#acc-pass-new').value, n2 = $('#acc-pass-new2').value;
+      if (!c) { msg('Введи текущий пароль'); return; } if (n.length < 6) { msg('Новый пароль: минимум 6 символов'); return; } if (n !== n2) { msg('Новые пароли не совпадают'); return; }
+      busy(b, true); var r = await FirebaseSync.accountSetPassword(c, n); busy(b, false);
+      if (r.ok) { ['#acc-pass-cur', '#acc-pass-new', '#acc-pass-new2'].forEach(function (q) { $(q).value = ''; }); } msg(r.ok ? 'Пароль изменён' : r.err, r.ok); };
+  }
 
   /* ── Настройки плиток ── */
   function openTileSettings() {

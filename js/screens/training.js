@@ -3435,6 +3435,7 @@ function trOpenMeasureModal(onSave, existingIdx) {
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  if (window.BodyProgress && BodyProgress.bindForm) BodyProgress.bindForm(overlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   const cancelBtn = overlay.querySelector('#m-cancel');
   if (cancelBtn) cancelBtn.addEventListener('click', () => overlay.remove());

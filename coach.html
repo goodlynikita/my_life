@@ -2102,6 +2102,7 @@ function measureModal(c, done) {
   const ov = sheet(`<h3>Замер: ${esc(cname(c))}</h3>${window.BodyProgress.formHtml({}, lastV, def)}
     <p class="faint" style="font-size:11.5px;margin:8px 0 0">Клиент увидит замер у себя в «Итогах».</p>
     <div class="acts"><button class="btn btn-ghost" id="x">Отмена</button><button class="btn btn-main" id="ok">Сохранить</button></div>`);
+  if (window.BodyProgress.bindForm) window.BodyProgress.bindForm(ov);
   ov.querySelector('#x').onclick = () => ov.remove();
   ov.querySelector('#ok').onclick = async () => {
     const r = window.BodyProgress.readForm(ov);

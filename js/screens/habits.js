@@ -493,8 +493,9 @@ window.Screens.habits = function(mount) {
 
     const progresses = habits.map(h => habProgress(h, marks, viewYear, viewMonth));
     const overallPct = progresses.length ? Math.round(progresses.reduce((s,p)=>s+p.pct,0)/progresses.length) : 0;
-    const bestIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>a.pct>b.pct?a:b)) : -1;
-    const worstIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>a.pct<b.pct?a:b)) : -1;
+    /* при равном проценте лучшая та, где больше сделанных дней (100% из 7 дней важнее 100% из 4) */
+    const bestIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>(b.pct>a.pct || (b.pct===a.pct && b.done>a.done))?b:a)) : -1;
+    const worstIdx = progresses.length ? progresses.indexOf(progresses.reduce((a,b)=>(b.pct<a.pct || (b.pct===a.pct && b.done<a.done))?b:a)) : -1;
     /* все на одном уровне: «лучшая» и «подтянуть» ничего не говорят */
     const habSame = progresses.length < 2 || progresses.every(p => p.pct === progresses[0].pct);
 

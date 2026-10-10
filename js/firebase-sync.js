@@ -8,7 +8,11 @@ import {
   signOut,
   updateProfile,
   deleteUser,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  updatePassword,
+  verifyBeforeUpdateEmail,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const _fbApp = initializeApp(window.FIREBASE_CONFIG);
@@ -731,6 +735,29 @@ const FirebaseSync = (() => {
     }
     return out;
   }
+  /* ── Настройки аккаунта: имя, почта, пароль ── */
+  function _authErr(e) {
+    const c = (e && e.code) || '';
+    return ({ 'auth/wrong-password': 'Неверный текущий пароль', 'auth/invalid-credential': 'Неверный текущий пароль', 'auth/invalid-login-credentials': 'Неверный текущий пароль',
+      'auth/weak-password': 'Новый пароль слишком простой, нужно минимум 6 символов', 'auth/email-already-in-use': 'Эта почта уже занята другим аккаунтом',
+      'auth/invalid-email': 'Почта написана с ошибкой', 'auth/too-many-requests': 'Слишком много попыток, попробуй позже', 'auth/network-request-failed': 'Нет связи',
+      'auth/requires-recent-login': 'Войди в аккаунт заново и повтори', 'auth/operation-not-allowed': 'Смена почты сейчас недоступна' })[c] || 'Не получилось, попробуй ещё раз';
+  }
+  async function _reauth(pass) { const u = _auth.currentUser; if (!u || !u.email) throw { code: 'auth/requires-recent-login' }; await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, pass)); return u; }
+  async function accountSetName(name) {
+    const u = _auth.currentUser; if (!u) return { ok: false, err: 'Войди в аккаунт' };
+    try { await updateProfile(u, { displayName: String(name || '').trim().slice(0, 60) }); try { touchUserIndex(u); } catch (e) {} return { ok: true }; } catch (e) { return { ok: false, err: _authErr(e) }; }
+  }
+  async function accountSetPassword(cur, next) {
+    try { const u = await _reauth(cur); await updatePassword(u, next); return { ok: true }; } catch (e) { return { ok: false, err: _authErr(e) }; }
+  }
+  /* почта меняется после подтверждения из письма на новый адрес. У владельца данные привязаны к почте, ему смену не даём */
+  async function accountSetEmail(cur, email) {
+    const owner = (window.AUTH_CONFIG && AUTH_CONFIG.ownerEmail || '').toLowerCase(), u0 = _auth.currentUser;
+    if (u0 && owner && (u0.email || '').toLowerCase() === owner) return { ok: false, err: 'У этого аккаунта почту меняем вручную: к ней привязаны данные. Напиши Claude, он перенесёт' };
+    try { const u = await _reauth(cur); await verifyBeforeUpdateEmail(u, String(email || '').trim()); return { ok: true }; } catch (e) { return { ok: false, err: _authErr(e) }; }
+  }
+
   function stopWatch() { if (_revUnsub) { try { _revUnsub(); } catch (e) {} _revUnsub = null; } }
 
   return {
@@ -739,7 +766,7 @@ const FirebaseSync = (() => {
     inboxClaim, inboxDrop, inboxTake,
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,
-    register, login, logout, onAuth, currentUser,
+    register, login, logout, onAuth, currentUser, accountSetName, accountSetPassword, accountSetEmail,
     getUsersCount, sendFeedback, freeLimit, loadSettings, touchUserIndex, isBlocked,
     getNotice, markNoticeSeen, getAnnouncement, myIndexCached: () => _myIndex, track, logError, myRefs, getIndexMeta, saveReferral,
     isCoach: () => isCoachUser(_auth.currentUser), getCoach, setCoachPassword, setCoachEnabled, removeCoach,

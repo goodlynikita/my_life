@@ -214,6 +214,10 @@ window.Screens.home = function(mount) {
         svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="11" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="1" y="14" width="23" height="11" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="28" y="1" width="23" height="24" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="1" y="29" width="23" height="10" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="28" y="29" width="23" height="10" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/></svg>'
       },
       {
+        id: 'mid', label: 'Плоская в центре', layout: 'layout-mid', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="28" y="1" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="1" y="17" width="50" height="6" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="1" y="26" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="28" y="26" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/></svg>'
+      },
+      {
         id: '23', label: '2 + 3', layout: 'layout-23', order: [0,1,2,3],
         svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="28" y="1" width="23" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="1" y="22" width="14" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="19" y="22" width="14" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/><rect x="37" y="22" width="14" height="17" rx="3" fill="#A3E63533" stroke="#A3E635" stroke-width="1.5"/></svg>'
       },
@@ -371,14 +375,14 @@ window.Screens.home = function(mount) {
   /* Широкие плитки считаем в JS по ВИДИМЫМ плиткам.
      Раньше это делал CSS через :nth-child — но в грид добавляется слой-блик,
      и после любого сохранения порядок «съезжал» на одну позицию. */
-  var WIDE_BY_LAYOUT = { '2x2': [], 'row': [0,1,2,3], 'bigfirst': [0,3], 'biglast': [2,3] };
+  var WIDE_BY_LAYOUT = { '2x2': [], 'row': [0,1,2,3], 'bigfirst': [0,3], 'biglast': [2,3], 'mid': [2] };
   function applyTileLayout() {
     var h = Store.get().home || {};
     var savedOrder  = Array.isArray(h.tileOrder) ? h.tileOrder : (h.tileOrder ? Object.values(h.tileOrder) : null);
     var savedLayout = h.tileLayout || '2x2';
     var savedHidden = Array.isArray(h.tileHidden) ? h.tileHidden : (h.tileHidden ? Object.values(h.tileHidden) : []);
     var TILE_CLS = ['home2-tile-training','home2-tile-habits','home2-tile-finance','home2-tile-goals','home2-tile-tasks'];
-    var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast','tall':'layout-tall','tallr':'layout-tallr','23':'layout-23'};
+    var LAYOUT_MAP = {'2x2':'layout-2x2','row':'layout-row','bigfirst':'layout-bigfirst','biglast':'layout-biglast','tall':'layout-tall','tallr':'layout-tallr','23':'layout-23','mid':'layout-mid'};
     var grid = mount.querySelector('.home2-grid');
     if (!grid) return;
     Object.values(LAYOUT_MAP).forEach(function(cls) { grid.classList.remove(cls); });
@@ -396,8 +400,8 @@ window.Screens.home = function(mount) {
       var ti = TILE_CLS.findIndex(function(c){ return el.classList.contains(c); });
       var isHidden = savedHidden.indexOf(ti) !== -1;
       el.classList.toggle('tile-hidden', isHidden);
-      el.classList.remove('tile-wide', 'tile-tall', 'tile-w3');
-      if (!isHidden) { if (wide.indexOf(vis) !== -1) el.classList.add('tile-wide'); vis++; }
+      el.classList.remove('tile-wide', 'tile-tall', 'tile-w3', 'tile-flat');
+      if (!isHidden) { if (wide.indexOf(vis) !== -1) { el.classList.add('tile-wide'); if (savedLayout === 'mid') el.classList.add('tile-flat'); } vis++; }
     });
     /* Плитка, оставшаяся одна в ряду, растягивается на всю ширину, чтобы не было дырки (в любом шаблоне) */
     var visTiles = tiles.filter(function(el){ return !el.classList.contains('tile-hidden'); });

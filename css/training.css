@@ -1371,9 +1371,17 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
   grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.08fr);
   grid-template-rows: auto auto;
   gap: 6px;
-  align-items: stretch;
+  align-items: start; /* iPhone (Safari): при stretch квадрат считался от высоты и кнопки сжимались */
   width: 100%;
 }
+.m-groups-picker > .m-group-label { width: 100%; }
+/* высота рядов считается от ширины блока: одинаково в Chrome и Safari */
+.m-groups-field { container-type: inline-size; }
+@supports (width: 1cqw) {
+  .m-groups-picker { grid-template-rows: repeat(2, calc((100cqw - 24px) / 5.08)); }
+  .m-groups-picker > .m-group-label { aspect-ratio: auto; height: 100%; align-self: stretch; }
+}
+.m-groups-picker > .m-group-full, .m-groups-picker > .m-silhouette { align-self: stretch; height: auto; }
 .m-group-label {
   aspect-ratio: 1 / 1;
   display: flex; align-items: center; justify-content: center;
@@ -1410,6 +1418,7 @@ select.m-exc-sel:focus { border-color: #3B82F6 !important; outline: none !import
 /* Телефон: меньше зазоры, блок шире за счёт полей окна, кнопки крупнее, силуэт растёт вместе с ними */
 @media (max-width: 600px) {
   .m-groups-picker { gap: 4px; width: calc(100% + 20px); margin: 0 -10px; }
+  @supports (width: 1cqw) { .m-groups-picker { grid-template-rows: repeat(2, calc((100cqw + 4px) / 5.08)); } }
 }
 
 /* ═══ AI-тренер ═══ */

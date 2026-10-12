@@ -97,6 +97,12 @@ const MUSCLE_COLOR = {
 const MUSCLE_GROUPS = Object.keys(MUSCLE_COLOR).map(name => ({ name, color: MUSCLE_COLOR[name] }));
 
 const CARDIO_DIRECTIONS = ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'];
+/* Списки в окне «новая тренировка» берём из «Видов тренировок» пользователя (та же группа), иначе стандартные */
+function trNamesOf(group, fallback) {
+  const own = (TRAINING_TYPES || []).filter(t => t.group === group).map(t => t.name);
+  return own.length ? own : fallback;
+}
+const trOpts = (arr) => arr.map(n => `<option value="${trEsc(n)}">${trEsc(n)}</option>`).join('');
 
 const TRAINING_CATEGORIES = [
   { id: 'Тренажерный зал', label: 'Тренажерный зал', color: TR_GROUP_COLORS['Зал'],    desc: 'Силовые по группам мышц' },
@@ -113,17 +119,18 @@ function trIsGymType(typeName) {
 function trIsRestType(typeName) {
   return typeName === 'Отдых';
 }
+const trGroupOf = (n) => ((TRAINING_TYPES || []).find(t => t.name === n) || {}).group;
 function trIsTimeCalorieType(typeName) {
-  return typeName === 'Спорт' || ['Теннис', 'Бокс', 'Борьба', 'Баскетбол', 'Футбол', 'Волейбол', 'Йога', 'Растяжка', 'Лыжи', 'Сноуборд', 'Коньки'].includes(typeName);
+  return typeName === 'Спорт' || trGroupOf(typeName) === 'Спорт' || ['Теннис', 'Бокс', 'Борьба', 'Баскетбол', 'Футбол', 'Волейбол', 'Йога', 'Растяжка', 'Лыжи', 'Сноуборд', 'Коньки'].includes(typeName);
 }
 function trIsCardioType(typeName) {
-  return typeName === 'Кардио' || ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'].includes(typeName);
+  return typeName === 'Кардио' || trGroupOf(typeName) === 'Кардио' || ['Бег', 'Велосипед', 'Дорожка', 'Эллипс', 'Плавание', 'Гребля'].includes(typeName);
 }
 function trIsStepsType(typeName) {
   return typeName === 'Шаги' || typeName === '10k' || typeName === 'Ходьба';
 }
 function trIsFitnessType(typeName) {
-  return typeName === 'Фитнес' || ['Растяжка', 'Стрейчинг', 'Пилатес', 'Йога', 'Функциональная'].includes(typeName);
+  return typeName === 'Фитнес' || trGroupOf(typeName) === 'Фитнес' || ['Растяжка', 'Стрейчинг', 'Пилатес', 'Йога', 'Функциональная'].includes(typeName);
 }
 
 const MUSCLE_BLOCK_EXERCISES_DEFAULT = {
@@ -1393,7 +1400,7 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
   if (trIsCardioType(typeName)) {
     return `
       <div class="tr-modal-row">
-        <label style="flex:1 1 100%">Направление${trBuildSelect('m-cardio-dir', CARDIO_DIRECTIONS.map(d => ({ name: d })), CARDIO_DIRECTIONS[0])}</label>
+        <label style="flex:1 1 100%">Направление${(() => { const L = trNamesOf('Кардио', CARDIO_DIRECTIONS); return trBuildSelect('m-cardio-dir', L.map(d => ({ name: d })), L[0]); })()}</label>
       </div>
       <div class="tr-modal-row">
         <label>Дистанция, км<input type="text" id="m-distance" placeholder="0" inputmode="decimal"></label>
@@ -1405,7 +1412,7 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Вид спорта
           <select id="m-sport-name" style="width:100%;margin-top:6px;padding:10px 12px;background:#22252F;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;">
-            <option value="Теннис">Теннис</option><option value="Бокс">Бокс</option><option value="Баскетбол">Баскетбол</option><option value="Футбол">Футбол</option><option value="Волейбол">Волейбол</option><option value="Борьба">Борьба</option><option value="Лыжи">Лыжи</option><option value="Сноуборд">Сноуборд</option><option value="Коньки">Коньки</option>
+            ${trOpts(trNamesOf('Спорт', ['Теннис', 'Бокс', 'Баскетбол', 'Футбол', 'Волейбол', 'Борьба', 'Лыжи', 'Сноуборд', 'Коньки']))}
           </select>
         </label>
       </div>
@@ -1425,7 +1432,7 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Вид занятия
           <select id="m-fitness-name" style="width:100%;margin-top:6px;padding:10px 12px;background:#22252F;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;">
-            <option value="Растяжка">Растяжка</option><option value="Стрейчинг">Стрейчинг</option><option value="Пилатес">Пилатес</option><option value="Йога">Йога</option><option value="Функциональная">Функциональная</option>
+            ${trOpts(trNamesOf('Фитнес', ['Растяжка', 'Стрейчинг', 'Пилатес', 'Йога', 'Функциональная']))}
           </select>
         </label>
       </div>

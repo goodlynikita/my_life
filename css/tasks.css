@@ -314,3 +314,23 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 .tk-ai-in .tk-btn { height: 40px; width: 44px; padding: 0; font-size: 17px; }
 .tk-ai-clear { align-self: center; margin-top: 6px; border: none; background: none; color: var(--t-muted); font: inherit; font-size: 12px; cursor: pointer; }
 @media (max-width: 900px) { .tk-ai { height: calc(100dvh - 20px); max-width: none; } }
+
+/* «Сегодня» и «Входящие»: строки одной высоты, крупнее, подзадачи и время справа в той же строке */
+.tk-list .tk-card { align-items: center; min-height: 56px; box-sizing: border-box; padding: 10px 0; gap: 12px; }
+.tk-list .tk-ck { width: 22px; height: 22px; margin-top: 0; }
+.tk-list .tk-ck i { font-size: 13px; }
+.tk-list .tk-c-b { display: flex; flex-wrap: wrap; align-items: center; column-gap: 14px; }
+.tk-list .tk-c-t { flex: 1 1 0; min-width: 0; font-size: 15.5px; line-height: 22px; order: 1; }
+.tk-list .tk-meta { order: 2; margin: 0 0 0 auto; flex-wrap: nowrap; }
+.tk-list .tk-m { font-size: 13px; }
+.tk-list .tk-d { order: 3; flex: 1 0 100%; font-size: 13px; }
+.tk-list .tk-addb { height: 48px; font-size: 15px; gap: 12px; }
+.tk-list .tk-addb .tk-plus { width: 22px; display: inline-flex; justify-content: center; }
+.tk-sec { font-size: 15px; padding-bottom: 8px; }
+@media (max-width: 900px) {
+  .tk-list .tk-card { min-height: 50px; gap: 10px; }
+  .tk-list .tk-ck { width: 20px; height: 20px; }
+  .tk-list .tk-c-t { font-size: 14.5px; line-height: 20px; }
+  .tk-list .tk-m { font-size: 12px; }
+  .tk-list .tk-addb { height: 44px; font-size: 14px; }
+}

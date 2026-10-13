@@ -577,3 +577,22 @@ button.sp-day{width:100%;background:none;border:none;font:inherit;cursor:pointer
 .fa-ch .ch-input textarea:focus{border-color:#977FE9}
 .fa-ch .ch-typing span{background:#B9A6FF}
 .fa-ch .ch-list{height:max(260px,calc(100dvh - 390px))}
+
+/* ═══ Светлые финансы как у Точки: светло-серый фон, белые карточки, серые поля ═══
+   Экран рисуется инверсией тёмного дизайна, поэтому значения ниже — «негативы» нужных цветов:
+   #000 → белый, #0B0B0C → #F4F4F3, #121213 → #EDEDEC */
+.tochka-screen.fin-inv, html[data-theme="light"] .tochka-screen.fin-dark {
+  --tk-bg: #0A0A0B; --tk-card: #000000; --tk-raised: #121213; --tk-input: #121213; --tk-line: rgba(255,255,255,0.08);
+  --tk-soft: #9A9A9A; --tk-faint: #6E6E6E;
+}
+.tochka-screen.fin-inv { background: #F4F4F5 !important; }
+.tochka-screen.fin-inv > .tochka-tabs, .tochka-screen.fin-inv > .tochka-body { filter: invert(1) hue-rotate(180deg); }
+.fin-inv .tochka-tabs, html[data-theme="light"] .fin-dark .tochka-tabs { background: #000 !important; border-bottom-color: rgba(255,255,255,0.08) !important; }
+.fin-inv .tochka-body .tk-card, .fin-inv .tochka-body [class*="card"], html[data-theme="light"] .fin-dark .tochka-body [class*="card"] { box-shadow: 0 1px 3px rgba(255,255,255,0.05), 0 4px 14px rgba(255,255,255,0.04); }
+/* фиолетовые кнопки: в инверсии белый текст получался чёрным, задаём «негатив» */
+.fin-inv .tochka-add-btn, html[data-theme="light"] .fin-dark .tochka-add-btn,
+.fin-inv .sp-add-row button, .fin-inv .sp-seg button.on, .fin-inv .plan-demo-btns button, .fin-inv .sp-q-btn,
+html[data-theme="light"] .fin-dark .sp-add-row button, html[data-theme="light"] .fin-dark .sp-seg button.on, html[data-theme="light"] .fin-dark .plan-demo-btns button, html[data-theme="light"] .fin-dark .sp-q-btn { color: #000 !important; }
+html.fin-inv-on .modal-finance .tr-modal-btn-primary, html[data-theme="light"].fin-dark-on .modal-finance .tr-modal-btn-primary { color: #000 !important; }
+/* в общей светлой теме всё чуть приглушено, поэтому фон темнее, чтобы белые карточки отделялись */
+html[data-theme="light"] .tochka-screen.fin-dark { --tk-bg: #17171A; --tk-raised: #1C1C1F; --tk-input: #1C1C1F; }

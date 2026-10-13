@@ -334,3 +334,20 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
   .tk-list .tk-m { font-size: 12px; }
   .tk-list .tk-addb { height: 44px; font-size: 14px; }
 }
+
+/* Меню срока: время отдельной строкой, поле не схлопывается на iPhone, крестик убирает время */
+.tk-m-time { display: flex; align-items: center; gap: 4px; }
+.tk-m-time label { flex: 1; min-width: 0; }
+.tk-menu label input[type="time"], .tk-menu label input[type="date"] { min-width: 0; width: 100%; -webkit-appearance: none; appearance: none; text-align: left; display: block; line-height: 28px; }
+.tk-m-time .tk-tm-x { width: 34px; height: 34px !important; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+@media (max-width: 900px) {
+  .tk-menu button, .tk-menu label { height: 44px; font-size: 15px; gap: 12px; }
+  .tk-menu button i, .tk-menu label > i { font-size: 18px; }
+  .tk-menu label input { height: 36px; font-size: 15px; line-height: 36px; padding: 0 10px; }
+  .tk-m-time .tk-tm-x { width: 40px; height: 40px !important; font-size: 18px; }
+}
+.tk-sm .tk-sm-x { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin: 0 -3px 0 1px; padding: 0; border: none; border-radius: 4px; background: none; color: inherit; opacity: .7; cursor: pointer; }
+.tk-sm .tk-sm-x:hover { opacity: 1; background: color-mix(in srgb, var(--t-acc) 14%, transparent); }
+.tk-sm .tk-sm-x i.ti { font-size: 12px; }
+@media (max-width: 900px) { .tk-sm { height: 26px; } .tk-sm .tk-sm-x { width: 22px; height: 22px; } }
+.tk-q-row input[type="time"] { min-width: 110px; -webkit-appearance: none; appearance: none; }

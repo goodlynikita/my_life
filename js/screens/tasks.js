@@ -35,7 +35,8 @@ window.Tasks = (function () {
   function list() { return toArr((Store.get().tasks || {}).list).filter(t => t && t.id && t.title).map(norm); }
   function save(arr) { Store.set('tasks.list', arr.map(t => JSON.parse(JSON.stringify(t)))); }
   const ord = (t) => (t.order != null && isFinite(+t.order)) ? +t.order : +t.createdAt || 0;
-  const byOrd = (x, y) => (x.done - y.done) || (ord(x) - ord(y));
+  /* в дне сначала задачи со временем (по времени), потом остальные в своём порядке */
+  const byOrd = (x, y) => (x.done - y.done) || ((x.time ? 0 : 1) - (y.time ? 0 : 1)) || (x.time && y.time ? x.time.localeCompare(y.time) : 0) || (ord(x) - ord(y));
   function add(title, date, desc, proj, time, prio) { title = String(title || '').trim().slice(0, 200); if (!title) return; const a = list();
     const same = a.filter(t => (t.date || null) === (date || null)); const mx = same.length ? Math.max(...same.map(ord)) : 0;
     a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: [1, 2, 3].includes(prio) ? prio : 4, desc: String(desc || '').trim().slice(0, 2000) || null, proj: proj || null, time: (date && time) || null }); save(a); }
@@ -78,33 +79,40 @@ window.Tasks = (function () {
   /* ── Умный ввод как в Todoist: время, дата, приоритет и #проект прямо в названии ── */
   const WD = [[/^(вс|воскресенье)$/, 0], [/^(пн|понедельник)$/, 1], [/^(вт|вторник)$/, 2], [/^(ср|среда|среду)$/, 3], [/^(чт|четверг)$/, 4], [/^(пт|пятница|пятницу)$/, 5], [/^(сб|суббота|субботу)$/, 6]];
   function smart(raw) {
-    const out = { date: null, time: null, prio: null, proj: null, chips: [] }; const tk = String(raw || '').split(/\s+/).filter(Boolean); const keep = [];
+    const out = { date: null, time: null, prio: null, proj: null, chips: [], src: {} }; const tk = String(raw || '').split(/\s+/).filter(Boolean); const keep = [];
     const hm = (h, m) => (h >= 0 && h < 24 && m >= 0 && m < 60) ? String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') : null;
     for (let i = 0; i < tk.length; i++) {
       const w = tk[i], lw = w.toLowerCase().replace(/[.,!?;]+$/, ''), nx = (tk[i + 1] || '').toLowerCase(); let m;
-      if (!out.time && (m = /^(\d{1,2})[:.](\d{2})$/.exec(lw)) && hm(+m[1], +m[2])) { out.time = hm(+m[1], +m[2]); continue; }
-      if (!out.time && (m = /^(\d{3,4})$/.exec(lw)) && !/^(₽|р|руб|рублей|кг|км|шт|%|г|мл|мин)/.test(nx)) { const v = m[1].padStart(4, '0'), t = hm(+v.slice(0, 2), +v.slice(2)); if (t) { out.time = t; continue; } }
-      if (!out.time && lw === 'в' && (m = /^(\d{1,2})(?:[:.](\d{2}))?$/.exec(nx)) && hm(+m[1], +(m[2] || 0))) { out.time = hm(+m[1], +(m[2] || 0)); i++; continue; }
-      if (!out.date && lw === 'сегодня') { out.date = iso(today()); continue; }
-      if (!out.date && lw === 'завтра') { out.date = iso(addDays(today(), 1)); continue; }
-      if (!out.date && lw === 'послезавтра') { out.date = iso(addDays(today(), 2)); continue; }
-      if (!out.date && lw === 'через' && nx.replace(/[.,]$/, '') === 'неделю') { out.date = iso(addDays(today(), 7)); i++; continue; }
+      if (!out.time && (m = /^(\d{1,2})[:.](\d{2})$/.exec(lw)) && hm(+m[1], +m[2])) { out.time = hm(+m[1], +m[2]); out.src.time = [w]; continue; }
+      if (!out.time && (m = /^(\d{3,4})$/.exec(lw)) && !/^(₽|р|руб|рублей|кг|км|шт|%|г|мл|мин)/.test(nx)) { const v = m[1].padStart(4, '0'), t = hm(+v.slice(0, 2), +v.slice(2)); if (t) { out.time = t; out.src.time = [w]; continue; } }
+      if (!out.time && lw === 'в' && (m = /^(\d{1,2})(?:[:.](\d{2}))?$/.exec(nx)) && hm(+m[1], +(m[2] || 0))) { out.time = hm(+m[1], +(m[2] || 0)); out.src.time = [w, tk[i + 1]]; i++; continue; }
+      if (!out.date && lw === 'сегодня') { out.date = iso(today()); out.src.date = [w]; continue; }
+      if (!out.date && lw === 'завтра') { out.date = iso(addDays(today(), 1)); out.src.date = [w]; continue; }
+      if (!out.date && lw === 'послезавтра') { out.date = iso(addDays(today(), 2)); out.src.date = [w]; continue; }
+      if (!out.date && lw === 'через' && nx.replace(/[.,]$/, '') === 'неделю') { out.date = iso(addDays(today(), 7)); out.src.date = [w, tk[i + 1]]; i++; continue; }
       if (!out.date) { const pre = (lw === 'в' || lw === 'во') ? nx.replace(/[.,]$/, '') : null, cand = pre || lw, f = WD.find(x => x[0].test(cand));
-        if (f) { const d0 = today(); out.date = iso(addDays(d0, (f[1] - d0.getDay() + 7) % 7)); if (pre) i++; continue; } }
-      if (!out.prio && (lw === 'важно' || lw === 'срочно')) { out.prio = 1; continue; }
-      if (!out.prio && (m = /^(?:p|р|!)([1-4])$/.exec(lw))) { out.prio = +m[1]; continue; }
-      if (!out.proj && w.startsWith('#') && w.length > 1) { const pn = w.slice(1).toLowerCase(), pr = projects().find(p => p.name.toLowerCase() === pn || p.name.toLowerCase().replace(/\s+/g, '') === pn); if (pr) { out.proj = pr.id; continue; } }
+        if (f) { const d0 = today(); out.date = iso(addDays(d0, (f[1] - d0.getDay() + 7) % 7)); out.src.date = pre ? [w, tk[i + 1]] : [w]; if (pre) i++; continue; } }
+      if (!out.prio && (lw === 'важно' || lw === 'срочно')) { out.prio = 1; out.src.prio = [w]; continue; }
+      if (!out.prio && (m = /^(?:p|р|!)([1-4])$/.exec(lw))) { out.prio = +m[1]; out.src.prio = [w]; continue; }
+      if (!out.proj && w.startsWith('#') && w.length > 1) { const pn = w.slice(1).toLowerCase(), pr = projects().find(p => p.name.toLowerCase() === pn || p.name.toLowerCase().replace(/\s+/g, '') === pn); if (pr) { out.proj = pr.id; out.src.proj = [w]; continue; } }
       keep.push(w);
     }
     out.title = keep.join(' ');
-    if (out.date) out.chips.push(['ti-calendar', dayLabel(out.date)]);
-    if (out.time) out.chips.push(['ti-clock', out.time]);
-    if (out.prio) out.chips.push(['flag', 'P' + out.prio]);
-    if (out.proj) { const pr = projOf(out.proj); out.chips.push(['dot', pr.name, pr.color]); }
+    if (out.date) out.chips.push(['ti-calendar', dayLabel(out.date), 'date']);
+    if (out.time) out.chips.push(['ti-clock', out.time, 'time']);
+    if (out.prio) out.chips.push(['flag', 'P' + out.prio, 'prio']);
+    if (out.proj) { const pr = projOf(out.proj); out.chips.push(['dot', pr.name, pr.color, 'proj']); }
     return out;
   }
-  const chipsHtml = (sm) => sm.chips.map(c => `<span class="tk-sm">${c[0] === 'flag' ? flag(sm.prio, 14) : c[0] === 'dot' ? `<i class="tk-pdot" style="background:${c[2]}"></i>` : `<i class="ti ${c[0]}"></i>`}${esc(c[1])}</span>`).join('');
-  function bindSmart(inp, box, onDate) { const up = () => { const sm = smart(inp.value); box.innerHTML = chipsHtml(sm); if (onDate) onDate(sm.date); }; inp.addEventListener('input', up); up(); }
+  const chipsHtml = (sm) => sm.chips.map(c => `<span class="tk-sm">${c[0] === 'flag' ? flag(sm.prio, 14) : c[0] === 'dot' ? `<i class="tk-pdot" style="background:${c[2]}"></i>` : `<i class="ti ${c[0]}"></i>`}${esc(c[1])}<button type="button" class="tk-sm-x" data-smx="${c[c.length - 1]}" aria-label="Убрать"><i class="ti ti-x"></i></button></span>`).join('');
+  /* крестик на подсказке убирает из текста слова, из которых она получилась (время, дата, приоритет, проект) */
+  function bindSmart(inp, box, onDate) { const up = () => { const sm = smart(inp.value); box.innerHTML = chipsHtml(sm); if (onDate) onDate(sm.date); }; inp.addEventListener('input', up);
+    box.addEventListener('mousedown', (e) => { if (e.target.closest('[data-smx]')) e.preventDefault(); });
+    box.addEventListener('click', (e) => { const b = e.target.closest('[data-smx]'); if (!b) return; e.preventDefault(); e.stopPropagation();
+      const src = (smart(inp.value).src || {})[b.dataset.smx]; if (!src) return; const w = inp.value.split(/(\s+)/); let k = 0;
+      for (let i = 0; i < w.length && k < src.length; i++) if (w[i] === src[k]) { w[i] = ''; k++; }
+      inp.value = w.join('').replace(/\s{2,}/g, ' ').trim(); up(); inp.focus(); });
+    up(); }
   /* добавить с разбором названия; явные значения формы идут по умолчанию */
   function addSmart(title, date, desc, proj, time) { const sm = smart(title); const t = sm.title || String(title).trim(), tm = sm.time || time || null;
     add(t, sm.date || date || (tm ? iso(today()) : null), desc, sm.proj || proj || null, tm, sm.prio || 4); }
@@ -184,7 +192,7 @@ window.Tasks = (function () {
         <div class="tk-modal-side">
           <div class="tk-side-l">Срок</div>
           <div class="tk-pick"><button class="tk-pick-b" id="tk-date-b"></button>
-            <div class="tk-menu" id="tk-date-m" hidden>${[['', 'Без срока', 'ti-calendar-off'], [iso(today()), 'Сегодня', 'ti-calendar-event'], [iso(addDays(today(), 1)), 'Завтра', 'ti-sun'], [iso(addDays(today(), 7)), 'Через неделю', 'ti-calendar-week']].map(([v, l, ic]) => `<button data-d="${v}"><i class="ti ${ic}"></i>${l}</button>`).join('')}<label><i class="ti ti-calendar-search"></i><input type="date" id="tk-c-date" value="${t.date || ''}"></label><label><i class="ti ti-clock"></i><input type="time" id="tk-c-time" value="${t.time || ''}"><button type="button" class="tk-tm-x" id="tk-c-time-x" aria-label="Без времени"><i class="ti ti-x"></i></button></label></div></div>
+            <div class="tk-menu" id="tk-date-m" hidden>${[['', 'Без срока', 'ti-calendar-off'], [iso(today()), 'Сегодня', 'ti-calendar-event'], [iso(addDays(today(), 1)), 'Завтра', 'ti-sun'], [iso(addDays(today(), 7)), 'Через неделю', 'ti-calendar-week']].map(([v, l, ic]) => `<button data-d="${v}"><i class="ti ${ic}"></i>${l}</button>`).join('')}<label><i class="ti ti-calendar-search"></i><input type="date" id="tk-c-date" value="${t.date || ''}"></label><div class="tk-m-time"><label><i class="ti ti-clock"></i><input type="time" id="tk-c-time" value="${t.time || ''}"></label><button type="button" class="tk-tm-x" id="tk-c-time-x" aria-label="Без времени"><i class="ti ti-x"></i></button></div></div></div>
           <div class="tk-side-l">Проект</div>
           <div class="tk-pick"><button class="tk-pick-b" id="tk-proj-b"></button><div class="tk-menu" id="tk-proj-m" hidden></div></div>
           <div class="tk-side-l">Приоритет</div>
@@ -228,7 +236,7 @@ window.Tasks = (function () {
     ov.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { t.date = b.dataset.d || null; $('#tk-date-m').hidden = true; paint(); commit(); });
     $('#tk-c-date').onchange = (e) => { t.date = e.target.value || null; $('#tk-date-m').hidden = true; paint(); commit(); };
     $('#tk-c-time').onchange = (e) => { t.time = e.target.value || null; if (t.time && !t.date) t.date = iso(today()); paint(); commit(); };
-    $('#tk-c-time-x').onclick = () => { t.time = null; $('#tk-c-time').value = ''; paint(); commit(); };
+    $('#tk-c-time-x').onclick = (e) => { e.preventDefault(); e.stopPropagation(); t.time = null; $('#tk-c-time').value = ''; paint(); commit(); };
     ov.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { t.prio = +b.dataset.p; $('#tk-prio-m').hidden = true; paint(); commit(); });
     $('#tk-c-done').onclick = () => { t.done = !t.done; paint(); commit(); };
     const onKey = (e) => { if (e.key === 'Escape' && document.body.contains(ov) && !e.defaultPrevented) { e.preventDefault(); close(); } };

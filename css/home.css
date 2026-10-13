@@ -1571,9 +1571,6 @@ html.no-anim *, html.no-anim *::before, html.no-anim *::after{animation-duration
 .home2-grid.layout-23 .home2-tile:not(.tile-w3) .home2-tile-desc { font-size: 11px; }
 .home2-grid.layout-23 .home2-tile:not(.tile-w3) .home2-tile-name { font-size: 14px; }
 
-/* Плоская в центре: две, широкая низкая, две */
+/* Широкая в центре: две, одна на всю ширину (той же высоты), две */
 .home2-grid.layout-mid { grid-template-columns: 1fr 1fr; }
 .home2-grid.layout-mid .home2-tile.tile-wide { grid-column: 1 / -1; }
-.home2-grid .home2-tile.tile-flat { min-height: 0 !important; height: auto; }
-.home2-grid .home2-tile.tile-flat .home2-tile-content { flex-direction: row; align-items: center; justify-content: center; gap: 12px; padding-top: 16px; padding-bottom: 16px; }
-.home2-grid .home2-tile.tile-flat .home2-tile-content > * { margin: 0; }

@@ -214,8 +214,8 @@ window.Screens.home = function(mount) {
         svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="11" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="1" y="14" width="23" height="11" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="28" y="1" width="23" height="24" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="1" y="29" width="23" height="10" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/><rect x="28" y="29" width="23" height="10" rx="3" fill="#2DD4BF33" stroke="#2DD4BF" stroke-width="1.5"/></svg>'
       },
       {
-        id: 'mid', label: 'Плоская в центре', layout: 'layout-mid', order: [0,1,2,3],
-        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="28" y="1" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="1" y="17" width="50" height="6" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="1" y="26" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="28" y="26" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/></svg>'
+        id: 'mid', label: 'Широкая в центре', layout: 'layout-mid', order: [0,1,2,3],
+        svg: '<svg width="52" height="40" viewBox="0 0 52 40"><rect x="1" y="1" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="28" y="1" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="1" y="15" width="50" height="10" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="1" y="26" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/><rect x="28" y="26" width="23" height="13" rx="3" fill="#F472B633" stroke="#F472B6" stroke-width="1.5"/></svg>'
       },
       {
         id: '23', label: '2 + 3', layout: 'layout-23', order: [0,1,2,3],

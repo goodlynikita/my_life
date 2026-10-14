@@ -588,7 +588,8 @@ button.sp-day{width:100%;background:none;border:none;font:inherit;cursor:pointer
 .tochka-screen.fin-inv { background: #F4F4F5 !important; }
 .tochka-screen.fin-inv > .tochka-tabs, .tochka-screen.fin-inv > .tochka-body { filter: invert(1) hue-rotate(180deg); }
 .fin-inv .tochka-tabs, html[data-theme="light"] .fin-dark .tochka-tabs { background: #000 !important; border-bottom-color: rgba(255,255,255,0.08) !important; }
-.fin-inv .tochka-body .tk-card, .fin-inv .tochka-body [class*="card"], html[data-theme="light"] .fin-dark .tochka-body [class*="card"] { box-shadow: 0 1px 3px rgba(255,255,255,0.05), 0 4px 14px rgba(255,255,255,0.04); }
+/* цветные кружки-значки: оставляем как в тёмной (сплошной цвет, белый значок), а не инвертируем */
+.fin-inv .plan-ico, html[data-theme="light"] .fin-dark .plan-ico { filter: invert(1) hue-rotate(180deg); }
 /* фиолетовые кнопки: в инверсии белый текст получался чёрным, задаём «негатив» */
 .fin-inv .tochka-add-btn, html[data-theme="light"] .fin-dark .tochka-add-btn,
 .fin-inv .sp-add-row button, .fin-inv .sp-seg button.on, .fin-inv .plan-demo-btns button, .fin-inv .sp-q-btn,

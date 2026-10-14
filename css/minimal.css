@@ -297,3 +297,12 @@ html:has(.ch-list), html:has(.ch-list) body { overflow: hidden !important; overs
 .aik-empty { padding: 20px 0; text-align: center; color: #9AA3BC; font-size: 13.5px; }
 .aik-spin { animation: aikSpin 1s linear infinite; display: inline-block; } @keyframes aikSpin { to { transform: rotate(360deg); } }
 .tk-ov .aik, .tkl .aik { color: inherit; }
+/* галочки в окне «из скрина или текста» в цвет раздела; в светлой теме окно инвертируется, сам чекбокс возвращаем к оригиналу */
+.aik-it input { accent-color: #4A7CFF; }
+.modal-finance .aik-it input { accent-color: #8B6CF0; }
+html[data-sec="training"] .aik-it input { accent-color: #3A62C9; }
+html.fin-inv-on .modal-finance .aik-it input, html[data-theme="light"] .aik-it input { filter: invert(1) hue-rotate(180deg); }
+/* светлые финансы: окна белые, «Отмена» светло-серая, текст на фиолетовой кнопке белый (окно инвертируется, поэтому «негативы») */
+html[data-sec="finance"].fin-inv-on .tr-modal-overlay:not(.tk-ov) .tr-modal, html[data-theme="light"][data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal { background: #000 !important; border-color: rgba(255,255,255,.08) !important; }
+html[data-sec="finance"].fin-inv-on .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary, html[data-theme="light"][data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-primary { color: #000 !important; }
+html[data-sec="finance"].fin-inv-on .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-secondary, html[data-theme="light"][data-sec="finance"].fin-dark-on .tr-modal-overlay:not(.tk-ov) .tr-modal-btn-secondary { background: #141415 !important; border-color: transparent !important; color: #fff !important; }

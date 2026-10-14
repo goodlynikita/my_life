@@ -185,7 +185,7 @@ window.Tasks = (function () {
       ${subsOpen ? t.subs.map((x, i) => `<div class="tk-sub${x.done ? ' done' : ''}"><button class="tk-ck" data-sck="${i}"><i class="ti ti-check"></i></button><input value="${esc(x.title)}" data-st="${i}" maxlength="200"><button class="tk-sub-x" data-sx="${i}" aria-label="Удалить подзадачу"><i class="ti ti-x"></i></button></div>`).join('') : ''}`;
     const dateVal = () => t.date ? `<i class="ti ti-calendar ${t.date < iso(today()) ? 'late' : 'ok'}"></i>${dayLabel(t.date)}${t.time ? ' ' + t.time : ''}` : '<i class="ti ti-calendar-off"></i>Без срока';
     ov.innerHTML = `<div class="tk-modal">
-      <div class="tk-modal-top"><span id="tk-where">${where()}</span><div><button class="tk-x" id="tk-c-del" aria-label="Удалить" title="Удалить"><i class="ti ti-trash"></i></button><button class="tk-x" data-close aria-label="Закрыть"><i class="ti ti-x"></i></button></div></div>
+      <div class="tk-modal-top"><span id="tk-where">${where()}</span><div><button class="tk-x" id="tk-c-dup" aria-label="Дублировать" title="Дублировать"><i class="ti ti-copy"></i></button><button class="tk-x" id="tk-c-del" aria-label="Удалить" title="Удалить"><i class="ti ti-trash"></i></button><button class="tk-x" data-close aria-label="Закрыть"><i class="ti ti-x"></i></button></div></div>
       <div class="tk-modal-body">
         <div class="tk-modal-main">
           <div class="tk-mt"><button class="tk-ck" id="tk-c-done"><i class="ti ti-check"></i></button><textarea id="tk-c-t" rows="1" maxlength="200">${esc(t.title)}</textarea></div>
@@ -248,6 +248,11 @@ window.Tasks = (function () {
     document.addEventListener('keydown', onKey, true);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     $('[data-close]').onclick = close;
+    /* копия задачи: тот же день, время, проект, приоритет и подзадачи (не отмеченные), встаёт сразу под оригиналом */
+    $('#tk-c-dup').onclick = () => { commit(); const before = list(), src = before.find(x => x.id === t.id); if (!src) return;
+      const cp = JSON.parse(JSON.stringify(src)); cp.id = uid(); cp.done = false; cp.doneAt = null; cp.createdAt = Date.now(); cp.order = ord(src) + 0.5;
+      cp.subs = (cp.subs || []).map(x => Object.assign({}, x, { done: false }));
+      save(before.concat([cp])); ov.remove(); redraw(); toast('Задача продублирована', before, redraw); };
     $('#tk-c-del').onclick = () => { if (confirm('Удалить задачу?')) { remove(t.id); ov.remove(); redraw(); } };
   }
 

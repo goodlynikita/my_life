@@ -188,22 +188,19 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
         <div class="goals-modal-label">Сумма, ₽</div>
         <input class="goals-modal-input" type="number" id="g-amount" value="${existing?.amount||''}" inputmode="numeric" placeholder="0">
       </div>
-      <div class="gm-fold${isEdit ? '' : ' open'}" id="g-fold">
-        <button type="button" class="gm-sum" id="g-sum"><span class="gm-sum-t"><span class="gm-sum-l">Категория и срок</span><span class="gm-sum-v" id="g-sum-v"></span></span><i class="ti ti-chevron-down"></i></button>
-        <div class="gm-fold-in">
       <div class="goals-modal-field">
         <div class="goals-modal-label">Категория</div>
-        <div class="gm-chips" id="g-cat-chips">${existingCats.map(c=>`<button type="button" class="gm-chip${!isNewCat&&existing?.cat===c?' sel':''}" data-v="${goalsEsc(c)}">${goalsEsc(c)}</button>`).join('')}<button type="button" class="gm-chip gm-chip-new${isNewCat?' sel':''}" data-v="_new">+ Новая</button></div>
-        <input class="goals-modal-input" type="text" id="g-cat" value="${goalsEsc(isNewCat?existing?.cat||'':'')}" placeholder="Название новой категории" style="margin-top:8px;display:${isNewCat?'block':'none'};">
+        <select class="goals-modal-input gm-sel" id="g-cat-sel">${existingCats.map(c=>`<option value="${goalsEsc(c)}"${!isNewCat&&(existing?existing.cat===c:c==='Разное')?' selected':''}>${goalsEsc(c)}</option>`).join('')}<option value="_new"${isNewCat||!existingCats.length?' selected':''}>+ Новая категория</option></select>
+        <input class="goals-modal-input" type="text" id="g-cat" value="${goalsEsc(isNewCat?existing?.cat||'':'')}" placeholder="Название новой категории" style="margin-top:8px;display:${isNewCat||!existingCats.length?'block':'none'};">
       </div>
-      <div class="goals-modal-field">
-        <div class="goals-modal-label">Сезон</div>
-        <div class="gm-chips gm-seg" id="g-season">${[['all','Без сезона'],['spring','Весна'],['summer','Лето'],['autumn','Осень'],['winter','Зима']].map(([k,l])=>`<button type="button" class="gm-chip${(existing?.season||'all')===k?' sel':''}" data-v="${k}">${l}</button>`).join('')}</div>
-      </div>
-      <div class="goals-modal-field">
-        <div class="goals-modal-label">Месяц</div>
-        <div class="gm-months" id="g-month">${['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'].map((l,i)=>`<button type="button" class="gm-chip${existing?.month===i+1?' sel':''}" data-v="${i+1}">${l}</button>`).join('')}</div>
-      </div>
+      <div class="gm-sel-row">
+        <div class="goals-modal-field">
+          <div class="goals-modal-label">Сезон</div>
+          <select class="goals-modal-input gm-sel" id="g-season-sel">${[['all','Без сезона'],['spring','Весна'],['summer','Лето'],['autumn','Осень'],['winter','Зима']].map(([k,l])=>`<option value="${k}"${(existing?.season||'all')===k?' selected':''}>${l}</option>`).join('')}</select>
+        </div>
+        <div class="goals-modal-field">
+          <div class="goals-modal-label">Месяц</div>
+          <select class="goals-modal-input gm-sel" id="g-month-sel"><option value="">Не выбран</option>${['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'].map((l,i)=>`<option value="${i+1}"${existing?.month===i+1?' selected':''}>${l}</option>`).join('')}</select>
         </div>
       </div>
       <div class="goals-modal-field">
@@ -230,27 +227,13 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   overlay.querySelector('#g-cancel')?.addEventListener('click',()=>overlay.remove());
   overlay.querySelector('#g-del')?.addEventListener('click',()=>{if(!confirm('Удалить?'))return;onSave(null);overlay.remove();});
 
-  /* выбор чипами вместо системных выпадашек */
-  const pick = (box, multiOff) => box.querySelectorAll('.gm-chip').forEach(c => c.addEventListener('click', () => {
-    const was = c.classList.contains('sel');
-    box.querySelectorAll('.gm-chip').forEach(x => x.classList.remove('sel'));
-    if (!(multiOff && was)) c.classList.add('sel');
-    if (box.id === 'g-cat-chips') { const inp = overlay.querySelector('#g-cat'); inp.style.display = c.dataset.v === '_new' ? 'block' : 'none'; if (c.dataset.v === '_new') inp.focus(); }
-  }));
-  pick(overlay.querySelector('#g-cat-chips')); pick(overlay.querySelector('#g-season')); pick(overlay.querySelector('#g-month'), true);
-  /* свёрнутый блок «Категория и срок»: в шапке коротко, что выбрано */
-  const SEAS = { all: 'Без сезона', spring: 'Весна', summer: 'Лето', autumn: 'Осень', winter: 'Зима' };
-  const sumUpd = () => { const c = overlay.querySelector('#g-cat-chips .gm-chip.sel'), se = overlay.querySelector('#g-season .gm-chip.sel'), mo = overlay.querySelector('#g-month .gm-chip.sel');
-    const cat = c ? (c.dataset.v === '_new' ? (overlay.querySelector('#g-cat').value.trim() || 'Новая') : c.textContent) : '';
-    overlay.querySelector('#g-sum-v').textContent = [cat, se ? SEAS[se.dataset.v] || se.textContent : '', mo ? mo.textContent : ''].filter(Boolean).join(' · '); };
-  sumUpd();
-  overlay.querySelector('.gm-fold-in').addEventListener('click', () => setTimeout(sumUpd, 0));
-  overlay.querySelector('#g-cat').addEventListener('input', sumUpd);
-  overlay.querySelector('#g-sum').addEventListener('click', () => overlay.querySelector('#g-fold').classList.toggle('open'));
-  const selOf = (id) => { const c = overlay.querySelector('#' + id + ' .gm-chip.sel'); return c ? c.dataset.v : ''; };
+  /* категория: «+ Новая» показывает поле для названия */
+  const catSel = overlay.querySelector('#g-cat-sel');
+  catSel.addEventListener('change', () => { const inp = overlay.querySelector('#g-cat'); inp.style.display = catSel.value === '_new' ? 'block' : 'none'; if (catSel.value === '_new') inp.focus(); });
+  const selOf = (id) => { const el = overlay.querySelector('#' + id + '-sel'); return el ? el.value : ''; };
   const readForm = () => {
     const name = overlay.querySelector('#g-name').value.trim();
-    const selCat = selOf('g-cat-chips'), newCat = overlay.querySelector('#g-cat').value.trim();
+    const selCat = selOf('g-cat'), newCat = overlay.querySelector('#g-cat').value.trim();
     const cat = selCat === '_new' || !selCat ? (newCat || existing?.cat || 'Разное') : selCat;
     const note = overlay.querySelector('#g-note').value.trim().slice(0, 300);
     const out = Object.assign({}, existing || {}, {

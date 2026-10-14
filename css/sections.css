@@ -1913,3 +1913,10 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 @media (max-width:640px){.hs-goal{border-top-color:rgba(143,209,127,.1)}}
 /* карточка */
 
+
+/* Цель: категория, сезон и месяц выпадающими списками */
+.gm-sel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gm-sel-row .goals-modal-field { min-width: 0; }
+select.gm-sel { -webkit-appearance: none; appearance: none; width: 100%; padding-right: 34px !important; padding-left: 14px !important; cursor: pointer; text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important; background-position: right 14px center !important; }

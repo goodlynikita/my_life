@@ -61,16 +61,20 @@ window.Tasks = (function () {
   let view = 'week', boardX = 0, wk = 0, toastT = null;
   const monday = (d) => addDays(d, -((d.getDay() + 6) % 7));
 
+  const nowHM = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  /* время задачи на сегодня прошло: подсвечиваем без перерисовки, проверка раз в 30 секунд */
+  if (!window.__tkDueT) window.__tkDueT = setInterval(() => { const hm = nowHM();
+    document.querySelectorAll('.tk-card[data-due]').forEach(c => { if (c.dataset.due < hm) { c.classList.add('tk-due'); c.removeAttribute('data-due'); const m = c.querySelector('.tk-m.ok .ti-clock, .tk-m.ok .ti-calendar'); if (m) m.parentNode.classList.replace('ok', 'late'); } }); }, 30000);
   /* ── Разметка ── */
   function card(t, opts) {
-    const td = iso(today()), late = !t.done && t.date && t.date < td;
-    const showDate = t.date && !(opts && opts.inCol) && (!(opts && opts.noDate) || late);
+    const td = iso(today()), late = !t.done && t.date && (t.date < td || (t.date === td && t.time && t.time < nowHM()));
+    const showDate = t.date && !(opts && opts.inCol) && (!(opts && opts.noDate) || t.date < td);
     const subs = t.subs.length ? `<span class="tk-m"><i class="ti ti-subtask"></i>${t.subs.filter(s => s.done).length}/${t.subs.length}<i class="ti ti-chevron-right tk-chev"></i></span>` : '';
     const date = showDate ? `<span class="tk-m ${late ? 'late' : 'ok'}"><i class="ti ti-calendar"></i>${dayLabel(t.date)}${t.time ? ' ' + t.time : ''}</span>` : (t.time && t.date ? `<span class="tk-m ${late ? 'late' : 'ok'}"><i class="ti ti-clock"></i>${t.time}</span>` : '');
     const desc = t.desc ? `<span class="tk-d">${esc(t.desc.split('\n')[0])}</span>` : '';
     const pr = t.proj && !(opts && opts.noProj) ? projOf(t.proj) : null;
     const meta = subs + date + (pr ? `<span class="tk-m tk-proj"><i style="background:${pr.color}"></i>${esc(pr.name)}</span>` : '');
-    return `<div class="tk-card${t.done ? ' done' : ''}" data-id="${esc(t.id)}" style="--pc:${PRIO[t.prio] || '#808080'}">
+    return `<div class="tk-card${t.done ? ' done' : ''}${late && t.time ? ' tk-due' : ''}" data-id="${esc(t.id)}"${!t.done && t.date === td && t.time && !late ? ` data-due="${esc(t.time)}"` : ''} style="--pc:${PRIO[t.prio] || '#808080'}">
       <button class="tk-ck${t.prio < 4 ? ' p' : ''}" data-ck="${esc(t.id)}" aria-label="${t.done ? 'Вернуть' : 'Готово'}"><i class="ti ti-check"></i></button>
       <div class="tk-c-b" data-ed="${esc(t.id)}"><div class="tk-c-t">${esc(t.title)}</div>${desc}${meta ? `<div class="tk-meta">${meta}</div>` : ''}</div>
     </div>`;

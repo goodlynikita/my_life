@@ -351,3 +351,8 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 .tk-sm .tk-sm-x i.ti { font-size: 12px; }
 @media (max-width: 900px) { .tk-sm { height: 26px; } .tk-sm .tk-sm-x { width: 22px; height: 22px; } }
 .tk-q-row input[type="time"] { min-width: 110px; -webkit-appearance: none; appearance: none; }
+/* время прошло, а задача не сделана: красная полоска слева и лёгкий красный фон */
+.tk-card.tk-due { box-shadow: inset 3px 0 0 var(--t-acc); }
+.tk-col .tk-card.tk-due { border-color: color-mix(in srgb, var(--t-acc) 45%, var(--t-line)); background: color-mix(in srgb, var(--t-acc) 6%, var(--t-card)); box-shadow: inset 3px 0 0 var(--t-acc), var(--t-shadow); }
+.tk-list .tk-card.tk-due { background: color-mix(in srgb, var(--t-acc) 5%, transparent); padding-left: 10px; margin-left: -10px; border-radius: 6px 6px 0 0; }
+.tk-card.tk-due .tk-m.late { font-weight: 600; }

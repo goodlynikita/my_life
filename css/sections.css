@@ -1920,3 +1920,10 @@ input.wheel-slider::-moz-range-thumb {width:20px;height:20px;border-radius:50%;b
 select.gm-sel { -webkit-appearance: none; appearance: none; width: 100%; padding-right: 34px !important; padding-left: 14px !important; cursor: pointer; text-overflow: ellipsis;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important; background-position: right 14px center !important; }
+
+/* Шапка Целей в цвет выбранного сезона (Всё: янтарь как было) */
+.goals-header { transition: background .35s; }
+.goals-header[data-season="spring"] { background: linear-gradient(135deg, #3F5A1F 0%, #557A2A 60%, #6F9636 100%) !important; }
+.goals-header[data-season="summer"] { background: linear-gradient(135deg, #14532D 0%, #166534 60%, #15803D 100%) !important; }
+.goals-header[data-season="autumn"] { background: linear-gradient(135deg, #713F12 0%, #854D0E 60%, #A16207 100%) !important; }
+.goals-header[data-season="winter"] { background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 60%, #2563EB 100%) !important; }

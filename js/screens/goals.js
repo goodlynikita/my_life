@@ -374,6 +374,7 @@ window.Screens.goals = function(mount) {
   }
 
   function render() {
+    const gh = mount.querySelector('.goals-header'); if (gh) gh.dataset.season = activeSeason; /* шапка в цвет сезона */
     renderMonthBar();
     const all = goalsGet();
     const season = GOALS_SEASONS.find(s=>s.key===activeSeason);

@@ -608,3 +608,9 @@ html[data-theme="light"] .tochka-screen.fin-dark { --tk-bg: #17171A; --tk-raised
 .fin-inv .fa-ch .ch-input textarea:focus, html[data-theme="light"] .fin-dark .fa-ch .ch-input textarea:focus { border-color: #977FE9 !important; }
 .fin-inv .fa-ch .ch-input button, html[data-theme="light"] .fin-dark .fa-ch .ch-input button { color: #000 !important; }
 .fin-inv .fa-ch .ch-q, html[data-theme="light"] .fin-dark .fa-ch .ch-q { background: var(--tk-raised) !important; border-color: transparent !important; }
+/* окна светлых финансов: поля светло-серые, выбранная дата с белым текстом, «Удалить» насыщенно-красным */
+html.fin-inv-on .modal-finance .tr-modal-row input, html.fin-inv-on .modal-finance select, html.fin-inv-on .modal-finance textarea,
+html[data-theme="light"].fin-dark-on .modal-finance .tr-modal-row input, html[data-theme="light"].fin-dark-on .modal-finance select, html[data-theme="light"].fin-dark-on .modal-finance textarea { background-color: #121213 !important; border-color: transparent !important; }
+html.fin-inv-on .modal-finance .sp-seg, html[data-theme="light"].fin-dark-on .modal-finance .sp-seg { background: #121213 !important; }
+html.fin-inv-on .modal-finance .sp-seg button.on, html[data-theme="light"].fin-dark-on .modal-finance .sp-seg button.on { color: #000 !important; }
+html.fin-inv-on .modal-finance #se-del, html.fin-inv-on .modal-finance #om-del, html[data-theme="light"].fin-dark-on .modal-finance #se-del, html[data-theme="light"].fin-dark-on .modal-finance #om-del { color: #F49C95 !important; }

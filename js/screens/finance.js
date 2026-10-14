@@ -463,7 +463,10 @@ window.Screens.finance = function(mount) {
     const onceNow = onceAll.filter(p => FS.pDate(p.date) < mEnd && (!p.done || +p.doneAt >= +new Date(now.getFullYear(), now.getMonth(), 1))).sort((a, b) => FS.pDate(a.date) - FS.pDate(b.date));
     const onceNext = onceAll.filter(p => !p.done && FS.pDate(p.date) >= mEnd).sort((a, b) => FS.pDate(a.date) - FS.pDate(b.date));
     const onceSum = onceNow.reduce((s, p) => s + p.amt, 0);
-    const freeAfterBase = afterSavings - totalBase - onceSum;
+    /* «не хватает / свободно» считаем от ожидаемого дохода месяца: цель дохода из настроек, иначе прошлый месяц; если уже пришло больше, от факта */
+    let _prevI = 0; try { _prevI = finSum(finEntries(_gPrev.getFullYear(), _gPrev.getMonth())) || 0; } catch (e) {}
+    const planInc = Math.max(monthIncome || 0, +stored.goalIncome || _prevI || 0);
+    const freeAfterBase = planInc - Math.round(planInc * SAVE_PCT / 100) - totalBase - onceSum;
 
     /* Раскладка дохода: копилка / базовые / свободно */
     const inc = monthIncome || 0;
@@ -557,7 +560,7 @@ window.Screens.finance = function(mount) {
           <div class="plan-main">
             <div class="plan-name">Базовые расходы</div>
           </div>
-          <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctS(totalBase)}</span></div>
+          <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctS(totalBase) ? pctS(totalBase) + ' дохода' : ''}</span></div>
         </div>
         <div class="plan-cats">
           ${cats.length ? cats.map(c => { const sp = spentBy[c.id] || 0, amt = +c.amt || 0, over = amt > 0 && sp > amt, fill = amt > 0 ? Math.min(100, Math.round(sp / amt * 100)) : (sp ? 100 : 0), day = +c.day >= 1 && +c.day <= 31 ? Math.round(+c.day) : 0; return `
@@ -565,7 +568,7 @@ window.Screens.finance = function(mount) {
               <span class="plan-dot" style="background:${colH(c.color)};"></span>
               <span class="plan-cat-name"><span class="plan-cat-nm">${escH(c.name)}</span>${day ? `<em class="plan-day" title="платёж ${day} числа"><i class="ti ti-calendar-event"></i>${day}</em>` : ''}${dlt(c.id)}</span>
               <span class="plan-cat-amt">${sp ? `<em class="${over ? 'over' : ''}">${finFmtFull(sp)}</em> из ` : ''}${finFmtFull(amt)}</span>
-              <span class="plan-cat-pct">${pctS(amt)}</span>
+              <span class="plan-cat-pct">${totalBase > 0 ? Math.round(amt / totalBase * 100) + '%' : ''}</span>
               ${amt > 0 ? `<span class="plan-cat-bar"><span data-k="bal:${escH(c.id)}" data-w="${fill}" style="width:0;background:${over ? '#EB5850' : colH(c.color)}"></span><i style="left:${monthPos}%" title="где должен быть сегодня"></i></span>` : ''}
             </div>`; }).join('') : '<div class="plan-empty">Категорий нет. Добавь их в настройках</div>'}
 
@@ -576,7 +579,7 @@ window.Screens.finance = function(mount) {
           <div class="plan-main">
             <div class="plan-name">Разовые платежи и цели</div>
           </div>
-          <div class="plan-val"><b>${finFmtFull(onceSum)}</b><span>${pctS(onceSum)}</span></div>
+          <div class="plan-val"><b>${finFmtFull(onceSum)}</b><span>${pctS(onceSum) ? pctS(onceSum) + ' дохода' : ''}</span></div>
         </div>
         <div class="plan-cats">
           ${onceNow.concat(onceNext).map(p => { const d = FS.pDate(p.date), later = d >= mEnd, mo = later ? FS.perMonth(p, now) : 0, paidP = Math.min(p.amt, (onceP[p.id] || 0)); return `
@@ -584,16 +587,16 @@ window.Screens.finance = function(mount) {
               <span class="plan-dot" style="background:#977FE9;"></span>
               <span class="plan-cat-name"><span class="plan-cat-nm">${escH(p.name)}</span><em class="plan-day"><i class="ti ti-calendar-event"></i>${d.getDate()} ${FIN_MONTHS_GEN[d.getMonth()]}${later && mo < p.amt ? ` · по ${finFmtFull(mo)} в мес` : ''}</em></span>
               <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em>' + finFmtFull(p.amt) : paidP > 0 ? `${finFmtFull(p.amt - paidP)}<small>из ${finFmtFull(p.amt)}</small>` : finFmtFull(p.amt)}</span>
-              <span class="plan-cat-pct">${later ? '' : pctS(p.amt)}</span>
+              <span class="plan-cat-pct">${later || !(onceSum > 0) ? '' : Math.round(p.amt / onceSum * 100) + '%'}</span>
             </div>`; }).join('')}
         </div>` : ''}
 
-        ${inc > 0 ? `<div class="plan-step">
+        ${planInc > 0 ? `<div class="plan-step">
           <div class="plan-ico" style="--c:${shortAmt ? '#E0B252' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-scale' : 'ti-target-arrow'}"></i></div>
           <div class="plan-main">
             <div class="plan-name">${shortAmt ? 'Не хватает до плана' : 'Свободно на цели'}</div>
           </div>
-          <div class="plan-val"><b style="color:${shortAmt ? '#E0B252' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctS(freeAmt)}</span></div>
+          <div class="plan-val"><b style="color:${shortAmt ? '#E0B252' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt || !pctS(freeAmt) ? '' : pctS(freeAmt) + ' дохода'}</span></div>
         </div>` : ''}
 
       </div>

@@ -584,6 +584,7 @@ button.sp-day{width:100%;background:none;border:none;font:inherit;cursor:pointer
 .tochka-screen.fin-inv, html[data-theme="light"] .tochka-screen.fin-dark {
   --tk-bg: #0A0A0B; --tk-card: #000000; --tk-raised: #121213; --tk-input: #121213; --tk-line: rgba(255,255,255,0.08);
   --tk-soft: #9A9A9A; --tk-faint: #6E6E6E;
+  --tk-red: #F49C95; /* в светлой станет насыщенным тёмно-красным, а не бледно-розовым */
 }
 .tochka-screen.fin-inv { background: #F4F4F5 !important; }
 .tochka-screen.fin-inv > .tochka-tabs, .tochka-screen.fin-inv > .tochka-body { filter: invert(1) hue-rotate(180deg); }

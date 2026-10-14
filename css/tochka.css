@@ -598,3 +598,13 @@ html[data-theme="light"] .fin-dark .sp-add-row button, html[data-theme="light"] 
 html.fin-inv-on .modal-finance .tr-modal-btn-primary, html[data-theme="light"].fin-dark-on .modal-finance .tr-modal-btn-primary { color: #000 !important; }
 /* в общей светлой теме всё чуть приглушено, поэтому фон темнее, чтобы белые карточки отделялись */
 html[data-theme="light"] .tochka-screen.fin-dark { --tk-bg: #17171A; --tk-raised: #1C1C1F; --tk-input: #1C1C1F; }
+/* Помощник в светлых финансах: белая карточка как остальные, серые поля, сообщения ровные (значения «негативы», экран инвертируется) */
+.fin-inv .fa-ch, html[data-theme="light"] .fin-dark .fa-ch { background: var(--tk-card) !important; border-color: var(--tk-line) !important; }
+.fin-inv .fa-ch .ch-head, .fin-inv .fa-ch .ch-input, html[data-theme="light"] .fin-dark .fa-ch .ch-head, html[data-theme="light"] .fin-dark .fa-ch .ch-input { background: transparent !important; border-color: var(--tk-line) !important; }
+.fin-inv .fa-ch .ch-list, html[data-theme="light"] .fin-dark .fa-ch .ch-list { background: transparent !important; }
+.fin-inv .fa-ch .ch-msg.bot, html[data-theme="light"] .fin-dark .fa-ch .ch-msg.bot { background: var(--tk-raised) !important; border-color: transparent !important; }
+.fin-inv .fa-ch .ch-msg.me, html[data-theme="light"] .fin-dark .fa-ch .ch-msg.me { color: #000 !important; }
+.fin-inv .fa-ch .ch-input textarea, html[data-theme="light"] .fin-dark .fa-ch .ch-input textarea { background: var(--tk-input) !important; border-color: transparent !important; }
+.fin-inv .fa-ch .ch-input textarea:focus, html[data-theme="light"] .fin-dark .fa-ch .ch-input textarea:focus { border-color: #977FE9 !important; }
+.fin-inv .fa-ch .ch-input button, html[data-theme="light"] .fin-dark .fa-ch .ch-input button { color: #000 !important; }
+.fin-inv .fa-ch .ch-q, html[data-theme="light"] .fin-dark .fa-ch .ch-q { background: var(--tk-raised) !important; border-color: transparent !important; }

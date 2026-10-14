@@ -596,12 +596,6 @@ window.Screens.finance = function(mount) {
           <div class="plan-val"><b style="color:${shortAmt ? '#E0B252' : '#0EA5E9'};">${finFmtFull(shortAmt || freeAmt)}</b><span>${shortAmt ? '' : pctS(freeAmt)}</span></div>
         </div>` : ''}
 
-        <div class="plan-step plan-step-last">
-          <div class="plan-ico" style="--c:#F59E0B;"><i class="ti ti-umbrella"></i></div>
-          <div class="plan-main">
-            <div class="plan-name">Внеплановая трата</div>
-          </div>
-        </div>
       </div>
     `;
 

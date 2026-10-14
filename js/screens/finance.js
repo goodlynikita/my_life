@@ -171,8 +171,10 @@ window.Screens.finance = function(mount) {
   const now = new Date();
   let vYear = now.getFullYear();
   let vMonth = now.getMonth();
-  let activeTab = (window.__keepUi && window.__ui && window.__ui.fin) || (function(){ try { return localStorage.getItem('you_fin_tab'); } catch(e) { return null; } })() || 'month'; /* открываемся на последней выбранной вкладке */
+  let activeTab = (window.__keepUi && window.__ui && window.__ui.fin) || 'month'; /* при входе всегда «Месяц» (по просьбе Ника); при обновлении данных остаёмся на текущей */
   if (!['month','expenses','balance','year','all','ask'].includes(activeTab)) activeTab = 'month';
+  /* «Месяц» скрыт в настройке вкладок: открываем первую видимую */
+  if (window.TabsCustom && TabsCustom.isHidden && TabsCustom.isHidden('finance', activeTab) && TabsCustom.firstVisible) activeTab = TabsCustom.firstVisible('finance', ['month','expenses','balance','year','all','ask']) || activeTab;
 
   mount.innerHTML = `
     <div class="tochka-screen">

@@ -130,7 +130,8 @@
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
-      .then(r => console.log('SW registered:', r.scope))
+      .then(r => { /* вернулся в приложение: проверяем, нет ли новой версии (поставится фоном) */
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') r.update().catch(() => {}); }); })
       .catch(e => console.log('SW error:', e));
   });
 }

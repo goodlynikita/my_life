@@ -510,9 +510,9 @@ const FirebaseSync = (() => {
   }
 
   async function logout() {
-    _loaded = false;
+    _loaded = false; _offline = false; if (_retryT) { clearInterval(_retryT); _retryT = null; }
     _coachRoot = null;
-    try { _myTrainer = null; stopWatch(); stopSlots(); _slots = null; localStorage.removeItem('you_slots'); if (_linkUnsub) { _linkUnsub(); _linkUnsub = null; } } catch (e) {}
+    try { _myTrainer = null; stopWatch(); stopSlots(); _slots = null; localStorage.removeItem('you_slots'); localStorage.removeItem('nik_backup_uid'); if (_linkUnsub) { _linkUnsub(); _linkUnsub = null; } } catch (e) {}
     Store.replaceAll(Store.defaultData ? Store.defaultData() : {});
     await signOut(_auth);
   }
@@ -764,6 +764,8 @@ const FirebaseSync = (() => {
     shareTemplate, getShared, markSharedUse, mySharedList, removeShared,
     isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer, loadSlots, slotsOn,
     inboxClaim, inboxDrop, inboxTake,
+    /* быстрый старт: экран уже показан из копии на телефоне, сервер подтягиваем фоном (правки за это время не теряются) */
+    startLocal: () => { if (!userRoot() || isCoachUser(_auth.currentUser)) return false; _loaded = false; _offline = true; _startRetry(); _retryPull(); return true; },
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,
     register, login, logout, onAuth, currentUser, accountSetName, accountSetPassword, accountSetEmail,

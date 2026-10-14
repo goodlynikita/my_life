@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v209';
+const CACHE = 'nik-system-v210';
 
 const STATIC = [
   './',
@@ -65,6 +65,8 @@ const STATIC = [
 ];
 
 /* Библиотеки с CDN: без них приложение не стартует, поэтому тоже кешируем заранее (версии зафиксированы) */
+/* библиотеки и шрифты с чужих адресов живут в отдельном кеше, который не сбрасывается при каждом обновлении (версии в адресах зафиксированы) */
+const CDN_CACHE = 'nik-cdn-v1';
 const CDN = [
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
@@ -75,7 +77,7 @@ const CDN = [
 /* Установка: кешируем всё. CDN по одному, чтобы сбой одного не ломал установку */
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(STATIC).then(() => Promise.all(CDN.map(u => c.add(new Request(u, { mode: 'cors' })).catch(() => {})))))
+    caches.open(CACHE).then(c => c.addAll(STATIC)).then(() => caches.open(CDN_CACHE)).then(c => Promise.all(CDN.map(u => c.match(u).then(h => h || c.add(new Request(u, { mode: 'cors' }))).catch(() => {}))))
       .then(() => self.skipWaiting())
   );
 });
@@ -84,7 +86,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE && k !== CDN_CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -92,6 +94,9 @@ self.addEventListener('activate', e => {
 /* Запросы к данным Firebase (база, вход) только через сеть, их не трогаем */
 const LIVE = /firebaseio\.com|firebasedatabase\.app|identitytoolkit|securetoken|firebaseinstallations|apis\.google\.com|accounts\.google|functions\.yandexcloud|storage\.yandexcloud/;
 
+/* ищем только в кеше своей версии: старые кеши других версий не подмешиваются */
+const mine = () => caches.open(CACHE);
+const isCdn = (u) => /^https:\/\/(www\.gstatic\.com|cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(u);
 function putCache(req, res) {
   if (res && (res.ok || res.type === 'opaque') && req.method === 'GET') { const cl = res.clone(); caches.open(CACHE).then(c => c.put(req, cl)).catch(() => {}); }
   return res;
@@ -100,20 +105,20 @@ function putCache(req, res) {
 self.addEventListener('fetch', e => {
   const req = e.request, url = req.url;
   if (req.method !== 'GET' || LIVE.test(url) || !/^https?:/.test(url)) return;
-  /* Страница (index.html, coach.html): свежая из сети, но не дольше 3 секунд, потом из кеша.
-     Так на плохой связи приложение открывается сразу, а при хорошей берёт новую версию */
+  /* Страница (index.html, coach.html): сразу из кеша своей версии, без ожидания сети, поэтому приложение открывается мгновенно и без интернета.
+     Страницу в кеш кладёт только установка версии (или первый заход на неё), чтобы страница всегда совпадала со своими скриптами.
+     Новая версия ставится фоном и открывается со следующего запуска */
   if (req.mode === 'navigate') {
-    e.respondWith(new Promise(resolve => {
-      let done = false;
-      const fromCache = () => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match('./index.html')).then(r => r || caches.match('./'));
-      const t = setTimeout(() => { fromCache().then(r => { if (r && !done) { done = true; resolve(r); } }); }, 3000);
-      fetch(req).then(res => { putCache(req, res); if (!done) { done = true; clearTimeout(t); resolve(res); } })
-        .catch(() => fromCache().then(r => { if (!done) { done = true; clearTimeout(t); resolve(r || Response.error()); } }));
-    }));
+    e.respondWith(mine().then(c => c.match(req, { ignoreSearch: true }).then(hit => hit
+      || fetch(req).then(res => putCache(req, res)).catch(() => c.match('./index.html').then(r => r || c.match('./')).then(r => r || Response.error())))));
+    return;
+  }
+  if (isCdn(url)) {
+    e.respondWith(caches.open(CDN_CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { if (res && (res.ok || res.type === 'opaque')) c.put(req, res.clone()).catch(() => {}); return res; }))));
     return;
   }
   /* Скрипты, стили, иконки, шрифты: сразу из кеша (кеш свой у каждой версии, CACHE меняется при каждом обновлении), иначе сеть */
   e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => putCache(req, res)).catch(() => caches.match(req, { ignoreSearch: true })))
+    mine().then(c => c.match(req).then(hit => hit || fetch(req).then(res => putCache(req, res)).catch(() => c.match(req, { ignoreSearch: true }))))
   );
 });

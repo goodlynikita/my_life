@@ -327,6 +327,34 @@ window.FinSpend = (function () {
     return { amt, cat: cat ? cat.id : null, catName: cat ? cat.name : 'Другое', catColor: cat ? col(cat.color) : '#737373', note, src, learned, multi: all.length > 1, err };
   }
 
+  /* несколько трат одной строкой: «кафе 7495 супермаркеты 5237 азс 2952» → пары название + сумма */
+  function splitMulti(text) {
+    const tk = String(text || '').replace(/[;\n]+/g, ' ').split(/\s+/).filter(Boolean), out = []; let name = [];
+    for (const w of tk) {
+      const m = /^(\d{1,9}(?:[.,]\d{1,2})?)(?:₽|р\.?|руб\.?)?[,.]?$/i.exec(w);
+      if (m) { const v = Math.round(parseFloat(m[1].replace(',', '.'))); const n = name.join(' ').replace(/^[\s,.;:-]+|[\s,.;:-]+$/g, '');
+        if (!n || !v) return null; out.push({ note: n, amt: v }); name = []; }
+      else if (!/^(₽|р\.?|руб\.?)$/i.test(w)) name.push(w);
+    }
+    return out.length >= 2 ? out : null;
+  }
+  /* окно подтверждения: список найденных трат с галочками, без AI */
+  function multiModal(pairs, cats, done) {
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay aik-ov modal-finance';
+    const rows = pairs.map(x => { const p = parse(x.note + ' ' + x.amt, cats) || {}; return { amt: x.amt, note: x.note[0].toUpperCase() + x.note.slice(1), cat: p.cat || null, catName: p.catName || 'Другое' }; });
+    const total = rows.reduce((a, x) => a + x.amt, 0);
+    ov.innerHTML = `<div class="tr-modal aik"><p class="tr-modal-title">Нашёл трат: ${rows.length} · ${fmt(total)}</p>
+      <div class="aik-list">${rows.map((x, i) => `<label class="aik-it"><input type="checkbox" data-i="${i}" checked><div><b>${esc(x.note)}</b> · ${fmt(x.amt)}<span>${esc(x.catName)}</span></div></label>`).join('')}</div>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" data-close>Отмена</button><button class="tr-modal-btn-primary" data-apply>Добавить</button></div></div>`;
+    ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('[data-close]')) ov.remove(); });
+    ov.querySelector('[data-apply]').onclick = () => {
+      const pick = rows.filter((_, i) => ov.querySelector(`[data-i="${i}"]`).checked); if (!pick.length) return;
+      const at = Date.now(), ym = ymKey(new Date(at)), recs = pick.map((x, k) => ({ id: uid('s'), amt: x.amt, cat: x.cat, note: x.note, src: '', at: at + k }));
+      saveList(ym, rawList(ym).concat(recs)); ov.remove(); done(recs, ym);
+    };
+    document.body.appendChild(ov);
+  }
+
   /* ── Анимации ── */
   const prevW = {}; let prevFree = null;
   /* полоски и кольца плавно едут от прошлого значения к новому; при reduce-motion сразу */
@@ -493,10 +521,13 @@ window.FinSpend = (function () {
     if (inp) { inp.addEventListener('input', syncBtn); syncBtn(); }
     const cats = c.cats;
     /* живой разбор строки; ручной выбор категории из «платежей» сбрасывается, если стёрли название */
-    const refresh = (warn) => { const p = parse(inp.value, cats, inp.dataset.cat); setChips(chips, chipList(p), warn != null ? warn : (p && p.multi && !p.err ? 'Взял ' + fmt(p.amt) + ', остальные числа оставил в названии' : '')); };
+    const refresh = (warn) => { const p = parse(inp.value, cats, inp.dataset.cat); const mm = !inp.dataset.once && splitMulti(inp.value); setChips(chips, mm ? [] : chipList(p), warn != null ? warn : (mm ? 'Трат в строке: ' + mm.length + ' на ' + fmt(mm.reduce((a, x) => a + x.amt, 0)) + '. Нажми ✓, покажу списком' : p && p.multi && !p.err ? 'Взял ' + fmt(p.amt) + ', остальные числа оставил в названии' : '')); };
     /* категория платежа держится, пока строка начинается с его названия: перепечатал строку, категория снова подбирается сама */
     inp.addEventListener('input', () => { if (inp.dataset.once && !inp.value.trim()) delete inp.dataset.once; if (inp.dataset.cat && (!inp.value.trim() || !norm(inp.value).startsWith(norm(inp.dataset.pref || '')))) { delete inp.dataset.cat; delete inp.dataset.pref; } refresh(); });
     const commit = () => {
+      const mp = !inp.dataset.once && splitMulti(inp.value);
+      if (mp) { multiModal(mp, cats, (recs, ym) => { inp.value = ''; syncBtn(); rerender();
+        toast('Записано трат: ' + recs.length + ' · ' + fmt(recs.reduce((a, x) => a + x.amt, 0)), () => { const ids = new Set(recs.map(x => x.id)); saveList(ym, rawList(ym).filter(x => !ids.has(x.id))); rerender(); }); }); return; }
       const p = parse(inp.value, cats, inp.dataset.cat);
       if (!p) { inp.focus(); return; }
       if (p.err) { inp.focus(); refresh(p.err === 'big' ? 'Больше 100 млн за раз? Проверь сумму' : 'Добавь сумму, например «кофе 420»'); return; }
@@ -903,5 +934,5 @@ window.FinSpend = (function () {
     setTimeout(() => t.classList.add('out'), 4200); setTimeout(() => t.remove(), 4600);
   }
 
-  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS, addBank, toast };
+  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS, addBank, toast, splitMulti, multiModal };
 })();

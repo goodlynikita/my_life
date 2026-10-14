@@ -52,6 +52,7 @@ window.FinAsk = (function () {
     /* цели */
     try { const g = toArr((Store.get().goals || {}).directions).filter(x => x && !x.done && +x.amount > 0);
       if (g.length) L.push('ЦЕЛИ (не закрытые): ' + g.slice(0, 25).map(x => `${x.name} ${rub(x.amount)}${x.month ? ' на ' + MON[x.month - 1] : ''}${x.maybe ? ' (под вопросом)' : ''}`).join('; ') + '.'); } catch (e) {}
+    L.push('ВАЖНО: все суммы выше уже посчитаны приложением, бери их как есть и не пересчитывай. Сам записывать траты ты не можешь: если просят добавить, скажи написать «добавь кофе 300 такси 450» в этот чат, приложение покажет список на подтверждение.');
     return L.join('\n').slice(0, 13000);
   }
 
@@ -100,10 +101,25 @@ window.FinAsk = (function () {
     const sb = content.querySelector('#fa-send'); if (sb) sb.onclick = () => send(ta.value);
     content.querySelectorAll('.fa-q').forEach(b => b.onclick = () => send(b.textContent));
     const cl = content.querySelector('#fa-clear'); if (cl) cl.onclick = () => { if (confirm('Очистить переписку?')) { saveMsgs([]); again(); } };
+    /* «добавь кафе 7495 азс 2952…»: траты записывает приложение (окно со списком), AI не нужен и лимит не тратится */
+    function tryAdd(text) {
+      const FS = window.FinSpend; if (!FS || !FS.multiModal || !/^\s*(?:пожалуйста\s+)?(?:добавь|добавить|запиши|записать|внеси|занеси)/i.test(text)) return false;
+      const body = text.replace(/^\s*(?:пожалуйста\s+)?(?:добавь|добавить|запиши|записать|внеси|занеси)(?:\s+(?:в|во)\s+\S+)?\s*:?/i, '').trim();
+      const cats = FS.budget().cats; let pairs = FS.splitMulti(body);
+      if (!pairs) { const p = FS.parse(body, cats); if (!p || p.err) return false; pairs = [{ note: p.note, amt: p.amt }]; }
+      FS.multiModal(pairs, cats, (recs) => {
+        const sum = recs.reduce((a, x) => a + x.amt, 0); let tail = '';
+        try { const c = FS.calc(new Date()); tail = `\nТеперь за период потрачено ${rub(c.spent)}, свободно ${rub(c.free)}.`; } catch (e) {}
+        const l = msgs(); l.push({ role: 'user', text, at: Date.now() }); l.push({ role: 'assistant', text: `Записал трат: ${recs.length} на ${rub(sum)}.` + tail, at: Date.now() }); saveMsgs(l); draft = ''; again();
+      });
+      return true;
+    }
     async function send(text) {
       text = String(text || '').trim(); if (!text || busy || off) return;
+      if (tryAdd(text)) return;
       const l = msgs(); l.push({ role: 'user', text, at: Date.now() }); saveMsgs(l); draft = ''; busy = true; again();
-      try { const d = await call({ context: buildContext(), messages: l.filter(m => !m.err).slice(-8).map(m => ({ role: m.role, text: m.text })) });
+      const FSx = window.FinSpend, mp = FSx && FSx.splitMulti ? FSx.splitMulti(text) : null;
+      try { const d = await call({ context: buildContext() + (mp ? `\nВ СООБЩЕНИИ перечислено ${mp.length} сумм, итого ${rub(mp.reduce((a, x) => a + x.amt, 0))} (посчитано приложением).` : ''), messages: l.filter(m => !m.err).slice(-8).map(m => ({ role: m.role, text: m.text })) });
         usage = { used: d.used, limit: d.limit }; l.push({ role: 'assistant', text: d.text, at: Date.now() }); }
       catch (e) { if (e && e.code === 'limit') usage = { used: e.used || 0, limit: e.limit || 0 }; l.push({ role: 'assistant', text: errText(e), err: true, at: Date.now() }); }
       saveMsgs(l); busy = false; again();

@@ -180,7 +180,7 @@ html[data-design="wa"] .hero-slide > :not(.wa-sbg) { position: relative; z-index
 
 /* ── привычки: точки по кругу (идея Ника), сделанные светятся, по кругу бежит блик ── */
 .wa-ring { position: absolute; right: 30px; top: 50%; width: 112px; height: 112px; transform: translateY(-50%); }
-.wa-ring i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: rgba(200,215,235,.16);
+.wa-ring i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px;  border-radius: 50%; background: rgba(200,215,235,.3);
  }
 .wa-ring i.on { background: rgb(var(--wa)); box-shadow: 0 0 12px rgba(var(--wa),.85); }
 @media (max-width: 600px) { .wa-ring { right: 12px; top: 12px; transform: none; width: 64px; height: 64px; } .wa-ring i { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; } }

@@ -178,20 +178,24 @@ window.WinterArc = (function () {
     'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
       const dots = list.slice(0, 12).map(h => (marks[h.id] || {})[now.getDate()] === 'done');
-      return dots.length ? '<div class="wa-dots">' + dots.map(d => '<i class="' + (d ? 'on' : '') + '"></i>').join('') + '</div>' : ''; },
+      /* точки по кругу, как в загрузке: сделанные светятся, по кругу бежит тихий блик */
+      const n = dots.length; if (!n) return '';
+      return '<div class="wa-ring" style="--n:' + n + '">' + dots.map((d, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2;
+        return '<i class="' + (d ? 'on' : '') + '" style="left:' + (50 + 42 * Math.cos(a)).toFixed(2) + '%;top:' + (50 + 42 * Math.sin(a)).toFixed(2) + '%;--i:' + i + '"></i>'; }).join('') + '</div>'; },
     /* доход по месяцам: светящиеся столбики, текущий месяц ярче */
     'home2-tile-finance': () => { const now = new Date(), v = [], L = ['Я', 'Ф', 'М', 'А', 'М', 'И', 'И', 'А', 'С', 'О', 'Н', 'Д'];
       for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push({ x, l: L[d.getMonth()] }); }
       const mx = Math.max.apply(null, v.map(o => o.x)); if (!(mx > 0)) return '';
       return '<span class="wa-bars">' + v.map((o, i) => '<span class="wa-bar' + (i === 5 ? ' cur' : '') + '"><i style="--h:' + Math.max(4, Math.round(o.x / mx * 100)) + '%;--d:' + (i * 70) + 'ms"></i><em>' + o.l + '</em></span>').join('') + '</span>'; },
-    'home2-tile-tasks': () => '<div class="wa-lines"><i></i><i></i><i></i></div>',
+    /* пешка, которая видит в зеркале короля: каждый маленький шаг делает тебя сильнее */
+    'home2-tile-tasks': () => '<img class="wa-img wa-img-chess" src="img/wa/chess.webp" alt="">',
   };
   function decorate(mount, st) {
     const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
     applyAttr(); keepDark(); /* владелец известен только после входа: пересчитываем доступность */
     scr.querySelectorAll('.wa-x').forEach(el => el.remove());
     if (!isOn()) return;
-    st = st || (window.Store ? Store.get() : {});
+    st = st || (typeof Store !== 'undefined' ? Store.get() : {});
     let n = 0;
     scr.querySelectorAll('.home2-grid .home2-tile').forEach(t => {
       if (t.classList.contains('tile-hidden')) return; n++;

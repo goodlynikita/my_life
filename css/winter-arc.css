@@ -177,3 +177,17 @@ html[data-design="wa"] .hero-slide-glow { display: none !important; }
 .wa-sbg-peak3 { filter: saturate(.9); }
 html[data-design="wa"] .hero-slide > :not(.wa-sbg) { position: relative; z-index: 1; }
 @media (max-width: 600px) { .wa-sbg { width: 78%; opacity: .7; } .wa-img-statue { max-width: 72%; opacity: .8; } }
+
+/* ── привычки: точки по кругу (идея Ника), сделанные светятся, по кругу бежит блик ── */
+.wa-ring { position: absolute; right: 30px; top: 50%; width: 112px; height: 112px; transform: translateY(-50%); }
+.wa-ring i { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: rgba(200,215,235,.16);
+  animation: waChase calc(var(--n) * .16s) linear infinite; animation-delay: calc(var(--i) * .16s); }
+.wa-ring i.on { background: rgb(var(--wa)); box-shadow: 0 0 12px rgba(var(--wa),.85); }
+@keyframes waChase { 0%, 100% { filter: brightness(1); } 8% { filter: brightness(2.4); transform: scale(1.15); } 30% { filter: brightness(1); transform: none; } }
+html[data-design="wa"] .wa-ring i:not(.on) { animation-name: waChaseDim; }
+@keyframes waChaseDim { 0%, 100% { background: rgba(200,215,235,.16); } 8% { background: rgba(230,240,255,.55); } 30% { background: rgba(200,215,235,.16); } }
+@media (max-width: 600px) { .wa-ring { right: 12px; top: 12px; transform: none; width: 64px; height: 64px; } .wa-ring i { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; } }
+@media (prefers-reduced-motion: reduce) { .wa-ring i { animation: none !important; } }
+
+.wa-img-chess { height: 120%; bottom: -10%; max-width: 46%; object-fit: cover; object-position: center 60%; filter: contrast(1.1) brightness(1.1); -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%); mask-image: linear-gradient(90deg, transparent, #000 40%); }
+@media (max-width: 600px) { .wa-img-chess { max-width: 55%; opacity: .85; } }

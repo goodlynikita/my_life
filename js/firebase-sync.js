@@ -88,6 +88,11 @@ const FirebaseSync = (() => {
     if (!isError) hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
   }
 
+  /* что было на сервере по каждому разделу, когда мы его последний раз видели (база для слияния) */
+  const _baseSec = {}, _baseRev = {};
+  function _setBase(remote) { if (!remote || typeof remote !== 'object') return; const rv = remote._rev || {};
+    Object.keys(remote).forEach(k => { if (k === '_rev') return; try { _baseSec[k] = JSON.parse(JSON.stringify(remote[k])); } catch (e) {} _baseRev[k] = rv[k] === undefined ? null : rv[k]; }); }
+  const _withT = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   async function _flushQueue() {
     const root = userRoot();
     if (!root || _queue.size === 0) return;
@@ -124,10 +129,29 @@ const FirebaseSync = (() => {
         if (Object.keys(up).length) await update(ref(_db), up);
         sections.delete('training');
       }
+      /* Каждый раздел пишем со сверкой: у раздела есть метка версии _rev/{раздел}. Если на сервере та же версия,
+         с которой мы начинали, пишем свои данные. Если её успело поменять другое устройство, сначала сливаем:
+         берём серверное и накладываем только свои правки (merge3), чтобы ничего с другого устройства не затереть */
+      let pulledIn = [];
       for (const top of sections) {
-        const data = Store.get()[top];
-        if (data !== undefined) await set(ref(_db, root + '/' + top), sanitizeKeys(data));
+        let data = Store.get()[top];
+        if (data === undefined) continue;
+        if (isCoachUser(_auth.currentUser)) { await set(ref(_db, root + '/' + top), sanitizeKeys(data)); continue; }
+        const rs = await _withT(get(ref(_db, root + '/_rev/' + top)), 6000);
+        const srvRev = rs.exists() ? rs.val() : null;
+        if (srvRev !== (_baseRev[top] === undefined ? null : _baseRev[top])) {
+          const ss = await _withT(get(ref(_db, root + '/' + top)), 8000);
+          const srv = ss.exists() ? ss.val() : undefined;
+          const merged = merge3(_baseSec[top], data, srv);
+          if (!_sameData(merged, data)) { const cur = Store.get(); cur[top] = merged; Store.replaceAll(cur); pulledIn.push(top); }
+          data = merged;
+        }
+        const rev = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+        await _withT(update(ref(_db, root), { [top]: sanitizeKeys(data), ['_rev/' + top]: rev }), 15000);
+        try { _baseSec[top] = JSON.parse(JSON.stringify(data)); } catch (e) {}
+        _baseRev[top] = rev;
       }
+      if (pulledIn.length) window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: pulledIn } }));
       _flushing = false;
       _lastWriteAt = Date.now();
       setStatus('Сохранено');
@@ -183,7 +207,8 @@ const FirebaseSync = (() => {
       /* сравниваем с данными в том же виде, в каком их держит Store (ensureShape чинит дыры, типы и т.п.), иначе экран «прыгает» каждые 5 минут */
       let shaped = next;
       try { if (Store.shape) { const sh = Store.shape(JSON.parse(JSON.stringify(coach ? { training: next.training } : next))); shaped = coach ? { training: sh.training } : sh; } } catch (e) {}
-      const changed = _changedSections(coach ? { training: Store.get().training } : Store.get(), shaped).filter(k => k !== 'meta');
+      if (!coach) _setBase(next);
+      const changed = _changedSections(coach ? { training: Store.get().training } : Store.get(), shaped).filter(k => k !== 'meta' && k !== '_rev');
       if (!changed.length) return;
       Store.replaceAll(next);
       window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: changed } }));
@@ -235,6 +260,7 @@ const FirebaseSync = (() => {
     const root = userRoot();
     if (!root) { _loaded = true; return false; }
     try {
+      if (navigator.onLine === false) throw new Error('offline');
       const snap = await Promise.race([
         get(ref(_db, root)),
         new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 6000))
@@ -246,6 +272,7 @@ const FirebaseSync = (() => {
         remote?.goals?.directions ||
         (remote?.habits?.list && remote.habits.list.length > 0)
       );
+      if (remote) _setBase(remote);
       if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); _snapshot(remote); }
       /* Если у пользователя нет данных но он владелец - данные уже в nik-data */
       _loaded = true;
@@ -298,7 +325,7 @@ const FirebaseSync = (() => {
       const tops = [...new Set([..._queue.keys()].map(p => String(p).split('.')[0]))]; _queue.clear();
       let mine = null; try { mine = JSON.parse(JSON.stringify(Store.get() || {})); } catch (e) {}
       const base = _base || {};
-      if (remote) { Store.replaceAll(remote); _snapshot(remote); }
+      if (remote) { _setBase(remote); Store.replaceAll(remote); _snapshot(remote); }
       _loaded = true; _offline = false; _base = null;
       clearInterval(_retryT); _retryT = null; window.removeEventListener('online', _retryPull);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);
@@ -429,7 +456,9 @@ const FirebaseSync = (() => {
   async function isBlocked(user) {
     if (!user || isCoachUser(user)) return false;
     try {
-      const snap = await get(ref(_db, 'userIndex/' + user.uid + '/blocked'));
+      /* без сети не ждём: get() у Firebase офлайн может висеть бесконечно, а приложение должно открыться */
+      if (navigator.onLine === false) return false;
+      const snap = await _withT(get(ref(_db, 'userIndex/' + user.uid + '/blocked')), 3000);
       return snap.exists() && snap.val() === true;
     } catch (e) { return false; }
   }

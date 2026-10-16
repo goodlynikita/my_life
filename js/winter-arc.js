@@ -173,11 +173,7 @@ window.WinterArc = (function () {
 
   /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
   const ART = {
-    /* силуэт: подсвечены мышцы сегодняшней тренировки */
-    'home2-tile-training': (st) => { const KEY = { 'Грудь': 'chest', 'Спина': 'back', 'Ноги': 'legs', 'Руки': 'arms', 'Плечи': 'shoulders', 'Кор': 'core' };
-      const t = window.todayWorkoutInfo ? todayWorkoutInfo(st) : { text: '' }; const parts = String(t.text || '').split(' + ');
-      const keys = parts.includes('FULL BODY') ? Object.values(KEY) : parts.map(x => KEY[x]).filter(Boolean);
-      return '<span class="wa-body' + (keys.length ? ' on' : '') + '"><img src="img/m/body.png" alt="">' + keys.map(k => '<img class="ov" src="img/m/ov_' + k + '.png" alt="">').join('') + '</span>'; },
+    'home2-tile-training': () => '<img class="wa-img wa-img-statue" src="img/wa/statue.webp" alt="">',
     'home2-tile-goals': () => '<img class="wa-img wa-img-target" src="img/wa/target.webp" alt="">',
     'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
@@ -205,7 +201,12 @@ window.WinterArc = (function () {
       const nm = c.querySelector('.home2-tile-name'); if (nm) nm.insertAdjacentHTML('afterend', '<span class="wa-x wa-rule"></span>');
       t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost" aria-hidden="true"></span><span class="wa-x wa-arr"><i class="ti ti-arrow-right"></i></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
     });
-    const hs = scr.querySelector('.hero-slider'); if (hs) hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-peak" aria-hidden="true"></span><span class="wa-x wa-frost wa-frost-hero" aria-hidden="true"></span>');
+    /* у каждого слайда своя картинка: «Фокус дня» с FOCUS, цели с золотой вершиной, остальные горы по очереди */
+    const hs = scr.querySelector('.hero-slider');
+    if (hs) { hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-frost wa-frost-hero" aria-hidden="true"></span>');
+      let k = 0; hs.querySelectorAll('.hero-slide').forEach(sl => { const lb = (sl.querySelector('.hero-slide-label') || {}).textContent || '';
+        const img = /фокус/i.test(lb) ? 'focus' : /цел/i.test(lb) ? 'peak3' : ['peak1', 'peak2', 'peak3'][k++ % 3];
+        sl.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-sbg wa-sbg-' + img + '" style="background-image:url(img/wa/' + img + '.webp)" aria-hidden="true"></span>'); }); }
     scr.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-rime" aria-hidden="true"></span>');
     const ft = scr.querySelector('.home2-footer');
     if (ft) ft.insertAdjacentHTML('afterbegin', '<div class="wa-x wa-foot"><span class="wa-foot-l"><b>WINTER ARC</b><i></i>YOUR NEXT OPPONENT IS YOU.</span><span class="wa-foot-r">COMPETE WITH YOURSELF.</span></div>');

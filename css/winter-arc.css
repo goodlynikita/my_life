@@ -94,8 +94,6 @@ html[data-design="wa"] .layout-23 .home2-tile:not(.tile-w3) .wa-art, html[data-d
 
 /* слайдер сверху: ночное небо и заснеженная вершина справа */
 html[data-design="wa"] .hero-slider { background: linear-gradient(120deg, #0A1222 0%, #0C1830 60%, #0E1D3A 100%) !important; border: 1px solid rgba(150,190,255,.16); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(220,235,255,.08); }
-.wa-peak { position: absolute; right: 0; top: 0; bottom: 0; height: 100%; aspect-ratio: 392 / 216; max-width: 70%; z-index: 0; pointer-events: none; background: url(../img/wa/mountain.webp) right bottom / cover no-repeat;
-  filter: hue-rotate(-115deg) saturate(.75) brightness(1.35); opacity: .9; -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
 html[data-design="wa"] .hero-slides { position: relative; z-index: 1; }
 html[data-design="wa"] .hero-slide { background: transparent !important; }
 html[data-design="wa"] .hero-slide::before, html[data-design="wa"] .hero-slide::after { display: none !important; }
@@ -121,7 +119,6 @@ html[data-design="wa"] .hero-dot.active { background: #CFE3FF !important; box-sh
   .wa-spark { right: 10px; bottom: 30px; width: 62%; height: 40%; }
   .wa-lines { right: 12px; width: 30%; gap: 8px; } .wa-lines i { height: 7px; }
   .wa-foot { flex-direction: column; gap: 8px; font-size: 9.5px; letter-spacing: .18em; padding-top: 8px; }
-  .wa-peak { opacity: .55; max-width: 85%; }
 }
 
 
@@ -170,3 +167,13 @@ html[data-design="wa"] .hero-slide-glow { display: none !important; }
   .wa-bar em { font-size: 8.5px; }
   .wa-frost { opacity: .45; background-size: 180px 180px; }
 }
+
+/* ── картинки от Ника: статуя на тренировках, свои горы на каждом слайде ── */
+.wa-img-statue { height: 112%; bottom: -6%; max-width: 58%; object-fit: cover; object-position: center top; filter: brightness(1.05) contrast(1.1) !important; opacity: .95;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%); mask-image: linear-gradient(90deg, transparent 0%, #000 45%); }
+.wa-sbg { position: absolute; top: 0; right: 0; bottom: 0; width: 64%; z-index: 0; pointer-events: none; background-size: cover; background-position: center 35%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 30%, #000 70%); mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 30%, #000 70%); opacity: .9; }
+.wa-sbg-focus { width: 70%; background-position: center 30%; opacity: .8; }
+.wa-sbg-peak3 { filter: saturate(.9); }
+html[data-design="wa"] .hero-slide > :not(.wa-sbg) { position: relative; z-index: 1; }
+@media (max-width: 600px) { .wa-sbg { width: 78%; opacity: .7; } .wa-img-statue { max-width: 72%; opacity: .8; } }

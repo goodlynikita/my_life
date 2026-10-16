@@ -178,15 +178,15 @@ window.WinterArc = (function () {
     'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
       const dots = list.slice(0, 12).map(h => (marks[h.id] || {})[now.getDate()] === 'done');
-      /* точки по кругу, как в загрузке: сделанные светятся, по кругу бежит тихий блик */
+      /* точки по кругу, как в загрузке: сделанные светятся */
       const n = dots.length; if (!n) return '';
       return '<div class="wa-ring" style="--n:' + n + '">' + dots.map((d, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2;
         return '<i class="' + (d ? 'on' : '') + '" style="left:' + (50 + 42 * Math.cos(a)).toFixed(2) + '%;top:' + (50 + 42 * Math.sin(a)).toFixed(2) + '%;--i:' + i + '"></i>'; }).join('') + '</div>'; },
-    /* финансы: купюры и монеты летят по ветру вместе со снегом; под ними тихие столбики дохода за полгода */
+    /* финансы: купюры и монеты летят по ветру вместе со снегом */
     'home2-tile-finance': () => { const now = new Date(), v = [];
       for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push(x); }
       const mx = Math.max.apply(null, v);
-      const bars = mx > 0 ? '<span class="wa-bars wa-bars-bg">' + v.map((x, i) => '<span class="wa-bar' + (i === 5 ? ' cur' : '') + '"><i style="--h:' + Math.max(4, Math.round(x / mx * 100)) + '%;--d:' + (i * 70) + 'ms"></i></span>').join('') + '</span>' : '';
+      const bars = '';
       const F = [[12, 7.5, 0, 'b'], [38, 9, -2.5, 'b'], [64, 8.2, -5.2, 'c'], [24, 10, -6.8, 'b'], [52, 7, -1.2, 'c'], [76, 9.4, -4, 'b'], [8, 8.6, -3.4, 'c']];
       return bars + '<span class="wa-fly">' + F.map(f => '<i class="wa-' + f[3] + '" style="--y:' + f[0] + '%;--t:' + f[1] + 's;--dl:' + f[2] + 's"></i>').join('') + '</span>'; },
     /* пешка, которая видит в зеркале короля: каждый маленький шаг делает тебя сильнее */

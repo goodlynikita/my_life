@@ -247,7 +247,27 @@ const FirebaseSync = (() => {
 
   /* Приложение открылось без связи (данные из копии на телефоне). Пробуем подтянуть сервер,
      как только появится сеть: сервер становится основой, а правки, сделанные без связи, ложатся сверху и уходят на сервер */
-  let _offline = false, _retryT = null;
+  let _offline = false, _retryT = null, _base = null;
+  /* слепок данных, с которых начали работу без связи: по нему понятно, что поменял ты, а что изменилось на сервере */
+  function markBase() { if (_offline && !_base) try { _base = JSON.parse(JSON.stringify(Store.get() || {})); } catch (e) {} }
+  const _isObj = (v) => v && typeof v === 'object';
+  const _asArr = (v) => Array.isArray(v) ? v : (_isObj(v) && Object.keys(v).length && Object.keys(v).every(k => /^\d+$/.test(k)) ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : null);
+  /* трёхстороннее слияние: берём твои правки поверх сервера только там, где ты реально что-то менял;
+     если одно и то же поле поменялось и тут, и на сервере, остаётся серверное (а твоя копия лежит в nik_local_backup_prev) */
+  function merge3(b, l, r) {
+    if (_sameData(l, b)) return r;
+    if (_sameData(r, b) || _sameData(l, r)) return l;
+    const la = _asArr(l), ra = _asArr(r), ba = _asArr(b) || [];
+    if (la && ra) { const n = ba.length, out = [];
+      for (let i = 0; i < Math.min(n, Math.max(la.length, ra.length)); i++) { const v = merge3(ba[i], la[i], ra[i]); if (v !== undefined) out.push(v); }
+      ra.slice(n).forEach(x => out.push(x));
+      la.slice(n).forEach(x => { if (!ra.slice(n).some(y => _sameData(x, y))) out.push(x); });
+      return out; }
+    if (_isObj(l) && _isObj(r) && !la && !ra) { const out = {}; const bo = _isObj(b) ? b : {};
+      new Set(Object.keys(l).concat(Object.keys(r))).forEach(k => { const v = merge3(bo[k], l[k], r[k]); if (v !== undefined && v !== null) out[k] = v; });
+      return out; }
+    return r;
+  }
   function _startRetry() {
     if (_retryT) return;
     _retryT = setInterval(_retryPull, 20000);
@@ -260,12 +280,15 @@ const FirebaseSync = (() => {
       const snap = await Promise.race([get(ref(_db, root)), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
       if (_loaded) return;
       const remote = snap.exists() ? snap.val() : null;
-      const local = [..._queue.entries()]; _queue.clear();
+      const tops = [...new Set([..._queue.keys()].map(p => String(p).split('.')[0]))]; _queue.clear();
+      let mine = null; try { mine = JSON.parse(JSON.stringify(Store.get() || {})); } catch (e) {}
+      const base = _base || {};
       if (remote) Store.replaceAll(remote);
-      _loaded = true; _offline = false;
+      _loaded = true; _offline = false; _base = null;
       clearInterval(_retryT); _retryT = null; window.removeEventListener('online', _retryPull);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);
-      local.forEach(([p, v]) => { try { Store.set(p, v); } catch (e) {} });
+      /* правки без связи накладываем аккуратно: только то, что поменял ты, не затирая свежее с сервера */
+      if (mine) tops.forEach(top => { try { const r = (remote || {})[top], m = merge3(base[top], mine[top], r); if (m !== undefined && !_sameData(m, r)) Store.set(top, m); } catch (e) {} });
       setStatus('Данные загружены');
       window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: Object.keys(Store.get() || {}) } }));
     } catch (e) {}
@@ -765,6 +788,7 @@ const FirebaseSync = (() => {
     isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer, loadSlots, slotsOn,
     inboxClaim, inboxDrop, inboxTake,
     /* быстрый старт: экран уже показан из копии на телефоне, сервер подтягиваем фоном (правки за это время не теряются) */
+    markBase,
     startLocal: () => { if (!userRoot() || isCoachUser(_auth.currentUser)) return false; _loaded = false; _offline = true; _startRetry(); _retryPull(); return true; },
     isConfigured, pullIntoStore, scheduleSave, resetPassword, idToken,
     pushNow: _pushBeacon,

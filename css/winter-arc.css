@@ -123,16 +123,11 @@ html[data-design="wa"] .hero-dot.active { background: #CFE3FF !important; box-sh
 
 
 /* ── иней: кристаллики по углам плиток и слайдера, изморозь по верхнему краю экрана ── */
-.wa-frost { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .5; filter: blur(.3px);
-  background-color: transparent;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .92 0 0 0 0 .96 0 0 0 0 1 0 0 0 15 -10.2'/%3E%3C/filter%3E%3Cfilter id='v'%3E%3CfeTurbulence type='turbulence' baseFrequency='.035' numOctaves='4' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .85 0 0 0 0 .93 0 0 0 0 1 0 0 0 -14 2.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)' opacity='.55'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-  background-size: 240px 240px; box-shadow: inset -40px 40px 60px -40px rgba(220,235,255,.10), inset 30px -30px 50px -40px rgba(220,235,255,.06);
-  -webkit-mask-image: radial-gradient(150px 110px at 100% 0%, #000 0%, rgba(0,0,0,.5) 45%, transparent 100%), radial-gradient(110px 80px at 0% 100%, rgba(0,0,0,.7), transparent 100%);
-  mask-image: radial-gradient(150px 110px at 100% 0%, #000 0%, rgba(0,0,0,.5) 45%, transparent 100%), radial-gradient(110px 80px at 0% 100%, rgba(0,0,0,.7), transparent 100%); }
-.wa-frost-hero { z-index: 0; opacity: .5; -webkit-mask-image: radial-gradient(220px 120px at 0% 100%, #000, transparent), radial-gradient(160px 100px at 100% 0%, rgba(0,0,0,.6), transparent); mask-image: radial-gradient(220px 120px at 0% 100%, #000, transparent), radial-gradient(160px 100px at 100% 0%, rgba(0,0,0,.6), transparent); }
-.wa-rime { position: fixed !important; left: 0; right: 0; top: 0; height: 110px; z-index: 0 !important; pointer-events: none; opacity: .18;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .95 0 0 0 0 1 0 0 0 15 -10.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0 / 240px 240px;
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
+.wa-frost { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .75; background: url(../img/wa/frost.webp) right top / 300px 300px no-repeat; }
+.wa-frost::after { content: ''; position: absolute; left: 0; bottom: 0; width: 180px; height: 180px; background: url(../img/wa/frost.webp) center / cover no-repeat; transform: scale(-1, -1); opacity: .55; }
+.wa-frost-hero { z-index: 0; opacity: .6; background-size: 360px 360px; }
+.wa-rime { position: fixed !important; left: 0; right: 0; top: 0; height: 160px; z-index: 0 !important; pointer-events: none; opacity: .22; background: url(../img/wa/frost.webp) right top / 320px 320px no-repeat; }
+.wa-rime { -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
 
 /* ── тренировки: силуэт, сегодняшние мышцы светятся ледяным синим ── */
 .wa-body { position: absolute; right: 9%; top: 3%; bottom: 3%; aspect-ratio: 320 / 597; }
@@ -165,7 +160,7 @@ html[data-design="wa"] .hero-slide-glow { display: none !important; }
   .wa-bars { right: 12px; bottom: 30px; top: 16px; gap: 7px; }
   .wa-bar i { width: 9px; }
   .wa-bar em { font-size: 8.5px; }
-  .wa-frost { opacity: .45; background-size: 180px 180px; }
+  .wa-frost { opacity: .7; background-size: 200px 200px; } .wa-frost::after { width: 120px; height: 120px; }
 }
 
 /* ── картинки от Ника: статуя на тренировках, свои горы на каждом слайде ── */
@@ -188,21 +183,32 @@ html[data-design="wa"] .hero-slide > :not(.wa-sbg) { position: relative; z-index
 .wa-img-chess { height: 120%; bottom: -10%; max-width: 46%; object-fit: cover; object-position: center 60%; filter: contrast(1.1) brightness(1.1); -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%); mask-image: linear-gradient(90deg, transparent, #000 40%); }
 @media (max-width: 600px) { .wa-img-chess { max-width: 55%; opacity: .85; } }
 
-/* ── финансы: купюры и монеты по ветру ── */
-.wa-fly { position: absolute; top: 0; bottom: 0; right: 0; width: 72%; overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 85%, transparent); mask-image: linear-gradient(90deg, transparent, #000 30%, #000 85%, transparent); }
-.wa-fly i { position: absolute; left: 0; top: var(--y); animation: waWind var(--t) linear infinite; animation-delay: var(--dl); will-change: transform; }
-.wa-fly .wa-b { width: 42px; height: 21px; border-radius: 2px;
-  background: linear-gradient(135deg, #E8F2EC 0%, #BFD8C8 45%, #9FC2AE 100%); box-shadow: inset 0 0 0 1.5px rgba(70,110,90,.55), inset 0 0 0 4px rgba(255,255,255,.35), 0 0 12px rgba(var(--wa),.35); opacity: .85; }
-.wa-fly .wa-b::after { content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; border: 1.5px solid rgba(70,110,90,.6); }
-.wa-fly .wa-c { width: 15px; height: 15px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFF4C8, #F4C44E 45%, #B9851E 100%); box-shadow: 0 0 10px rgba(244,196,78,.6); }
-@keyframes waWind {
-  0% { transform: translate(-60px, 0) rotate(-12deg) rotateY(0deg); }
-  25% { transform: translate(calc(var(--fw, 560px) * .25), 14px) rotate(8deg) rotateY(180deg); }
-  50% { transform: translate(calc(var(--fw, 560px) * .5), -6px) rotate(-6deg) rotateY(360deg); }
-  75% { transform: translate(calc(var(--fw, 560px) * .75), 12px) rotate(10deg) rotateY(540deg); }
-  100% { transform: translate(calc(var(--fw, 560px) + 60px), 0) rotate(-8deg) rotateY(720deg); }
-}
-.wa-fly { --fw: 560px; container-type: size; }
-@supports (width: 1cqw) { .wa-fly { --fw: 100cqw; } }
-@media (max-width: 600px) { .wa-fly { width: 80%; } .wa-fly .wa-b { width: 24px; height: 12px; } .wa-fly .wa-c { width: 10px; height: 10px; } @media (prefers-reduced-motion: reduce) { .wa-fly i { animation: none; transform: translateX(calc(var(--y) * 3)); } }
+
+/* ═══ Импульсы: редкие, у каждой плитки свой ритм ═══ */
+/* цели: попадание в мишень + разлом */
+.wa-tg { position: absolute; right: 6%; top: 4%; height: 92%; aspect-ratio: 270 / 227; }
+.wa-tg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; -webkit-mask-image: radial-gradient(closest-side, #000 75%, transparent); mask-image: radial-gradient(closest-side, #000 75%, transparent); animation: waTgImg 11s ease-out infinite 2.5s; }
+.wa-hit { position: absolute; left: 47%; top: 50%; width: 46%; aspect-ratio: 1; transform: translate(-50%, -50%) scale(.3); border-radius: 50%; opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,214,140,.95) 0%, rgba(255,150,40,.55) 30%, rgba(255,120,20,0) 70%); mix-blend-mode: screen; animation: waHit 11s ease-out infinite 2.5s; }
+.wa-crack { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.wa-crack path { fill: none; stroke: #FFE2B0; stroke-width: .9; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 2px rgba(255,170,60,.9)); stroke-dasharray: 40; stroke-dashoffset: 40; opacity: 0; animation: waCrack 11s ease-out infinite 2.5s; }
+@keyframes waHit { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.3); } 1.5% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 9% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } 100% { opacity: 0; } }
+@keyframes waCrack { 0% { opacity: 0; stroke-dashoffset: 40; } 1.5% { opacity: 1; } 5% { stroke-dashoffset: 0; opacity: 1; } 22% { opacity: .55; stroke-dashoffset: 0; } 32% { opacity: 0; stroke-dashoffset: 0; } 100% { opacity: 0; stroke-dashoffset: 0; } }
+@keyframes waTgImg { 0%, 100% { filter: none; transform: none; } 1.2% { filter: brightness(1.4); transform: translateX(1.5px); } 2.4% { transform: translateX(-1.5px); } 4% { filter: brightness(1.1); transform: none; } 10% { filter: none; } }
+@media (max-width: 600px) { .wa-tg { right: 2%; } }
+
+/* привычки: сделанные плавно вспыхивают зелёным импульсом */
+.wa-ring i.on { animation: waGlow 6.5s ease-in-out infinite 1s; }
+@keyframes waGlow { 0%, 100% { box-shadow: 0 0 12px rgba(var(--wa),.85); filter: none; } 10% { box-shadow: 0 0 22px 4px rgba(var(--wa),1); filter: brightness(1.45); } 24% { box-shadow: 0 0 12px rgba(var(--wa),.85); filter: none; } }
+
+/* тренировки: по статуе изредка проходит холодный свет */
+.wa-img-statue { animation: waStatue 13s ease-in-out infinite 4s; }
+@keyframes waStatue { 0%, 100% { filter: contrast(1.1) brightness(1.05); } 6% { filter: contrast(1.18) brightness(1.5) sepia(.45) hue-rotate(185deg) saturate(2.2); } 16% { filter: contrast(1.1) brightness(1.05); } }
+
+/* финансы: по столбику текущего месяца поднимается импульс, верхушка вспыхивает */
+.wa-bar i { position: relative; overflow: hidden; }
+.wa-bar.cur i::after { content: ''; position: absolute; left: 0; right: 0; height: 40%; bottom: -40%; background: linear-gradient(0deg, transparent, rgba(255,255,255,.95), transparent); animation: waRise 8.5s ease-in-out infinite 3s; }
+.wa-bar.cur i { animation: waGrow .9s var(--d) cubic-bezier(.2,.8,.2,1) forwards, waCap 8.5s ease-in-out infinite 3s; }
+@keyframes waRise { 0% { bottom: -40%; opacity: 0; } 2% { opacity: 1; } 14% { bottom: 100%; opacity: 1; } 16%, 100% { bottom: 100%; opacity: 0; } }
+@keyframes waCap { 0%, 12%, 100% { box-shadow: 0 0 18px rgba(var(--wa),.9), 0 -2px 10px rgba(255,255,255,.6); } 15% { box-shadow: 0 0 30px 6px rgba(var(--wa),1), 0 -6px 18px rgba(255,255,255,.95); } 26% { box-shadow: 0 0 18px rgba(var(--wa),.9), 0 -2px 10px rgba(255,255,255,.6); } }
+@media (prefers-reduced-motion: reduce) { .wa-tg img, .wa-hit, .wa-crack path, .wa-ring i.on, .wa-img-statue, .wa-bar.cur i::after { animation: none !important; } .wa-bar.cur i { animation: waGrow .01s forwards !important; } }

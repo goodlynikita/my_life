@@ -154,6 +154,12 @@
         ".write": "auth != null && $t === auth.uid"
       }
     },
+    "snapshots": {
+      "$u": {
+        ".read": "auth != null && $u === auth.uid",
+        ".write": "auth != null && $u === auth.uid"
+      }
+    },
     "aiUsage": {
       ".read": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",
       ".write": "auth != null && auth.token.email === 'nedomolkin.1998@mail.ru'",

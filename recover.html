@@ -20,6 +20,7 @@
 <div class="sub">Здесь видно, какие копии данных есть в этом браузере и на сервере. Сначала скачай всё, потом восстанавливай нужную копию.</div>
 <div id="auth"></div>
 <div id="server"></div>
+<div id="snaps"></div>
 <div id="local"></div>
 </div>
 <script type="module">
@@ -61,6 +62,19 @@ onAuthStateChanged(auth, async (u) => {
   const root = rootOf(u); let server = null;
   try { const s = await get(ref(db, root)); server = s.exists() ? s.val() : {}; } catch (e) { $('server').innerHTML = '<div class="card err">Не удалось прочитать сервер. Проверь интернет.</div>'; }
   if (server) { $('server').innerHTML = `<div class="card"><h3>Сейчас на сервере</h3>${summary(server)}<button class="b2" id="sdl">Скачать</button></div>`; $('sdl').onclick = () => download('you-server-' + stamp() + '.json', server); }
+  /* ежедневные снимки на сервере */
+  try { const ls = await get(ref(db, 'snapshots/' + u.uid + '/_list')); const days = ls.exists() ? Object.keys(ls.val()).sort().reverse() : [];
+    $('snaps').innerHTML = `<div class="card"><h3>Снимки по дням</h3>${days.length ? days.map(dd => `<div class="row"><span>${dd.split('-').reverse().join('.')}</span><span><button class="b2" data-sv="${dd}" style="height:34px;margin:0 6px 0 0">Посмотреть</button><button class="b3" data-sr="${dd}" style="height:34px;margin:0">Вернуть</button></span></div><div id="sv-${dd}"></div>`).join('') : '<div class="sub">Пока нет. Снимок делается раз в день при первом входе.</div>'}<div class="msg" id="snm"></div></div>`;
+    const load = async (dd) => { const s = await get(ref(db, 'snapshots/' + u.uid + '/' + dd)); return s.exists() ? s.val() : null; };
+    days.forEach(dd => {
+      document.querySelector(`[data-sv="${dd}"]`).onclick = async () => { const sn = await load(dd); $('sv-' + dd).innerHTML = sn ? `<div style="padding:6px 0 10px">${summary(sn.data)}<button class="b2" data-sd="${dd}">Скачать</button></div>` : ''; const b = document.querySelector(`[data-sd="${dd}"]`); if (b) b.onclick = () => download('you-snapshot-' + dd + '.json', sn.data); };
+      document.querySelector(`[data-sr="${dd}"]`).onclick = async () => { if (!confirm('Вернуть данные на ' + dd.split('-').reverse().join('.') + '? Текущие данные сначала скачаются файлом.')) return;
+        const sn = await load(dd); if (!sn || !sn.data) { $('snm').innerHTML = '<span class="err">Снимок пустой</span>'; return; }
+        if (server) download('you-server-before-restore-' + stamp() + '.json', server);
+        const upd = Object.assign({}, sn.data); Object.keys(server || {}).forEach(k => { if (!(k in upd) && ['training','habits','finance','goals','tasks'].includes(k)) upd[k] = null; });
+        try { await update(ref(db, root), upd); $('snm').innerHTML = '<span class="ok">Готово, данные на ' + dd.split('-').reverse().join('.') + ' возвращены. Открывай приложение заново.</span>'; } catch (e) { $('snm').innerHTML = '<span class="err">Ошибка: ' + esc(e.message || e) + '</span>'; } };
+    });
+  } catch (e) { $('snaps').innerHTML = '<div class="card"><h3>Снимки по дням</h3><div class="sub">Пока недоступны: нужно обновить правила базы.</div></div>'; }
   copies.forEach((c, i) => { const b = document.querySelector(`[data-rs="${i}"]`); if (!b) return; b.onclick = async () => {
     if (!confirm('Заменить данные на сервере этой копией? Текущие данные с сервера сначала скачаются файлом.')) return;
     if (server) download('you-server-before-restore-' + stamp() + '.json', server);

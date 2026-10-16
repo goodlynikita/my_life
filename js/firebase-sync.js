@@ -199,6 +199,21 @@ const FirebaseSync = (() => {
     return _coachRoot;
   }
 
+  /* Ежедневный снимок: первый раз за день, когда данные пришли с сервера, кладём их копию в snapshots/{uid}/{дата}.
+     Храним 14 последних дней, вернуть можно на странице recover.html */
+  async function _snapshot(remote) {
+    try {
+      const u = _auth.currentUser; if (!u || isCoachUser(u) || !remote || typeof remote !== 'object') return;
+      const d = new Date(), day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const base = 'snapshots/' + u.uid;
+      const lst = await get(ref(_db, base + '/_list')); const list = lst.exists() ? lst.val() : {};
+      if (list[day]) return;
+      await set(ref(_db, base + '/' + day), { at: Date.now(), data: sanitizeKeys(remote) });
+      list[day] = Date.now(); await set(ref(_db, base + '/_list/' + day), list[day]);
+      const old = Object.keys(list).sort().reverse().slice(14);
+      for (const k of old) { await set(ref(_db, base + '/' + k), null); await set(ref(_db, base + '/_list/' + k), null); }
+    } catch (e) { console.warn('snapshot failed', e); }
+  }
   async function pullIntoStore() {
     if (isCoachUser(_auth.currentUser)) {
       try {
@@ -231,7 +246,7 @@ const FirebaseSync = (() => {
         remote?.goals?.directions ||
         (remote?.habits?.list && remote.habits.list.length > 0)
       );
-      if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); }
+      if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); _snapshot(remote); }
       /* Если у пользователя нет данных но он владелец - данные уже в nik-data */
       _loaded = true;
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000); /* 5 минут */
@@ -283,7 +298,7 @@ const FirebaseSync = (() => {
       const tops = [...new Set([..._queue.keys()].map(p => String(p).split('.')[0]))]; _queue.clear();
       let mine = null; try { mine = JSON.parse(JSON.stringify(Store.get() || {})); } catch (e) {}
       const base = _base || {};
-      if (remote) Store.replaceAll(remote);
+      if (remote) { Store.replaceAll(remote); _snapshot(remote); }
       _loaded = true; _offline = false; _base = null;
       clearInterval(_retryT); _retryT = null; window.removeEventListener('online', _retryPull);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);

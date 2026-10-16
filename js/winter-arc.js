@@ -204,6 +204,18 @@ window.WinterArc = (function () {
     const hs = scr.querySelector('.hero-slider'); if (hs) hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-peak" aria-hidden="true"></span>');
     const ft = scr.querySelector('.home2-footer');
     if (ft) ft.insertAdjacentHTML('afterbegin', '<div class="wa-x wa-foot"><span class="wa-foot-l"><b>WINTER ARC</b><i></i>YOUR NEXT OPPONENT IS YOU.</span><span class="wa-foot-r">COMPETE WITH YOURSELF.</span></div>');
+    /* демо для выбора варианта (видит только владелец): A по макету, B монохром как на Pinterest, C кино-обложка */
+    const v = ls('you_wa_var') || 'a'; document.documentElement.dataset.waVar = v;
+    if (isOwner()) {
+      scr.insertAdjacentHTML('beforeend', '<div class="wa-x wa-demo">' + ['a', 'b', 'c'].map(k => '<button data-wv="' + k + '"' + (k === v ? ' class="on"' : '') + '>' + k.toUpperCase() + '</button>').join('') + '</div>');
+      scr.querySelectorAll('[data-wv]').forEach(b => b.onclick = (e) => { e.stopPropagation(); ls('you_wa_var', b.dataset.wv); decorate(mount, st); });
+    }
+    if (v === 'c') { const start = new Date(RELEASE + 'T00:00:00'), d0 = new Date(); d0.setHours(0, 0, 0, 0);
+      const day = Math.floor((d0 - start) / 864e5) + 1, txt = day >= 1 ? 'ДЕНЬ ' + Math.min(day, 90) + ' / 90' : 'СТАРТ ЧЕРЕЗ ' + (1 - day) + ' ДН.';
+      const pct = Math.max(0, Math.min(100, (day - 1) / 90 * 100));
+      const hd = scr.querySelector('.home2-header'); if (hd) hd.insertAdjacentHTML('afterend', '<div class="wa-x wa-cover"><div class="wa-cover-t"><span>SEASON 01</span><b>WINTER<br>ARC</b><em>' + txt + '</em><i style="--p:' + pct + '%"></i></div></div>'); }
+    if (v === 'b') { const Q = ['LOCK IN.', 'NO DAYS OFF.', 'YOUR NEXT OPPONENT IS YOU.', 'BECOME WHO YOU SAID YOU WOULD BE.', 'DISCIPLINE OVER MOTIVATION.']; const fl = scr.querySelector('.wa-foot-l');
+      if (fl) fl.innerHTML = '<b>WINTER ARC</b><i></i>' + Q[new Date().getDate() % Q.length]; }
     snow(scr);
   }
   /* тихий снег на фоне главной; при «меньше движения» не идёт */

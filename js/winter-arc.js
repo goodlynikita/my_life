@@ -221,7 +221,7 @@ window.WinterArc = (function () {
       const ds = c.querySelector('.home2-tile-desc'), m = ds && metric(ds.textContent);
       if (ds) ds.classList.toggle('wa-hide', !!m);
       if (m) ds.insertAdjacentHTML('afterend', '<div class="wa-x wa-met"><b>' + esc(m[0]) + '</b>' + (m[1] ? '<span>' + esc(m[1]) + '</span>' : '') + '</div>');
-      const fr = { 'home2-tile-training': 'needle', 'home2-tile-habits': 'fern', 'home2-tile-finance': 'flake', 'home2-tile-goals': 'crack', 'home2-tile-tasks': 'feather' }[key] || 'fern';
+      const fr = { 'home2-tile-training': 'shard', 'home2-tile-habits': 'fern', 'home2-tile-finance': 'flake', 'home2-tile-goals': 'crack', 'home2-tile-tasks': 'feather' }[key] || 'fern';
       t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost wa-frost-' + fr + '" aria-hidden="true"></span><span class="wa-x wa-arr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
       tap(t); if (key === 'home2-tile-finance') ball(t);
     });

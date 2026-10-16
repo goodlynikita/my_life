@@ -335,19 +335,6 @@ html[data-design="wa"] .home2-tile:hover .wa-arr { transform: none; background: 
 html[data-design="wa"] .home2-tile:hover .wa-arr svg { transform: rotate(45deg); }
 @media (max-width: 600px) { .wa-arr { right: 12px !important; bottom: 12px !important; width: 32px; height: 32px; } .wa-arr svg { width: 15px; height: 15px; } }
 
-/* ── иней у каждой плитки свой ── */
-.wa-frost-needle { background-image: url(../img/wa/frost-needle.webp); }
-.wa-frost-fern { background-image: url(../img/wa/frost-fern.webp); }
-.wa-frost-flake { background-image: url(../img/wa/frost-flake.webp); }
-.wa-frost-crack { background-image: url(../img/wa/frost-crack.webp); }
-.wa-frost-feather { background-image: url(../img/wa/frost-feather.webp); }
-.wa-frost-needle::after { background-image: url(../img/wa/frost-needle.webp); }
-.wa-frost-fern::after { background-image: url(../img/wa/frost-fern.webp); }
-.wa-frost-flake::after { background-image: url(../img/wa/frost-flake.webp); }
-.wa-frost-crack::after { background-image: url(../img/wa/frost-crack.webp); }
-.wa-frost-feather::after { background-image: url(../img/wa/frost-feather.webp); }
-.wa-frost-flake::after, .wa-frost-crack::after { display: none; }
-
 /* ── иллюстрации не заходят под стрелку ── */
 .wa-ring { right: 78px; }
 .wa-bars { right: 76px; }
@@ -396,8 +383,25 @@ html[data-design="wa"] .skv-ring .hero-stat-lbl { max-width: none; white-space: 
 html[data-design="wa"] .hero-pays { max-width: min(560px, 58%); }
 @media (max-width: 600px) { html[data-design="wa"] .hero-pays { max-width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .wa-ecg path.hot, .wa-hg, .wa-hg *, :is(.tr-header, .hab-header, .tochka-header, .goals-header, .tk-hdr)::after { animation: none !important; } }
-/* иней тише, чтобы не спорил с иллюстрациями */
-html[data-design="wa"] .home2-tile .wa-frost { opacity: .42; background-size: 260px 260px; }
-html[data-design="wa"] .home2-tile .wa-frost::after { opacity: .5; width: 150px; height: 150px; }
-html[data-design="wa"] .home2-tile .wa-frost-flake, html[data-design="wa"] .home2-tile .wa-frost-fern { opacity: .3; }
-@media (max-width: 600px) { html[data-design="wa"] .home2-tile .wa-frost { background-size: 190px 190px; } html[data-design="wa"] .home2-tile .wa-frost::after { width: 110px; height: 110px; } }
+
+/* ═══ иней: у каждой плитки свой узор, у угла ледяной белый, дальше уходит в цвет плитки ═══ */
+html[data-design="wa"] .home2-tile .wa-frost { --fz: 300px; --fo: .6; --fa: 150px; --fao: .32; opacity: var(--fo); background: radial-gradient(130% 130% at 100% 0%, #F2F8FF 0%, rgba(214,232,255,.95) 22%, rgb(var(--wa)) 70%);
+  -webkit-mask: var(--fm) right top / var(--fz) var(--fz) no-repeat; mask: var(--fm) right top / var(--fz) var(--fz) no-repeat; }
+html[data-design="wa"] .home2-tile .wa-frost::after { content: ''; left: 0; bottom: 0; width: var(--fa); height: var(--fa); opacity: var(--fao); transform: scale(-1, -1);
+  background: radial-gradient(130% 130% at 100% 0%, #F2F8FF 0%, rgb(var(--wa)) 70%); -webkit-mask: var(--fm) center / cover no-repeat; mask: var(--fm) center / cover no-repeat; }
+html[data-design="wa"] .home2-tile .wa-frost-shard { --fm: url(../img/wa/frost-shard.webp); --fz: 290px; --fo: .7; }
+html[data-design="wa"] .home2-tile .wa-frost-fern { --fm: url(../img/wa/frost-fern.webp); --fz: 310px; --fo: .5; }
+html[data-design="wa"] .home2-tile .wa-frost-flake { --fm: url(../img/wa/frost-flake.webp); --fz: 300px; --fo: .62; }
+html[data-design="wa"] .home2-tile .wa-frost-crack { --fm: url(../img/wa/frost-crack.webp); --fz: 330px; --fo: .5; }
+html[data-design="wa"] .home2-tile .wa-frost-feather { --fm: url(../img/wa/frost-feather.webp); --fz: 310px; --fo: .62; }
+html[data-design="wa"] .home2-tile :is(.wa-frost-flake, .wa-frost-crack)::after { display: none; }
+@media (max-width: 600px) {
+  html[data-design="wa"] .home2-tile .wa-frost { --fz: 210px; --fa: 100px; }
+  html[data-design="wa"] .home2-tile .wa-frost-crack { --fz: 230px; }
+}
+/* кристаллы лежат поверх статуи, как иней на стекле; снежинки правее столбиков */
+html[data-design="wa"] .home2-tile .wa-frost-shard { z-index: 2; }
+html[data-design="wa"] .home2-tile .wa-frost-fern { --fo: .42; }
+html[data-design="wa"] .home2-tile .wa-frost-flake { --fz: 230px; --fo: .55; }
+@media (min-width: 601px) { html[data-design="wa"] .home2-tile-finance .wa-bars { right: 150px; } }
+@media (max-width: 600px) { html[data-design="wa"] .home2-tile .wa-frost-flake { --fz: 150px; --fo: .42; } html[data-design="wa"] .home2-tile .wa-frost-shard { --fo: .55; } }

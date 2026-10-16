@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         /* Быстрый старт без ожидания сети: есть копия данных этого же аккаунта на телефоне, значит показываем сразу,
            а сервер (и проверку блокировки) подтягиваем фоном. Тренеру так нельзя: у него чужие данные */
         let lastUid = ''; try { lastUid = localStorage.getItem('nik_backup_uid') || ''; } catch (e) {}
-        if (user && lastUid === user.uid && !(FirebaseSync.isCoach && FirebaseSync.isCoach()) && Store.loadFromLocalBackup && Store.loadFromLocalBackup() && FirebaseSync.startLocal && FirebaseSync.startLocal()) {
+        if (false && user && lastUid === user.uid && !(FirebaseSync.isCoach && FirebaseSync.isCoach()) && Store.loadFromLocalBackup && Store.loadFromLocalBackup() && FirebaseSync.startLocal && FirebaseSync.startLocal()) {
           window.__fastStart = true;
           if (FirebaseSync.touchUserIndex) FirebaseSync.touchUserIndex(user);
           if (FirebaseSync.isBlocked) FirebaseSync.isBlocked(user).then(b => { if (b) { window._accountBlocked = true; FirebaseSync.logout().then(() => location.reload()); } }).catch(() => {});

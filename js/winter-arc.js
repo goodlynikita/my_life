@@ -22,7 +22,7 @@ window.WinterArc = (function () {
     else if (!isOn() && h.dataset.waLight) { delete h.dataset.waLight; if (window.Theme && Theme.get() === 'light') h.setAttribute('data-theme', 'light'); } }
   try { new MutationObserver(keepDark).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-design'] }); } catch (e) {}
   keepDark();
-  function setDesign(on) { ls('you_design', on ? 'wa' : null); applyAttr(); if (window.Router) { window.__keepUi = true; try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; } } }
+  function setDesign(on) { ls('you_design', on ? 'wa' : null); applyAttr(); if (typeof Router !== 'undefined') { window.__keepUi = true; try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; } } }
 
   function html() {
     return '<div class="ds-sw" id="ds-sw" role="tablist" aria-label="Дизайн">'
@@ -149,6 +149,8 @@ window.WinterArc = (function () {
     function finish() {
       if (done) return; done = true;
       if (available()) { ls('you_wa_intro', '1'); ov.classList.add('out'); document.body.classList.remove('wa-busy'); busy = false;
+        /* улетевшие элементы возвращаем на место, иначе экран остаётся пустым */
+        els.forEach(el => { (MINE.get(el) || []).forEach(a => { try { a.cancel(); } catch (e) {} }); el.style.opacity = ''; el.style.transform = ''; el.style.filter = ''; });
         setDesign(true); setTimeout(() => { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} ov.remove(); }, 500); return; }
       ov.classList.add('ended');
       const sb = ov.querySelector('.wa-sound'); if (sb) sb.remove();
@@ -171,19 +173,21 @@ window.WinterArc = (function () {
 
   /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
   const ART = {
-    'home2-tile-training': () => '<img class="wa-img wa-img-back" src="img/wa/back.webp" alt="">',
+    /* силуэт: подсвечены мышцы сегодняшней тренировки */
+    'home2-tile-training': (st) => { const KEY = { 'Грудь': 'chest', 'Спина': 'back', 'Ноги': 'legs', 'Руки': 'arms', 'Плечи': 'shoulders', 'Кор': 'core' };
+      const t = window.todayWorkoutInfo ? todayWorkoutInfo(st) : { text: '' }; const parts = String(t.text || '').split(' + ');
+      const keys = parts.includes('FULL BODY') ? Object.values(KEY) : parts.map(x => KEY[x]).filter(Boolean);
+      return '<span class="wa-body' + (keys.length ? ' on' : '') + '"><img src="img/m/body.png" alt="">' + keys.map(k => '<img class="ov" src="img/m/ov_' + k + '.png" alt="">').join('') + '</span>'; },
     'home2-tile-goals': () => '<img class="wa-img wa-img-target" src="img/wa/target.webp" alt="">',
     'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
       const dots = list.slice(0, 12).map(h => (marks[h.id] || {})[now.getDate()] === 'done');
       return dots.length ? '<div class="wa-dots">' + dots.map(d => '<i class="' + (d ? 'on' : '') + '"></i>').join('') + '</div>' : ''; },
-    'home2-tile-finance': () => { const now = new Date(), v = [];
-      for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push(x); }
-      const mx = Math.max.apply(null, v), mn = Math.min.apply(null, v); if (!(mx > 0)) return '';
-      const pts = v.map((x, i) => [8 + i * 36.8, 52 - (mx === mn ? 22 : (x - mn) / (mx - mn) * 40)]);
-      const d = pts.map((p, i) => { if (!i) return 'M' + p[0] + ' ' + p[1]; const q = pts[i - 1], cx = (q[0] + p[0]) / 2; return 'C' + cx + ' ' + q[1] + ' ' + cx + ' ' + p[1] + ' ' + p[0] + ' ' + p[1]; }).join(' ');
-      const L = pts[pts.length - 1];
-      return '<span class="wa-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="1" d="' + d + '"/></svg><i style="left:' + (L[0] / 2) + '%;top:' + (L[1] / 60 * 100) + '%"></i></span>'; },
+    /* доход по месяцам: светящиеся столбики, текущий месяц ярче */
+    'home2-tile-finance': () => { const now = new Date(), v = [], L = ['Я', 'Ф', 'М', 'А', 'М', 'И', 'И', 'А', 'С', 'О', 'Н', 'Д'];
+      for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push({ x, l: L[d.getMonth()] }); }
+      const mx = Math.max.apply(null, v.map(o => o.x)); if (!(mx > 0)) return '';
+      return '<span class="wa-bars">' + v.map((o, i) => '<span class="wa-bar' + (i === 5 ? ' cur' : '') + '"><i style="--h:' + Math.max(4, Math.round(o.x / mx * 100)) + '%;--d:' + (i * 70) + 'ms"></i><em>' + o.l + '</em></span>').join('') + '</span>'; },
     'home2-tile-tasks': () => '<div class="wa-lines"><i></i><i></i><i></i></div>',
   };
   function decorate(mount, st) {
@@ -199,23 +203,12 @@ window.WinterArc = (function () {
       const c = t.querySelector('.home2-tile-content'); if (!c) return;
       c.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-n">' + String(n).padStart(2, '0') + '</span>');
       const nm = c.querySelector('.home2-tile-name'); if (nm) nm.insertAdjacentHTML('afterend', '<span class="wa-x wa-rule"></span>');
-      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-arr"><i class="ti ti-arrow-right"></i></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
+      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost" aria-hidden="true"></span><span class="wa-x wa-arr"><i class="ti ti-arrow-right"></i></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
     });
-    const hs = scr.querySelector('.hero-slider'); if (hs) hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-peak" aria-hidden="true"></span>');
+    const hs = scr.querySelector('.hero-slider'); if (hs) hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-peak" aria-hidden="true"></span><span class="wa-x wa-frost wa-frost-hero" aria-hidden="true"></span>');
+    scr.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-rime" aria-hidden="true"></span>');
     const ft = scr.querySelector('.home2-footer');
     if (ft) ft.insertAdjacentHTML('afterbegin', '<div class="wa-x wa-foot"><span class="wa-foot-l"><b>WINTER ARC</b><i></i>YOUR NEXT OPPONENT IS YOU.</span><span class="wa-foot-r">COMPETE WITH YOURSELF.</span></div>');
-    /* демо для выбора варианта (видит только владелец): A по макету, B монохром как на Pinterest, C кино-обложка */
-    const v = ls('you_wa_var') || 'a'; document.documentElement.dataset.waVar = v;
-    if (isOwner()) {
-      scr.insertAdjacentHTML('beforeend', '<div class="wa-x wa-demo">' + ['a', 'b', 'c'].map(k => '<button data-wv="' + k + '"' + (k === v ? ' class="on"' : '') + '>' + k.toUpperCase() + '</button>').join('') + '</div>');
-      scr.querySelectorAll('[data-wv]').forEach(b => b.onclick = (e) => { e.stopPropagation(); ls('you_wa_var', b.dataset.wv); decorate(mount, st); });
-    }
-    if (v === 'c') { const start = new Date(RELEASE + 'T00:00:00'), d0 = new Date(); d0.setHours(0, 0, 0, 0);
-      const day = Math.floor((d0 - start) / 864e5) + 1, txt = day >= 1 ? 'ДЕНЬ ' + Math.min(day, 90) + ' / 90' : 'СТАРТ ЧЕРЕЗ ' + (1 - day) + ' ДН.';
-      const pct = Math.max(0, Math.min(100, (day - 1) / 90 * 100));
-      const hd = scr.querySelector('.home2-header'); if (hd) hd.insertAdjacentHTML('afterend', '<div class="wa-x wa-cover"><div class="wa-cover-t"><span>SEASON 01</span><b>WINTER<br>ARC</b><em>' + txt + '</em><i style="--p:' + pct + '%"></i></div></div>'); }
-    if (v === 'b') { const Q = ['LOCK IN.', 'NO DAYS OFF.', 'YOUR NEXT OPPONENT IS YOU.', 'BECOME WHO YOU SAID YOU WOULD BE.', 'DISCIPLINE OVER MOTIVATION.']; const fl = scr.querySelector('.wa-foot-l');
-      if (fl) fl.innerHTML = '<b>WINTER ARC</b><i></i>' + Q[new Date().getDate() % Q.length]; }
     snow(scr);
   }
   /* тихий снег на фоне главной; при «меньше движения» не идёт */

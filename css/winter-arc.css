@@ -124,43 +124,49 @@ html[data-design="wa"] .hero-dot.active { background: #CFE3FF !important; box-sh
   .wa-peak { opacity: .55; max-width: 85%; }
 }
 
-/* ── демо-переключатель вариантов (только владелец) ── */
-.wa-demo { position: fixed !important; z-index: 50 !important; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(10,14,24,.85); border: 1px solid rgba(200,220,255,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.wa-demo button { width: 40px; height: 34px; border: none; border-radius: 10px; background: none; color: #8E98AE; font: 700 13px Montserrat, sans-serif; cursor: pointer; }
-.wa-demo button.on { background: #E8F1FF; color: #05070D; }
 
-/* ── ВАРИАНТ B: монохром, лёд, зерно, туман (как на Pinterest) ── */
-html[data-wa-var="b"] .home2-grid .home2-tile { --wa: 214,230,255 !important; }
-html[data-wa-var="b"] .home2-screen { background: radial-gradient(90% 50% at 50% -5%, rgba(200,215,240,.14), transparent 60%), linear-gradient(180deg, #0B0D11 0%, #050608 70%) !important; }
-html[data-wa-var="b"] .home2-screen::after { content: ''; position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: .09; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-html[data-wa-var="b"] .home2-screen::before { content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 32vh; z-index: 0; pointer-events: none; background: linear-gradient(0deg, rgba(190,205,225,.10), transparent); }
-html[data-wa-var="b"] .home2-grid .home2-tile { background: linear-gradient(160deg, rgba(22,25,31,.92), rgba(9,10,13,.96)) !important; box-shadow: inset 1px 0 0 rgba(230,240,255,.55), 0 10px 30px rgba(0,0,0,.5) !important; border-color: rgba(220,232,255,.12) !important; }
-html[data-wa-var="b"] .wa-n { color: #E8EEF8; text-shadow: none; font-weight: 300; }
-html[data-wa-var="b"] .home2-tile-name { font-weight: 600 !important; letter-spacing: .12em !important; }
-html[data-wa-var="b"] .wa-img { filter: grayscale(1) brightness(1.5) contrast(1.15) !important; opacity: .75; }
-html[data-wa-var="b"] .wa-peak { filter: grayscale(1) brightness(1.6) contrast(1.1); }
-html[data-wa-var="b"] .hero-slider { background: linear-gradient(120deg, #101216, #15181E) !important; border-color: rgba(220,232,255,.12); }
-html[data-wa-var="b"] .wa-dots i.on { box-shadow: 0 0 10px rgba(230,240,255,.6); }
+/* ── иней: кристаллики по углам плиток и слайдера, изморозь по верхнему краю экрана ── */
+.wa-frost { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .5; filter: blur(.3px);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .92 0 0 0 0 .96 0 0 0 0 1 0 0 0 15 -10.2'/%3E%3C/filter%3E%3Cfilter id='v'%3E%3CfeTurbulence type='turbulence' baseFrequency='.035' numOctaves='4' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .85 0 0 0 0 .93 0 0 0 0 1 0 0 0 -14 2.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)' opacity='.55'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 240px 240px; box-shadow: inset -40px 40px 60px -40px rgba(220,235,255,.10), inset 30px -30px 50px -40px rgba(220,235,255,.06);
+  -webkit-mask-image: radial-gradient(150px 110px at 100% 0%, #000 0%, rgba(0,0,0,.5) 45%, transparent 100%), radial-gradient(110px 80px at 0% 100%, rgba(0,0,0,.7), transparent 100%);
+  mask-image: radial-gradient(150px 110px at 100% 0%, #000 0%, rgba(0,0,0,.5) 45%, transparent 100%), radial-gradient(110px 80px at 0% 100%, rgba(0,0,0,.7), transparent 100%); }
+.wa-frost-hero { z-index: 0; opacity: .5; -webkit-mask-image: radial-gradient(220px 120px at 0% 100%, #000, transparent), radial-gradient(160px 100px at 100% 0%, rgba(0,0,0,.6), transparent); mask-image: radial-gradient(220px 120px at 0% 100%, #000, transparent), radial-gradient(160px 100px at 100% 0%, rgba(0,0,0,.6), transparent); }
+.wa-rime { position: fixed !important; left: 0; right: 0; top: 0; height: 110px; z-index: 0 !important; pointer-events: none; opacity: .18;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .95 0 0 0 0 1 0 0 0 15 -10.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E") 0 0 / 240px 240px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
 
-/* ── ВАРИАНТ C: кино-обложка + стеклянные плитки ── */
-.wa-cover { position: relative; margin: 0 16px 14px; height: 230px; border-radius: 22px; overflow: hidden; border: 1px solid rgba(190,215,255,.16);
-  background: radial-gradient(80% 90% at 80% 20%, rgba(80,130,220,.25), transparent 70%), #070C18; }
-.wa-cover::after { content: ''; position: absolute; inset: 0; background: url(../img/wa/mountain.webp) right bottom / cover no-repeat; filter: hue-rotate(-115deg) saturate(.7) brightness(1.4); opacity: .85; z-index: 0;
-  -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 75%); mask-image: linear-gradient(90deg, transparent 30%, #000 75%); }
-.wa-cover-t { position: relative; z-index: 1; padding: 24px 24px 0; display: flex; flex-direction: column; gap: 6px; color: #F2F6FF; }
-.wa-cover-t span { font-size: 11px; letter-spacing: .3em; color: #9FB4D6; }
-.wa-cover-t b { font-size: 44px; line-height: .95; font-weight: 800; letter-spacing: .02em; }
-.wa-cover-t em { font-style: normal; font-size: 12px; letter-spacing: .2em; color: #CFE0FF; margin-top: 8px; }
-.wa-cover-t i { display: block; width: 180px; height: 3px; border-radius: 3px; margin-top: 8px; background: linear-gradient(90deg, #E8F1FF var(--p), rgba(232,241,255,.15) var(--p)); }
-html[data-wa-var="c"] .wa-peak { display: none; }
-html[data-wa-var="c"] .home2-grid .home2-tile { background: rgba(255,255,255,.035) !important; backdrop-filter: blur(14px) saturate(1.2) !important; -webkit-backdrop-filter: blur(14px) saturate(1.2) !important;
-  border: 1px solid rgba(255,255,255,.10) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 30px rgba(0,0,0,.45) !important; }
-html[data-wa-var="c"] .wa-n { color: rgba(255,255,255,.35); text-shadow: none; font-weight: 700; }
-html[data-wa-var="c"] .home2-tile-name { font-weight: 700 !important; letter-spacing: .06em !important; }
-html[data-wa-var="c"] .wa-rule { background: rgb(var(--wa)); width: 18px; height: 3px; border-radius: 2px; }
-@media (max-width: 600px) { .wa-cover { height: 190px; } .wa-cover-t b { font-size: 34px; } .wa-cover-t { padding: 18px 18px 0; } }
+/* ── тренировки: силуэт, сегодняшние мышцы светятся ледяным синим ── */
+.wa-body { position: absolute; right: 9%; top: 3%; bottom: 3%; aspect-ratio: 320 / 597; }
+.wa-body img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.wa-body img:first-child { filter: grayscale(1) brightness(.5) sepia(1) hue-rotate(180deg) saturate(2.2); opacity: .55; }
+.wa-body:not(.on) img:first-child { opacity: .75; filter: grayscale(1) brightness(.6) sepia(1) hue-rotate(180deg) saturate(2.6) drop-shadow(0 0 10px rgba(91,141,255,.35)); }
+.wa-body img.ov { filter: grayscale(1) brightness(1.6) sepia(1) hue-rotate(180deg) saturate(4) drop-shadow(0 0 8px rgba(91,141,255,.9)); animation: waPulse 3.2s ease-in-out infinite; }
+@keyframes waPulse { 50% { opacity: .65; } }
 
-html[data-wa-var="b"] .hero-slide-glow { display: none !important; }
-html[data-wa-var="b"] .hero-goals-fill { background: #E8EEF8 !important; }
-html[data-wa-var="b"] .wa-arr { color: #E8EEF8 !important; }
+/* ── финансы: светящиеся столбики дохода за полгода ── */
+.wa-bars { position: absolute; right: 26px; bottom: 34px; top: 26px; display: flex; align-items: flex-end; gap: 12px; }
+.wa-bar { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+.wa-bar i { display: block; width: 14px; height: var(--h); border-radius: 5px 5px 2px 2px; transform-origin: bottom; transform: scaleY(0); animation: waGrow .9s var(--d) cubic-bezier(.2,.8,.2,1) forwards;
+  background: linear-gradient(180deg, rgba(var(--wa),.75), rgba(var(--wa),.12)); box-shadow: 0 0 14px -2px rgba(var(--wa),.55); }
+.wa-bar.cur i { background: linear-gradient(180deg, #F2EEFF, rgb(var(--wa)) 35%, rgba(var(--wa),.25)); box-shadow: 0 0 18px rgba(var(--wa),.9), 0 -2px 10px rgba(255,255,255,.6); }
+.wa-bar em { font-style: normal; font-size: 10px; letter-spacing: .08em; color: #6F7A92; }
+.wa-bar.cur em { color: #E6E0FF; }
+@keyframes waGrow { to { transform: scaleY(1); } }
+
+/* ── слайдер: подписи капсом с разрядкой, тонкие крупные цифры, ледяная кромка ── */
+html[data-design="wa"] .hero-slider { box-shadow: inset 2px 0 0 rgba(170,205,255,.85), -10px 0 26px -14px rgba(150,190,255,.9), 0 20px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(220,235,255,.08) !important; }
+html[data-design="wa"] .hero-slide-sub, html[data-design="wa"] .hero-stat-lbl { text-transform: uppercase; letter-spacing: .14em !important; color: #8FA2C4 !important; }
+html[data-design="wa"] .hero-big-text { font-weight: 300 !important; text-transform: uppercase; letter-spacing: .03em; color: #F2F6FF !important; }
+html[data-design="wa"] .hero-stat-num { font-weight: 300 !important; color: #F2F6FF !important; }
+html[data-design="wa"] .hero-goals-fill { background: linear-gradient(90deg, #8FB8FF, #E8F1FF) !important; box-shadow: 0 0 10px rgba(150,190,255,.7); }
+html[data-design="wa"] .hero-slide-glow { display: none !important; }
+
+@media (max-width: 600px) {
+  .wa-body { right: -2%; top: 6%; bottom: 4%; -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,.35), #000 45%); mask-image: linear-gradient(90deg, rgba(0,0,0,.35), #000 45%); }
+  .wa-bars { right: 12px; bottom: 30px; top: 16px; gap: 7px; }
+  .wa-bar i { width: 9px; }
+  .wa-bar em { font-size: 8.5px; }
+  .wa-frost { opacity: .45; background-size: 180px 180px; }
+}

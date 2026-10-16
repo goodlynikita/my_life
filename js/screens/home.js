@@ -434,11 +434,13 @@ window.Screens.home = function(mount) {
     if (!window._homeSoloResize) { window._homeSoloResize = true; window.addEventListener('resize', function(){ var t = document.querySelector('.home2-grid.tiles-solo .tile-solo'); if (t) t.style.setProperty('min-height', soloH(t, t.parentElement) + 'px', 'important'); }); }
   }
   applyTileLayout();
+  if (window.WinterArc) WinterArc.decorate(mount, store);
 
   // Перерисовываем когда Firebase подгрузит данные
   if (window._homeTileUnsubscribe) window._homeTileUnsubscribe();
   window._homeTileUnsubscribe = Store.subscribe && Store.subscribe(function() {
     applyTileLayout();
+    if (window.WinterArc && mount.isConnected) WinterArc.decorate(mount);
   });
 
   /* ── Настройки слайдера: показать/скрыть, интервал, автолистание, порядок и видимость слайдов ── */

@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v216';
+const CACHE = 'nik-system-v217';
 
 const STATIC = [
   './',
@@ -62,6 +62,9 @@ const STATIC = [
   './js/screens/goals.js',
   './js/screens/tasks.js',
   './js/ai-kit.js',
+  './img/wa/mountain.webp',
+  './img/wa/back.webp',
+  './img/wa/target.webp',
 ];
 
 /* Библиотеки с CDN: без них приложение не стартует, поэтому тоже кешируем заранее (версии зафиксированы) */

@@ -8,17 +8,35 @@
 window.WinterArc = (function () {
   const SRC = 'img/winterarc.mp4';
   let busy = false;
+  /* выбранный дизайн хранится на устройстве; Winter Arc открыт всем с 1 ноября, владельцу сразу */
+  const RELEASE = '2026-11-01';
+  const isOwner = () => { try { const u = window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser(); const o = (window.AUTH_CONFIG || {}).ownerEmail; return !!(u && o && (u.email || '').toLowerCase() === o.toLowerCase()); } catch (e) { return false; } };
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const available = () => isOwner() || today() >= RELEASE;
+  const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; };
+  const isOn = () => ls('you_design') === 'wa' && available();
+  function applyAttr() { if (isOn()) document.documentElement.dataset.design = 'wa'; else delete document.documentElement.dataset.design; }
+  applyAttr();
+  /* Winter Arc всегда тёмный: светлая тема в нём не включается (на «Минимал» вернётся как была) */
+  function keepDark() { const h = document.documentElement; if (isOn() && h.getAttribute('data-theme') === 'light') { h.setAttribute('data-theme', 'dark'); h.dataset.waLight = '1'; }
+    else if (!isOn() && h.dataset.waLight) { delete h.dataset.waLight; if (window.Theme && Theme.get() === 'light') h.setAttribute('data-theme', 'light'); } }
+  try { new MutationObserver(keepDark).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-design'] }); } catch (e) {}
+  keepDark();
+  function setDesign(on) { ls('you_design', on ? 'wa' : null); applyAttr(); if (window.Router) { window.__keepUi = true; try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; } } }
 
   function html() {
     return '<div class="ds-sw" id="ds-sw" role="tablist" aria-label="Дизайн">'
-      + '<button class="ds-b on" data-ds="min" aria-label="Минимализм"><i class="ti ti-square-rounded"></i><span>Минимал</span></button>'
-      + '<button class="ds-b" data-ds="wa" aria-label="Winter Arc"><i class="ti ti-snowflake"></i><span>Winter Arc</span></button>'
+      + '<button class="ds-b' + (isOn() ? '' : ' on') + '" data-ds="min" aria-label="Минимализм"><i class="ti ti-square-rounded"></i><span>Минимал</span></button>'
+      + '<button class="ds-b' + (isOn() ? ' on' : '') + '" data-ds="wa" aria-label="Winter Arc"><i class="ti ti-snowflake"></i><span>Winter Arc</span></button>'
       + '</div>';
   }
 
   function bind(root) {
     const sw = root.querySelector('#ds-sw'); if (!sw) return;
-    sw.querySelector('[data-ds="wa"]').addEventListener('click', (e) => { e.stopPropagation(); start(sw); });
+    sw.querySelector('[data-ds="wa"]').addEventListener('click', (e) => { e.stopPropagation(); if (isOn()) return;
+      /* первый раз: видео-заставка, дальше просто переключаем */
+      if (available() && ls('you_wa_intro')) { setDesign(true); return; } start(sw); });
+    sw.querySelector('[data-ds="min"]').addEventListener('click', (e) => { e.stopPropagation(); if (isOn()) setDesign(false); });
   }
 
   /* элементы главного экрана, которые улетают */
@@ -130,6 +148,8 @@ window.WinterArc = (function () {
     let done = false;
     function finish() {
       if (done) return; done = true;
+      if (available()) { ls('you_wa_intro', '1'); ov.classList.add('out'); document.body.classList.remove('wa-busy'); busy = false;
+        setDesign(true); setTimeout(() => { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} ov.remove(); }, 500); return; }
       ov.classList.add('ended');
       const sb = ov.querySelector('.wa-sound'); if (sb) sb.remove();
       const card = document.createElement('div'); card.className = 'wa-card';
@@ -149,5 +169,58 @@ window.WinterArc = (function () {
     }
   }
 
-  return { html, bind, start: (sw) => start(sw || document.getElementById('ds-sw')) };
+  /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
+  const ART = {
+    'home2-tile-training': () => '<img class="wa-img wa-img-back" src="img/wa/back.webp" alt="">',
+    'home2-tile-goals': () => '<img class="wa-img wa-img-target" src="img/wa/target.webp" alt="">',
+    'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
+      const dots = list.slice(0, 12).map(h => (marks[h.id] || {})[now.getDate()] === 'done');
+      return dots.length ? '<div class="wa-dots">' + dots.map(d => '<i class="' + (d ? 'on' : '') + '"></i>').join('') + '</div>' : ''; },
+    'home2-tile-finance': () => { const now = new Date(), v = [];
+      for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push(x); }
+      const mx = Math.max.apply(null, v), mn = Math.min.apply(null, v); if (!(mx > 0)) return '';
+      const pts = v.map((x, i) => [8 + i * 36.8, 52 - (mx === mn ? 22 : (x - mn) / (mx - mn) * 40)]);
+      const d = pts.map((p, i) => { if (!i) return 'M' + p[0] + ' ' + p[1]; const q = pts[i - 1], cx = (q[0] + p[0]) / 2; return 'C' + cx + ' ' + q[1] + ' ' + cx + ' ' + p[1] + ' ' + p[0] + ' ' + p[1]; }).join(' ');
+      const L = pts[pts.length - 1];
+      return '<span class="wa-spark"><svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="1" d="' + d + '"/></svg><i style="left:' + (L[0] / 2) + '%;top:' + (L[1] / 60 * 100) + '%"></i></span>'; },
+    'home2-tile-tasks': () => '<div class="wa-lines"><i></i><i></i><i></i></div>',
+  };
+  function decorate(mount, st) {
+    const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
+    applyAttr(); keepDark(); /* владелец известен только после входа: пересчитываем доступность */
+    scr.querySelectorAll('.wa-x').forEach(el => el.remove());
+    if (!isOn()) return;
+    st = st || (window.Store ? Store.get() : {});
+    let n = 0;
+    scr.querySelectorAll('.home2-grid .home2-tile').forEach(t => {
+      if (t.classList.contains('tile-hidden')) return; n++;
+      const key = Object.keys(ART).find(k => t.classList.contains(k));
+      const c = t.querySelector('.home2-tile-content'); if (!c) return;
+      c.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-n">' + String(n).padStart(2, '0') + '</span>');
+      const nm = c.querySelector('.home2-tile-name'); if (nm) nm.insertAdjacentHTML('afterend', '<span class="wa-x wa-rule"></span>');
+      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-arr"><i class="ti ti-arrow-right"></i></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
+    });
+    const hs = scr.querySelector('.hero-slider'); if (hs) hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-peak" aria-hidden="true"></span>');
+    const ft = scr.querySelector('.home2-footer');
+    if (ft) ft.insertAdjacentHTML('afterbegin', '<div class="wa-x wa-foot"><span class="wa-foot-l"><b>WINTER ARC</b><i></i>YOUR NEXT OPPONENT IS YOU.</span><span class="wa-foot-r">COMPETE WITH YOURSELF.</span></div>');
+    snow(scr);
+  }
+  /* тихий снег на фоне главной; при «меньше движения» не идёт */
+  function snow(scr) {
+    if (scr.querySelector('.wa-snow') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    const c = document.createElement('canvas'); c.className = 'wa-x wa-snow'; scr.prepend(c);
+    const g = c.getContext('2d'); let W = 0, H = 0, P = [];
+    const size = () => { const dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      P = Array.from({ length: Math.round(Math.min(90, W / 8)) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: .5 + Math.random() * 1.8, v: 12 + Math.random() * 30, s: Math.random() * 6.28, a: .25 + Math.random() * .5 })); };
+    size(); addEventListener('resize', size);
+    let last = performance.now();
+    (function f(t) { if (!c.isConnected) { removeEventListener('resize', size); return; }
+      const dt = Math.min(.05, (t - last) / 1000); last = t; g.clearRect(0, 0, W, H);
+      if (!document.hidden) P.forEach(p => { p.y += p.v * dt; p.s += dt; p.x += Math.sin(p.s) * 8 * dt; if (p.y > H + 4) { p.y = -4; p.x = Math.random() * W; }
+        g.globalAlpha = p.a; g.fillStyle = '#EAF4FF'; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill(); });
+      requestAnimationFrame(f); })(last);
+  }
+
+  return { html, bind, decorate, refresh: () => { applyAttr(); keepDark(); }, isOn, available, set: setDesign, start: (sw) => start(sw || document.getElementById('ds-sw')) };
 })();

@@ -36,3 +36,90 @@ html[data-theme="light"] .wa-wind { filter: invert(1) hue-rotate(180deg); }
 .hdr-in>.fb-envelope,.hdr-in>.hadd,.hdr-in>.theme-toggle,.hdr-in>.hdots{flex-shrink:0}
 @media (max-width:440px){.hdr .ds-sw{display:none}}
 .home2-header>*{flex-shrink:0}
+
+/* ═══════════ WINTER ARC: главная ═══════════
+   Ночь, иней и снег + из макета Ника: номера 01-05, тонкие заголовки капсом, светящаяся кромка, иллюстрации, подпись внизу */
+html[data-design="wa"] body { background: #04060B; }
+html[data-design="wa"] .home2-screen { position: relative; min-height: 100vh; isolation: isolate;
+  background: radial-gradient(120% 60% at 50% -10%, rgba(56,110,190,.28), transparent 60%), radial-gradient(80% 40% at 100% 0%, rgba(120,200,255,.10), transparent 60%), linear-gradient(180deg, #070B14 0%, #04060B 60%) !important; }
+.wa-snow { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
+html[data-design="wa"] .home2-screen > :not(.wa-snow) { position: relative; z-index: 1; }
+html[data-design="wa"] .theme-toggle { display: none !important; }
+
+/* плитки */
+html[data-design="wa"] .home2-tile-training { --wa: 91,141,255; }
+html[data-design="wa"] .home2-tile-habits { --wa: 61,220,132; }
+html[data-design="wa"] .home2-tile-finance { --wa: 150,110,255; }
+html[data-design="wa"] .home2-tile-goals { --wa: 245,158,60; }
+html[data-design="wa"] .home2-tile-tasks { --wa: 240,100,90; }
+html[data-design="wa"] .home2-grid .home2-tile {
+  position: relative; overflow: hidden !important; text-align: left; min-height: 168px !important;
+  background: linear-gradient(135deg, rgba(var(--wa),.10), transparent 45%), linear-gradient(160deg, rgba(16,22,36,.92), rgba(6,9,16,.96)) !important;
+  border: 1px solid rgba(var(--wa),.22) !important; border-radius: 16px !important;
+  box-shadow: inset 2px 0 0 rgba(var(--wa),.95), -10px 0 26px -14px rgba(var(--wa),.9), 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(220,235,255,.06) !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important; animation: none !important; transform: none; }
+html[data-design="wa"] .home2-grid .home2-tile::before, html[data-design="wa"] .home2-grid .home2-tile::after { display: none !important; }
+/* иней по верхней кромке */
+html[data-design="wa"] .home2-grid .home2-tile .home2-tile-content::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, rgba(var(--wa),.6), rgba(220,240,255,.25) 40%, transparent 80%); pointer-events: none; }
+html[data-design="wa"] .home2-grid .home2-tile:hover { border-color: rgba(var(--wa),.45) !important; }
+html[data-design="wa"] .home2-tile-content { position: static !important; display: flex !important; flex-direction: column !important; align-items: flex-start !important; justify-content: center !important; gap: 0 !important; height: 100%; padding: 22px 22px 20px !important; text-align: left !important; z-index: 2; }
+html[data-design="wa"] .home2-tile-content > * { position: relative; z-index: 2; }
+html[data-design="wa"] .home2-tile-icon { display: none !important; }
+.wa-n { font-size: 26px; font-weight: 300; line-height: 1; color: rgb(var(--wa)); letter-spacing: .02em; margin-bottom: 14px; text-shadow: 0 0 18px rgba(var(--wa),.45); }
+html[data-design="wa"] .home2-tile-name { font-size: 24px !important; font-weight: 300 !important; text-transform: uppercase; letter-spacing: .04em !important; color: #F2F6FF !important; line-height: 1.1 !important; text-shadow: none !important; }
+.wa-rule { display: block; width: 30px; height: 1px; margin: 14px 0 12px; background: rgba(var(--wa),.75); }
+html[data-design="wa"] .home2-tile-desc { font-size: 11.5px !important; font-weight: 400 !important; text-transform: uppercase; letter-spacing: .09em !important; color: #8E98AE !important; opacity: 1 !important; }
+.wa-arr { position: absolute; right: 18px; bottom: 14px; z-index: 2; color: rgb(var(--wa)); font-size: 20px; line-height: 1; transition: transform .25s; }
+html[data-design="wa"] .home2-tile:hover .wa-arr { transform: translateX(4px); }
+.wa-art { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.wa-img { position: absolute; right: 0; bottom: 0; height: 100%; max-width: 62%; object-fit: cover; object-position: right center; opacity: .95;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%); mask-image: linear-gradient(90deg, transparent 0%, #000 45%); }
+.wa-img-back { filter: saturate(1.1) brightness(1.15); }
+.wa-img-target { height: 92%; top: 4%; right: 6%; max-width: 46%; object-fit: contain; -webkit-mask-image: radial-gradient(closest-side, #000 75%, transparent); mask-image: radial-gradient(closest-side, #000 75%, transparent); }
+.wa-dots { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: repeat(6, 14px); gap: 12px 14px; }
+.wa-dots i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(var(--wa),.75); box-sizing: border-box; }
+.wa-dots i.on { background: rgb(var(--wa)); border-color: rgb(var(--wa)); box-shadow: 0 0 12px rgba(var(--wa),.8); }
+.wa-spark { position: absolute; right: 22px; bottom: 34px; width: 58%; height: 52%; }
+.wa-spark svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.wa-spark > i { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 2px rgb(var(--wa)); opacity: 0; animation: waDot .3s 1.5s forwards; }
+@keyframes waDot { to { opacity: 1; } }
+.wa-spark path { fill: none; stroke: rgb(var(--wa)); stroke-width: 2.2; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 6px rgba(var(--wa),.9)); }
+.wa-spark svg { clip-path: inset(-10px 100% -10px -10px); animation: waDraw 1.4s .2s ease forwards; }
+@keyframes waDraw { to { clip-path: inset(-10px -10px -10px -10px); } }
+.wa-lines { position: absolute; right: 26px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; width: 34%; }
+.wa-lines i { display: block; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(var(--wa),.55), rgba(var(--wa),.08)); }
+.wa-lines i:nth-child(2) { width: 75%; } .wa-lines i:nth-child(3) { width: 55%; }
+/* узкие плитки (2+3, колонны): иллюстрации поменьше */
+html[data-design="wa"] .layout-23 .home2-tile:not(.tile-w3) .wa-art, html[data-design="wa"] .tile-tall .wa-dots { opacity: .45; }
+
+/* слайдер сверху: ночное небо и заснеженная вершина справа */
+html[data-design="wa"] .hero-slider { background: linear-gradient(120deg, #0A1222 0%, #0C1830 60%, #0E1D3A 100%) !important; border: 1px solid rgba(150,190,255,.16); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(220,235,255,.08); }
+.wa-peak { position: absolute; right: 0; top: 0; bottom: 0; height: 100%; aspect-ratio: 392 / 216; max-width: 70%; z-index: 0; pointer-events: none; background: url(../img/wa/mountain.webp) right bottom / cover no-repeat;
+  filter: hue-rotate(-115deg) saturate(.75) brightness(1.35); opacity: .9; -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
+html[data-design="wa"] .hero-slides { position: relative; z-index: 1; }
+html[data-design="wa"] .hero-slide { background: transparent !important; }
+html[data-design="wa"] .hero-slide::before, html[data-design="wa"] .hero-slide::after { display: none !important; }
+html[data-design="wa"] .hero-dot.active { background: #CFE3FF !important; box-shadow: 0 0 10px rgba(160,200,255,.8); }
+
+/* подпись внизу, как в макете */
+.wa-foot { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 18px 20px calc(18px + env(safe-area-inset-bottom, 0px)); font-size: 11px; letter-spacing: .22em; color: #7F8AA3; text-transform: uppercase; }
+.wa-foot-l { display: inline-flex; align-items: center; gap: 14px; }
+.wa-foot-l b { color: #E6EEFF; font-weight: 500; }
+.wa-foot-l i { width: 1px; height: 14px; background: rgba(200,215,240,.3); }
+@media (max-width: 600px) {
+  html[data-design="wa"] .home2-grid .home2-tile { min-height: 150px !important; }
+  html[data-design="wa"] .home2-tile-content { padding: 16px 14px 14px !important; }
+  .wa-n { font-size: 20px; margin-bottom: 10px; }
+  html[data-design="wa"] .home2-tile-name { font-size: 16px !important; letter-spacing: .03em !important; }
+  .wa-rule { margin: 10px 0 8px; width: 22px; }
+  html[data-design="wa"] .home2-tile-desc { font-size: 10px !important; letter-spacing: .06em !important; }
+  .wa-arr { right: 12px; bottom: 10px; font-size: 17px; }
+  .wa-img { max-width: 70%; opacity: .7; }
+  .wa-img-target { max-width: 52%; right: 2%; opacity: .85; }
+  .wa-dots { right: 12px; top: 18px; transform: none; grid-template-columns: repeat(4, 9px); gap: 7px; }
+  .wa-dots i { width: 9px; height: 9px; border-width: 1.2px; }
+  .wa-spark { right: 10px; bottom: 30px; width: 62%; height: 40%; }
+  .wa-lines { right: 12px; width: 30%; gap: 8px; } .wa-lines i { height: 7px; }
+  .wa-foot { flex-direction: column; gap: 8px; font-size: 9.5px; letter-spacing: .18em; padding-top: 8px; }
+  .wa-peak { opacity: .55; max-width: 85%; }
+}

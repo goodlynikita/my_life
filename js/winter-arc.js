@@ -176,7 +176,8 @@ window.WinterArc = (function () {
 
   /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
   const ART = {
-    'home2-tile-training': () => '<img class="wa-img wa-img-statue" src="img/wa/statue.webp" alt="">',
+    /* статуя и пульс за ней: по линии бежит удар сердца */
+    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/><path class="hot" pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg><img class="wa-img wa-img-statue" src="img/wa/statue.webp" alt="">',
     /* мишень: изредка вспыхивает попадание, по ней бежит небольшой разлом */
     'home2-tile-goals': () => '<span class="wa-tg"><img src="img/wa/target.webp" alt=""><i class="wa-hit"></i><svg class="wa-crack" viewBox="0 0 100 100" aria-hidden="true">'
       + '<path d="M47 50 L58 44 L64 46 L73 38"/><path d="M47 50 L40 41 L41 33 L35 26"/><path d="M47 50 L44 60 L49 68 L46 77"/><path d="M47 50 L37 53 L30 51"/><path d="M47 50 L57 57 L63 56"/></svg></span>',
@@ -192,8 +193,16 @@ window.WinterArc = (function () {
       for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push({ x, l: L[d.getMonth()] }); }
       const mx = Math.max.apply(null, v.map(o => o.x)); if (!(mx > 0)) return '';
       return '<span class="wa-bars">' + v.map((o, i) => '<span class="wa-bar' + (i === 5 ? ' cur' : '') + '"><i style="--h:' + Math.max(4, Math.round(o.x / mx * 100)) + '%;--d:' + (i * 70) + 'ms"></i><em>' + o.l + '</em></span>').join('') + '</span>'; },
-    /* пешка, которая видит в зеркале короля: каждый маленький шаг делает тебя сильнее */
-    'home2-tile-tasks': () => '<img class="wa-img wa-img-chess" src="img/wa/chess.webp" alt="">',
+    /* песочные часы: песок течёт, в конце часы переворачиваются */
+    'home2-tile-tasks': () => '<span class="wa-hg"><svg viewBox="0 0 100 150" aria-hidden="true"><defs>'
+      + '<clipPath id="wa-hg-t"><path d="M22 16 H78 C78 52 56 62 52 75 H48 C44 62 22 52 22 16Z"/></clipPath>'
+      + '<clipPath id="wa-hg-b"><path d="M48 75 H52 C56 88 78 98 78 134 H22 C22 98 44 88 48 75Z"/></clipPath>'
+      + '<linearGradient id="wa-hg-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD0C4"/><stop offset=".5" stop-color="#F0645A"/><stop offset="1" stop-color="#B4302A"/></linearGradient></defs>'
+      + '<g clip-path="url(#wa-hg-t)"><rect class="wa-hg-top" x="20" y="16" width="60" height="60" fill="url(#wa-hg-s)"/></g>'
+      + '<g clip-path="url(#wa-hg-b)"><path class="wa-hg-bot" d="M20 106 C35 104 42 92 50 88 C58 92 65 104 80 106 L80 160 H20Z" fill="url(#wa-hg-s)"/></g>'
+      + '<line class="wa-hg-str" x1="50" y1="74" x2="50" y2="133"/>'
+      + '<path class="wa-hg-glass" d="M22 16 H78 C78 52 56 62 52 75 C56 88 78 98 78 134 H22 C22 98 44 88 48 75 C44 62 22 52 22 16Z"/>'
+      + '<rect class="wa-hg-cap" x="14" y="8" width="72" height="8" rx="3"/><rect class="wa-hg-cap" x="14" y="134" width="72" height="8" rx="3"/></svg></span>',
   };
   function decorate(mount, st) {
     const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
@@ -212,8 +221,9 @@ window.WinterArc = (function () {
       const ds = c.querySelector('.home2-tile-desc'), m = ds && metric(ds.textContent);
       if (ds) ds.classList.toggle('wa-hide', !!m);
       if (m) ds.insertAdjacentHTML('afterend', '<div class="wa-x wa-met"><b>' + esc(m[0]) + '</b>' + (m[1] ? '<span>' + esc(m[1]) + '</span>' : '') + '</div>');
-      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost" aria-hidden="true"></span><span class="wa-x wa-arr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
-      tap(t);
+      const fr = { 'home2-tile-training': 'needle', 'home2-tile-habits': 'fern', 'home2-tile-finance': 'flake', 'home2-tile-goals': 'crack', 'home2-tile-tasks': 'feather' }[key] || 'fern';
+      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost wa-frost-' + fr + '" aria-hidden="true"></span><span class="wa-x wa-arr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
+      tap(t); if (key === 'home2-tile-finance') ball(t);
     });
     /* у каждого слайда своя картинка: «Фокус дня» с FOCUS, цели с золотой вершиной, остальные горы по очереди */
     const hs = scr.querySelector('.hero-slider');
@@ -231,6 +241,35 @@ window.WinterArc = (function () {
   const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   function metric(txt) { const t = String(txt || '').trim(), m = t.match(/^(\d[\d\s\u00a0.,]*(?:\/\s?\d+)?\s?(?:%|₽)?)(.*)$/);
     if (!m) return null; return [m[1].trim(), m[2].replace(/^[\s\/·]+/, '').trim()]; }
+  /* финансы: шарик прыгает по верхушкам столбиков и приземляется на текущий месяц */
+  function ball(t) {
+    const wrap = t.querySelector('.wa-bars'); if (!wrap || !wrap.animate || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    requestAnimationFrame(() => {
+      const cols = [...wrap.querySelectorAll('.wa-bar')]; if (cols.length < 2 || !wrap.offsetWidth) return;
+      const pts = cols.map(c => { const i = c.querySelector('i'); return [c.offsetLeft + i.offsetLeft + i.offsetWidth / 2, c.offsetTop + i.offsetTop]; });
+      const b = document.createElement('b'); b.className = 'wa-ball'; wrap.appendChild(b);
+      const T = 7600, hop = 430, drop = 520, t0 = 900, R = 4, kf = [], at = (ms) => Math.min(1, ms / T);
+      const pos = (x, y, o, extra) => Object.assign({ transform: 'translate(' + (x - R).toFixed(1) + 'px,' + (y - 2 * R).toFixed(1) + 'px)' + (extra || ''), opacity: o }, {});
+      kf.push(Object.assign(pos(pts[0][0], pts[0][1] - 60, 0), { offset: 0 }));
+      kf.push(Object.assign(pos(pts[0][0], pts[0][1] - 60, 0), { offset: at(t0) }));
+      kf.push(Object.assign(pos(pts[0][0], pts[0][1], 1, ' scale(1.25,.75)'), { offset: at(t0 + drop), easing: 'ease-out' }));
+      let tm = t0 + drop; const hits = [tm];
+      for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], apex = Math.min(y0, y1) - 22;
+        for (let k = 1; k <= 8; k++) { const u = k / 8, x = x0 + (x1 - x0) * u, y = (1 - u) * (1 - u) * y0 + 2 * (1 - u) * u * (2 * apex - (y0 + y1) / 2) + u * u * y1;
+          kf.push(Object.assign(pos(x, y, 1, k === 8 ? ' scale(1.25,.75)' : ''), { offset: at(tm + hop * u) })); }
+        tm += hop; hits.push(tm); }
+      const [lx, ly] = pts[pts.length - 1];
+      kf.push(Object.assign(pos(lx, ly, 1), { offset: at(tm + 160) }));
+      kf.push(Object.assign(pos(lx, ly, 1), { offset: at(tm + 1500) }));
+      kf.push(Object.assign(pos(lx, ly - 10, 0), { offset: at(tm + 1900) }));
+      kf.push(Object.assign(pos(lx, ly - 10, 0), { offset: 1 }));
+      b.animate(kf, { duration: T, iterations: Infinity });
+      /* столбик вспыхивает в момент касания, последний сильнее */
+      cols.forEach((c, i) => { const h = hits[i], last = i === cols.length - 1, k = [{ filter: 'brightness(1)', offset: 0 }];
+        k.push({ filter: 'brightness(1)', offset: at(h - 1) }, { filter: 'brightness(' + (last ? 2.1 : 1.6) + ')', offset: at(h + 40) }, { filter: 'brightness(1)', offset: at(h + (last ? 900 : 380)) }, { filter: 'brightness(1)', offset: 1 });
+        c.querySelector('i').animate(k, { duration: T, iterations: Infinity }); });
+    });
+  }
   /* отклик на нажатие: плитка проседает, от пальца расходится морозный свет */
   function tap(t) { if (t.dataset.waTap) return; t.dataset.waTap = '1';
     t.addEventListener('pointerdown', (e) => { if (!isOn()) return; const r = t.getBoundingClientRect(), s = document.createElement('span'); s.className = 'wa-x wa-ripple';

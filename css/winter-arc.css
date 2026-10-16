@@ -180,8 +180,6 @@ html[data-design="wa"] .hero-slide > :not(.wa-sbg) { position: relative; z-index
 .wa-ring i.on { background: rgb(var(--wa)); box-shadow: 0 0 12px rgba(var(--wa),.85); }
 @media (max-width: 600px) { .wa-ring { right: 12px; top: 12px; transform: none; width: 64px; height: 64px; } .wa-ring i { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; } }
 
-.wa-img-chess { height: 120%; bottom: -10%; max-width: 46%; object-fit: cover; object-position: center 60%; filter: contrast(1.1) brightness(1.1); -webkit-mask-image: linear-gradient(90deg, transparent, #000 40%); mask-image: linear-gradient(90deg, transparent, #000 40%); }
-@media (max-width: 600px) { .wa-img-chess { max-width: 55%; opacity: .85; } }
 
 
 /* ═══ Импульсы: редкие, у каждой плитки свой ритм ═══ */
@@ -207,8 +205,6 @@ html[data-design="wa"] .hero-slide > :not(.wa-sbg) { position: relative; z-index
 
 /* финансы: по столбику текущего месяца поднимается импульс, верхушка вспыхивает */
 .wa-bar i { position: relative; overflow: hidden; }
-.wa-bar.cur i::after { content: ''; position: absolute; left: 0; right: 0; height: 40%; bottom: -40%; background: linear-gradient(0deg, transparent, rgba(255,255,255,.95), transparent); animation: waRise 8.5s ease-in-out infinite 3s; }
-.wa-bar.cur i { animation: waGrow .9s var(--d) cubic-bezier(.2,.8,.2,1) forwards, waCap 8.5s ease-in-out infinite 3s; }
 @keyframes waRise { 0% { bottom: -40%; opacity: 0; } 2% { opacity: 1; } 14% { bottom: 100%; opacity: 1; } 16%, 100% { bottom: 100%; opacity: 0; } }
 @keyframes waCap { 0%, 12%, 100% { box-shadow: 0 0 18px rgba(var(--wa),.9), 0 -2px 10px rgba(255,255,255,.6); } 15% { box-shadow: 0 0 30px 6px rgba(var(--wa),1), 0 -6px 18px rgba(255,255,255,.95); } 26% { box-shadow: 0 0 18px rgba(var(--wa),.9), 0 -2px 10px rgba(255,255,255,.6); } }
 @media (prefers-reduced-motion: reduce) { .wa-tg img, .wa-hit, .wa-crack path, .wa-ring i.on, .wa-img-statue, .wa-bar.cur i::after { animation: none !important; } .wa-bar.cur i { animation: waGrow .01s forwards !important; } }
@@ -282,10 +278,8 @@ html[data-design="wa"] .hero-goals-bar { height: 3px !important; margin-top: 12p
 /* картинка: одна рамка и одно затухание у всех слайдов */
 html[data-design="wa"] .wa-sbg, html[data-design="wa"] .wa-sbg-focus { aspect-ratio: auto; width: 62%; max-width: none; height: 100%; background-size: cover; background-position: center 35%; opacity: .95;
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.6) 28%, #000 60%); mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.6) 28%, #000 60%); transition: opacity .9s ease, transform 1.1s cubic-bezier(.76,0,.24,1); }
-html[data-design="wa"] .hero-slide:not(.is-cur) .wa-sbg { opacity: .25; transform: translateX(14%); }
+html[data-design="wa"] .hero-slide:not(.is-cur) .wa-sbg { opacity: .25; }
 /* кино: картинка медленно наезжает, текст выходит по очереди */
-html[data-design="wa"] .wa-moved .hero-slide.is-cur .wa-sbg { animation: waKen 9s cubic-bezier(.2,.6,.2,1) both; }
-@keyframes waKen { from { transform: scale(1.14) translateX(4%); } to { transform: scale(1.02); } }
 html[data-design="wa"] .wa-moved .hero-slide.is-cur .hero-slide-label { animation: waIn .7s .25s cubic-bezier(.2,.8,.2,1) both; }
 html[data-design="wa"] .wa-moved .hero-slide.is-cur .hero-slide-main { animation: waIn .8s .38s cubic-bezier(.2,.8,.2,1) both; }
 html[data-design="wa"] .wa-moved .hero-slide.is-cur .hero-slide-sub { animation: waIn .8s .52s cubic-bezier(.2,.8,.2,1) both; }
@@ -331,21 +325,6 @@ html[data-design="wa"] .wa-auto .hero-dot.active::after { animation: waBar var(-
   .wa-aurora i, .wa-fog, .wa-arc-t i.t, html[data-design="wa"] .wa-moved .hero-slide.is-cur *, html[data-design="wa"] .wa-moved .hero-slide.is-cur .wa-sbg, .wa-ripple { animation: none !important; }
 }
 
-/* ═══ шапки разделов в Winter Arc: ночь, светящаяся кромка цвета раздела, тяжёлый заголовок, картинка справа ═══ */
-html[data-design="wa"] .tr-header { --wa: 91,141,255; --wa-img: url(../img/wa/statue.webp); }
-html[data-design="wa"] .hab-header { --wa: 61,220,132; --wa-img: url(../img/wa/peak2.webp); }
-html[data-design="wa"] .tochka-header { --wa: 150,110,255; --wa-img: url(../img/wa/peak1.webp); }
-html[data-design="wa"] .goals-header { --wa: 245,158,60; --wa-img: url(../img/wa/target.webp); }
-html[data-design="wa"] .tk-hdr { --wa: 240,100,90; --wa-img: url(../img/wa/chess.webp); }
-html[data-design="wa"] :is(.tr-header, .hab-header, .tochka-header, .goals-header, .goals-header[data-season], .tk-hdr) {
-  background: linear-gradient(100deg, rgba(var(--wa),.22) 0%, rgba(var(--wa),.06) 45%, transparent 70%), linear-gradient(180deg, #0B1020, #070A12) !important;
-  box-shadow: inset 0 -1px 0 rgba(var(--wa),.55), 0 1px 18px -4px rgba(var(--wa),.55) !important; border-bottom: none !important; isolation: isolate; overflow: hidden; }
-html[data-design="wa"] :is(.tr-header, .hab-header, .tochka-header, .goals-header, .tk-hdr)::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 46%; z-index: -1; pointer-events: none;
-  background: var(--wa-img) right 30% / cover no-repeat; opacity: .55; -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%); mask-image: linear-gradient(90deg, transparent, #000 70%); }
-html[data-design="wa"] .goals-header::after { background-size: auto 130%; background-position: right 8px center; width: 40%; opacity: .7; -webkit-mask-image: radial-gradient(closest-side circle at calc(100% - 40px) 50%, #000 55%, transparent); mask-image: radial-gradient(closest-side circle at calc(100% - 40px) 50%, #000 55%, transparent); }
-html[data-design="wa"] :is(.tr-title, .hab-screen-title, .tochka-screen-title, .goals-screen-title, .tk-hdr p) { font-family: var(--wa-f) !important; font-weight: 800 !important; text-transform: uppercase; letter-spacing: .01em !important; color: #fff !important; }
-html[data-design="wa"] :is(.tr-header, .hab-header, .tochka-header, .goals-header, .tk-hdr) :is(button, .tr-back) { background: rgba(255,255,255,.07) !important; border: 1px solid rgba(255,255,255,.1) !important; color: #EAF2FF !important; }
-
 /* стрелка на плитке: стеклянный кружок цвета раздела с тонкой ↗ */
 .wa-arr { right: 16px !important; bottom: 16px !important; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0 !important;
   background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.14), rgba(var(--wa),.10) 60%); border: 1px solid rgba(var(--wa),.5);
@@ -355,3 +334,70 @@ html[data-design="wa"] :is(.tr-header, .hab-header, .tochka-header, .goals-heade
 html[data-design="wa"] .home2-tile:hover .wa-arr { transform: none; background: rgba(var(--wa),.35); box-shadow: 0 0 24px -2px rgba(var(--wa),.95), inset 0 1px 0 rgba(255,255,255,.2); }
 html[data-design="wa"] .home2-tile:hover .wa-arr svg { transform: rotate(45deg); }
 @media (max-width: 600px) { .wa-arr { right: 12px !important; bottom: 12px !important; width: 32px; height: 32px; } .wa-arr svg { width: 15px; height: 15px; } }
+
+/* ── иней у каждой плитки свой ── */
+.wa-frost-needle { background-image: url(../img/wa/frost-needle.webp); }
+.wa-frost-fern { background-image: url(../img/wa/frost-fern.webp); }
+.wa-frost-flake { background-image: url(../img/wa/frost-flake.webp); }
+.wa-frost-crack { background-image: url(../img/wa/frost-crack.webp); }
+.wa-frost-feather { background-image: url(../img/wa/frost-feather.webp); }
+.wa-frost-needle::after { background-image: url(../img/wa/frost-needle.webp); }
+.wa-frost-fern::after { background-image: url(../img/wa/frost-fern.webp); }
+.wa-frost-flake::after { background-image: url(../img/wa/frost-flake.webp); }
+.wa-frost-crack::after { background-image: url(../img/wa/frost-crack.webp); }
+.wa-frost-feather::after { background-image: url(../img/wa/frost-feather.webp); }
+.wa-frost-flake::after, .wa-frost-crack::after { display: none; }
+
+/* ── иллюстрации не заходят под стрелку ── */
+.wa-ring { right: 78px; }
+.wa-bars { right: 76px; }
+
+/* ── тренировки: пульс за статуей ── */
+.wa-ecg { position: absolute; left: 30%; right: 0; top: 46%; width: 70%; height: 24%; overflow: visible; }
+.wa-ecg path { fill: none; stroke: rgba(var(--wa),.22); stroke-width: 1.4; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.wa-ecg path.hot { stroke: rgb(var(--wa)); stroke-width: 2.2; stroke-dasharray: 140 1000; stroke-dashoffset: 1140; filter: drop-shadow(0 0 5px rgba(var(--wa),1)); animation: waEcg 3.2s linear infinite; }
+@keyframes waEcg { to { stroke-dashoffset: 0; } }
+
+/* ── задачи: песочные часы ── */
+.wa-hg { position: absolute; right: 84px; top: 10%; height: 80%; aspect-ratio: 100 / 150; animation: waHgFlip 7s cubic-bezier(.7,0,.3,1) infinite; filter: drop-shadow(0 0 14px rgba(var(--wa),.35)); }
+.wa-hg svg { width: 100%; height: 100%; overflow: visible; }
+.wa-hg-glass { fill: rgba(200,220,255,.05); stroke: rgba(225,235,255,.55); stroke-width: 1.6; }
+.wa-hg-cap { fill: #1A2032; stroke: rgba(225,235,255,.4); stroke-width: 1; }
+.wa-hg-top { animation: waHgTop 7s linear infinite; }
+.wa-hg-bot { animation: waHgBot 7s linear infinite; }
+.wa-hg-str { stroke: #FF8A7E; stroke-width: 1.6; stroke-dasharray: 3 4; animation: waHgStr .5s linear infinite, waHgStrO 7s linear infinite; filter: drop-shadow(0 0 3px rgba(var(--wa),1)); }
+@keyframes waHgTop { 0% { transform: translateY(8px); } 84%, 100% { transform: translateY(60px); } }
+@keyframes waHgBot { 0% { transform: translateY(50px); } 84%, 100% { transform: translateY(0); } }
+@keyframes waHgStr { to { stroke-dashoffset: -7; } }
+@keyframes waHgStrO { 0%, 82% { opacity: 1; } 84%, 100% { opacity: 0; } }
+@keyframes waHgFlip { 0%, 86% { transform: rotate(0); } 100% { transform: rotate(180deg); } }
+
+/* ── финансы: прыгающий шарик ── */
+.wa-ball { position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 2px rgba(var(--wa),1), 0 0 3px #fff; opacity: 0; pointer-events: none; z-index: 2; }
+
+@media (max-width: 600px) {
+  .wa-ring { right: 12px; }
+  .wa-bars { right: 14px; bottom: 54px; }
+  .wa-hg { right: 14px; top: 12px; height: 56%; }
+  .wa-ecg { left: 20%; width: 80%; }
+}
+
+/* ── шапки разделов: обычные, но фирменный заголовок и ледяной блик по нижней кромке ── */
+html[data-design="wa"] :is(.tr-title, .hab-screen-title, .tochka-screen-title, .goals-screen-title, .tk-hdr p) { font-family: var(--wa-f) !important; font-weight: 800 !important; text-transform: uppercase; letter-spacing: .01em !important; }
+html[data-design="wa"] :is(.tr-header, .hab-header, .tochka-header, .goals-header, .tk-hdr)::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, transparent 40%, rgba(235,245,255,.95) 50%, transparent 60%, transparent 100%), linear-gradient(90deg, rgba(220,235,255,.12), rgba(220,235,255,.3), rgba(220,235,255,.12));
+  background-size: 300% 100%, 100% 1px; background-repeat: no-repeat; background-position: 150% 0, 0 100%; animation: waSheen 6s ease-in-out infinite; }
+@keyframes waSheen { 0% { background-position: 150% 0, 0 100%; } 60%, 100% { background-position: -50% 0, 0 100%; } }
+
+/* ── слайдер: кольцо с числом и список задач ── */
+html[data-design="wa"] .skv-ring-c b { font-family: 'Montserrat', sans-serif !important; font-weight: 800 !important; font-size: 11px !important; letter-spacing: 0 !important; }
+html[data-design="wa"] .skv-ring-c b.sm { font-size: 9px !important; }
+html[data-design="wa"] .skv-ring .hero-stat-lbl { max-width: none; white-space: normal; overflow: visible; }
+html[data-design="wa"] .hero-pays { max-width: min(560px, 58%); }
+@media (max-width: 600px) { html[data-design="wa"] .hero-pays { max-width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .wa-ecg path.hot, .wa-hg, .wa-hg *, :is(.tr-header, .hab-header, .tochka-header, .goals-header, .tk-hdr)::after { animation: none !important; } }
+/* иней тише, чтобы не спорил с иллюстрациями */
+html[data-design="wa"] .home2-tile .wa-frost { opacity: .42; background-size: 260px 260px; }
+html[data-design="wa"] .home2-tile .wa-frost::after { opacity: .5; width: 150px; height: 150px; }
+html[data-design="wa"] .home2-tile .wa-frost-flake, html[data-design="wa"] .home2-tile .wa-frost-fern { opacity: .3; }
+@media (max-width: 600px) { html[data-design="wa"] .home2-tile .wa-frost { background-size: 190px 190px; } html[data-design="wa"] .home2-tile .wa-frost::after { width: 110px; height: 110px; } }

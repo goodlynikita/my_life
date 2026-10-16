@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v212';
+const CACHE = 'nik-system-v213';
 
 const STATIC = [
   './',
@@ -105,12 +105,14 @@ function putCache(req, res) {
 self.addEventListener('fetch', e => {
   const req = e.request, url = req.url;
   if (req.method !== 'GET' || LIVE.test(url) || !/^https?:/.test(url)) return;
-  /* Страница (index.html, coach.html): сразу из кеша своей версии, без ожидания сети, поэтому приложение открывается мгновенно и без интернета.
-     Страницу в кеш кладёт только установка версии (или первый заход на неё), чтобы страница всегда совпадала со своими скриптами.
-     Новая версия ставится фоном и открывается со следующего запуска */
+  /* Страница: свежая из сети (не дольше 3 секунд), иначе из кеша своей версии. Исправления доходят сразу */
   if (req.mode === 'navigate') {
-    e.respondWith(mine().then(c => c.match(req, { ignoreSearch: true }).then(hit => hit
-      || fetch(req).then(res => putCache(req, res)).catch(() => c.match('./index.html').then(r => r || c.match('./')).then(r => r || Response.error())))));
+    e.respondWith(mine().then(c => new Promise(resolve => {
+      let done = false; const fromCache = () => c.match(req, { ignoreSearch: true }).then(r => r || c.match('./index.html')).then(r => r || c.match('./'));
+      const t = setTimeout(() => fromCache().then(r => { if (r && !done) { done = true; resolve(r); } }), 3000);
+      fetch(req).then(res => { if (!done) { done = true; clearTimeout(t); resolve(res); } })
+        .catch(() => fromCache().then(r => { if (!done) { done = true; clearTimeout(t); resolve(r || Response.error()); } }));
+    })));
     return;
   }
   if (isCdn(url)) {

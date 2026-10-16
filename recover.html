@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YOU: восстановление данных</title>
+<style>
+  body{margin:0;background:#11141C;color:#E8EAF0;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+  .w{max-width:680px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:22px;margin:6px 0 4px} .sub{color:#9AA3BC;font-size:13px;margin-bottom:18px}
+  .card{background:#1A1E29;border:1px solid #2A3040;border-radius:14px;padding:14px 16px;margin:12px 0}
+  .card h3{margin:0 0 6px;font-size:16px} .row{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:3px 0;border-bottom:1px solid #232838}
+  .row span:first-child{color:#9AA3BC} .best{border-color:#4A7CFF}
+  button{height:44px;border-radius:12px;border:none;padding:0 16px;font:inherit;font-weight:700;cursor:pointer;margin:10px 8px 0 0}
+  .b1{background:#4A7CFF;color:#fff} .b2{background:#2A3040;color:#E8EAF0} .b3{background:#16A34A;color:#fff}
+  input{width:100%;box-sizing:border-box;height:44px;border-radius:10px;border:1px solid #2A3040;background:#0F121A;color:#fff;padding:0 12px;font:inherit;margin:6px 0}
+  .msg{margin-top:10px;font-size:14px} .ok{color:#4ADE80} .err{color:#F87171}
+</style>
+<script src="js/config.js"></script>
+</head><body><div class="w">
+<h1>Восстановление данных</h1>
+<div class="sub">Здесь видно, какие копии данных есть в этом браузере и на сервере. Сначала скачай всё, потом восстанавливай нужную копию.</div>
+<div id="auth"></div>
+<div id="server"></div>
+<div id="local"></div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp(window.FIREBASE_CONFIG), db = getDatabase(app), auth = getAuth(app);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rootOf = (u) => (window.AUTH_CONFIG && u.email === AUTH_CONFIG.ownerEmail) ? 'nik-data' : 'users/' + u.uid;
+const fmt = (t) => t ? new Date(t).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'нет';
+/* самая свежая отметка времени внутри раздела (at, createdAt, doneAt и т.п. в миллисекундах) и самая поздняя дата вида 2026-10-15 */
+function scan(v) { let ms = 0, day = ''; const walk = (x, k) => { if (x == null) return;
+  if (typeof x === 'number' && x > 1.6e12 && x < 2.2e12) { if (x > ms) ms = x; return; }
+  if (typeof x === 'string') { if (/^20\d\d-\d\d-\d\d/.test(x) && x.slice(0, 10) <= new Date().toISOString().slice(0, 10) && x > day) day = x.slice(0, 10); return; }
+  if (typeof x === 'object') for (const kk in x) { if (/^20\d\d-\d\d-\d\d$/.test(kk) && kk <= new Date().toISOString().slice(0, 10) && kk > day) day = kk; walk(x[kk], kk); } };
+  walk(v); return { ms, day }; }
+function summary(d) { const secs = ['training', 'habits', 'finance', 'goals', 'tasks', 'home']; let all = 0;
+  return secs.filter(s => d && d[s]).map(s => { const r = scan(d[s]); all = Math.max(all, r.ms); return `<div class="row"><span>${s}</span><span>${fmt(r.ms)}${r.day ? ' · даты до ' + r.day.split('-').reverse().join('.') : ''}</span></div>`; }).join('')
+    + `<div class="row"><span>размер</span><span>${Math.round(JSON.stringify(d || {}).length / 1024)} КБ</span></div>`; }
+function download(name, data) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' })); a.download = name; a.click(); }
+const stamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+
+function localCopies() { const out = [];
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!/^nik_local_backup/.test(k)) continue;
+    try { const v = JSON.parse(localStorage.getItem(k)); const d = v && v.data && v.savedAt ? v.data : v; if (d && typeof d === 'object') out.push({ k, d, savedAt: v && v.savedAt }); } catch (e) {} }
+  return out; }
+
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { $('auth').innerHTML = `<div class="card"><h3>Войди в свой аккаунт</h3><input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Пароль"><button class="b1" id="go">Войти</button><div class="msg" id="am"></div></div>`;
+    $('go').onclick = async () => { try { await signInWithEmailAndPassword(auth, $('em').value.trim(), $('pw').value); } catch (e) { $('am').innerHTML = '<span class="err">Не получилось войти</span>'; } }; }
+  else $('auth').innerHTML = `<div class="sub">Аккаунт: ${esc(u.email)}</div>`;
+  const copies = localCopies();
+  $('local').innerHTML = copies.length ? copies.map((c, i) => `<div class="card"><h3>Копия в этом браузере${c.savedAt ? ' от ' + fmt(c.savedAt) : ''}</h3>${summary(c.d)}
+      <button class="b2" data-dl="${i}">Скачать</button>${u ? `<button class="b3" data-rs="${i}">Восстановить на сервер</button>` : ''}<div class="msg" id="m${i}"></div></div>`).join('')
+    : '<div class="card">В этом браузере копий данных нет. Открой эту страницу на устройстве, где данные были свежими.</div>';
+  copies.forEach((c, i) => { const dl = document.querySelector(`[data-dl="${i}"]`); if (dl) dl.onclick = () => download('you-local-' + stamp() + '.json', c.d); });
+  if (!u) return;
+  const root = rootOf(u); let server = null;
+  try { const s = await get(ref(db, root)); server = s.exists() ? s.val() : {}; } catch (e) { $('server').innerHTML = '<div class="card err">Не удалось прочитать сервер. Проверь интернет.</div>'; }
+  if (server) { $('server').innerHTML = `<div class="card"><h3>Сейчас на сервере</h3>${summary(server)}<button class="b2" id="sdl">Скачать</button></div>`; $('sdl').onclick = () => download('you-server-' + stamp() + '.json', server); }
+  copies.forEach((c, i) => { const b = document.querySelector(`[data-rs="${i}"]`); if (!b) return; b.onclick = async () => {
+    if (!confirm('Заменить данные на сервере этой копией? Текущие данные с сервера сначала скачаются файлом.')) return;
+    if (server) download('you-server-before-restore-' + stamp() + '.json', server);
+    const secs = ['training', 'habits', 'finance', 'goals', 'tasks', 'home', 'body', 'wheel', 'winter'].filter(s => c.d[s] !== undefined), upd = {};
+    Object.keys(c.d).forEach(k => { if (!/[.#$\[\]\/]/.test(k)) upd[k] = c.d[k]; });
+    try { await update(ref(db, root), upd); $('m' + i).innerHTML = '<span class="ok">Готово. Восстановлено разделов: ' + Object.keys(upd).length + '. Теперь открывай приложение.</span>'; }
+    catch (e) { $('m' + i).innerHTML = '<span class="err">Ошибка записи: ' + esc(e.message || e) + '</span>'; } }; });
+});
+</script>
+</body></html>

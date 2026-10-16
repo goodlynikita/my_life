@@ -156,7 +156,17 @@ const Store = (() => {
     data = ensureShape(newData);
     /* Сохраняем в localStorage как резервную копию (у тренера не пишем) */
     if (!(window.FirebaseSync && FirebaseSync.isCoach && FirebaseSync.isCoach())) {
-      try { localStorage.setItem('nik_local_backup', JSON.stringify(data)); } catch(e) {}
+      try {
+        /* страховка: прошлую копию с телефона/компьютера не выкидываем, а кладём в отдельные ячейки (3 последние), если она отличалась */
+        var old = localStorage.getItem('nik_local_backup'), nw = JSON.stringify(data);
+        if (old && old !== nw && old.length > 200) {
+          var p1 = localStorage.getItem('nik_local_backup_prev1'), p2 = localStorage.getItem('nik_local_backup_prev2');
+          if (p2) localStorage.setItem('nik_local_backup_prev3', p2);
+          if (p1) localStorage.setItem('nik_local_backup_prev2', p1);
+          localStorage.setItem('nik_local_backup_prev1', JSON.stringify({ savedAt: Date.now(), data: JSON.parse(old) }));
+        }
+        localStorage.setItem('nik_local_backup', nw);
+      } catch(e) {}
     }
   }
 

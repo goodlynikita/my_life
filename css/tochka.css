@@ -618,3 +618,7 @@ html.fin-inv-on .modal-finance #se-del, html.fin-inv-on .modal-finance #om-del, 
 .sp-day-del{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:6px 0 4px;height:40px;border:1px dashed rgba(239,68,68,.35);border-radius:10px;background:none;color:#EF4444;font:inherit;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sp-day-del i{font-size:16px}
 .sp-day-del:active{background:rgba(239,68,68,.08)}
+.fin-dark .pg-inc-r { border-top-color: var(--tk-line, rgba(255,255,255,.07)); }
+.fin-dark .pg-inc-n { color: var(--tk-text, #E5E7EB); }
+.fin-dark .pg-inc-d, .fin-dark .pg-inc-n em { color: var(--tk-faint, #8A8A8A); }
+.fin-dark .pg-inc-a { color: var(--tk-green) !important; }

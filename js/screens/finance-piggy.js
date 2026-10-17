@@ -69,16 +69,20 @@ window.FinPiggy = (function () {
   }
 
   let activeView = 'months';
+  const openMonths = new Set();
 
   function html(pct) {
     const c = compute(pct);
     const { p, months, balance, cur } = c;
     const start = parseMk(p.startMonth);
 
+    /* месяц раскрывается: каждый приход и сколько с него ушло в копилку */
+    const incHtml = (x) => { const es = finEntries(x.y, x.m).filter(e => +e.amount > 0).slice().sort((a, b) => { const d = (e) => String(e.date || '').split('.').reverse().join(''); return d(b).localeCompare(d(a)); });
+      return `<div class="pg-inc">${es.map(e => `<div class="pg-inc-r"><span class="pg-inc-d">${esc(String(e.date || '').slice(0, 5))}</span><span class="pg-inc-n">${esc(e.label || 'Доход')}<em>${finFmtFull(+e.amount)}</em></span><span class="pg-inc-a">+${finFmtFull(Math.round(+e.amount * pct / 100))}</span></div>`).join('')}</div>`; };
     const monthsHtml = months.slice().reverse().map(x => `
-      <div class="pg-row">
+      <div class="pg-row${x.income ? ' pg-row-exp' : ''}${openMonths.has(x.k) ? ' open' : ''}"${x.income ? ` data-mk="${x.k}" role="button" tabindex="0"` : ''}>
         <div class="pg-row-main">
-          <div class="pg-row-title">${FIN_MONTHS[x.m]} ${x.y}</div>
+          <div class="pg-row-title">${x.income ? '<i class="ti ti-chevron-right pg-chev"></i>' : ''}${FIN_MONTHS[x.m]} ${x.y}</div>
           <div class="pg-row-sub">${x.income ? pct + '% от поступлений' : 'поступлений не было'}</div>
         </div>
         <div class="pg-row-side">
@@ -87,7 +91,7 @@ window.FinPiggy = (function () {
           ${x.reset ? `<div class="pg-muted">обнулено</div>` : ''}
           <div class="pg-muted">итого ${fmt(x.end)}</div>
         </div>
-      </div>`).join('');
+      </div>${x.income && openMonths.has(x.k) ? incHtml(x) : ''}`).join('');
 
     const ops = p.ops.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
     const opsHtml = ops.length ? ops.map(o => {
@@ -309,6 +313,7 @@ window.FinPiggy = (function () {
     $('#pg-reset').addEventListener('click', () => openReset(pct, rerender));
     $('#pg-settings').addEventListener('click', () => openSettings(rerender));
     root.querySelectorAll('.pg-seg-btn').forEach(b => b.addEventListener('click', () => { activeView = b.dataset.v; rerender(); }));
+    root.querySelectorAll('.pg-row-exp[data-mk]').forEach(r => r.addEventListener('click', () => { const k = r.dataset.mk; openMonths.has(k) ? openMonths.delete(k) : openMonths.add(k); rerender(); }));
     root.querySelectorAll('.pg-op-del').forEach(b => b.addEventListener('click', () => {
       if (!confirm('Удалить эту операцию? Баланс пересчитается.')) return;
       const p = get(); p.ops = p.ops.filter(o => o.id !== b.dataset.id); save(p); rerender();

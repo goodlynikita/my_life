@@ -1030,3 +1030,13 @@
 /* v185: «Обнулить» иконкой, чтобы не обрезалась на телефоне */
 .pg-actions { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 44px; }
 .pg-btn-ghost { padding: 0; width: 44px; }
+/* копилка: месяц раскрывается списком приходов */
+.pg-row-exp { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pg-chev { font-size: 14px; margin-right: 4px; vertical-align: -2px; opacity: .5; display: inline-block; transition: transform .2s; }
+.pg-row-exp.open .pg-chev { transform: rotate(90deg); }
+.pg-inc { padding: 0 16px 10px 34px; }
+.pg-inc-r { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-top: 1px dashed #EEF0F3; font-size: 13px; }
+.pg-inc-d { color: #9CA3AF; font-size: 12px; width: 38px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.pg-inc-n { flex: 1; min-width: 0; color: #374151; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pg-inc-n em { font-style: normal; color: #9CA3AF; margin-left: 6px; font-size: 12px; }
+.pg-inc-a { color: #16A34A; font-weight: 700; flex-shrink: 0; }

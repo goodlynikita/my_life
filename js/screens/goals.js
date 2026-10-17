@@ -493,15 +493,15 @@ window.Screens.goals = function(mount) {
       const naGodTotal = grandTotal + doneTotal;
       const remainTotal = Math.max(0, grandTotal);
       const allDone = all.filter(g=>g.done).length;
-      const allPct = all.length ? Math.round(allDone/all.length*100) : 0;
+      /* процент по деньгам, как и суммы рядом; целей без сумм нет, считаем по количеству */
+      const allPct = naGodTotal > 0 ? Math.round(doneTotal/naGodTotal*100) : (all.length ? Math.round(allDone/all.length*100) : 0);
       heroHtml = `
         <div class="goals-hero-all" style="--season-color:${color};--season-hero-bg:${bg};background:${bg};">
-          <div class="goals-hero-eyebrow">ЦЕЛИ ${new Date().getFullYear()}</div>
+          <div class="goals-hero-eyebrow">ЦЕЛИ ${new Date().getFullYear()} · ОСТАЛОСЬ</div>
           <div class="goals-hero-big">${goalsFmt(grandTotal)}</div>
           <div class="goals-hero-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
             ${naGodTotal !== grandTotal ? `<span>На год: ${goalsFmt(naGodTotal)}</span>` : ''}
             <span style="color:#A8C97F;">Закрыто: ${goalsFmt(doneTotal)}</span>
-            <span style="color:#9D9A92;">Осталось: ${goalsFmt(remainTotal)}</span>
           </div>
           <div class="goals-all-progress"><div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div></div>
           <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>

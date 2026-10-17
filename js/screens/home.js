@@ -6,7 +6,10 @@ window.Screens.home = function(mount) {
   var yearAmt = goals.filter(function(g){return g.season!=='all';}).reduce(function(s,g){return s+(g.amount||0);},0);
   var doneCnt = goals.filter(function(g){return g.done;}).length;
   var totalCnt = goals.length;
-  var goalsPct = totalCnt ? Math.round(doneCnt/totalCnt*100) : 0;
+  /* процент целей по деньгам, как в Целях */
+  var gDoneAmt = goals.filter(function(g){return g.done;}).reduce(function(s,g){return s+(+g.amount||0);},0);
+  var gTotAmt = gDoneAmt + goals.filter(function(g){return !g.done&&!g.maybe;}).reduce(function(s,g){return s+(+g.amount||0);},0);
+  var goalsPct = gTotAmt > 0 ? Math.round(gDoneAmt/gTotAmt*100) : (totalCnt ? Math.round(doneCnt/totalCnt*100) : 0);
   var doneYearAmt = goals.filter(function(g){return g.done&&g.season!=='all';}).reduce(function(s,g){return s+(g.amount||0);},0);
 
   var now = new Date();

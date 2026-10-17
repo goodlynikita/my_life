@@ -157,7 +157,9 @@ var Slides = (() => {
       render: (store, cfg, slideColor) => {
         const goals = ((store.goals?.directions)||[]).filter(Boolean);
         const done  = goals.filter(g=>g.done).length;
-        const pct   = goals.length ? Math.round(done/goals.length*100) : 0;
+        /* по деньгам, как в Целях: закрыто / (закрыто + открыто без «под вопросом») */
+        const dA = goals.filter(g=>g.done).reduce((s,g)=>s+(+g.amount||0),0), tA = dA + goals.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+(+g.amount||0),0);
+        const pct   = tA > 0 ? Math.round(dA/tA*100) : (goals.length ? Math.round(done/goals.length*100) : 0);
         const color = slideColor || '#A78BFA';
         return `<div class="hero-big-text">${pct}%</div><div class="hero-goals-bar"><div class="hero-goals-fill" style="width:${pct}%;background:${color};"></div></div>`;
       },

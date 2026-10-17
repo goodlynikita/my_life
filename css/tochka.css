@@ -614,3 +614,7 @@ html[data-theme="light"].fin-dark-on .modal-finance .tr-modal-row input, html[da
 html.fin-inv-on .modal-finance .sp-seg, html[data-theme="light"].fin-dark-on .modal-finance .sp-seg { background: #121213 !important; }
 html.fin-inv-on .modal-finance .sp-seg button.on, html[data-theme="light"].fin-dark-on .modal-finance .sp-seg button.on { color: #000 !important; }
 html.fin-inv-on .modal-finance #se-del, html.fin-inv-on .modal-finance #om-del, html[data-theme="light"].fin-dark-on .modal-finance #se-del, html[data-theme="light"].fin-dark-on .modal-finance #om-del { color: #F49C95 !important; }
+/* удалить все траты дня */
+.sp-day-del{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:6px 0 4px;height:40px;border:1px dashed rgba(239,68,68,.35);border-radius:10px;background:none;color:#EF4444;font:inherit;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sp-day-del i{font-size:16px}
+.sp-day-del:active{background:rgba(239,68,68,.08)}

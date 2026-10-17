@@ -509,7 +509,7 @@ window.FinSpend = (function () {
           ${!op ? '' : g.items.map(x => { const ct = catById[x.cat]; return `<button class="sp-row" data-id="${esc(x.id)}" data-ym="${esc(x.ym)}">
             <i class="sp-ico" style="--c:${ct ? col(ct.color) : '#737373'}">${esc((String(x.note || '?').trim()[0] || '?').toUpperCase())}</i>
             <span class="sp-row-m"><b>${esc(x.note || 'Трата')}</b><em>${esc(ct ? ct.name : 'Другое')}${x.src ? ' · ' + esc(x.src) : ''}</em></span>
-            <span class="sp-row-a">−${fmt(x.amt)}</span></button>`; }).join('')}`; }).join('')
+            <span class="sp-row-a">−${fmt(x.amt)}</span></button>`; }).join('') + (c.sample || g.items.length < 2 ? '' : `<button class="sp-day-del" data-del-day="${esc(g.k)}"><i class="ti ti-trash"></i>Удалить все за день</button>`)}`; }).join('')
           + (items.length > shown.length ? `<button class="sp-more" id="sp-more">Показать все ${items.length}</button>` : '')
           : `<div class="sp-empty"><i class="ti ti-receipt"></i>${c.P ? 'Трат с зарплаты пока нет' : 'Трат в этом месяце пока нет'}</div>`}
       </div>`;
@@ -556,6 +556,15 @@ window.FinSpend = (function () {
     const tm = content.querySelector('#sp-to-month'); if (tm) tm.onclick = () => { const t = document.querySelector('.tochka-tab[data-tab="month"]'); if (t) t.click(); };
     /* дни сворачиваются: по умолчанию раскрыт только последний день с тратами */
     content.querySelectorAll('.sp-day[data-day]').forEach(b => b.onclick = () => { if (!openDays) openDays = new Set(groups.length ? [groups[0].k] : []); openDays.has(b.dataset.day) ? openDays.delete(b.dataset.day) : openDays.add(b.dataset.day); rerender(); });
+    /* удалить все траты дня разом: с подтверждением и отменой в уведомлении */
+    content.querySelectorAll('.sp-day-del[data-del-day]').forEach(b => b.onclick = () => {
+      const g = groups.find(z => z.k === b.dataset.delDay); if (!g || !g.items.length) return;
+      const sum = g.items.reduce((s, x) => s + x.amt, 0);
+      if (!confirm(`Удалить все траты за ${dayLabel(g.d).toLowerCase()}? Трат: ${g.items.length} на ${fmt(sum)}`)) return;
+      const yms = [...new Set(g.items.map(x => x.ym || c.ym))], undo = snapshot(yms);
+      yms.forEach(ym => { const ids = new Set(g.items.filter(x => (x.ym || c.ym) === ym).map(x => x.id)); saveList(ym, rawList(ym).filter(z => !ids.has(z.id))); });
+      rerender(); toast(`Удалил траты за день: ${fmt(sum)}`, () => { undo(); rerender(); });
+    });
     const more = content.querySelector('#sp-more'); if (more) more.onclick = () => { showAll = true; rerender(); };
     ['#sp-pay-add', '#sp-pay-empty'].forEach(q => { const el = content.querySelector(q); if (el) el.onclick = () => payModal(rerender); });
     /* платёж из списка: подставляем строку с суммой остатка, Enter запишет его в нужную категорию */

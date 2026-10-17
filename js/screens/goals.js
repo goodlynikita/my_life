@@ -6,13 +6,15 @@ window.Screens = window.Screens || {};
 /* пользовательский текст в HTML только через экранирование */
 const goalsEsc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const GOALS_SEASONS = [
-  { key: 'all',    label: 'Всё',   color: '#F2A93B', bg: '#1A1200' },
-  { key: 'spring', label: 'Весна', color: '#A8C97F', bg: '#0A1A0A', end: new Date(new Date().getFullYear(),5,0) },
-  { key: 'summer', label: 'Лето',  color: '#4ADE80', bg: '#051A0A', end: new Date(new Date().getFullYear(),8,0) },
-  { key: 'autumn', label: 'Осень', color: '#E6C84F', bg: '#1A0E00', end: new Date(new Date().getFullYear(),11,0) },
-  { key: 'winter', label: 'Зима',  color: '#60A5FA', bg: '#0C1525', end: new Date(new Date().getFullYear()+1,2,0) },
-];
+/* с 2027 года год целей начинается с зимы: зима = январь, февраль и декабрь этого же года */
+const GOALS_CAL_WINTER = new Date().getFullYear() >= 2027;
+const GOALS_SEASONS = (() => { const Y = new Date().getFullYear(), W = { key: 'winter', label: 'Зима', color: '#60A5FA', bg: '#0C1525', end: GOALS_CAL_WINTER ? new Date(Y, 11, 31) : new Date(Y + 1, 2, 0) };
+  const rest = [
+    { key: 'spring', label: 'Весна', color: '#A8C97F', bg: '#0A1A0A', end: new Date(Y,5,0) },
+    { key: 'summer', label: 'Лето',  color: '#4ADE80', bg: '#051A0A', end: new Date(Y,8,0) },
+    { key: 'autumn', label: 'Осень', color: '#E6C84F', bg: '#1A0E00', end: new Date(Y,11,0) }];
+  return [{ key: 'all', label: 'Всё', color: '#F2A93B', bg: '#1A1200' }].concat(GOALS_CAL_WINTER ? [W].concat(rest) : rest.concat([W])); })();
+const GOALS_SEASON_OPTS = () => [['all','Без сезона']].concat(GOALS_SEASONS.filter(x => x.key !== 'all').map(x => [x.key, x.label]));
 
 /* Демо-цели для НОВЫХ пользователей — популярные желания по сезонам */
 const GOALS_DEMO = [
@@ -116,6 +118,8 @@ function goalsIsDemo() {
 function goalsSave(list) {
   /* Пишем весь массив целиком одним Store.set — Firebase получает чистый массив */
   const clean = list.filter(Boolean);
+  /* дата выполнения: по ней цели уходят в итоги года */
+  clean.forEach(g => { if (g.done && !g.doneAt) g.doneAt = Date.now(); else if (!g.done && g.doneAt) delete g.doneAt; });
   Store.set('goals.directions', clean);
 }
 function goalsFmt(n) {
@@ -135,6 +139,7 @@ function goalsMonthsLeft(season) {
   const sMths = SEASON_MONTHS[season];
   if (!sMths) return null;
   // Для зимы особый учёт (переход через год)
+  if (season === 'winter' && GOALS_CAL_WINTER) return [0, 1, 11].filter(m => m >= curMonth).length;
   if (season === 'winter') {
     // Текущий месяц входит в зиму?
     if (curMonth === 11) return 3; // дек — осталось 3 (дек+янв+фев)
@@ -152,11 +157,71 @@ function goalsPayDate(g) {
   const END = { spring: [4, 31], summer: [7, 31], autumn: [10, 30], winter: [1, 28] };
   let d;
   if (g.month) { d = new Date(y, g.month, 0); if (d < new Date(now.getFullYear(), now.getMonth(), now.getDate())) d = new Date(y + 1, g.month, 0); } /* последний день месяца */
+  else if (g.season === 'winter' && GOALS_CAL_WINTER) d = now.getMonth() < 2 ? new Date(y, 2, 0) : new Date(y, 11, 31);
   else if (END[g.season]) { const [m, dd] = END[g.season]; d = new Date(y + (g.season === 'winter' && now.getMonth() >= 2 ? 1 : 0), m, dd); if (d < now) d = new Date(d.getFullYear() + 1, m, dd); }
   else d = new Date(y, 11, 31);
   return d;
 }
 function goalsInPlanned(g) { if (!g || !g.payId) return false; const pl = (Store.get().finance || {}).planned; return Object.values(pl || {}).some(x => x && x.id === g.payId); }
+/* ── Новый год: выполненные цели уходят в «Итоги года», невыполненные переезжают без сезона ── */
+function goalsRollover() {
+  try {
+    if (typeof Store === 'undefined') return false;
+    const st = Store.get(), g = st.goals || {}, Y = new Date().getFullYear();
+    if (!g.year) { Store.set('goals.year', Y); return false; }
+    if (+g.year >= Y || goalsIsDemo()) { if (+g.year < Y) Store.set('goals.year', Y); return false; }
+    const from = +g.year, list = (Array.isArray(g.directions) ? g.directions : Object.values(g.directions || {})).filter(Boolean);
+    const done = list.filter(x => x.done), open = list.filter(x => !x.done);
+    const prev = ((g.archive || {})[from]) || {};
+    if (done.length) Store.set('goals.archive.' + from, { year: from, at: Date.now(), goals: (prev.goals || []).concat(done) });
+    const carried = open.map(x => { const c = Object.assign({}, x, { season: 'all', carry: from }); delete c.month; return c; });
+    goalsSave(carried); Store.set('goals.year', Y);
+    return true;
+  } catch (e) { console.error('goals rollover', e); return false; }
+}
+/* окно переноса: у каждой цели выбираешь сезон или убираешь её */
+function goalsCarryModal(onDone) {
+  const list = goalsGet(), car = list.filter(g => g.carry); if (!car.length) return;
+  const Y = new Date().getFullYear(), from = car[0].carry, drop = new Set();
+  const opts = GOALS_SEASON_OPTS().filter(o => o[0] !== 'all');
+  const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-goals goals-carry-ov';
+  ov.innerHTML = `<div class="goals-modal goals-carry"><div class="goals-modal-header"><span class="goals-modal-title">Переносим в ${Y}</span></div>
+    <div class="gc-sub">Не закрыто в ${from}: ${car.length}. Выбери сезон или убери лишнее</div>
+    <div class="gc-list">${car.map(g => `<div class="gc-row" data-id="${goalsEsc(g.id)}"><div class="gc-m"><b>${goalsEsc(g.name)}</b><em>${goalsEsc(g.cat || '')}${g.amount ? ' · ' + goalsFmt(g.amount) : ''}</em></div>
+      <select class="goals-modal-input gm-sel gc-sel"><option value="all">Сезон?</option>${opts.map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
+      <button class="gc-del" aria-label="Убрать"><i class="ti ti-trash"></i></button></div>`).join('')}</div>
+    <div class="goals-modal-actions"><button class="goals-modal-cancel gc-later">Позже</button><button class="goals-modal-save gc-ok">Готово</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelectorAll('.gc-del').forEach(b => b.onclick = () => { const r = b.closest('.gc-row'), id = r.dataset.id; drop.has(id) ? drop.delete(id) : drop.add(id); r.classList.toggle('off', drop.has(id)); b.innerHTML = drop.has(id) ? '<i class="ti ti-arrow-back-up"></i>' : '<i class="ti ti-trash"></i>'; });
+  ov.querySelector('.gc-later').onclick = () => ov.remove();
+  ov.querySelector('.gc-ok').onclick = () => {
+    const sea = {}; ov.querySelectorAll('.gc-row').forEach(r => { sea[r.dataset.id] = r.querySelector('.gc-sel').value; });
+    const dropped = list.filter(g => drop.has(g.id));
+    const next = list.filter(g => !drop.has(g.id)).map(g => { if (!g.carry) return g; const c = Object.assign({}, g, { season: sea[g.id] || 'all' }); delete c.carry; return c; });
+    goalsSave(next);
+    if (dropped.length) { const a = ((Store.get().goals || {}).archive || {})[from] || { year: from, goals: [] }; Store.set('goals.archive.' + from, Object.assign({}, a, { dropped: (a.dropped || []).concat(dropped.map(g => { const c = Object.assign({}, g); delete c.carry; return c; })) })); }
+    ov.remove(); if (onDone) onDone();
+  };
+}
+/* итоги прошлых лет */
+function goalsArchiveModal(year) {
+  const a = (((Store.get().goals || {}).archive) || {})[year]; if (!a) return;
+  const gs = (a.goals || []).filter(Boolean), sum = gs.reduce((s, g) => s + (+g.amount || 0), 0), cats = {};
+  gs.forEach(g => { (cats[g.cat || 'Разное'] = cats[g.cat || 'Разное'] || []).push(g); });
+  const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-goals';
+  ov.innerHTML = `<div class="goals-modal goals-carry"><div class="goals-modal-header"><span class="goals-modal-title">Итоги ${year}</span><button class="goals-modal-del goals-modal-close" aria-label="Закрыть">✕</button></div>
+    <div class="ga-top"><div><b>${gs.length}</b><span>целей закрыто</span></div><div><b>${goalsFmt(sum)}</b><span>на сумму</span></div></div>
+    <div class="gc-list">${Object.keys(cats).map(c => `<div class="ga-cat">${goalsEsc(c)}</div>` + cats[c].map(g => `<div class="ga-row"><i class="ti ti-circle-check"></i><span>${goalsEsc(g.name)}</span><em>${g.amount ? goalsFmt(g.amount) : ''}</em></div>`).join('')).join('')}</div></div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove(); ov.querySelector('.goals-modal-close').onclick = close; ov.addEventListener('click', e => { if (e.target === ov) close(); });
+}
+/* переименовать категорию: у всех её целей сразу */
+function goalsRenameCat(oldName, onDone) {
+  const nn = prompt('Новое название категории', oldName); if (nn == null) return;
+  const name = String(nn).trim().slice(0, 40); if (!name || name === oldName) return;
+  const list = goalsGet(); list.forEach(g => { if ((g.cat || '') === oldName) g.cat = name; }); goalsSave(list);
+  if (onDone) onDone();
+}
 const goalsIso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 function goalsToPlanned(g, when) {
   const fin = Store.get().finance || {}; const arr = Object.values(fin.planned || {}).filter(Boolean);
@@ -196,7 +261,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
       <div class="gm-sel-row">
         <div class="goals-modal-field">
           <div class="goals-modal-label">Сезон</div>
-          <select class="goals-modal-input gm-sel" id="g-season-sel">${[['all','Без сезона'],['spring','Весна'],['summer','Лето'],['autumn','Осень'],['winter','Зима']].map(([k,l])=>`<option value="${k}"${(existing?.season||'all')===k?' selected':''}>${l}</option>`).join('')}</select>
+          <select class="goals-modal-input gm-sel" id="g-season-sel">${GOALS_SEASON_OPTS().map(([k,l])=>`<option value="${k}"${(existing?.season||'all')===k?' selected':''}>${l}</option>`).join('')}</select>
         </div>
         <div class="goals-modal-field">
           <div class="goals-modal-label">Месяц</div>
@@ -440,6 +505,8 @@ window.Screens.goals = function(mount) {
           </div>
           <div class="goals-all-progress"><div class="goals-all-bar" style="width:${allPct}%;background:${color};"></div></div>
           <div class="goals-all-stats"><span>${allDone} из ${all.length} закрыто</span><span style="color:${color};">${allPct}%</span></div>
+          ${(() => { const arc = Object.keys(((Store.get().goals || {}).archive) || {}).filter(y => /^\d{4}$/.test(y)).sort().reverse(), nc = all.filter(g => g.carry).length;
+            return (nc || arc.length) ? `<div class="goals-yr-row">${nc ? `<button class="goals-yr-btn hot" id="goals-carry"><i class="ti ti-calendar-share"></i>Выбрать сезоны: ${nc}</button>` : ''}${arc.length ? `<button class="goals-yr-btn" id="goals-arc" data-y="${arc[0]}"><i class="ti ti-trophy"></i>Итоги ${arc[0]}</button>` : ''}</div>` : ''; })()}
         </div>`;
     } else if (activeSeason==='spring') {
       {
@@ -522,7 +589,7 @@ window.Screens.goals = function(mount) {
           }).join('');
       return '<div class="goals-cat-v3 '+(isGoal?'goals-cat-main':'')+'" style="--cat-color:'+catColor+';">'
         + '<div class="goals-cat-v3-head">'
-        + '<span class="goals-cat-v3-title">'+(isGoal?'🎯 ':'')+' '+goalsEsc(cat)+'</span>'
+        + '<button class="goals-cat-v3-title goals-cat-ren" data-cat="'+goalsEsc(cat)+'" aria-label="Переименовать категорию">'+(isGoal?'🎯 ':'')+' '+goalsEsc(cat)+'<i class="ti ti-pencil"></i></button>'
         + '<span class="goals-cat-total goals-cat-v3-total" data-cat="'+goalsEsc(cat)+'" style="color:'+catColor+';transition:all 0.4s;">'+goalsFmt(catTotal)+'</span>'
         + '</div>'
         + itemsHtml
@@ -545,6 +612,9 @@ window.Screens.goals = function(mount) {
     content.innerHTML = heroHtml + demoBanner + catsHtml.join('') + addNewCatBtn;
 
     /* Чекбокс: закрыть/открыть цель */
+    content.querySelectorAll('.goals-cat-ren').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); if (goalsIsDemo()) return; goalsRenameCat(b.dataset.cat, render); }));
+    const arcB = content.querySelector('#goals-arc'); if (arcB) arcB.addEventListener('click', () => goalsArchiveModal(arcB.dataset.y));
+    const carB = content.querySelector('#goals-carry'); if (carB) carB.addEventListener('click', () => goalsCarryModal(render));
     content.querySelectorAll('.goals-check-v3').forEach(chk=>{
       chk.addEventListener('click', e=>{
         e.stopPropagation();
@@ -636,5 +706,7 @@ window.Screens.goals = function(mount) {
     if (_newBtn) { _newBtn.style.background = color; _newBtn.style.boxShadow = `0 4px 16px ${color}66`; }
   }
 
+  if (goalsRollover()) {}
   render();
+  if (goalsGet().some(g => g.carry)) setTimeout(() => goalsCarryModal(render), 300);
 };

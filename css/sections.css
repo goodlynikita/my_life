@@ -1927,3 +1927,35 @@ select.gm-sel { -webkit-appearance: none; appearance: none; width: 100%; padding
 .goals-header[data-season="summer"] { background: linear-gradient(135deg, #14532D 0%, #166534 60%, #15803D 100%) !important; }
 .goals-header[data-season="autumn"] { background: linear-gradient(135deg, #713F12 0%, #854D0E 60%, #A16207 100%) !important; }
 .goals-header[data-season="winter"] { background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 60%, #2563EB 100%) !important; }
+
+/* ── цели: переименование категории, переход года, итоги ── */
+button.goals-cat-ren { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-align: left; -webkit-tap-highlight-color: transparent; }
+button.goals-cat-ren i { font-size: 13px; opacity: .35; transition: opacity .2s; }
+button.goals-cat-ren:hover i { opacity: .8; }
+.goals-yr-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.goals-yr-btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #E8E6E0; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.goals-yr-btn i { font-size: 16px; color: var(--season-color, #F2A93B); }
+.goals-yr-btn.hot { border-color: rgba(242,169,59,.55); background: rgba(242,169,59,.12); color: #F2A93B; }
+.goals-carry { max-height: 86vh; display: flex; flex-direction: column; }
+.gc-sub { font-size: 13px; color: #9D9A92; margin: -4px 0 12px; }
+.gc-list { overflow-y: auto; flex: 1; min-height: 0; margin: 0 -4px; padding: 0 4px; }
+.gc-row { display: grid; grid-template-columns: 1fr 112px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); transition: opacity .2s; }
+.gc-m { min-width: 0; } .gc-m b { display: block; font-size: 14px; font-weight: 600; color: #F0EDE5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gc-m em { display: block; font-style: normal; font-size: 12px; color: #9D9A92; margin-top: 2px; }
+.gc-sel { height: 40px !important; padding: 0 8px !important; font-size: 13px !important; margin: 0 !important; }
+.gc-del { width: 40px; height: 40px; border-radius: 10px; border: none; background: rgba(239,68,68,.1); color: #EF4444; font-size: 17px; cursor: pointer; }
+.gc-row.off { opacity: .35; } .gc-row.off .gc-m b { text-decoration: line-through; } .gc-row.off .gc-del { background: rgba(255,255,255,.08); color: #E8E6E0; }
+.goals-carry .goals-modal-actions { display: flex; gap: 10px; margin-top: 14px; }
+.goals-carry .goals-modal-actions button { flex: 1; }
+.ga-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.ga-top > div { padding: 12px 14px; border-radius: 12px; background: rgba(242,169,59,.1); }
+.ga-top b { display: block; font-size: 22px; font-weight: 800; color: #F2A93B; }
+.ga-top span { font-size: 12px; color: #9D9A92; }
+.ga-cat { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #9D9A92; margin: 12px 0 4px; }
+.ga-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; font-size: 14px; color: #E8E6E0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.ga-row i { color: #4ADE80; font-size: 17px; } .ga-row span { flex: 1; min-width: 0; } .ga-row em { font-style: normal; color: #9D9A92; font-size: 13px; }
+.goals-carry { padding-bottom: 18px !important; }
+.goals-carry > .gc-sub, .goals-carry > .gc-list, .goals-carry > .ga-top, .goals-carry > .goals-modal-actions { margin-left: 20px !important; margin-right: 20px !important; }
+.goals-carry > .gc-sub { margin-top: 12px; }
+.goals-carry > .gc-list { padding: 0; }
+.goals-carry > .ga-top { margin-top: 14px; }

@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     Store.replaceAll({});
   } finally {
     if (window.Theme) Theme.syncFromStore();
+    /* новый год: выполненные цели в итоги, невыполненные переезжают */
+    try { if (typeof goalsRollover === 'function' && navigator.onLine !== false) goalsRollover(); } catch (e) {}
     if (window.WinterArc && WinterArc.refresh) WinterArc.refresh();
     window._appReady = true;
     /* быстрые ссылки: ?r=/habits (ярлыки на иконке), ?spend=кофе 290 (запись траты из «Команд» iPhone), ?add=1 (сразу строка записи) */

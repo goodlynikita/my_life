@@ -88,7 +88,7 @@ window.FinSpend = (function () {
   /* оплатил платёж, созданный из цели: цель закрывается сама (и открывается обратно, если оплату удалили) */
   function goalSync(arr) {
     try { const g = (Store.get().goals || {}).directions; if (!g) return; const list = (Array.isArray(g) ? g : Object.values(g)).filter(Boolean); let ch = false;
-      arr.forEach(p => { if (!p.goal) return; const x = list.find(y => y.id === p.goal); if (x && !!x.done !== !!p.done) { x.done = !!p.done; x.maybe = false; ch = true; } });
+      arr.forEach(p => { if (!p.goal) return; const x = list.find(y => y.id === p.goal); if (x && !!x.done !== !!p.done) { x.done = !!p.done; x.maybe = false; if (x.done) x.doneAt = Date.now(); else delete x.doneAt; ch = true; } });
       if (ch) Store.set('goals.directions', list); } catch (e) {}
   }
   function income(d) {

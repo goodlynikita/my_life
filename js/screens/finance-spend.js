@@ -328,7 +328,23 @@ window.FinSpend = (function () {
   }
 
   /* несколько трат одной строкой: «кафе 7495 супермаркеты 5237 азс 2952» → пары название + сумма */
+  /* список из выписки: «Кафе, рестораны: 9 056 ₽ Супермаркеты: 8 308 ₽» (с двоеточиями и пробелами в тысячах) */
+  function splitColon(text) {
+    const s = String(text || '').replace(/[;\n\r]+/g, ' '), out = [];
+    const re = /:\s*(\d{1,3}(?:[\s ]\d{3})+|\d+)(?:[.,](\d{1,2}))?(?!\d)\s*(?:₽|руб\.?|р\.?)?/g;
+    let prev = 0, m;
+    while ((m = re.exec(s))) {
+      let name = s.slice(prev, m.index).replace(/^(?:\s*\d[\d\s ]*(?:₽|руб\.?|р\.?)\s*)+/i, '').replace(/^[\s,.;:-]+|[\s,.;:-]+$/g, '').trim();
+      const v = Math.round(parseFloat(m[1].replace(/[\s ]/g, '') + (m[2] ? '.' + m[2] : '')) || 0);
+      prev = re.lastIndex;
+      if (!v) continue;
+      if (!name) return null;
+      out.push({ note: name, amt: v });
+    }
+    return out.length >= 2 ? out : null;
+  }
   function splitMulti(text) {
+    const colon = splitColon(text); if (colon) return colon;
     const tk = String(text || '').replace(/[;\n]+/g, ' ').split(/\s+/).filter(Boolean), out = []; let name = [];
     for (const w of tk) {
       const m = /^(\d{1,9}(?:[.,]\d{1,2})?)(?:₽|р\.?|руб\.?)?[,.]?$/i.exec(w);

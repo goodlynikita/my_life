@@ -2207,3 +2207,17 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
   .tr-day-head { gap: 8px !important; }
 }
 .bp-all > summary span { flex: 1; text-align: left; }
+
+/* «Итоги» и «Вес»: одна таблица в ширину экрана, колонки одинаковые во всех группах (перекрывает старые патчи) */
+.tr-ww-group{width:100%;min-width:0;box-sizing:border-box;overflow:hidden}
+.tr-ww-wrap{width:100%;min-width:0;box-sizing:border-box}
+.tr-ww-table{width:100%!important;min-width:0!important;max-width:100%;table-layout:fixed!important;border-collapse:separate;border-spacing:0;box-sizing:border-box;margin:0;border-radius:14px;overflow:hidden}
+.tr-ww-table th,.tr-ww-table td{box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:9px 6px}
+.tr-ww-table th:first-child,.tr-ww-table td:first-child{width:auto;white-space:normal;overflow-wrap:anywhere;padding-left:12px}
+.tr-ww-table th:nth-child(2),.tr-ww-table td:nth-child(2),.tr-ww-table th:nth-child(3),.tr-ww-table td:nth-child(3){width:13%}
+.tr-ww-table th:nth-child(4),.tr-ww-table td:nth-child(4){width:22%}
+.tr-ww-table th:nth-child(5),.tr-ww-table td:nth-child(5){width:24%;padding-right:12px}
+.tr-ww-table th:not(:first-child),.tr-ww-table td:not(:first-child){text-align:right}
+.tr-ww-table thead th{font-size:10px!important;letter-spacing:.03em!important;text-transform:uppercase}
+.tr-ww-table tbody tr:last-child td{border-bottom:0}
+@media (max-width:400px){.tr-ww-table{font-size:12px!important}}

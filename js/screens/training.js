@@ -494,9 +494,27 @@ function trBuildEmptyPlan(number, startDate) {
 /* Снимок планов до правки: с ним trSavePlans пишет только изменённые дни.
    Обновляется, когда данные пришли заново (новый массив) и после каждого сохранения */
 let _trBase = null, _trBaseRef = null;
+/* одно и то же упражнение в одном дне дважды (баг автоплана): оставляем запись с результатом, если она есть, иначе первую */
+const _trDeduped = new WeakSet();
+function trDedupeDays(plans) {
+  plans.forEach(p => (p.weeks || []).forEach(w => (w.days || []).forEach(d => {
+    const best = new Map();
+    (d.sessions || []).forEach(s => (s.exercises || []).forEach(ex => {
+      const k = String(ex.name || '').trim().toLowerCase().replace(/ё/g, 'е');
+      if (!k) return;
+      const cur = best.get(k);
+      if (!cur || (!trExLogged(cur.ex) && trExLogged(ex))) best.set(k, { ex, s });
+    }));
+    (d.sessions || []).forEach(s => { if (Array.isArray(s.exercises)) s.exercises = s.exercises.filter(ex => {
+      const k = String(ex.name || '').trim().toLowerCase().replace(/ё/g, 'е');
+      return !k || (best.get(k) && best.get(k).ex === ex);
+    }); });
+  })));
+}
 function trGetPlans() {
   const plans = Store.get().training.plans || [];
   if (plans !== _trBaseRef) { _trBaseRef = plans; try { _trBase = JSON.parse(JSON.stringify(plans)); } catch (e) { _trBase = null; } }
+  if (Array.isArray(plans) && !_trDeduped.has(plans)) { _trDeduped.add(plans); try { trDedupeDays(plans); } catch (e) {} }
   return plans;
 }
 

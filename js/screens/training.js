@@ -1109,6 +1109,14 @@ function trAnimateBars(scope) {
   /* Анимация уже через CSS transition на inline style */
 }
 
+/* спорт, где важно реальное игровое время (не весь календарный): подпись поля или null */
+function trPlayLabel(name) {
+  const n = String(name || '');
+  if (/горнол|лыж|сноуборд/i.test(n)) return 'Время катания, мин';
+  if (/теннис|сквош|бадминтон|падел|футбол|баскет|волейбол|хоккей/i.test(n)) return 'Игровое время, мин';
+  return null;
+}
+
 function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave) {
   const ex = plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises[exIdx];
   window._trEditingEx = ex; /* подсказка «Прошлый раз» не должна брать эту же запись */
@@ -1127,7 +1135,10 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
       <div class="tr-modal-row">
         <label>Время, мин<input type="number" id="m-duration" value="${trEsc(ex.duration)}" inputmode="numeric"></label>
         <label>Калории<input type="number" id="m-calories" value="${trEsc(ex.calories)}" inputmode="numeric"></label>
-      </div>`;
+      </div>${trPlayLabel(ex.name) ? `
+      <div class="tr-modal-row">
+        <label style="flex:1 1 100%">${trPlayLabel(ex.name)}<input type="number" id="m-play" value="${trEsc(ex.play || '')}" inputmode="numeric"></label>
+      </div>` : ''}`;
   } else if (ex.kind === 'steps') {
     fieldsHtml = `
       <div class="tr-modal-row">
@@ -1212,6 +1223,8 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
     } else if (ex.kind === 'time_calorie') {
       ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
       ex.calories = trNum(overlay.querySelector('#m-calories').value, 20000);
+      const plEl = overlay.querySelector('#m-play');
+      if (plEl) ex.play = trNum(plEl.value, 1440);
     } else if (ex.kind === 'steps') {
       ex.steps = trInt(overlay.querySelector('#m-steps').value, 200000);
     } else {
@@ -3208,17 +3221,18 @@ function trWasNowLabel(ex, metricLabelFn) {
 function trSumMetricAcrossPlan(plan, exerciseName, kind) {
   let sum = 0;
   let count = 0;
+  let play = 0;
   plan.weeks.forEach(week => {
     week.days.forEach(day => {
       trDayAllExercises(day).forEach(({ ex, sessionIdx }) => {
         if (ex.name !== exerciseName || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
-        if (kind === 'time_calorie') sum += ex.calories || 0;
+        if (kind === 'time_calorie') { sum += ex.calories || 0; play += ex.play || 0; }
         if (kind === 'steps') sum += ex.steps || 0;
         count++;
       });
     });
   });
-  return { sum, count };
+  return { sum, count, play };
 }
 
 function trRenderWasNowRow(exerciseName, plan) {
@@ -3228,8 +3242,9 @@ function trRenderWasNowRow(exerciseName, plan) {
   // Calories and steps are summed across the whole plan, not "was -> now"
   if (first.ex.kind === 'time_calorie' || first.ex.kind === 'steps') {
     const kind = first.ex.kind;
-    const { sum, count } = trSumMetricAcrossPlan(plan, exerciseName, kind);
-    const label = kind === 'time_calorie' ? `${sum.toLocaleString('ru-RU')} ккал всего` : `${sum.toLocaleString('ru-RU')} шагов всего`;
+    const { sum, count, play } = trSumMetricAcrossPlan(plan, exerciseName, kind);
+    const playPart = kind === 'time_calorie' && play > 0 && trPlayLabel(exerciseName) ? ` · ${/горнол|лыж|сноуборд/i.test(exerciseName) ? 'катался' : 'играл'} ${play.toLocaleString('ru-RU')} мин` : '';
+    const label = (kind === 'time_calorie' ? `${sum.toLocaleString('ru-RU')} ккал всего` : `${sum.toLocaleString('ru-RU')} шагов всего`) + playPart;
     return `
       <div class="tr-exercise" style="cursor:default">
         <div class="tr-ex-top">

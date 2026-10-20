@@ -501,7 +501,14 @@ function trBuildEmptyPlan(number, startDate) {
    Обновляется, когда данные пришли заново (новый массив) и после каждого сохранения */
 let _trBase = null, _trBaseRef = null;
 /* ключ упражнения: без регистра, «ё» как «е», лишние пробелы и неразрывные пробелы не важны */
-function trNameKey(s) { return String(s || '').replace(/[\s ]+/g, ' ').trim().toLowerCase().replace(/ё/g, 'е'); }
+/* плюс невидимые символы из копипаста и латинские буквы-двойники («a» вместо «а»): для сравнения это одно упражнение */
+function trNameKey(s) {
+  let k = String(s || '');
+  try { k = k.normalize('NFKC'); } catch (e) {}
+  k = k.replace(/[\u00ad\u200b-\u200f\u2028-\u202e\u2060-\u2064\ufeff]/g, '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase().replace(/ё/g, 'е');
+  /* латиницу меняем только в словах, где есть кириллица: «Smith» остаётся как есть */
+  return k.split(' ').map(w => /[а-я]/.test(w) ? w.replace(/[abcehkmoptxy]/g, ch => 'авсенкмортху'['abcehkmoptxy'.indexOf(ch)]) : w).join(' ');
+}
 /* одно и то же упражнение в одном дне дважды (баг автоплана): оставляем запись с результатом, если она есть, иначе первую */
 const _trDeduped = new WeakSet();
 function trDedupeDays(plans) {
@@ -683,7 +690,7 @@ function trCalcProgress(plan, weekIndex, exerciseName, baseWeekIndex) {
   const week1 = plan.weeks[_bi] || plan.weeks[0];
   let baseline = null;
   for (const day of week1.days) {
-    const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
+    const found = trDayAllExercises(day).find(e => trNameKey(e.ex.name) === trNameKey(exerciseName));
     if (found) {
       /* Шаги и кардио не сравниваем с силовыми */
       if (found.ex.kind === 'steps' || found.ex.kind === 'cardio') return { pct: 0, dir: 'flat' };
@@ -694,7 +701,7 @@ function trCalcProgress(plan, weekIndex, exerciseName, baseWeekIndex) {
   const currentWeek = plan.weeks[weekIndex];
   let current = null;
   for (const day of currentWeek.days) {
-    const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName);
+    const found = trDayAllExercises(day).find(e => trNameKey(e.ex.name) === trNameKey(exerciseName));
     if (found) { current = trMetricFor(found.ex); break; }
   }
   if (baseline === null || current === null) return { pct: 0, dir: 'flat', diff: 0 };
@@ -2702,6 +2709,9 @@ function trAiUntouched(session) {
 }
 function trCollectGymExercises(plan) {
   const latest = {};
+  /* одно упражнение одной строкой, даже если в записях оно написано чуть по-разному: показываем название из каталога или первое встреченное */
+  const canonByKey = {}, disp = {};
+  Object.values(MUSCLE_BLOCK_EXERCISES || {}).forEach(arr => (Array.isArray(arr) ? arr : []).forEach(n => { const k = trNameKey(n); if (k && !canonByKey[k]) canonByKey[k] = n; }));
   const today = new Date(); today.setHours(23, 59, 59, 0);
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach((day, dayIdx) => {
@@ -2718,7 +2728,8 @@ function trCollectGymExercises(plan) {
           /* Группа: сначала ищем в каноническом списке, иначе берём из сессии */
           const canonical = trExerciseCanonicalGroups(ex.name);
           const groups = canonical || session.groups || [];
-          latest[ex.name] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
+          const nk = trNameKey(ex.name), nm = canonByKey[nk] || disp[nk] || (disp[nk] = ex.name);
+          latest[nm] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
         });
       });
     });
@@ -2771,7 +2782,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       const sign = progress.pct > 0 ? '+' : '';
       return `
         <tr>
-          <td class="tr-ww-name">${trEsc(ex.name)}</td>
+          <td class="tr-ww-name">${trEsc(name)}</td>
           <td class="tr-ww-num num">${trEsc(ex.sets)}</td>
           <td class="tr-ww-num num">${trEsc(ex.reps)}</td>
           <td class="tr-ww-num num tr-ww-weight">${trEsc(String(ex.weight).replace(".", ","))}&nbsp;кг</td>

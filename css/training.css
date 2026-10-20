@@ -2221,3 +2221,20 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-ww-table thead th{font-size:10px!important;letter-spacing:.03em!important;text-transform:uppercase}
 .tr-ww-table tbody tr:last-child td{border-bottom:0}
 @media (max-width:400px){.tr-ww-table{font-size:12px!important}}
+/* длинная сводка («1 350 ккал всего · играл 190 мин») переносится, а не наезжает на название */
+.tr-ex-top{min-width:0}
+.tr-ex-top .tr-ex-name{min-width:0;flex:1 1 auto}
+.tr-ex-top .tr-ex-stats{flex:0 1 auto;min-width:0;white-space:normal;flex-wrap:wrap;justify-content:flex-end;text-align:right}
+/* «Веса»: первой колонке больше места, «УПРАЖНЕНИЕ» не рвётся посередине */
+.tr-ww-table th:nth-child(2),.tr-ww-table td:nth-child(2),.tr-ww-table th:nth-child(3),.tr-ww-table td:nth-child(3){width:11%}
+.tr-ww-table th:nth-child(4),.tr-ww-table td:nth-child(4){width:19%}
+.tr-ww-table th:nth-child(5),.tr-ww-table td:nth-child(5){width:23%;text-overflow:clip}
+.tr-ww-table thead th:first-child{overflow-wrap:normal;word-break:keep-all;white-space:nowrap;text-overflow:clip}
+/* «Веса» на компьютере: числа рядом справа, а не раскиданы по всей ширине */
+@media (min-width:700px){
+  .tr-ww-table th:nth-child(2),.tr-ww-table td:nth-child(2),.tr-ww-table th:nth-child(3),.tr-ww-table td:nth-child(3){width:84px}
+  .tr-ww-table th:nth-child(4),.tr-ww-table td:nth-child(4){width:110px}
+  .tr-ww-table th:nth-child(5),.tr-ww-table td:nth-child(5){width:110px}
+  .tr-ww-table{font-size:13.5px!important}
+  .tr-ww-table th,.tr-ww-table td{padding-top:11px;padding-bottom:11px}
+}

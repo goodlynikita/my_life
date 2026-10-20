@@ -670,14 +670,14 @@ window.TrainingAI = (function () {
             if (fb) { const x = { key: exKey(fb), name: fb, cls: classify(fb) || { group: pt.g, region: r, kind: slot.kind }, fresh: true }; take.push(x); if (mine.length) { mustFill.add(x.key); added.push(pt.g + ': ' + (REGION_LABEL[r] || r) + ' («' + fb + '»)'); } } }
         });
         /* дальше твои самые частые упражнения этой группы */
-        mine.forEach(x => { if (take.length < pt.n && !take.includes(x)) take.push(x); });
+        mine.forEach(x => { if (take.length < pt.n && !take.some(t => t.key === x.key)) take.push(x); });
         /* свои не заменяем: добираем базой только до трёх четвертей нормы (или всю норму, если группу ещё не делал) */
         const want = mine.length ? Math.min(pt.n, Math.max(take.length, Math.ceil(pt.n * 0.75))) : pt.n;
         (SLOTS[pt.g] || []).forEach(sl => { if (take.length >= want || (pt.r && sl.region !== pt.r)) return;
           const fb = sl.fb.find(nm => !used.has(exKey(nm)) && !take.some(t => t.key === exKey(nm))); if (fb) take.push({ key: exKey(fb), name: fb, cls: classify(fb) || { group: pt.g, region: sl.region, kind: sl.kind }, fresh: true }); });
         /* базовые первыми */
         take.sort((a, b) => ((b.cls && b.cls.kind === 'comp') - (a.cls && a.cls.kind === 'comp')));
-        take.forEach(x => { used.add(x.key);
+        take.forEach(x => { if (used.has(x.key)) return; used.add(x.key);
           items.push({ key: x.key, name: x.name, group: pt.g, region: x.cls ? x.cls.region : '', isNew: !an.ex[x.key],
             why: mustFill.has(x.key) ? 'не хватало: ' + (REGION_LABEL[x.cls && x.cls.region] || '') : '' }); });
       });

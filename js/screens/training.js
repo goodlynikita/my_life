@@ -222,7 +222,12 @@ function trSaveExercises(data) {
   try { Store.set('training.catalog.exercises', JSON.parse(JSON.stringify(data))); } catch(e) {}
 }
 
-const MUSCLE_BLOCK_EXERCISES = trLoadExercises();
+/* в каждой группе одно упражнение только раз (старые дубли из списка убираем при загрузке) */
+function trDedupeCatalog(obj) {
+  Object.keys(obj || {}).forEach(g => { if (Array.isArray(obj[g])) { const seen = new Set(); obj[g] = obj[g].filter(n => { const k = trNameKey(n); if (!k || seen.has(k)) return false; seen.add(k); return true; }); } });
+  return obj;
+}
+const MUSCLE_BLOCK_EXERCISES = trDedupeCatalog(trLoadExercises());
 
 /* Каталог (типы + упражнения) живёт в Firebase: подтягиваем его при каждом
    открытии экрана, чтобы правки с другого устройства не терялись */
@@ -390,6 +395,7 @@ function trOpenExerciseEditor() {
     const doAdd = () => {
       const val = addInput?.value?.trim(); if(!val) return;
       if(!MUSCLE_BLOCK_EXERCISES[selGroup]) MUSCLE_BLOCK_EXERCISES[selGroup]=[];
+      if (MUSCLE_BLOCK_EXERCISES[selGroup].some(x => trNameKey(x) === trNameKey(val))) { if (addInput) addInput.value = ''; return; }
       MUSCLE_BLOCK_EXERCISES[selGroup].push(val); trSaveExercises(MUSCLE_BLOCK_EXERCISES); render();
     };
     overlay.querySelector('#tr-ex-add')?.addEventListener('click', doAdd);

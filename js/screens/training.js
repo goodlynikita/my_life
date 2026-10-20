@@ -963,7 +963,7 @@ function trMigrateDayToSessions(day) {
 function trNum(v, max) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.').replace(/\s/g, '')); return isFinite(n) && n > 0 ? Math.min(n, max || 100000) : 0; }
 function trInt(v, max) { return Math.round(trNum(v, max)); }
 /* перед сохранением: заполненное поле с минусом, не числом или слишком большим числом не превращаем молча в 0 */
-const TR_NUM_MAX = { 'm-sets': 50, 'm-reps': 1000, 'm-weight': 1000, 'm-distance': 1000, 'm-duration': 1440, 'm-calories': 20000, 'm-steps': 200000, 'm-set-reps': 1000, 'm-set-weight': 1000 };
+const TR_NUM_MAX = { 'm-sets': 50, 'm-reps': 1000, 'm-weight': 1000, 'm-distance': 1000, 'm-duration': 1440, 'm-calories': 20000, 'm-play': 1440, 'm-steps': 200000, 'm-set-reps': 1000, 'm-set-weight': 1000 };
 function trNumsBad(root) {
   const bad = [];
   root.querySelectorAll('#m-sets, #m-reps, #m-weight, #m-distance, #m-duration, #m-calories, #m-steps, .m-set-reps, .m-set-weight').forEach(i => {

@@ -494,6 +494,8 @@ function trBuildEmptyPlan(number, startDate) {
 /* Снимок планов до правки: с ним trSavePlans пишет только изменённые дни.
    Обновляется, когда данные пришли заново (новый массив) и после каждого сохранения */
 let _trBase = null, _trBaseRef = null;
+/* ключ упражнения: без регистра, «ё» как «е», лишние пробелы и неразрывные пробелы не важны */
+function trNameKey(s) { return String(s || '').replace(/[\s ]+/g, ' ').trim().toLowerCase().replace(/ё/g, 'е'); }
 /* одно и то же упражнение в одном дне дважды (баг автоплана): оставляем запись с результатом, если она есть, иначе первую */
 const _trDeduped = new WeakSet();
 function trDedupeDays(plans) {
@@ -3219,7 +3221,7 @@ function trCollectExerciseHistory(plan, exerciseName) {
   let count = 0;
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach(day => {
-      const found = trDayAllExercises(day).find(e => e.ex.name === exerciseName && trExLogged(e.ex) && trSessionDone(plan, day, day.sessions[e.sessionIdx]));
+      const found = trDayAllExercises(day).find(e => trNameKey(e.ex.name) === trNameKey(exerciseName) && trExLogged(e.ex) && trSessionDone(plan, day, day.sessions[e.sessionIdx]));
       if (found) {
         if (!first) first = { ex: found.ex, weekIndex };
         last = { ex: found.ex, weekIndex }; count++;
@@ -3243,7 +3245,7 @@ function trSumMetricAcrossPlan(plan, exerciseName, kind) {
   plan.weeks.forEach(week => {
     week.days.forEach(day => {
       trDayAllExercises(day).forEach(({ ex, sessionIdx }) => {
-        if (ex.name !== exerciseName || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
+        if (trNameKey(ex.name) !== trNameKey(exerciseName) || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
         if (kind === 'time_calorie') { sum += ex.calories || 0; play += ex.play || 0; }
         if (kind === 'steps') sum += ex.steps || 0;
         count++;
@@ -3316,7 +3318,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
       day.sessions.forEach(session => {
         if (!trIsGymType(session.type) || !trSessionDone(plan, day, session)) return;
         session.exercises.forEach(ex => {
-          if (ex.name !== exerciseName || ex.kind !== 'strength' || !trExLogged(ex)) return;
+          if (trNameKey(ex.name) !== trNameKey(exerciseName) || ex.kind !== 'strength' || !trExLogged(ex)) return;
           if (!first) first = { ex, wi };
           last = { ex, wi }; n++;
         });
@@ -3379,8 +3381,8 @@ function trRenderSummary(plan) {
           const groups = canonical || (session.groups && session.groups.length ? session.groups : ['FULL BODY']);
           const expanded = groups.includes('FULL BODY') ? GYM_ORDER : groups;
           expanded.forEach(g => {
-            if (!gymByGroup[g]) gymByGroup[g] = new Set();
-            gymByGroup[g].add(ex.name);
+            if (!gymByGroup[g]) gymByGroup[g] = new Map();
+            if (!gymByGroup[g].has(trNameKey(ex.name))) gymByGroup[g].set(trNameKey(ex.name), ex.name);
           });
         });
       });
@@ -3390,8 +3392,8 @@ function trRenderSummary(plan) {
   /* Зал: прогрессия рабочего веса по группам */
   const gymHtml = GYM_ORDER.filter(g => gymByGroup[g] && gymByGroup[g].size > 0).map(g => {
     const canonical = MUSCLE_BLOCK_EXERCISES[g] || [];
-    const inOrder = canonical.filter(name => gymByGroup[g].has(name));
-    const custom = Array.from(gymByGroup[g]).filter(name => !canonical.includes(name));
+    const inOrder = canonical.filter(name => gymByGroup[g].has(trNameKey(name)));
+    const custom = Array.from(gymByGroup[g].values()).filter(name => !canonical.some(c => trNameKey(c) === trNameKey(name)));
     const allNames = [...inOrder, ...custom];
     const rows = allNames.map(name => trRenderWasNowWeightRow(name, plan)).join('');
     if (!rows) return '';
@@ -3409,8 +3411,8 @@ function trRenderSummary(plan) {
       trMigrateDayToSessions(day);
       day.sessions.forEach(session => {
         if (trIsGymType(session.type) || session.type === 'Отдых' || !trSessionDone(plan, day, session)) return;
-        if (!otherByType[session.type]) otherByType[session.type] = new Set();
-        session.exercises.forEach(ex => { if (ex.name && trExLogged(ex)) otherByType[session.type].add(ex.name); });
+        if (!otherByType[session.type]) otherByType[session.type] = new Map();
+        session.exercises.forEach(ex => { if (ex.name && trExLogged(ex) && !otherByType[session.type].has(trNameKey(ex.name))) otherByType[session.type].set(trNameKey(ex.name), ex.name); });
       });
     });
   });
@@ -3421,7 +3423,7 @@ function trRenderSummary(plan) {
     ...Object.keys(otherByType).filter(t => !TYPE_ORDER.includes(t))
   ];
   const otherHtml = orderedTypes.filter(t => otherByType[t] && otherByType[t].size > 0).map(t => {
-    const rows = Array.from(otherByType[t]).map(name => trRenderWasNowRow(name, plan)).join('');
+    const rows = Array.from(otherByType[t].values()).map(name => trRenderWasNowRow(name, plan)).join('');
     return `
       <div class="tr-group-card">
         <div class="tr-group-title">${trEsc(t)} <span class="tr-group-range">· было → стало</span></div>

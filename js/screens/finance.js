@@ -574,12 +574,12 @@ window.Screens.finance = function(mount) {
 
         </div>
 
-        ${onceNow.length || onceNext.length ? `<div class="plan-step plan-step-open">
+        ${FS && FS.onceModal ? `<div class="plan-step plan-step-open">
           <div class="plan-ico" style="--c:#977FE9;"><i class="ti ti-calendar-dollar"></i></div>
           <div class="plan-main">
             <div class="plan-name">Разовые платежи и цели</div>
           </div>
-          <div class="plan-val"><b>${finFmtFull(onceSum)}</b><span>${pctS(onceSum) ? pctS(onceSum) + ' дохода' : ''}</span></div>
+          <div class="plan-val">${onceSum > 0 ? `<b>${finFmtFull(onceSum)}</b><span>${pctS(onceSum) ? pctS(onceSum) + ' дохода' : ''}</span>` : ''}</div>
         </div>
         <div class="plan-cats">
           ${onceNow.concat(onceNext).map(p => { const d = FS.pDate(p.date), later = d >= mEnd, mo = later ? FS.perMonth(p, now) : 0, paidP = Math.min(p.amt, (onceP[p.id] || 0)); return `
@@ -589,6 +589,7 @@ window.Screens.finance = function(mount) {
               <span class="plan-cat-amt">${p.done ? '<em class="ok">оплачено</em>' + finFmtFull(p.amt) : paidP > 0 ? `${finFmtFull(p.amt - paidP)}<small>из ${finFmtFull(p.amt)}</small>` : finFmtFull(p.amt)}</span>
               <span class="plan-cat-pct">${later || !(onceSum > 0) ? '' : Math.round(p.amt / onceSum * 100) + '%'}</span>
             </div>`; }).join('')}
+          <div class="plan-cat plan-once-add" role="button" tabindex="0"><i class="ti ti-plus"></i><span>Добавить платёж</span></div>
         </div>` : ''}
 
         ${planInc > 0 ? `<div class="plan-step">
@@ -610,6 +611,10 @@ window.Screens.finance = function(mount) {
     /* нажатие на категорию: быстрая правка суммы, цвета и дня платежа */
     content.querySelectorAll('.plan-once[data-once]').forEach(el => {
       const go = () => { if (FS && FS.onceModal) FS.onceModal(el.dataset.once, renderBalance); };
+      el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+    content.querySelectorAll('.plan-once-add').forEach(el => {
+      const go = () => { if (FS && FS.onceModal) FS.onceModal(null, renderBalance); };
       el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     });
     content.querySelectorAll('.plan-cat-sp[data-id]').forEach(el => {

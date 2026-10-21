@@ -866,22 +866,26 @@ window.FinSpend = (function () {
   }
 
   /* разовый платёж: правка, напоминание, «Оплатил» (заполняет строку записи), удаление */
+  /* id пустой: новый разовый платёж (добавляют прямо из «Баланса») */
   function onceModal(id, onDone, onPay) {
-    const p = planned().find(x => x.id === id); if (!p) return;
+    const isNew = !id, t0 = new Date();
+    const p = isNew ? { id: uid('o'), name: '', amt: '', date: `${t0.getFullYear()}-${String(t0.getMonth() + 1).padStart(2, '0')}-${String(t0.getDate()).padStart(2, '0')}`, done: false, createdAt: Date.now() }
+      : planned().find(x => x.id === id); if (!p) return;
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
-    ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Разовый платёж"><p class="tr-modal-title">${p.done ? 'Оплачено' : 'Разовый платёж'}</p>
+    ov.innerHTML = `<div class="tr-modal sp-edit" role="dialog" aria-label="Разовый платёж"><p class="tr-modal-title">${isNew ? 'Новый платёж' : p.done ? 'Оплачено' : 'Разовый платёж'}</p>
       <div class="tr-modal-row"><label style="flex:1 1 100%">Название<input type="text" id="om-name" maxlength="60" value="${esc(p.name)}"></label></div>
       <div class="tr-modal-row"><label style="flex:1">Сумма, ₽<input type="text" inputmode="decimal" id="om-amt" value="${p.amt}"></label>
         <label style="flex:0 0 150px">Дата<input type="date" id="om-date" value="${esc(p.date)}"></label></div>
-      ${p.done ? '' : `<div class="sp-om-acts"><button type="button" class="sp-om-b" id="om-cal"><i class="ti ti-calendar-bell"></i>В календарь</button><button type="button" class="sp-om-b on" id="om-pay"><i class="ti ti-check"></i>Оплатил</button></div>`}
+      ${p.done || isNew ? '' : `<div class="sp-om-acts"><button type="button" class="sp-om-b" id="om-cal"><i class="ti ti-calendar-bell"></i>В календарь</button><button type="button" class="sp-om-b on" id="om-pay"><i class="ti ti-check"></i>Оплатил</button></div>`}
       <p class="sp-pm-err" id="om-err"></p>
-      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="om-del">Удалить</button><button class="tr-modal-btn-primary" id="om-ok">Сохранить</button></div></div>`;
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="om-del">${isNew ? 'Отмена' : 'Удалить'}</button><button class="tr-modal-btn-primary" id="om-ok">${isNew ? 'Добавить' : 'Сохранить'}</button></div></div>`;
     document.body.appendChild(ov);
     const $ = (q) => ov.querySelector(q);
     const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    if (isNew) setTimeout(() => { const n = $('#om-name'); if (n) n.focus(); }, 60);
     const read = () => {
       const amt = Math.round(parseAmt($('#om-amt').value) || 0);
       const name = String($('#om-name').value || '').trim().slice(0, 60), date = $('#om-date').value;
@@ -890,9 +894,10 @@ window.FinSpend = (function () {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { $('#om-err').textContent = 'Выбери дату'; return null; }
       return Object.assign({}, p, { name, amt, date });
     };
-    const save = (x) => savePlanned(planned().map(y => y.id === x.id ? x : y));
-    $('#om-ok').onclick = () => { const x = read(); if (!x) return; save(x); close(); if (onDone) onDone(); toast('Сохранил'); };
-    $('#om-del').onclick = () => {
+    const save = (x) => savePlanned(isNew ? planned().concat([x]) : planned().map(y => y.id === x.id ? x : y));
+    $('#om-ok').onclick = () => { const x = read(); if (!x) return; save(x); close(); if (onDone) onDone();
+      if (isNew) toast(`Добавил ${x.name}`, () => { savePlanned(planned().filter(y => y.id !== x.id)); if (onDone) onDone(); }); else toast('Сохранил'); };
+    $('#om-del').onclick = () => { if (isNew) { close(); return; }
       const all = planned(); savePlanned(all.filter(y => y.id !== id)); close(); if (onDone) onDone();
       toast(`Удалил ${p.name}`, () => { savePlanned(all); if (onDone) onDone(); });
     };

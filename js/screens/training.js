@@ -969,16 +969,16 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   /* крупно тоннаж, рабочий вес строкой ниже */
   const tonnage = trTonnage(ex);
   const wNum = +ex.weight || 0;
-  let wStr = String(wNum).replace('.', ','), rStr = trEsc(ex.reps);
-  /* подходы с разным весом: показываем разброс «30–50», а не только самый тяжёлый */
+  let wStr = String(wNum).replace('.', ','), rStr = trEsc(ex.reps), wLbl = 'вес';
+  /* подходы с разным весом: средний вес по подходам (рабочий для прогрессии остаётся самым тяжёлым) */
   if (Array.isArray(ex.setDetails) && ex.setDetails.length > 1) {
     const ws = ex.setDetails.map(d => +d.weight || 0).filter(w => w > 0), rs = ex.setDetails.map(d => +d.reps || 0).filter(r => r > 0);
     const f = n => String(n).replace('.', ',');
-    if (ws.length && Math.min(...ws) !== Math.max(...ws)) wStr = f(Math.min(...ws)) + '–' + f(Math.max(...ws));
+    if (ws.length && Math.min(...ws) !== Math.max(...ws)) { wStr = f(Math.round(ws.reduce((a, b) => a + b, 0) / ws.length * 10) / 10); wLbl = 'ср. вес'; }
     if (rs.length && Math.min(...rs) !== Math.max(...rs)) rStr = Math.min(...rs) + '–' + Math.max(...rs);
   }
   if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${trEsc(ex.sets)} × ${trEsc(ex.reps)}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
-  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${rStr} · вес ${wStr} кг`);
+  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${rStr} · ${wLbl} ${wStr} кг`);
 }
 
 function trMigrateDayToSessions(day) {
@@ -2440,6 +2440,10 @@ window.Screens.training = function (mount) {
       }
     } else if (tab === 'summary') {
       content.innerHTML = trRenderSummary(plan);
+      content.querySelectorAll('.tr-hist-row').forEach(row => { const box = row.nextElementSibling; if (!box || !box.classList.contains('tr-hist')) return;
+        const go = () => { box.hidden = !box.hidden; row.classList.toggle('open', !box.hidden); };
+        row.addEventListener('click', go); row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+      const measAll = content.querySelector('.tr-meas-all'); if (measAll) measAll.addEventListener('toggle', () => { window._trMeasOpen = measAll.open; });
       const bpBox = document.getElementById('tr-bp');
       if (bpBox && window.BodyProgress) BodyProgress.bind(bpBox, (p, m) => { if (p) window._bpPeriod = p; if (m) window._bpMain = m; renderTab('summary'); });
       const addBtn = document.getElementById('tr-add-measure');
@@ -2447,7 +2451,7 @@ window.Screens.training = function (mount) {
         if (role === 'coach') {
           addBtn.style.display = 'none';
         } else {
-          addBtn.addEventListener('click', () => trOpenMeasureModal(() => renderTab('summary')));
+          addBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); trOpenMeasureModal(() => renderTab('summary')); });
         }
       }
       content.querySelectorAll('.tr-measure-delete').forEach(btn => {
@@ -2735,6 +2739,16 @@ function trAiUntouched(session) {
   const sig = (session.exercises || []).map(e => e ? (e.name + '|' + (+e.weight || 0) + '|' + e.reps + '|' + e.sets) : '').join(';');
   return sig === session.aiSig && !session.aiOk;
 }
+/* первая записанная силовая запись упражнения (по семейству) в плане, только прошедшие дни */
+function trFirstLogged(plan, name) {
+  const fk = trFamKey(name), today = new Date(); today.setHours(23, 59, 59, 0);
+  for (const week of (plan.weeks || [])) for (const day of (week.days || [])) {
+    const dt = trDayDateOf(plan, day.date); if (dt && dt > today) continue;
+    for (const { ex } of trDayAllExercises(day)) if (ex && ex.kind === 'strength' && trFamKey(ex.name) === fk && (+ex.weight > 0 || +ex.reps > 0)) return ex;
+  }
+  return null;
+}
+
 function trCollectGymExercises(plan) {
   const latest = {};
   /* одно упражнение одной строкой, даже если в записях оно написано чуть по-разному: показываем название из каталога или первое встреченное */
@@ -2808,7 +2822,12 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
 
     const exerciseRows = allForCat.map(name => {
       const { ex, weekIndex } = latest[name];
-      const progress = trCalcProgress(plan, weekIndex, name, _bw);
+      /* рост рабочего веса к первой записи этого упражнения в плане (а не к неделе 1, где его могло не быть) */
+      const first = trFirstLogged(plan, name);
+      const progress = { pct: 0, dir: 'flat', none: !first || first === ex };
+      if (!progress.none) { const a = +first.weight || 0, b = +ex.weight || 0, ra = +first.reps || 0, rb = +ex.reps || 0;
+        progress.pct = a > 0 && b > 0 ? Math.round((b - a) / a * 100) : ra > 0 ? Math.round((rb - ra) / ra * 100) : 0;
+        progress.dir = progress.pct > 0 ? 'up' : progress.pct < 0 ? 'down' : 'flat'; }
       const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '';
       const sign = progress.pct > 0 ? '+' : '';
       return `
@@ -2817,7 +2836,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
           <td class="tr-ww-num num">${trEsc(ex.sets)}</td>
           <td class="tr-ww-num num">${trEsc(ex.reps)}</td>
           <td class="tr-ww-num num tr-ww-weight">${trEsc(String(ex.weight).replace(".", ","))}&nbsp;кг</td>
-          <td class="tr-ww-num num tr-progress ${progress.dir}">${progress.pct ? sign + progress.pct + '%' : '0'}<i class="tr-arr">${arrow}</i></td>
+          <td class="tr-ww-num num tr-progress ${progress.dir}">${progress.none ? '<span class="tr-ww-na">–</span>' : (progress.pct ? sign + progress.pct + '%' : '0%') + `<i class="tr-arr">${arrow}</i>`}</td>
         </tr>`;
     }).join('');
 
@@ -2825,7 +2844,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       <div class="tr-ww-group">
         <div class="tr-ww-group-label fb-accent">${trEsc(trGL(cat))}</div>
         <table class="tr-ww-table">
-          <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th title="К первой неделе плана">Рост</th></tr></thead>
+          <thead><tr><th>Упражнение</th><th>Подх</th><th>Повт</th><th>Вес</th><th title="К первой записи в плане">Рост</th></tr></thead>
           <tbody>${exerciseRows}</tbody>
         </table>
       </div>`;
@@ -3294,7 +3313,7 @@ function trSumMetricAcrossPlan(plan, exerciseName, kind) {
     week.days.forEach(day => {
       trDayAllExercises(day).forEach(({ ex, sessionIdx }) => {
         if (trFamKey(ex.name) !== trFamKey(exerciseName) || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
-        if (kind === 'time_calorie') { sum += ex.calories || 0; play += ex.play || 0; }
+        if (kind === 'time_calorie') { sum += ex.calories || 0; play += (+ex.play || +ex.duration || 0); }
         if (kind === 'steps') sum += ex.steps || 0;
         count++;
       });
@@ -3311,8 +3330,11 @@ function trRenderWasNowRow(exerciseName, plan) {
   if (first.ex.kind === 'time_calorie' || first.ex.kind === 'steps') {
     const kind = first.ex.kind;
     const { sum, count, play } = trSumMetricAcrossPlan(plan, exerciseName, kind);
-    const playPart = kind === 'time_calorie' && play > 0 && trPlayLabel(exerciseName) ? ` · ${/горнол|лыж|сноуборд/i.test(exerciseName) ? 'катался' : 'играл'} ${play.toLocaleString('ru-RU')} мин` : '';
-    const label = (kind === 'time_calorie' ? `${sum.toLocaleString('ru-RU')} ккал всего` : `${sum.toLocaleString('ru-RU')} шагов всего`) + playPart;
+    /* теннис, лыжи и т.п.: главное сколько наиграл/откатал, калории вторым */
+    const hm = (m) => { m = Math.round(m); const hh = Math.floor(m / 60), mm = m % 60; return hh ? `${hh} ч${mm ? ' ' + mm + ' мин' : ''}` : `${mm} мин`; };
+    const label = kind === 'time_calorie' && trPlayLabel(exerciseName) && play > 0
+      ? `${hm(play)} ${/горнол|лыж|сноуборд/i.test(exerciseName) ? 'катания' : 'игры'}${sum ? ` · ${sum.toLocaleString('ru-RU')} ккал` : ''}`
+      : kind === 'time_calorie' ? `${sum.toLocaleString('ru-RU')} ккал всего` : `${sum.toLocaleString('ru-RU')} шагов всего`;
     return `
       <div class="tr-exercise" style="cursor:default">
         <div class="tr-ex-top">
@@ -3359,7 +3381,7 @@ function trRenderWasNowRow(exerciseName, plan) {
 
 function trRenderWasNowWeightRow(exerciseName, plan) {
   /* Прогрессия по сделанным тренировкам: первая запись в плане → последняя */
-  let first = null, last = null, n = 0;
+  let first = null, last = null, n = 0; const log = [];
   plan.weeks.forEach((week, wi) => {
     week.days.forEach(day => {
       trMigrateDayToSessions(day);
@@ -3368,7 +3390,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
         session.exercises.forEach(ex => {
           if (trFamKey(ex.name) !== trFamKey(exerciseName) || ex.kind !== 'strength' || !trExLogged(ex)) return;
           if (!first) first = { ex, wi };
-          last = { ex, wi }; n++;
+          last = { ex, wi }; n++; log.push({ ex, wi, date: day.date });
         });
       });
     });
@@ -3397,10 +3419,17 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   const barColor = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#3A3D45';
   const bar = n < 2 ? '' : `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${diff < 0 ? (50 - clamp) + '%' : '50%'}; width:${clamp > 0 ? clamp + '%' : '0%'}; background:${barColor};"></div></div>`;
 
+  /* история: каждая запись, свежие сверху, разница веса к прошлому разу */
+  const wR = (e) => { const ds = Array.isArray(e.setDetails) ? e.setDetails.map(d => +d.weight || 0).filter(x => x > 0) : [];
+    return ds.length > 1 && Math.min(...ds) !== Math.max(...ds) ? 'ср. ' + fw(ds.reduce((a, b) => a + b, 0) / ds.length) : fw(e.weight); };
+  const effW = (e) => { const ds = Array.isArray(e.setDetails) ? e.setDetails.map(d => +d.weight || 0).filter(x => x > 0) : []; return ds.length > 1 ? ds.reduce((a, b) => a + b, 0) / ds.length : (+e.weight || 0); };
+  const histHtml = `<div class="tr-hist" hidden>${log.map((r, i) => { const pw = i ? effW(log[i - 1].ex) : 0, cw = effW(r.ex), d = i && pw && cw ? Math.round((cw - pw) * 10) / 10 : 0;
+      return `<div class="tr-hist-r"><span class="tr-hist-w">Нед. ${r.wi + 1}<em>${trEsc(r.date || '')}</em></span><span class="tr-hist-v num">${trEsc(r.ex.sets)}×${trEsc(r.ex.reps)}${cw > 0 ? ` · ${wR(r.ex)} кг` : ''}</span><span class="tr-hist-d num ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? (d > 0 ? '+' : '−') + fw(Math.abs(d)) + ' кг' : ''}</span></div>`; }).reverse().join('')}</div>`;
+
   return `
-    <div class="tr-exercise" style="cursor:default;">
+    <div class="tr-exercise tr-hist-row" role="button" tabindex="0">
       <div class="tr-ex-top">
-        <div class="tr-ex-name">${trEsc(exerciseName)}</div>
+        <div class="tr-ex-name">${trEsc(exerciseName)}<i class="ti ti-chevron-down tr-hist-chev"></i></div>
         <div class="tr-ex-stats">${head}</div>
       </div>
       <div class="tr-ex-bottom">
@@ -3410,7 +3439,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
         </div>
       </div>
       ${bar}
-    </div>`;
+    </div>${histHtml}`;
 }
 
 function trRenderSummary(plan) {
@@ -3489,7 +3518,8 @@ function trRenderSummary(plan) {
     let hist = null; try { hist = window.TrainingAI ? TrainingAI.collect(trGetPlans()) : null; } catch (e) {}
     body = `<div class="tr-group-card bp-wrap" id="tr-bp">${BodyProgress.html(Store.get().training.measurements, { hist, period: window._bpPeriod, main: window._bpMain })}</div>`;
   }
-  return body + exercisesHtml + trRenderMeasurementsBlock();
+  /* все замеры свёрнуты под «Прогрессом тела»: правка и удаление там, отдельным блоком внизу не дублируем */
+  return body + trRenderMeasurementsBlock() + exercisesHtml;
 }
 
 function trRenderMeasurementsBlock() {
@@ -3498,7 +3528,7 @@ function trRenderMeasurementsBlock() {
     ? `<div class="tr-empty-state"><i class="ti ti-ruler-2"></i>Замеры тела появятся здесь после первой записи.</div>`
     : list.slice().reverse().map((m, idx) => {
         const realIdx = list.length - 1 - idx;
-        const fields = MEASURE_FIELDS.filter(f => m.values[f] !== undefined && m.values[f] !== '');
+        const fields = MEASURE_FIELDS.filter(f => m.values[f] !== undefined && m.values[f] !== '' && parseFloat(String(m.values[f]).replace(',', '.')) !== 0);
         return `
           <div class="tr-measure-card">
             <div class="tr-measure-date-row">
@@ -3514,10 +3544,10 @@ function trRenderMeasurementsBlock() {
           </div>`;
       }).join('');
   return `
-    <div class="tr-group-card">
-      <div class="tr-group-title">Замеры <button class="tr-measure-add-inline" id="tr-add-measure"><i class="ti ti-plus"></i> Добавить</button></div>
+    <details class="tr-group-card tr-meas-all"${window._trMeasOpen ? ' open' : ''}>
+      <summary class="tr-group-title">Все замеры${list.length ? ` <em class="tr-meas-n">${list.length}</em>` : ''} <i class="ti ti-chevron-down tr-meas-chev"></i><button class="tr-measure-add-inline" id="tr-add-measure"><i class="ti ti-plus"></i> Добавить</button></summary>
       ${rowsHtml}
-    </div>`;
+    </details>`;
 }
 
 function trOpenMeasureModal(onSave, existingIdx) {

@@ -2254,3 +2254,35 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .in-coach{padding-top:6px;padding-bottom:6px;background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(139,92,246,.10))}
 .in-coach .in-row{border-top:0}
 .in-coach .in-row>i{color:#A78BFA;font-size:22px}
+/* «Веса»: числа и заголовки справа с отступом, «Рост» не липнет к краю (перебивает старый padding 2px !important) */
+.tr-ww-table th:not(:first-child),.tr-ww-table td:not(:first-child){padding-left:4px!important;padding-right:8px!important;text-align:right!important}
+.tr-ww-table th:last-child,.tr-ww-table td:last-child{padding-right:14px!important}
+.tr-ww-table .tr-ww-na{opacity:.45}
+.tr-ww-table td.tr-progress.flat{color:#7E89A8}
+/* наведение: одна подсветка на всю строку (с ручкой), без второго прямоугольника внутри */
+.tr-exercise:hover{background:none}
+.tr-exercise-wrap{border-radius:14px}
+.tr-exercise-wrap:hover{background:rgba(110,139,255,.05)}
+/* «Итоги»: строка без истории только для чтения; с историей раскрывается */
+.tr-group-card .tr-exercise,.tr-group-card .tr-exercise:hover{background:none!important;cursor:default}
+.tr-group-card .tr-exercise:active{transform:none}
+.tr-group-card .tr-hist-row{cursor:pointer;border-radius:12px}
+.tr-group-card .tr-hist-row:hover,.tr-group-card .tr-hist-row.open{background:rgba(110,139,255,.05)!important}
+.tr-hist-chev{font-size:14px;margin-left:6px;opacity:.5;transition:transform .2s;vertical-align:-1px}
+.tr-hist-row.open .tr-hist-chev{transform:rotate(180deg)}
+.tr-hist{margin:2px 0 8px;padding:6px 12px;border-radius:12px;background:rgba(110,139,255,.06)}
+.tr-hist-r{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-top:1px solid rgba(110,139,255,.08);font-size:13px}
+.tr-hist-r:first-child{border-top:0}
+.tr-hist-w{flex:0 0 auto;min-width:92px;color:#A0A9C4}
+.tr-hist-w em{font-style:normal;margin-left:6px;opacity:.6;font-size:12px}
+.tr-hist-v{flex:1;color:#E6E9F2;font-weight:600}
+.tr-hist-d{flex:0 0 auto;font-weight:700;font-size:12.5px;color:#7E89A8}
+.tr-hist-d.up{color:#A8C97F}.tr-hist-d.down{color:#FF5C5C}
+/* «Все замеры»: свёрнутый список под «Прогрессом тела» */
+.tr-meas-all>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px}
+.tr-meas-all>summary::-webkit-details-marker{display:none}
+.tr-meas-all .tr-meas-n{font-style:normal;font-size:11px;padding:1px 8px;border-radius:999px;background:rgba(110,139,255,.16);color:#A9BBFF}
+.tr-meas-chev{opacity:.5;transition:transform .2s;font-size:15px}
+.tr-meas-all[open] .tr-meas-chev{transform:rotate(180deg)}
+.tr-meas-all>summary .tr-measure-add-inline{margin-left:auto}
+.tr-meas-all:not([open]){padding-bottom:12px}

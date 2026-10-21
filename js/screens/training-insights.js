@@ -136,7 +136,9 @@ window.TrainingInsights = (function () {
     /* баланс за последние 14 дней */
     const since = Date.now() - 14 * DAY;
     const recent = history.filter(x => +x.date >= since);
-    const wks = Math.max(1, new Set(recent.map(x => A.weekKey(x.date))).size);
+    /* делим на длину окна (2 недели, или меньше, если тренируешься недавно), а не на число календарных недель:
+       14 дней задевают три недели, и подходы занижались в полтора раза */
+    const wks = Math.max(1, Math.min(2, (Date.now() - +history[0].date) / WEEK));
     const sets = setsByGroup(recent, an);
     const groups = Object.keys(NORM).filter(g => sets[g] || Object.values(an.ex).some(x => x.cls && x.cls.group === g));
     const isMon = new Date().getDay() === 1;

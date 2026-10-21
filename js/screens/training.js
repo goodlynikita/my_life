@@ -1150,7 +1150,11 @@ function trPlayLabel(name) {
   return null;
 }
 
+/* место на экране до открытия окна: на айфоне клавиатура сдвигает страницу, и scrollY в момент сохранения уже не тот */
+function trHoldScroll(y) { try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {} window._trHoldY = y; }
+
 function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave) {
+  { const _y0 = window.scrollY, _os = onSave; onSave = () => { trHoldScroll(_y0); _os(); }; } /* после сохранения экран остаётся там, где открыли окно */
   const ex = plan.weeks[weekIndex].days[dayIdx].sessions[sessionIdx].exercises[exIdx];
   window._trEditingEx = ex; /* подсказка «Прошлый раз» не должна брать эту же запись */
   const overlay = document.createElement('div');
@@ -1496,6 +1500,7 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
 }
 
 function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, onSave) {
+  { const _y0 = window.scrollY, _os = onSave; onSave = () => { trHoldScroll(_y0); _os(); }; } /* после сохранения экран остаётся там, где открыли окно */
   const day = plan.weeks[weekIndex].days[dayIdx];
   const session = day.sessions[sessionIdx];
   const overlay = document.createElement('div');
@@ -1607,6 +1612,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
 }
 
 function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
+  { const _y0 = window.scrollY, _os = onSave; onSave = () => { trHoldScroll(_y0); _os(); }; } /* после сохранения экран остаётся там, где открыли окно */
   const day = plan.weeks[weekIndex].days[dayIdx];
   trMigrateDayToSessions(day);
   const initialType = TRAINING_CATEGORIES[0].id;
@@ -2329,9 +2335,12 @@ window.Screens.training = function (mount) {
 
     if (tab === 'plan') {
       /* перерисовка плана после правки не прыгает наверх */
-      const keepY = prevTab === 'plan' ? window.scrollY : null;
+      const held = window._trHoldY; window._trHoldY = null;
+      const keepY = held != null ? held : (prevTab === 'plan' ? window.scrollY : null);
       content.innerHTML = (window.TrainerClient ? TrainerClient.weeklyHtml() : '') + trAiOrphanBanner(plan) + trRenderPlanTab(plan, collapsedWeeks);
-      if (keepY != null) { window.scrollTo(0, keepY); requestAnimationFrame(() => window.scrollTo(0, keepY)); }
+      if (keepY != null) { window.scrollTo(0, keepY); requestAnimationFrame(() => window.scrollTo(0, keepY));
+        /* клавиатура на айфоне закрывается с анимацией и ещё раз двигает страницу */
+        if (held != null) [180, 450].forEach(ms => setTimeout(() => { if (Math.abs(window.scrollY - keepY) > 4) window.scrollTo(0, keepY); }, ms)); }
       const orphBtn = document.getElementById('tr-orph-rm');
       if (orphBtn) orphBtn.onclick = () => { if (!confirm('Убрать из Плана будущие тренировки от удалённого AI-плана? Сделанные и изменённые тобой останутся.')) return; trSnapshotBeforeChange(); const n = TrainingAI.dropOrphans(trGetPlans(), plan.id); trSavePlans(trGetPlans()); renderTab('plan'); if (window.TrainingAI && TrainingAI.toast) TrainingAI.toast('Убрал ' + n); };
       trAnimateBars(content);

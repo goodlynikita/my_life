@@ -957,9 +957,16 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   /* крупно тоннаж, рабочий вес строкой ниже */
   const tonnage = trTonnage(ex);
   const wNum = +ex.weight || 0;
-  const wStr = String(wNum).replace('.', ',');
+  let wStr = String(wNum).replace('.', ','), rStr = trEsc(ex.reps);
+  /* подходы с разным весом: показываем разброс «30–50», а не только самый тяжёлый */
+  if (Array.isArray(ex.setDetails) && ex.setDetails.length > 1) {
+    const ws = ex.setDetails.map(d => +d.weight || 0).filter(w => w > 0), rs = ex.setDetails.map(d => +d.reps || 0).filter(r => r > 0);
+    const f = n => String(n).replace('.', ',');
+    if (ws.length && Math.min(...ws) !== Math.max(...ws)) wStr = f(Math.min(...ws)) + '–' + f(Math.max(...ws));
+    if (rs.length && Math.min(...rs) !== Math.max(...rs)) rStr = Math.min(...rs) + '–' + Math.max(...rs);
+  }
   if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${trEsc(ex.sets)} × ${trEsc(ex.reps)}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
-  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${trEsc(ex.reps)} · вес ${wStr} кг`);
+  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${rStr} · вес ${wStr} кг`);
 }
 
 function trMigrateDayToSessions(day) {

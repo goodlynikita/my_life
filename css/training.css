@@ -2238,3 +2238,15 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
   .tr-ww-table{font-size:13.5px!important}
   .tr-ww-table th,.tr-ww-table td{padding-top:11px;padding-bottom:11px}
 }
+/* AI-тренер: свои связки. Пустая тренировка, выбор мышц, карандаш */
+.q-t.ed{cursor:pointer;position:relative}
+.q-t>div{flex:1;min-width:0}
+.q-t.empty{border:1px dashed rgba(110,139,255,.35);background:rgba(110,139,255,.05)}
+.q-u.q-add{background:none;color:#8EA8FF;padding:6px 4px;display:inline-flex;align-items:center;gap:6px}
+.q-ed{flex:0 0 auto;width:32px;height:32px;border:0;border-radius:10px;background:rgba(110,139,255,.1);color:#8EA8FF;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.q-pick{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.q-pk{border:1px solid rgba(110,139,255,.25);border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;font-weight:600;background:rgba(110,139,255,.06);color:inherit;cursor:pointer}
+.q-pk.on{background:linear-gradient(135deg,#2C4FA8,#3A62C9);border-color:transparent;color:#fff}
+.q-pick-tip{margin-top:10px}
+@keyframes qShake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-t.shake{animation:qShake .3s ease 2;border-color:#E8A23A}

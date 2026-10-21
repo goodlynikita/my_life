@@ -509,6 +509,18 @@ function trNameKey(s) {
   /* латиницу меняем только в словах, где есть кириллица: «Smith» остаётся как есть */
   return k.split(' ').map(w => /[а-я]/.test(w) ? w.replace(/[abcehkmoptxy]/g, ch => 'авсенкмортху'['abcehkmoptxy'.indexOf(ch)]) : w).join(' ');
 }
+/* семейство упражнения: без уточнений хвата и ширины. «Тяга верхнего блока широкий» и «Тяга верхнего блока»
+   для истории, прошлого раза, весов и роста одно упражнение (в каталоге и в дне остаются раздельными) */
+function trFamKey(s) {
+  const k = trNameKey(s);
+  const f = k.replace(/\([^)]*\)/g, ' ')
+    .replace(/(^| )(широк|узк|средн|обратн|прям|параллельн|нейтральн|разнохват|хват)[а-я]*/g, ' ')
+    .replace(/(^| )к груди(?= |$)/g, ' ').replace(/(^| )за голову(?= |$)/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+  return f || k;
+}
+/* какое название семейства показывать: базовое (без уточнений) лучше, потом короче */
+function trFamBetter(a, b) { const fa = trNameKey(a) === trFamKey(a), fb = trNameKey(b) === trFamKey(b); if (fa !== fb) return fa; return String(a).length < String(b).length; }
 /* одно и то же упражнение в одном дне дважды (баг автоплана): оставляем запись с результатом, если она есть, иначе первую */
 const _trDeduped = new WeakSet();
 function trDedupeDays(plans) {
@@ -690,7 +702,7 @@ function trCalcProgress(plan, weekIndex, exerciseName, baseWeekIndex) {
   const week1 = plan.weeks[_bi] || plan.weeks[0];
   let baseline = null;
   for (const day of week1.days) {
-    const found = trDayAllExercises(day).find(e => trNameKey(e.ex.name) === trNameKey(exerciseName));
+    const found = trDayAllExercises(day).find(e => trFamKey(e.ex.name) === trFamKey(exerciseName));
     if (found) {
       /* Шаги и кардио не сравниваем с силовыми */
       if (found.ex.kind === 'steps' || found.ex.kind === 'cardio') return { pct: 0, dir: 'flat' };
@@ -701,7 +713,7 @@ function trCalcProgress(plan, weekIndex, exerciseName, baseWeekIndex) {
   const currentWeek = plan.weeks[weekIndex];
   let current = null;
   for (const day of currentWeek.days) {
-    const found = trDayAllExercises(day).find(e => trNameKey(e.ex.name) === trNameKey(exerciseName));
+    const found = trDayAllExercises(day).find(e => trFamKey(e.ex.name) === trFamKey(exerciseName));
     if (found) { current = trMetricFor(found.ex); break; }
   }
   if (baseline === null || current === null) return { pct: 0, dir: 'flat', diff: 0 };
@@ -779,7 +791,7 @@ function trFindLastStrength(plan, exName) {
       if (dt && dt > today) return; /* будущие (запланированные) дни не считаем */
       trMigrateDayToSessions(day);
       (day.sessions || []).forEach(session => (session && session.exercises || []).forEach(ex => {
-        if (ex && ex.kind === 'strength' && ex.name === exName && ex !== window._trEditingEx && (ex.weight > 0 || (ex.reps > 0 && /подтяг|отжим|брусь|планк|скруч|подъём ног|подъем ног|гиперэкст|выпады|присед без/i.test(ex.name)))) found = { ex, date: day.date, plan: p };
+        if (ex && ex.kind === 'strength' && trFamKey(ex.name) === trFamKey(exName) && ex !== window._trEditingEx && (ex.weight > 0 || (ex.reps > 0 && /подтяг|отжим|брусь|планк|скруч|подъём ног|подъем ног|гиперэкст|выпады|присед без/i.test(ex.name)))) found = { ex, date: day.date, plan: p };
       }));
     }));
     return found;
@@ -2726,8 +2738,8 @@ function trAiUntouched(session) {
 function trCollectGymExercises(plan) {
   const latest = {};
   /* одно упражнение одной строкой, даже если в записях оно написано чуть по-разному: показываем название из каталога или первое встреченное */
-  const canonByKey = {}, disp = {};
-  Object.values(MUSCLE_BLOCK_EXERCISES || {}).forEach(arr => (Array.isArray(arr) ? arr : []).forEach(n => { const k = trNameKey(n); if (k && !canonByKey[k]) canonByKey[k] = n; }));
+  const canonByKey = {}, disp = {}, byFam = {};
+  Object.values(MUSCLE_BLOCK_EXERCISES || {}).forEach(arr => (Array.isArray(arr) ? arr : []).forEach(n => { const k = trFamKey(n); if (k && (!canonByKey[k] || trFamBetter(n, canonByKey[k]))) canonByKey[k] = n; }));
   const today = new Date(); today.setHours(23, 59, 59, 0);
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach((day, dayIdx) => {
@@ -2744,12 +2756,15 @@ function trCollectGymExercises(plan) {
           /* Группа: сначала ищем в каноническом списке, иначе берём из сессии */
           const canonical = trExerciseCanonicalGroups(ex.name);
           const groups = canonical || session.groups || [];
-          const nk = trNameKey(ex.name), nm = canonByKey[nk] || disp[nk] || (disp[nk] = ex.name);
-          latest[nm] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
+          const nk = trFamKey(ex.name);
+          if (!disp[nk] || trFamBetter(ex.name, disp[nk])) disp[nk] = ex.name;
+          byFam[nk] = { ex, weekIndex, dayIdx, sessionIdx, exIdx, groups };
         });
       });
     });
   });
+  /* подпись: базовое название, если ты его когда-то писал, иначе из каталога, иначе самое короткое */
+  Object.keys(byFam).forEach(k => { const d = disp[k], c = canonByKey[k]; const nm = trNameKey(d) === k ? d : (c && trNameKey(c) === k ? c : (c && !trFamBetter(d, c) ? c : d)); latest[nm] = byFam[k]; });
   return latest;
 }
 
@@ -3254,7 +3269,7 @@ function trCollectExerciseHistory(plan, exerciseName) {
   let count = 0;
   plan.weeks.forEach((week, weekIndex) => {
     week.days.forEach(day => {
-      const found = trDayAllExercises(day).find(e => trNameKey(e.ex.name) === trNameKey(exerciseName) && trExLogged(e.ex) && trSessionDone(plan, day, day.sessions[e.sessionIdx]));
+      const found = trDayAllExercises(day).find(e => trFamKey(e.ex.name) === trFamKey(exerciseName) && trExLogged(e.ex) && trSessionDone(plan, day, day.sessions[e.sessionIdx]));
       if (found) {
         if (!first) first = { ex: found.ex, weekIndex };
         last = { ex: found.ex, weekIndex }; count++;
@@ -3278,7 +3293,7 @@ function trSumMetricAcrossPlan(plan, exerciseName, kind) {
   plan.weeks.forEach(week => {
     week.days.forEach(day => {
       trDayAllExercises(day).forEach(({ ex, sessionIdx }) => {
-        if (trNameKey(ex.name) !== trNameKey(exerciseName) || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
+        if (trFamKey(ex.name) !== trFamKey(exerciseName) || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
         if (kind === 'time_calorie') { sum += ex.calories || 0; play += ex.play || 0; }
         if (kind === 'steps') sum += ex.steps || 0;
         count++;
@@ -3351,7 +3366,7 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
       day.sessions.forEach(session => {
         if (!trIsGymType(session.type) || !trSessionDone(plan, day, session)) return;
         session.exercises.forEach(ex => {
-          if (trNameKey(ex.name) !== trNameKey(exerciseName) || ex.kind !== 'strength' || !trExLogged(ex)) return;
+          if (trFamKey(ex.name) !== trFamKey(exerciseName) || ex.kind !== 'strength' || !trExLogged(ex)) return;
           if (!first) first = { ex, wi };
           last = { ex, wi }; n++;
         });
@@ -3415,7 +3430,7 @@ function trRenderSummary(plan) {
           const expanded = groups.includes('FULL BODY') ? GYM_ORDER : groups;
           expanded.forEach(g => {
             if (!gymByGroup[g]) gymByGroup[g] = new Map();
-            if (!gymByGroup[g].has(trNameKey(ex.name))) gymByGroup[g].set(trNameKey(ex.name), ex.name);
+            { const f = trFamKey(ex.name), cur = gymByGroup[g].get(f); if (!cur || trFamBetter(ex.name, cur)) gymByGroup[g].set(f, ex.name); }
           });
         });
       });
@@ -3425,8 +3440,8 @@ function trRenderSummary(plan) {
   /* Зал: прогрессия рабочего веса по группам */
   const gymHtml = GYM_ORDER.filter(g => gymByGroup[g] && gymByGroup[g].size > 0).map(g => {
     const canonical = MUSCLE_BLOCK_EXERCISES[g] || [];
-    const inOrder = canonical.filter(name => gymByGroup[g].has(trNameKey(name)));
-    const custom = Array.from(gymByGroup[g].values()).filter(name => !canonical.some(c => trNameKey(c) === trNameKey(name)));
+    const _seenF = new Set(); const inOrder = canonical.filter(name => { const f = trFamKey(name); if (!gymByGroup[g].has(f) || _seenF.has(f)) return false; _seenF.add(f); return true; }).map(name => { const d = gymByGroup[g].get(trFamKey(name)); return trFamBetter(name, d) ? name : d; });
+    const custom = Array.from(gymByGroup[g].values()).filter(name => !canonical.some(c => trFamKey(c) === trFamKey(name)));
     const allNames = [...inOrder, ...custom];
     const rows = allNames.map(name => trRenderWasNowWeightRow(name, plan)).join('');
     if (!rows) return '';
@@ -3445,7 +3460,7 @@ function trRenderSummary(plan) {
       day.sessions.forEach(session => {
         if (trIsGymType(session.type) || session.type === 'Отдых' || !trSessionDone(plan, day, session)) return;
         if (!otherByType[session.type]) otherByType[session.type] = new Map();
-        session.exercises.forEach(ex => { if (ex.name && trExLogged(ex) && !otherByType[session.type].has(trNameKey(ex.name))) otherByType[session.type].set(trNameKey(ex.name), ex.name); });
+        session.exercises.forEach(ex => { if (ex.name && trExLogged(ex) && !otherByType[session.type].has(trFamKey(ex.name))) otherByType[session.type].set(trFamKey(ex.name), ex.name); });
       });
     });
   });

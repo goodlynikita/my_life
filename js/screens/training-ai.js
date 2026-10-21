@@ -853,7 +853,16 @@ window.TrainingAI = (function () {
       while (fresh && tot > 6) { const u = units.slice().sort((a, b) => quota[b] - quota[a])[0]; if (quota[u] <= 1) break; quota[u]--; tot--; }
       /* короткая тренировка (например, одни руки) добирается до 4 упражнений */
       for (let k = 0; tot < 4 && k < 8; k++) { const u = units[k % units.length]; quota[u]++; tot++; }
-      while (tot > 8) { const u = units.slice().sort((a, b) => quota[b] - quota[a])[0]; if (quota[u] <= 1) break; quota[u]--; tot--; }
+      /* баланс дня: главной мышце объём, помощникам и прессу немного, всего до 6 упражнений.
+         Так «спина + бицепс» не выходит пустой, а «ноги + плечи + пресс» не убивает */
+      { const bigs = units.filter(u => BIG.has(u));
+        units.forEach(u => { if (BIG.has(u)) quota[u] = Math.max(quota[u], bigs.length === 1 ? 5 : 3);
+          else if (u === 'Кор') quota[u] = units.length > 1 ? 1 : Math.max(quota[u], 3);
+          else quota[u] = Math.min(quota[u], bigs.length ? 2 : 3); });
+        tot = units.reduce((s2, u) => s2 + quota[u], 0);
+        const MAXN = fresh ? 5 : 6;
+        /* лишнее снимаем сначала с мелких, потом с крупных, но крупной оставляем хотя бы 3 */
+        while (tot > MAXN) { const u = units.filter(x => !BIG.has(x) && quota[x] > 1).sort((a, b) => quota[b] - quota[a])[0] || units.filter(x => BIG.has(x) && quota[x] > 3).sort((a, b) => quota[b] - quota[a])[0] || units.filter(x => quota[x] > 1).sort((a, b) => quota[b] - quota[a])[0]; if (!u) break; quota[u]--; tot--; } }
       const items = [], used = new Set();
       units.forEach(u => {
         const pool = pools[u] || [], nOcc = occ[u].length, j = occ[u].indexOf(ti);
@@ -878,10 +887,18 @@ window.TrainingAI = (function () {
         const reqPick = new Set();
         req.forEach(q => { const x = rot.find(e => reqFits(e, q) && !pick.includes(e) && !used.has(e.key)); if (x) { reqPick.add(x); pick.push(x); } });
         must.forEach(z => { if (pick.some(p => p.region === z)) return; const x = rot.find(e => e.region === z && !pick.includes(e) && !used.has(e.key)); if (x && pick.length < want) pick.push(x); });
-        const okPick = (x) => pick.length < want && !pick.includes(x) && !used.has(x.key) && !(units.length > 1 && x.base && pick.length >= Math.max(2, Math.ceil(want * 0.6)) && pool.some(p => p.mine));
+        const famQ = (n) => typeof trFamKey === 'function' ? trFamKey(n) : exKey(n);
+        const sameFam = (x) => pick.some(p => p !== x && famQ(p.name) === famQ(x.name)) || items.some(it => famQ(it.name) === famQ(x.name));
+        const okPick = (x) => pick.length < want && !pick.includes(x) && !used.has(x.key) && !sameFam(x) && !(units.length > 1 && x.base && pick.length >= Math.max(2, Math.ceil(want * 0.6)) && pool.some(p => p.mine));
         /* сначала разные зоны мышцы (середина, верх, низ), потом уже второе упражнение в той же зоне */
         rot.forEach(x => { if (okPick(x) && !pick.some(p => p.region && p.region === x.region)) pick.push(x); });
         rot.forEach(x => { if (okPick(x)) pick.push(x); });
+        /* тяжёлых базовых: ногам до двух, груди до трёх, лишнее меняем на изоляцию. Спине тяги не режем, это и есть её работа */
+        const compMax = u === 'Ноги' || u === 'Ягодицы' ? 2 : u === 'Грудь' ? 3 : 99;
+        if (compMax < 99) { for (let g2 = 0; g2 < 6 && pick.filter(x => x.kind === 'comp').length > compMax; g2++) {
+          const comps = pick.filter(x => x.kind === 'comp'), drop = comps.filter(x => !reqPick.has(x)).pop() || comps.pop();
+          const alt = rot.find(x => x.kind !== 'comp' && !pick.includes(x) && !used.has(x.key));
+          pick.splice(pick.indexOf(drop), 1, ...(alt ? [alt] : [])); } }
         pick.sort((a, b) => (b.kind === 'comp') - (a.kind === 'comp') || (b.mine ? 1 : 0) - (a.mine ? 1 : 0));
         pick.forEach(x => { used.add(x.key); prev.add(x.key);
           let it = { kind: x.kind, req: reqPick.has(x), mine: !!x.mine, key: x.key, name: x.name, group: unitGroup(u), region: x.region, isNew: !an.ex[x.key], why: addedSet.has(u) ? 'новая группа, чтобы тело росло ровно' : x.fill && j === 0 ? 'подтягиваем ' + zonePlain(unitGroup(u), x.region) : '' };
@@ -889,10 +906,11 @@ window.TrainingAI = (function () {
           items.push(it); });
       });
       /* потолок упражнений за тренировку (добор зон мог его превысить): лишнее снимаем с самой загруженной мышцы, изоляцию первой */
-      const cap = fresh ? 6 : 8;
+      const cap = fresh ? 5 : 6;
       while (items.length > cap) {
         const cnt = {}; items.forEach(it => { cnt[it.group] = (cnt[it.group] || 0) + 1; });
-        const g = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+        const BIGG = new Set(['Грудь', 'Спина', 'Ноги']);
+        const g = Object.keys(cnt).filter(x => !BIGG.has(x) && cnt[x] > 1).sort((a, b) => cnt[b] - cnt[a])[0] || Object.keys(cnt).filter(x => BIGG.has(x) && cnt[x] > 3).sort((a, b) => cnt[b] - cnt[a])[0] || Object.keys(cnt).filter(x => cnt[x] > 1).sort((a, b) => cnt[b] - cnt[a])[0] || Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
         let k = -1; for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g && items[q].kind !== 'comp') { k = q; break; }
         if (k < 0) for (let q = items.length - 1; q >= 0; q--) if (items[q].group === g && !items[q].req) { k = q; break; }
         if (k < 0) for (let q = items.length - 1; q >= 0; q--) if (!items[q].req) { k = q; break; }

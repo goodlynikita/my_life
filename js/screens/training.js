@@ -515,7 +515,7 @@ function trFamKey(s) {
   const k = trNameKey(s);
   const f = k.replace(/\([^)]*\)/g, ' ')
     .replace(/(^| )(широк|узк|средн|обратн|прям|параллельн|нейтральн|разнохват|хват)[а-я]*/g, ' ')
-    .replace(/(^| )к груди(?= |$)/g, ' ').replace(/(^| )за голову(?= |$)/g, ' ')
+    .replace(/(^| )к груди(?= |$)/g, ' ').replace(/(^| )за голову(?= |$)/g, ' ').replace(/(^| )с весом(?= |$)/g, ' ')
     .replace(/\s+/g, ' ').trim();
   return f || k;
 }

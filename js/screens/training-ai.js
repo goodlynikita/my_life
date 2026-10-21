@@ -464,7 +464,9 @@ window.TrainingAI = (function () {
   function chosenPlans(plans) {
     const src = planSources(plans);
     const saved = toArr((Store.get().training || {}).aiSources);
-    const on = src.filter(x => !saved.length || saved.includes(x.p.id));
+    /* активный и самый свежий план берём всегда: иначе новый план не попадал в разбор, если выбор планов сохранили раньше */
+    const newest = src.reduce((m, x) => (!m || (+x.p.number || 0) > (+m.p.number || 0) ? x : m), null);
+    const on = src.filter(x => !saved.length || saved.includes(x.p.id) || x.p.status === 'active' || x === newest);
     return { src, on: on.length ? on : src };
   }
   function sourcesHtml(src, on, plan) {

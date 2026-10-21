@@ -98,6 +98,28 @@ window.TrainingInsights = (function () {
     return { cur, from: new Date(lastStart), to: new Date(+mon - DAY), count: L.length, tL, tP, delta: tP ? Math.round((tL - tP) / tP * 100) : null, grew, lag };
   }
 
+  /* ── Совет тренера: не только железо ── */
+  const STRETCH = /растяж|стретч|йог|мобилит|пилатес|заминк/i;
+  const GYMY = /силов|функц|тренаж|зал|кроссфит/i;
+  function variety(plans) {
+    const since = Date.now() - 28 * DAY, today = Date.now();
+    let gym = 0, stretch = false, active = false;
+    const dOf = (p, d) => typeof trDayDateOf === 'function' ? trDayDateOf(p, d.date) : null;
+    (plans || []).forEach(p => p && (p.weeks || []).forEach(w => w && (w.days || []).forEach(d => {
+      if (!d) return; const dt = dOf(p, d); if (!dt || +dt < since || +dt > today) return;
+      (d.sessions || []).forEach(s => { if (!s) return; const t = String(s.type || ''), ex = (s.exercises || []).filter(Boolean);
+        if (STRETCH.test(t) || ex.some(e => STRETCH.test(e.name || ''))) stretch = true;
+        const logged = ex.some(e => (+e.weight || 0) > 0 || (+e.reps || 0) > 0 || (+e.duration || 0) > 0 || (+e.distance || 0) > 0 || (+e.calories || 0) > 0);
+        if (!logged) return;
+        if (ex.some(e => e.kind === 'strength')) gym++;
+        if (ex.some(e => (e.kind === 'cardio' || e.kind === 'time_calorie') && !GYMY.test(e.name || '') && !STRETCH.test(e.name || ''))) active = true; });
+    })));
+    if (gym < 2 || (stretch && active)) return null;
+    if (!stretch && !active) return { t: 'Только силовые', d: 'Добавь растяжку на 10 минут после зала и раз в неделю что-то живое: бег, теннис, футбол или бассейн. Так тело не будет деревянным, а сердце и выносливость подтянутся' };
+    if (!stretch) return { t: 'Растяжки не было месяц', d: '10 минут после зала: грудь, спина, задняя поверхность бедра и плечи. Суставам и осанке это нужно, и работать в зале станет легче' };
+    return { t: 'Кроме зала ничего', d: 'Раз в неделю бег, теннис, футбол или бассейн: сердце, выносливость и восстановление между силовыми' };
+  }
+
   /* ── Экран ── */
   function render(content, plan, h, tabsHtml, bindTabs) {
     const A = T(), esc = A.esc;
@@ -108,6 +130,7 @@ window.TrainingInsights = (function () {
       bindTabs && bindTabs(); return;
     }
     const wc = weekCard(history, an);
+    const tip = variety(h.getPlans ? h.getPlans() : []);
     const pls = plateaus(an);
     const recs = records(an, prefs);
     /* баланс за последние 14 дней */
@@ -134,6 +157,8 @@ window.TrainingInsights = (function () {
         ${wc.lag.length ? `<div class="in-row"><i class="ti ti-alert-triangle warn"></i><div><b>Отстаёт</b><span>${wc.lag.slice(0, 3).map(esc).join(' · ')}</span></div></div>` : ''}
         <div class="in-row in-focus"><i class="ti ti-target-arrow"></i><div><b>Фокус на неделю</b><span>${esc(focus)}</span></div></div>
       </div>
+
+      ${tip ? `<div class="in-card in-coach"><div class="in-row"><i class="ti ti-stretching"></i><div><b>Совет тренера: ${esc(tip.t.toLowerCase())}</b><span>${esc(tip.d)}</span></div></div></div>` : ''}
 
       <div class="in-card">
         <div class="in-h"><div><b>Баланс нагрузки</b><span>подходов на мышцу в неделю, за 2 недели</span></div></div>

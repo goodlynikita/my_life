@@ -2250,3 +2250,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .q-pick-tip{margin-top:10px}
 @keyframes qShake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .q-t.shake{animation:qShake .3s ease 2;border-color:#E8A23A}
+/* Разбор: совет тренера про разнообразие */
+.in-coach{padding-top:6px;padding-bottom:6px;background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(139,92,246,.10))}
+.in-coach .in-row{border-top:0}
+.in-coach .in-row>i{color:#A78BFA;font-size:22px}

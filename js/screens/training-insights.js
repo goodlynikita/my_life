@@ -69,11 +69,12 @@ window.TrainingInsights = (function () {
       const den = pts.reduce((s, p) => s + (p.t - mt) ** 2, 0);
       const slope = den > 0 ? pts.reduce((s, p) => s + (p.t - mt) * (p.y - my), 0) / den : 0;
       const best = Math.max(...pts.map(p => p.y)), last = pts[n - 1].y;
+      const bi = pts.findIndex(p => p.y === best), bset = h[bi] || h[n - 1];
       const prevBest = Math.max(...pts.slice(0, -1).map(p => p.y));
       const pr = last >= best - 0.01 && last > prevBest + 0.01;
       const target = (prefs.targets || {})[x.key] || Math.ceil((best + 0.5) / 10) * 10;
       const weeks = slope > 0.15 ? Math.ceil((target - best) / slope) : null;
-      out.push({ key: x.key, name: x.name, group: x.cls.group, best, last, pr, slope, target, weeks, first: pts[0].y });
+      out.push({ key: x.key, name: x.name, group: x.cls.group, best, last, pr, slope, target, weeks, first: pts[0].y, bw: bset.weight, br: bset.reps });
     });
     return out.sort((a, b) => b.best - a.best).slice(0, 8);
   }
@@ -174,10 +175,10 @@ window.TrainingInsights = (function () {
       </div>
 
       ${recs.length ? `<div class="in-card">
-        <div class="in-h"><div><b>Рекорды и прогноз</b><span>Сколько поднимешь на один раз</span></div></div>
+        <div class="in-h"><div><b>Рекорды и прогноз</b><span>Лучший подход и сколько поднимешь на один раз</span></div></div>
         ${recs.map(r => `<div class="in-rec" data-k="${esc(r.key)}">
-          <div class="in-rec-l"><b>${esc(r.name)}${r.pr ? '<em class="in-pr">рекорд</em>' : ''}</b><span>${r.slope > 0.15 ? `+${kg(r.slope)} кг в неделю` : r.slope < -0.15 ? 'снижается' : 'без роста'}${r.weeks ? ` · до ${r.target} кг ≈ ${r.weeks} ${pl(r.weeks, 'неделя', 'недели', 'недель')}` : r.best >= r.target ? ` · цель ${r.target} кг взята` : ` · цель ${r.target} кг`}</span></div>
-          <div class="in-rec-r"><b>${kg(r.best)}</b><span>кг</span></div>
+          <div class="in-rec-l"><b>${esc(r.name)}${r.pr ? '<em class="in-pr">рекорд</em>' : ''}</b><span>лучший подход ${kg(r.bw)} кг × ${r.br} · <i class="in-tr ${r.slope > 0.15 ? 'up' : r.slope < -0.15 ? 'down' : ''}">${r.slope > 0.15 ? 'растёт' : r.slope < -0.15 ? 'падает' : 'стоит'}</i></span><span>${r.best >= r.target ? `цель ${r.target} кг на 1 раз взята` : r.weeks && r.weeks <= 52 ? `цель ${r.target} кг на 1 раз через ~${r.weeks} ${pl(r.weeks, 'неделю', 'недели', 'недель')}` : `цель ${r.target} кг на 1 раз`}</span></div>
+          <div class="in-rec-r"><b>≈${Math.round(r.best)}</b><span>кг на 1 раз</span></div>
           <button class="in-goal" data-k="${esc(r.key)}" data-t="${r.target}" title="Своя цель"><i class="ti ti-flag"></i></button>
         </div>`).join('')}
       </div>` : ''}
@@ -194,7 +195,6 @@ window.TrainingInsights = (function () {
         }).join('') : few ? '<div class="in-ok"><i class="ti ti-info-circle"></i> Пока мало тренировок, чтобы судить</div>' : '<div class="in-ok"><i class="ti ti-circle-check"></i> Плато нет, всё растёт</div>'}
       </div>
 
-      <button class="in-share" id="in-share"><i class="ti ti-share"></i> Поделиться прогрессом за 8 недель</button>
     </div>`;
     bindTabs && bindTabs();
 
@@ -218,7 +218,6 @@ window.TrainingInsights = (function () {
       if (!n || n <= 0) return;
       Store.set('training.aiPrefs', { ...prefs, targets: { ...(prefs.targets || {}), [b.dataset.k]: n } }); again();
     }));
-    content.querySelector('#in-share').addEventListener('click', () => share(history, an, plan));
   }
 
   /* ── Картинка для сторис 1080×1920 ── */

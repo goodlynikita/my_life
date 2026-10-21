@@ -2286,3 +2286,10 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-meas-all[open] .tr-meas-chev{transform:rotate(180deg)}
 .tr-meas-all>summary .tr-measure-add-inline{margin-left:auto}
 .tr-meas-all:not([open]){padding-bottom:12px}
+/* Разбор, рекорды: лучший подход, тренд словом, прогноз отдельной строкой */
+.in-rec-l>span{display:block;line-height:1.45}.in-rec-l span+span{margin-top:1px}
+.in-tr{font-style:normal;font-weight:700;color:#9AA5C4}.in-tr.up{color:#4ADE80}.in-tr.down{color:#F87171}
+.in-rec-r span{white-space:nowrap}
+.in-rec-r{display:flex!important;flex-direction:column;align-items:flex-end;gap:0;min-width:64px}
+.in-rec-r b{line-height:1.1}
+.in-rec-r span{font-size:10.5px!important;opacity:.75;margin:0!important}

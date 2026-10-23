@@ -42,7 +42,7 @@ window.Game = (function () {
   /* ── События из данных: { day, sk, xp, t } ── */
   function events() {
     const S = Store.get() || {}, out = [], today = ymd(new Date());
-    const add = (day, sk, xp, t) => { if (day && day <= today && xp > 0) out.push({ day, sk, xp, t }); };
+    const add = (day, sk, xp, t, k) => { if (day && day <= today && xp > 0) out.push({ day, sk, xp, t, k: k || '' }); };
     /* тренировки */
     const plans = toArr((S.training || {}).plans);
     const str = [];
@@ -52,39 +52,39 @@ window.Game = (function () {
         const st = ex.filter(e => e.kind === 'strength' && ((+e.weight || 0) > 0 || (+e.reps || 0) > 0));
         const ca = ex.filter(e => (e.kind === 'cardio' && ((+e.distance || 0) > 0 || (+e.duration || 0) > 0)) || (e.kind === 'time_calorie' && ((+e.duration || 0) > 0 || (+e.calories || 0) > 0)));
         const steps = ex.some(e => e.kind === 'steps' && (+e.steps || 0) > 0);
-        if (st.length) { add(day, 'str', 60, 'Тренировка'); st.forEach(e => str.push({ day, e })); }
-        else if (ca.length) add(day, 'str', 45, ca[0].name || 'Активность');
-        else if (steps) add(day, 'str', 10, 'Шаги');
+        if (st.length) { add(day, 'str', 60, 'Тренировка', 'train'); st.forEach(e => str.push({ day, e })); }
+        else if (ca.length) add(day, 'str', 45, ca[0].name || 'Активность', 'train');
+        else if (steps) add(day, 'str', 10, 'Шаги', 'steps');
       });
     })));
     /* рекорды: вес выше прежнего максимума по этому упражнению */
     str.sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : 0);
     const best = {}, prDay = {};
     str.forEach(({ day, e }) => { const k = typeof trFamKey === 'function' ? trFamKey(e.name) : String(e.name).toLowerCase(); const w = +e.weight || 0; if (!w) return;
-      if (best[k] && w > best[k] && (prDay[day] || 0) < 2) { add(day, 'str', 40, 'Рекорд: ' + e.name + ' ' + String(w).replace('.', ',') + ' кг'); prDay[day] = (prDay[day] || 0) + 1; }
+      if (best[k] && w > best[k] && (prDay[day] || 0) < 2) { add(day, 'str', 40, 'Рекорд: ' + e.name + ' ' + String(w).replace('.', ',') + ' кг', 'pr'); prDay[day] = (prDay[day] || 0) + 1; }
       best[k] = Math.max(best[k] || 0, w); });
     /* замеры */
-    toArr((S.training || {}).measurements).forEach(m => { const [dd, mm, yy] = String(m.date || '').split('.').map(Number); if (yy) add(yy + '-' + p2(mm) + '-' + p2(dd), 'str', 30, 'Замер тела'); });
+    toArr((S.training || {}).measurements).forEach(m => { const [dd, mm, yy] = String(m.date || '').split('.').map(Number); if (yy) add(yy + '-' + p2(mm) + '-' + p2(dd), 'str', 30, 'Замер тела', 'meas'); });
     /* привычки */
     const H = S.habits || {}, hl = toArr(H.list).length;
     Object.keys(H.months || {}).forEach(ym => { const per = {};
       Object.values(H.months[ym] || {}).forEach(days => Object.keys(days || {}).forEach(d => { if (days[d] === 'done') per[d] = (per[d] || 0) + 1; }));
-      Object.keys(per).forEach(d => { const day = ym + '-' + p2(+d); add(day, 'dis', Math.min(80, per[d] * 8), 'Привычки: ' + per[d]); if (hl && per[d] * 2 > hl) add(day, 'dis', 20, 'День привычек засчитан'); }); });
+      Object.keys(per).forEach(d => { const day = ym + '-' + p2(+d); add(day, 'dis', Math.min(80, per[d] * 8), 'Привычки: ' + per[d], 'hab'); if (hl && per[d] * 2 > hl) add(day, 'dis', 20, 'День привычек засчитан', 'habday'); }); });
     /* задачи */
-    toArr((S.tasks || {}).list).forEach(t => { if (t.done && t.doneAt) add(ymd(new Date(+t.doneAt)), 'foc', t.prio === 1 ? 20 : 10, 'Задача: ' + (t.title || '')); });
+    toArr((S.tasks || {}).list).forEach(t => { if (t.done && t.doneAt) add(ymd(new Date(+t.doneAt)), 'foc', t.prio === 1 ? 20 : 10, 'Задача: ' + (t.title || ''), 'task'); });
     /* финансы: записанные траты, оплаты, копилка */
     const F = S.finance || {};
     Object.keys(F.spend || {}).forEach(ym => { const per = {};
-      toArr(F.spend[ym]).forEach(r => { if (!r || !(+r.amt > 0)) return; const day = ymd(new Date(+r.at || fromYmd(ym + '-01'))); if (r.once) add(day, 'cap', 30, 'Оплата: ' + (r.note || '')); else per[day] = (per[day] || 0) + 1; });
-      Object.keys(per).forEach(day => add(day, 'cap', Math.min(25, per[day] * 5), 'Учёт денег')); });
-    toArr((F.piggy || {}).ops).forEach(o => { if (o && o.type === 'deposit' && o.date) add(o.date, 'cap', 30, 'В копилку'); });
+      toArr(F.spend[ym]).forEach(r => { if (!r || !(+r.amt > 0)) return; const day = ymd(new Date(+r.at || fromYmd(ym + '-01'))); if (r.once) add(day, 'cap', 30, 'Оплата: ' + (r.note || ''), 'pay'); else per[day] = (per[day] || 0) + 1; });
+      Object.keys(per).forEach(day => add(day, 'cap', Math.min(25, per[day] * 5), 'Учёт денег', 'spend')); });
+    toArr((F.piggy || {}).ops).forEach(o => { if (o && o.type === 'deposit' && o.date) add(o.date, 'cap', 30, 'В копилку', 'piggy'); });
     /* цели */
-    toArr((S.goals || {}).directions).forEach(g => { if (g && g.done && g.doneAt) add(ymd(new Date(+g.doneAt)), 'wil', (+g.amount || 0) >= 100000 ? 250 : 100, 'Цель: ' + (g.name || '')); });
+    toArr((S.goals || {}).directions).forEach(g => { if (g && g.done && g.doneAt) add(ymd(new Date(+g.doneAt)), 'wil', (+g.amount || 0) >= 100000 ? 250 : 100, 'Цель: ' + (g.name || ''), 'goal'); });
     /* квесты дня */
     const Q = cfg().quests;
     Object.keys(Q).forEach(day => { const q = Q[day] || {}, ids = toArr(q.ids), done = q.done || {}, xp = q.xp || {}, sk = q.sk || {};
-      ids.forEach(id => { if (done[id]) add(day, sk[id] || 'dis', +xp[id] || 30, 'Квест'); });
-      if (ids.length && ids.every(id => done[id])) add(day, 'wil', 50, 'Все квесты дня'); });
+      ids.forEach(id => { if (done[id]) add(day, sk[id] || 'dis', +xp[id] || 30, 'Квест', 'quest'); });
+      if (ids.length && ids.every(id => done[id])) add(day, 'wil', 50, 'Все квесты дня', 'qall'); });
     return out;
   }
 
@@ -216,53 +216,138 @@ window.Game = (function () {
   /* подсказки к экрану (кнопка «?») */
   const TIPS = [
     { sel: '.gm-stage', t: 'Персонаж', d: 'Растёт вместе с тобой. Облик меняется на 10, 20, 35 и 50 уровне: Новичок, Боец, Воин, Чемпион, Легенда.' },
-    { sel: '.gm-xpw', t: 'Опыт', d: 'Очки капают сами из того, что ты записываешь: тренировки, привычки, деньги, задачи, цели. Штрафов нет.' },
-    { sel: '.gm-ql', t: 'Квесты дня', d: 'Утром выбираешь, что берёшь. Отмечаются сами, когда делаешь дело в разделе. Нажми на квест, чтобы перейти.' },
-    { sel: '.gm-sk', t: 'Навыки', d: 'Сила от тренировок, Дисциплина от привычек, Капитал от финансов, Фокус от задач, Воля от целей.' },
-    { sel: '.gm-cal', t: 'Серия', d: 'Засчитывается любое дело в любом разделе. Каждые 7 дней подряд дают щит (до 3), он сам спасёт серию в пропущенный день. Дни отдыха и отпуск в настройках.' },
+    { sel: '.gm-xpw', t: 'Опыт', d: 'Очки капают сами из того, что ты записываешь: тренировки, привычки, деньги, задачи, цели. Штрафов нет. Каждый следующий уровень чуть дороже.' },
+    { sel: '.gm-tiles', t: 'Серия и щиты', d: 'Серия: дни подряд, когда было хоть одно дело в любом разделе. Каждые 7 дней подряд дают щит (до 3), он сам спасёт серию в пропущенный день.' },
+    { sel: '.gm-path', t: 'Путь', d: 'Все облики персонажа. Следующие откроются на своём уровне.' },
+    { sel: '.gm-ql', t: 'Квесты дня', d: 'Утром выбираешь, что берёшь. Отмечаются сами, когда делаешь дело в разделе. Закрыл все: бонус +50. Нажми на квест, чтобы перейти.' },
+    { sel: '.gm-radar', t: 'Навыки', d: 'Сила от тренировок, Дисциплина от привычек, Капитал от финансов, Фокус от задач, Воля от целей и квестов. Чем ровнее фигура, тем гармоничнее прокачка.' },
+    { sel: '.gm-week', t: 'Неделя', d: 'Сколько опыта набрал за каждый из последних 7 дней и из каких разделов.' },
+    { sel: '.gm-cal', t: 'Календарь серии', d: 'Чем ярче день, тем больше сделал. Пунктир: день спас щит. Жёлтый: день отдыха. Дни отдыха и отпуск в настройках.' },
+    { sel: '.gm-ach', t: 'Достижения', d: 'Открываются сами по твоим данным. Серые ещё впереди, под ними прогресс.' },
   ];
+
+  /* достижения: считаются из событий, не хранятся */
+  function achievements(S) {
+    const by = (k) => S.evs.filter(e => k.includes(e.k)), cnt = (...k) => by(k).length, days = (...k) => new Set(by(k).map(e => e.day)).size;
+    const tr = cnt('train');
+    return [
+      { ico: 'ti-barbell', c: SK.str.color, t: 'Первая тренировка', v: tr, n: 1 },
+      { ico: 'ti-barbell', c: SK.str.color, t: '50 тренировок', v: tr, n: 50 },
+      { ico: 'ti-trophy', c: SK.str.color, t: '100 тренировок', v: tr, n: 100 },
+      { ico: 'ti-arrow-big-up-lines', c: SK.str.color, t: '10 рекордов', v: cnt('pr'), n: 10 },
+      { ico: 'ti-flame', c: '#FB923C', t: 'Неделя подряд', v: S.s.best, n: 7 },
+      { ico: 'ti-flame', c: '#FB923C', t: 'Месяц подряд', v: S.s.best, n: 30 },
+      { ico: 'ti-crown', c: '#FB923C', t: '100 дней подряд', v: S.s.best, n: 100 },
+      { ico: 'ti-calendar-star', c: '#FB923C', t: 'Год подряд', v: S.s.best, n: 365 },
+      { ico: 'ti-ruler-measure', c: SK.str.color, t: '5 замеров тела', v: cnt('meas'), n: 5 },
+      { ico: 'ti-checks', c: SK.dis.color, t: '30 дней привычек', v: cnt('habday'), n: 30 },
+      { ico: 'ti-wallet', c: SK.cap.color, t: '30 дней учёта денег', v: days('spend', 'pay'), n: 30 },
+      { ico: 'ti-pig-money', c: SK.cap.color, t: '10 раз в копилку', v: cnt('piggy'), n: 10 },
+      { ico: 'ti-target-arrow', c: SK.foc.color, t: '100 задач', v: cnt('task'), n: 100 },
+      { ico: 'ti-flag-3', c: SK.wil.color, t: 'Цель достигнута', v: cnt('goal'), n: 1 },
+      { ico: 'ti-swords', c: SK.wil.color, t: '10 дней все квесты', v: cnt('qall'), n: 10 },
+    ].map(a => Object.assign(a, { ok: a.v >= a.n }));
+  }
+
+  /* радар навыков (SVG) */
+  function radar(lv) {
+    const cx = 110, cy = 104, R = 78, ang = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
+    const pt = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))].map(v => v.toFixed(1)).join(',');
+    const mx = Math.max(5, ...lv);
+    const grid = [0.25, 0.5, 0.75, 1].map(f => `<polygon points="${SKO.map((_, i) => pt(i, R * f)).join(' ')}" class="g"/>`).join('');
+    const axes = SKO.map((_, i) => `<line x1="${cx}" y1="${cy}" x2="${pt(i, R).split(',')[0]}" y2="${pt(i, R).split(',')[1]}" class="g"/>`).join('');
+    const shape = SKO.map((_, i) => pt(i, R * Math.max(0.06, lv[i] / mx))).join(' ');
+    const dots = SKO.map((k, i) => { const [x, y] = pt(i, R * Math.max(0.06, lv[i] / mx)).split(','); return `<circle cx="${x}" cy="${y}" r="4" fill="${SK[k].color}"/>`; }).join('');
+    const lbl = SKO.map((k, i) => { const [x, y] = pt(i, R + 17).split(','); return `<text x="${x}" y="${(+y + 4).toFixed(1)}" text-anchor="middle" fill="${SK[k].color}">${SK[k].name}</text>`; }).join('');
+    return `<svg class="gm-radar" viewBox="-36 0 292 212" role="img" aria-label="Навыки">${grid}${axes}<polygon points="${shape}" class="s"/>${dots}${lbl}</svg>`;
+  }
 
   /* ── Экран «Персонаж» ── */
   const DOW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
   const MON = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+  const GLOW = ['#64748B', '#4A7CFF', '#8B5CF6', '#F59E0B', '#FACC15'];
   function render(mount) {
     if (!avail()) { Router.go('/home'); return; }
-    const S = state(), c = S.c, tq = todayQuests(), now = new Date();
+    const S = state(), c = S.c, tq = todayQuests(), now = new Date(), today = ymd(now);
     const pct = Math.round(S.L.into / S.L.need * 100);
+    /* опыт по дням */
+    const dayXp = {}, daySk = {};
+    S.evs.forEach(e => { dayXp[e.day] = (dayXp[e.day] || 0) + e.xp; (daySk[e.day] = daySk[e.day] || {})[e.sk] = (daySk[e.day][e.sk] || 0) + e.xp; });
+    const heat = (x) => !x ? '' : x >= 300 ? ' x4' : x >= 150 ? ' x3' : x >= 60 ? ' x2' : ' x1';
     /* календарь месяца */
     const y = now.getFullYear(), m = now.getMonth(), first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, dim = new Date(y, m + 1, 0).getDate();
     let cal = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'].map(d => `<span class="h">${d}</span>`).join('') + '<span class="e"></span>'.repeat(lead);
     let okN = 0;
-    for (let d = 1; d <= dim; d++) { const k = y + '-' + p2(m + 1) + '-' + p2(d), st = S.s.st[k] || '', td = k === ymd(now);
+    for (let d = 1; d <= dim; d++) { const k = y + '-' + p2(m + 1) + '-' + p2(d), st = S.s.st[k] || '';
       if (st === 'ok') okN++;
-      cal += `<span class="${st}${td ? ' td' : ''}${k > ymd(now) ? ' fu' : ''}">${d}</span>`; }
+      cal += `<span class="${st}${st === 'ok' ? heat(dayXp[k]) : ''}${k === today ? ' td' : ''}${k > today ? ' fu' : ''}">${d}</span>`; }
+    /* неделя */
+    const wk = []; for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setDate(d.getDate() - i); wk.push(d); }
+    const wSum = wk.reduce((a, d) => a + (dayXp[ymd(d)] || 0), 0);
+    let pSum = 0; for (let i = 7; i <= 13; i++) { const d = new Date(now); d.setDate(d.getDate() - i); pSum += dayXp[ymd(d)] || 0; }
+    const wMax = Math.max(100, ...wk.map(d => dayXp[ymd(d)] || 0));
+    const wDiff = pSum ? Math.round((wSum - pSum) / pSum * 100) : 0;
+    const weekHtml = wk.map(d => { const k = ymd(d), t = dayXp[k] || 0, sk = daySk[k] || {};
+      const seg = SKO.filter(x => sk[x]).map(x => `<i style="height:${(sk[x] / wMax * 100).toFixed(1)}%;background:${SK[x].color}"></i>`).join('');
+      return `<div class="gm-wd${k === today ? ' td' : ''}"><b>${t ? num(t) : ''}</b><div class="gm-wb">${seg}</div><span>${DOW[d.getDay()]}</span></div>`; }).join('');
+    /* навыки */
+    const lv = SKO.map(k => skillLvl(S.sk[k] || 0)), weak = SKO[lv.indexOf(Math.min(...lv))];
+    const skHtml = SKO.map((k, i) => { const x = S.sk[k] || 0, l = lv[i], toN = 40 * l * l - x;
+      return `<button class="gm-sk" data-go="${SK[k].route}"><span class="gm-ski" style="--c:${SK[k].color}"><i class="ti ${SK[k].ico}"></i></span><span class="gm-skm"><span class="gm-skt"><b>${SK[k].name}</b>${k === weak && Math.max(...lv) > l ? '<u>подтянуть</u>' : ''}<em>ур. ${l}</em></span><span class="gm-skb"><i style="width:${Math.round(skillInto(x) * 100)}%;background:${SK[k].color}"></i></span><small>${SK[k].src} · до ${l + 1} ур. ${num(toN)} XP</small></span></button>`; }).join('');
+    /* путь обликов */
+    const pathHtml = TITLES.map((t, i) => { const st = i < S.stage ? 'past' : i === S.stage ? 'cur' : 'lock';
+      return `<div class="gm-pst ${st}" style="--gc:${GLOW[i]}">${heroImg(c.sex, i, 'tn')}${st === 'lock' ? '<span class="gm-lk"><i class="ti ti-lock"></i></span>' : ''}<b>${t[1]}</b><small>${st === 'lock' ? 'с ' + t[0] + ' ур.' : st === 'cur' ? 'сейчас' : 'пройден'}</small></div>`; }).join('');
+    const pathPct = (() => { const a = TITLES[S.stage][0], b = S.next ? S.next[0] : a; const f = S.next ? Math.min(1, (S.L.lvl - a + S.L.into / S.L.need) / (b - a)) : 0; return ((S.stage + f) / 4 * 100).toFixed(1); })();
+    /* достижения */
+    const ach = achievements(S), achN = ach.filter(a => a.ok).length;
+    const achHtml = ach.map(a => `<div class="gm-a${a.ok ? ' ok' : ''}" style="--c:${a.c}"><span class="gm-am"><i class="ti ${a.ico}"></i></span><b>${a.t}</b>${a.ok ? '<small>получено</small>' : `<span class="gm-ap"><i style="width:${Math.round(Math.min(1, a.v / a.n) * 100)}%"></i></span><small>${num(Math.min(a.v, a.n))} из ${num(a.n)}</small>`}</div>`).join('');
+    /* квесты */
+    const qDone = tq.picked ? tq.list.filter(x => x.done).length : 0, qAll = tq.picked && tq.list.length && qDone === tq.list.length;
+    const ring = (d, n) => { const f = n ? d / n : 0, C = 2 * Math.PI * 15; return `<svg class="gm-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="b"/><circle cx="18" cy="18" r="15" class="f" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}"/><text x="18" y="22" text-anchor="middle">${d}/${n}</text></svg>`; };
+    const qRow = (x, pickMode, i) => `<${pickMode ? 'button' : 'div'} class="gm-q${pickMode ? ' pick' + (i < c.qn ? ' on' : '') : x.done ? ' done' : ''}" ${pickMode ? `data-id="${esc(x.id)}"` : `data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"`} style="--c:${(SK[x.sk] || SK.dis).color}"><span class="gm-qi"><i class="ti ${(SK[x.sk] || SK.dis).ico}"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small>${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em><span class="gm-cb"><i class="ti ti-check"></i></span></${pickMode ? 'button' : 'div'}>`;
     const qHtml = !tq.picked
-      ? `<div class="gm-card"><div class="gm-h"><b>Что берёшь сегодня?</b><span>отметь до ${c.qn}</span></div>
-          <div class="gm-ql">${tq.cands.map((x, i) => `<button class="gm-q pick${i < c.qn ? ' on' : ''}" data-id="${esc(x.id)}"><span class="gm-cb"><i class="ti ti-check"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small style="color:${SK[x.sk].color}">${esc(SK[x.sk].name)} · ${esc(x.s)}</small></span><em>+${x.xp}</em></button>`).join('')}</div>
-          <div class="gm-note">Закроешь все: +50 XP</div>
-          <button class="gm-btn" id="gm-take">Беру</button></div>`
-      : `<div class="gm-card"><div class="gm-h"><b>Квесты дня</b><span>${tq.list.filter(x => x.done).length} из ${tq.list.length}${tq.list.every(x => x.done) ? ' · +50 бонус' : ''}</span></div>
-          <div class="gm-ql">${tq.list.map(x => `<div class="gm-q${x.done ? ' done' : ''}" data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"><span class="gm-cb"><i class="ti ti-check"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small style="color:${(SK[x.sk] || SK.dis).color}">${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em></div>`).join('')}</div>
-</div>`;
-    mount.innerHTML = `<div class="gm-screen">
+      ? `<div class="gm-card gm-qc"><div class="gm-h"><b>Что берёшь сегодня?</b><span>до ${c.qn}</span></div>
+          <div class="gm-ql">${tq.cands.map((x, i) => qRow(x, true, i)).join('')}</div>
+          <button class="gm-btn" id="gm-take"><i class="ti ti-swords"></i> Беру</button></div>`
+      : `<div class="gm-card gm-qc"><div class="gm-h gm-hq"><b>Квесты дня</b>${ring(qDone, tq.list.length)}</div>
+          <div class="gm-ql">${tq.list.map(x => qRow(x, false)).join('')}</div>
+          <div class="gm-bonus${qAll ? ' on' : ''}"><i class="ti ti-gift"></i><span>Бонус за все квесты</span><em>+50</em></div></div>`;
+    const nextLv = S.L.lvl + 1;
+    mount.innerHTML = `<div class="gm-screen" style="--gc:${GLOW[S.stage]}">
       <div class="gm-top">
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
-        <div class="gm-stage">${heroImg(c.sex, S.stage, 'xl')}</div>
-        <div class="gm-who"><div class="gm-lvl">Уровень ${S.L.lvl}</div><div class="gm-title">${esc(S.title)}</div></div>
-        <div class="gm-xpw"><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xpt"><span>${num(S.L.into)} / ${num(S.L.need)} XP</span><span>${S.next ? 'до «' + esc(S.next[1]) + '» ' + (S.next[0] - S.L.lvl) + ' ур.' : 'максимум'}</span></div></div>
-        <div class="gm-pills"><span><i class="ti ti-flame"></i>${S.s.cur} ${pl(S.s.cur, 'день', 'дня', 'дней')}</span><span><i class="ti ti-shield"></i>${S.s.shields} ${pl(S.s.shields, 'щит', 'щита', 'щитов')}</span><span><i class="ti ti-bolt"></i>+${num(S.todayXp)} сегодня</span></div>
+        <div class="gm-hero-row">
+          <div class="gm-stage">${heroImg(c.sex, S.stage, 'xl')}</div>
+          <div class="gm-info">
+            <div class="gm-who"><div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div><div class="gm-title">${esc(S.title)}</div></div>
+            <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b>${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
+            <div class="gm-tiles">
+              <div class="gm-tile f"><i class="ti ti-flame"></i><b>${S.s.cur}</b><span>${pl(S.s.cur, 'день', 'дня', 'дней')} подряд</span></div>
+              <div class="gm-tile s"><i class="ti ti-shield"></i><b>${S.s.shields}<small>/3</small></b><span>щиты</span></div>
+              <div class="gm-tile t"><i class="ti ti-bolt"></i><b>+${num(S.todayXp)}</b><span>сегодня</span></div>
+              <div class="gm-tile a"><i class="ti ti-star"></i><b>${num(S.total)}</b><span>всего XP</span></div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="gm-body">
-        ${qHtml}
-        <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>всего ${num(S.total)} XP</span></div>
-          ${SKO.map(k => { const x = S.sk[k] || 0; return `<button class="gm-sk" data-go="${SK[k].route}"><span class="gm-ski" style="--c:${SK[k].color}"><i class="ti ${SK[k].ico}"></i></span><span class="gm-skm"><span class="gm-skt"><b>${SK[k].name}</b><small>${SK[k].src}</small><em>${skillLvl(x)}</em></span><span class="gm-skb"><i style="width:${Math.round(skillInto(x) * 100)}%;background:${SK[k].color}"></i></span></span></button>`; }).join('')}
+        <div class="gm-col">
+          ${qHtml}
+          <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>лучший: ${SK[SKO[lv.indexOf(Math.max(...lv))]].name}</span></div>
+            <div class="gm-skw">${radar(lv)}<div class="gm-skl">${skHtml}</div></div></div>
         </div>
-        ${S.next ? `<div class="gm-card gm-next">${heroImg(c.sex, S.stage + 1, 'md')}<div><div class="gm-k">Следующий облик</div><b>${esc(S.next[1])} · ур. ${S.next[0]}</b><p>${['Расправишь плечи, сменишь серое на спортивную форму', 'Майка, руки крепче, рельеф', 'Медаль и форма чемпиона', 'Плащ и золотой венок'][S.stage] || ''}</p></div></div>` : ''}
-        <div class="gm-card"><div class="gm-h"><b>Серия · ${MON[m]}</b><span>лучшая ${S.s.best}</span></div>
-          <div class="gm-cal">${cal}</div>
-          <div class="gm-leg"><span><i class="ok"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span></div>
+        <div class="gm-col">
+          <div class="gm-card"><div class="gm-h"><b>Путь</b><span>${S.stage + 1} из 5</span></div>
+            <div class="gm-path"><div class="gm-pline"><i style="width:${pathPct}%"></i></div>${pathHtml}</div></div>
+          <div class="gm-card"><div class="gm-h"><b>Неделя</b><span>+${num(wSum)} XP${pSum ? ` · <em class="${wDiff >= 0 ? 'up' : 'dn'}">${wDiff >= 0 ? '+' : ''}${wDiff}%</em>` : ''}</span></div>
+            <div class="gm-week">${weekHtml}</div></div>
+          <div class="gm-card"><div class="gm-h"><b>Серия · ${MON[m]}</b><span>${okN} ${pl(okN, 'день', 'дня', 'дней')} · рекорд ${S.s.best}</span></div>
+            <div class="gm-cal">${cal}</div>
+            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span></div></div>
+          ${S.todayEv.length ? `<div class="gm-card"><div class="gm-h"><b>Сегодня</b><span>+${num(S.todayXp)} XP</span></div>${S.todayEv.slice(-8).reverse().map(e => `<div class="gm-ev" style="--c:${SK[e.sk].color}"><span class="gm-evi"><i class="ti ${SK[e.sk].ico}"></i></span><span>${esc(e.t)}</span><b>+${e.xp}</b></div>`).join('')}</div>` : ''}
         </div>
-        ${S.todayEv.length ? `<div class="gm-card"><div class="gm-h"><b>Сегодня</b><span>+${num(S.todayXp)} XP</span></div>${S.todayEv.slice(-8).reverse().map(e => `<div class="gm-ev"><i style="background:${SK[e.sk].color}"></i><span>${esc(e.t)}</span><b>+${e.xp}</b></div>`).join('')}</div>` : ''}
+        <div class="gm-card gm-wide"><div class="gm-h"><b>Достижения</b><span>${achN} из ${ach.length}</span></div>
+          <div class="gm-ach">${achHtml}</div></div>
       </div></div>`;
     const $ = (q) => mount.querySelector(q);
     $('#gm-back').onclick = () => Router.go('/home');

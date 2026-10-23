@@ -1292,10 +1292,10 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="ai-feats">
         <div class="ai-feat"><i class="ti ti-calendar-plus"></i><b>Ты решаешь, когда</b><span>Ставишь тренировку на любой день. Не подошла, убираешь одним нажатием</span></div>
         <div class="ai-feat"><i class="ti ti-stairs-up"></i><b>Вес растёт по результату</b><span>Добрал повторы, вес вверх. Недобрал дважды, вес ниже. Сменил цель, вес пересчитается</span></div>
-        <div class="ai-feat"><i class="ti ti-wand"></i><b>Мышцы как ты привык</b><span>Спина с трицепсом или ноги с плечами. Мышцу можно перенести одним нажатием</span></div>
+        <div class="ai-feat"><i class="ti ti-wand"></i><b>Свои связки мышц</b><span>Спина с бицепсом или ноги с плечами: отмечаешь сам. Или AI разложит по твоей истории</span></div>
         <div class="ai-feat"><i class="ti ti-weight"></i><b>Реальные веса</b><span>Учитывает блины и гантели твоего зала: никаких 82,5, если их нет</span></div>
         <div class="ai-feat"><i class="ti ti-message-chatbot"></i><b>Чат с тренером</b><span>«Почему стоит жим?» Ответит по твоим весам, а тренировку из ответа поставит в план</span></div>
-        <div class="ai-feat"><i class="ti ti-gender-bigender"></i><b>Для него и для неё</b><span>Упор на всё тело или на ноги и ягодицы. Без длинных анкет</span></div>
+        <div class="ai-feat"><i class="ti ti-arrows-shuffle"></i><b>Версии A и B</b><span>Каждая тренировка в двух вариантах через раз: мышцы те же, упражнения разные, вес растёт в обеих</span></div>
       </div>
       <div class="goal-pills"><span>Цель:</span><b>Масса 8–12</b><b>Сила 4–6</b><b>Рельеф 12–15</b></div>
       <div class="zones">
@@ -1750,7 +1750,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   document.getElementById('yr').textContent = new Date().getFullYear();
 
   /* Бегущая строка */
-  var items = [['ti-barbell','План на 8 недель'],['ti-sparkles','AI-тренер'],['ti-message-chatbot','Чат с тренером'],['ti-flame','Серии дней'],['ti-pig-money','Копилка'],['ti-wallet','Сколько можно тратить'],['ti-target-arrow','Цели по сезонам'],['ti-chart-donut','Колесо жизни'],['ti-user-shield','Кабинет тренера'],['ti-moon','Тёмная тема'],['ti-devices','Все устройства'],['ti-stairs-up','Вес растёт сам'],['ti-chart-dots','Разбор недели'],['ti-share','Прогресс в сторис']];
+  var items = [['ti-barbell','План на 8 недель'],['ti-sparkles','AI-тренер'],['ti-message-chatbot','Чат с тренером'],['ti-flame','Серии дней'],['ti-pig-money','Копилка'],['ti-wallet','Сколько можно тратить'],['ti-target-arrow','Цели по сезонам'],['ti-chart-donut','Колесо жизни'],['ti-user-shield','Кабинет тренера'],['ti-moon','Тёмная тема'],['ti-devices','Все устройства'],['ti-stairs-up','Вес растёт сам'],['ti-chart-dots','Разбор недели'],['ti-history','История каждого упражнения']];
   var colors = ['#8EA8FF','#A78BFA','#F2A93B','#34D399','#F2A93B','#A78BFA','#60A5FA','#C9D0E2','#4ADE80','#F472B6','#8EA8FF','#F472B6','#977FE9','#34D399'];
   var html = items.map(function(x,i){ return '<span><i class="ti '+x[0]+'" style="color:'+colors[i]+'"></i>'+x[1]+'</span>'; }).join('');
   var mqEl = document.getElementById('mq'); if (mqEl) mqEl.innerHTML = html + html;

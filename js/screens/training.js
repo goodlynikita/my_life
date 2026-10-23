@@ -3545,7 +3545,7 @@ function trRenderMeasurementsBlock() {
       }).join('');
   return `
     <details class="tr-group-card tr-meas-all"${window._trMeasOpen ? ' open' : ''}>
-      <summary class="tr-group-title">Все замеры${list.length ? ` <em class="tr-meas-n">${list.length}</em>` : ''} <i class="ti ti-chevron-down tr-meas-chev"></i><button class="tr-measure-add-inline" id="tr-add-measure"><i class="ti ti-plus"></i> Добавить</button></summary>
+      <summary class="tr-group-title">История замеров${list.length ? ` <em class="tr-meas-n">${list.length}</em>` : ''} <i class="ti ti-chevron-down tr-meas-chev"></i><button class="tr-measure-add-inline" id="tr-add-measure"><i class="ti ti-plus"></i> Добавить</button></summary>
       ${rowsHtml}
     </details>`;
 }

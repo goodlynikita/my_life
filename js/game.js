@@ -31,7 +31,7 @@ window.Game = (function () {
   function cfg() { const g = (Store.get() || {}).game || {}; return { on: g.on !== false, sex: g.sex === 'f' ? 'f' : 'm', qn: [2, 3, 5].includes(+g.qn) ? +g.qn : 3, rest: toArr(g.rest).map(Number).filter(n => n >= 0 && n <= 6), vacs: toArr(g.vacs).filter(v => v && v.from), quests: (g.quests && typeof g.quests === 'object') ? g.quests : {}, seenLvl: +g.seenLvl || 0,
     repairs: toArr(g.repairs).map(String), seenSt: g.seenSt == null ? null : +g.seenSt || 0, seenWeek: g.seenWeek || null,
     rewards: toArr(g.rewards).filter(r => r && r.id && r.name), bought: toArr(g.bought).filter(b => b && b.at), shopFrom: g.shopFrom || null,
-    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String) }; }
+    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String) }; }
   const avail = () => OWNER();
   const on = () => avail() && cfg().on;
 
@@ -186,7 +186,10 @@ window.Game = (function () {
 
   /* ── Картинка персонажа: img/hero/{m|f}{1..5}.webp, пока нет файла, аккуратная заглушка ── */
   const HAS_IMG = true; /* картинки img/hero/{m,f}1..5.webp */
+  const EMB = ['ti-seedling', 'ti-shield', 'ti-sword', 'ti-trophy', 'ti-crown'];
+  const isMin = () => cfg().mode === 'min';
   function heroImg(sex, stage, cls) {
+    if (isMin()) return `<div class="gm-hero gm-emb ${cls || ''}" data-stage="${stage}" style="--ec:${GLOW[Math.min(4, stage)]}"><i class="ti ${EMB[Math.min(4, stage)]}"></i></div>`;
     const src = 'img/hero/' + sex + (Math.min(4, stage) + 1) + '.webp';
     return `<div class="gm-hero ${cls || ''}" data-stage="${stage}">${HAS_IMG ? `<img src="${src}" alt="Персонаж" onerror="this.remove()">` : ''}<div class="gm-hero-ph"><i class="ti ti-user"></i></div></div>`;
   }
@@ -196,7 +199,7 @@ window.Game = (function () {
     if (!on()) return '';
     const S = state(), tq = todayQuests(), qd = tq.picked ? tq.list.filter(x => x.done).length : 0, qn = tq.picked ? tq.list.length : 0;
     return `<button class="gm-bar" id="gm-bar" aria-label="Персонаж">
-      ${frameWrap(heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}
+      <span class="gm-bar-av">${frameWrap(S.c.mode === 'min' ? `<div class="gm-hero sm gm-mini" style="--ec:${GLOW[lookOf(S)]};--p:${Math.round(S.L.into / S.L.need * 100)}"><b>${S.L.lvl}</b></div>` : heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}${S.c.news.length ? '<span class="gm-bar-dot"></span>' : ''}</span>
       <div class="gm-bar-m"><div class="gm-bar-t"><b>Ур. ${S.L.lvl}</b><span>${esc(S.title)}</span><em>${S.s.cur ? '<i class="ti ti-flame"></i>' + S.s.cur : ''}</em></div>
         <div class="gm-xp"><i style="width:${Math.round(S.L.into / S.L.need * 100)}%"></i></div>
         <div class="gm-bar-s">${tq.picked ? 'Квесты ' + qd + ' из ' + qn + (qd === qn ? ' · все закрыты' : '') : 'Выбери квесты на сегодня'}${S.todayXp ? ' · <b>+' + num(S.todayXp) + ' XP</b>' : ''}</div></div>
@@ -205,9 +208,15 @@ window.Game = (function () {
   function bindHome(root) { const b = root.querySelector('#gm-bar'); if (b) b.onclick = () => Router.go('/hero'); checkLevelUp(); }
 
   /* ── Вспышки: уровень, серия, итоги недели, сундук. Идут по очереди ── */
-  const _q = [];
+  const _q = []; let _autoShown = false, _newsTimer = null;
+  function addNews(n) {
+    const list = cfg().news.filter(x => x.key !== n.key).concat([Object.assign({ at: Date.now() }, n)]).slice(-12);
+    Store.set('game.news', list);
+    clearTimeout(_newsTimer); _newsTimer = setTimeout(() => { if (_mount && _mount.isConnected && !document.querySelector('.gm-flash')) render(_mount, true); }, 60);
+  }
   function overlay(html, opts) {
     opts = opts || {};
+    if (opts.news) { if (_autoShown || document.querySelector('.gm-flash')) { addNews(opts.news); return; } _autoShown = true; }
     if (document.querySelector('.gm-flash')) { _q.push([html, opts]); return; }
     const ov = document.createElement('div'); ov.className = 'gm-flash' + (opts.cls ? ' ' + opts.cls : '');
     ov.innerHTML = `<div class="gm-flash-box">${html}</div>`;
@@ -260,21 +269,22 @@ window.Game = (function () {
     checkItems(S);
     if (c.seenWeek !== R.key) { Store.set('game.seenWeek', R.key); if (R.xp > 0 && seen) recapFlash(R); }
   }
-  function flash(S, first, newStage) {
+  function flash(S, first, newStage, manual) {
+    if (first) _autoShown = true;
     overlay(`<div class="gm-rays"></div>${heroImg(S.c.sex, S.stage, 'lg')}
       <div class="gm-flash-k">${first ? 'Твой персонаж' : newStage ? 'Новый облик' : 'Новый уровень'}</div>
       <div class="gm-flash-l">Уровень ${S.L.lvl}</div>
       <div class="gm-flash-t">${esc(S.title)}</div>
       <p>${first ? 'Посчитал по всей твоей истории: тренировки, привычки, деньги, задачи и цели. Дальше очки капают сами.' : S.next ? 'До облика «' + esc(S.next[1]) + '» ' + (S.next[0] - S.L.lvl) + ' ' + pl(S.next[0] - S.L.lvl, 'уровень', 'уровня', 'уровней') : 'Высший облик. Легенда.'}</p>
-      <button class="gm-btn" data-close>${first ? 'Посмотреть' : 'Круто'}</button>`, { cls: 'gm-lvlup', confetti: !first, onClose: () => { if (first) Router.go('/hero'); } });
+      <button class="gm-btn" data-close>${first ? 'Посмотреть' : 'Круто'}</button>`, { cls: 'gm-lvlup', confetti: !first, news: first || manual ? null : { kind: 'lvl', key: 'lvl' + S.L.lvl, lvl: S.L.lvl, title: S.title, newStage: !!newStage }, onClose: () => { if (first) Router.go('/hero'); } });
   }
-  function streakFlash(n) {
+  function streakFlash(n, manual) {
     overlay(`<div class="gm-rays warm"></div><div class="gm-fire"><i class="ti ti-flame"></i>${'<span></span>'.repeat(10)}</div>
       <div class="gm-flash-l">${n} ${pl(n, 'день', 'дня', 'дней')}</div><div class="gm-flash-k warm">подряд</div>
       <p>${STK_T[n]}${n >= 30 ? '' : '. Держи щиты: каждые 7 дней даю новый.'}</p>
-      <button class="gm-btn warm" data-close>Огонь</button>`, { cls: 'gm-streak' });
+      <button class="gm-btn warm" data-close>Огонь</button>`, { cls: 'gm-streak', news: manual ? null : { kind: 'streak', key: 'st' + n, n } });
   }
-  function recapFlash(R) {
+  function recapFlash(R, manual) {
     const d = fromYmd(R.best), diff = R.prev ? Math.round((R.xp - R.prev) / R.prev * 100) : null;
     overlay(`<div class="gm-flash-k">Итоги недели</div>
       <div class="gm-flash-l" data-count="${R.xp}">+${num(R.xp)} XP</div>
@@ -285,7 +295,7 @@ window.Game = (function () {
         <div><b>${DOW[d.getDay()]}</b><span>лучший день · ${num(R.bestXp)}</span></div>
         <div style="--c:${SK[R.top].color}"><b class="c"><i class="ti ${SK[R.top].ico}"></i></b><span>${SK[R.top].name} · ${num(R.topXp)}</span></div>
       </div>
-      <button class="gm-btn" data-close>Погнали дальше</button>`, { cls: 'gm-recap', confetti: R.perfect });
+      <button class="gm-btn" data-close>Погнали дальше</button>`, { cls: 'gm-recap', confetti: R.perfect, news: manual ? null : { kind: 'recap', key: 'w' + R.key, R } });
   }
   /* сундук: случайная награда за все квесты дня */
   function openChest(onDone) {
@@ -370,13 +380,17 @@ window.Game = (function () {
     if (got == null) { Store.set('game.gotItems', keys); return; }
     const fresh = keys.filter(k => !got.includes(k)); if (!fresh.length) return;
     Store.set('game.gotItems', got.concat(fresh));
-    fresh.slice(0, 2).forEach(k => { const it = wrItems(S).find(i => i.key === k), lk = lookOf(S);
+    fresh.forEach(k => itemFlash(S, k));
+  }
+  function itemFlash(S, k, manual) {
+    { const it = wrItems(S).find(i => i.key === k), lk = lookOf(S); if (!it) return;
       overlay(`<div class="gm-rays gold"></div><div class="gm-flash-k">Новое в шкафчике</div>
         ${wrPreview(S, lk, it.kind === 'bg' ? it.id : bgOf(S), it.kind === 'frame' ? it.id : frOf(S))}
         <div class="gm-flash-l sm">${it.kind === 'bg' ? 'Фон' : 'Рамка'} «${esc(it.name)}»</div>
         <p>За «${esc(it.cond.t)}»</p>
         <button class="gm-btn" data-wear>Надеть</button><button class="gm-btn ghost" data-close>Позже</button>`, { cls: 'gm-newit',
-        onOpen: (ov, close) => { ov.querySelector('[data-wear]').onclick = () => { Store.set('game.' + it.kind, it.id); close(); if (_mount && _mount.isConnected) render(_mount); }; } }); });
+        news: manual ? null : { kind: 'item', key: 'it' + k, item: k },
+        onOpen: (ov, close) => { ov.querySelector('[data-wear]').onclick = () => { Store.set('game.' + it.kind, it.id); close(); if (_mount && _mount.isConnected) render(_mount, true); }; } }); }
   }
   let _mount = null;
 
@@ -409,6 +423,7 @@ window.Game = (function () {
     { sel: '.gm-radar', t: 'Навыки', d: 'Сила от тренировок, Дисциплина от привычек, Капитал от финансов, Фокус от задач, Воля от целей и квестов. Чем ровнее фигура, тем гармоничнее прокачка.' },
     { sel: '.gm-week', t: 'Неделя', d: 'Сколько опыта набрал за каждый из последних 7 дней и из каких разделов.' },
     { sel: '.gm-cal', t: 'Календарь серии', d: 'Чем ярче день, тем больше сделал. Пунктир: день спас щит. Жёлтый: день отдыха. Дни отдыха и отпуск в настройках.' },
+    { sel: '.gm-news', t: 'Новое', d: 'За один заход показываю только одну вспышку, чтобы не мешать. Остальное копится здесь, нажми, чтобы посмотреть.' },
     { sel: '.gm-wr', t: 'Шкафчик', d: 'Облик, фон и рамка персонажа. Новые открываются за достижения и уровни. Пройденный облик можно надеть и прямо в «Пути».' },
     { sel: '.gm-chestrow', t: 'Сундук дня', d: 'Закрыл все квесты: открывай сундук. Внутри случайно опыт или щит, иногда редкая находка.' },
     { sel: '.gm-shop', t: 'Награды', d: 'Назначь себе приз и цену в XP: кино, кроссы, массаж. Опыт копится с момента первой награды. Покупка не снижает уровень.' },
@@ -459,7 +474,7 @@ window.Game = (function () {
 
   /* ── Экран «Персонаж» ── */
   const MON = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-  function render(mount) {
+  function render(mount, quiet) {
     if (!avail()) { Router.go('/home'); return; }
     _mount = mount;
     let S = state(); const c = S.c, tq = todayQuests(), now = new Date(), today = ymd(now);
@@ -521,6 +536,11 @@ window.Game = (function () {
       ${c.rewards.map(r => { const ok = coinsN >= r.cost; return `<div class="gm-rw${ok ? ' ok' : ''}"><span class="gm-rwi"><i class="ti ti-gift"></i></span><span class="gm-rwm"><b>${esc(r.name)}</b><span class="gm-ap"><i style="width:${Math.round(Math.min(1, coinsN / r.cost) * 100)}%"></i></span><small>${ok ? 'можно брать' : 'ещё ' + num(r.cost - coinsN) + ' XP'}</small></span><button class="gm-rwb" data-buy="${esc(r.id)}"${ok ? '' : ' disabled'}><i class="ti ti-coin"></i>${num(r.cost)}</button><button class="gm-rwx" data-del="${esc(r.id)}" aria-label="Удалить"><i class="ti ti-x"></i></button></div>`; }).join('')}
       <button class="gm-add" id="gm-radd"><i class="ti ti-plus"></i>${c.rewards.length ? 'Добавить награду' : 'Назначь себе награду за XP'}</button>
       ${c.bought.length ? `<div class="gm-bought">${c.bought.slice(-3).reverse().map(b => { const d = new Date(+b.at); return `<span><i class="ti ti-check"></i>${esc(b.name)} · ${d.getDate()}.${p2(d.getMonth() + 1)}</span>`; }).join('')}</div>` : ''}</div>`;
+    /* вещи шкафчика одной строкой */
+    const nItems = c.news.filter(n => n.kind === 'item'), nRest = c.news.filter(n => n.kind !== 'item');
+    const newsHtml = c.news.length ? `<div class="gm-card gm-news"><div class="gm-h"><b>Новое <u class="gm-newn">${nRest.length + (nItems.length ? 1 : 0)}</u></b><button class="gm-clr" id="gm-nclr">Скрыть</button></div>
+      ${nItems.length ? `<button class="gm-nw" id="gm-nitems" style="--c:#EAB308"><span class="gm-nwi"><i class="ti ti-hanger"></i></span><span class="gm-nwm"><b>Новое в шкафчике: ${nItems.length}</b><small>${esc(nItems.slice(-3).reverse().map(n => { const it = wrItems(S).find(i => i.key === n.item); return it ? it.name : ''; }).filter(Boolean).join(', '))}</small></span><i class="ti ti-chevron-right"></i></button>` : ''}
+      ${nRest.slice().reverse().map(n => { const v = (NEWS[n.kind] || (() => null))(n); return v ? `<button class="gm-nw" data-news="${esc(n.key)}" style="--c:${v.c}"><span class="gm-nwi"><i class="ti ${v.ico}"></i></span><span class="gm-nwm"><b>${esc(v.t)}</b><small>${esc(v.s)}</small></span><i class="ti ti-chevron-right"></i></button>` : ''; }).join('')}</div>` : '';
     const repairHtml = repair ? `<div class="gm-card gm-repair"><span class="gm-rpi"><i class="ti ti-flame"></i></span><div><b>Верни серию ${repair} ${pl(repair, 'день', 'дня', 'дней')}</b><small>закрой все квесты сегодня</small></div></div>` : '';
     const perfectWk = wk.every(d => S.s.st[ymd(d)] === 'ok');
     const nextLv = S.L.lvl + 1;
@@ -532,9 +552,9 @@ window.Game = (function () {
       <div class="gm-top gm-bgv" data-bg="${bg}">${fxHtml(bg)}
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
-          <div class="gm-stage"><div class="gm-sparks">${Array.from({ length: 16 }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${heroImg(c.sex, lk, 'xl')}<span class="gm-pod fr-${fr}"></span></div>
+          <div class="gm-stage"><div class="gm-sparks">${Array.from({ length: 16 }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `<span class="gm-pod fr-${fr}"></span>`}</div>
           <div class="gm-info">
-            <div class="gm-who"><div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div><div class="gm-title">${esc(S.title)}</div></div>
+            <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div></div>
             <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b data-count="${S.L.need - S.L.into}">${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
             <div class="gm-tiles">
               <div class="gm-tile f"><i class="ti ti-flame"></i><b data-count="${S.s.cur}">${S.s.cur}</b><span>${pl(S.s.cur, 'день', 'дня', 'дней')} подряд</span></div>
@@ -547,7 +567,7 @@ window.Game = (function () {
       </div>
       <div class="gm-body">
         <div class="gm-col">
-          ${repairHtml}${qHtml}
+          ${newsHtml}${repairHtml}${qHtml}
           <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>лучший: ${SK[SKO[lv.indexOf(Math.max(...lv))]].name}</span></div>
             <div class="gm-skw">${radar(lv)}<div class="gm-skl">${skHtml}</div></div></div>
           ${shopHtml}
@@ -583,9 +603,39 @@ window.Game = (function () {
       Store.set('game.bought', cc.bought.concat([{ id: r.id, name: r.name, cost: r.cost, at: Date.now() }]).slice(-100));
       overlay(`<div class="gm-rays gold"></div><div class="gm-chest opened"><div class="gm-chest-b"><i class="ti ti-gift"></i></div></div><div class="gm-flash-k">Награда твоя</div><div class="gm-flash-l sm">${esc(r.name)}</div><p>Заслужил. Минус ${num(r.cost)} XP из копилки наград, уровень не трогаю.</p><button class="gm-btn" data-close>Кайф</button>`, { cls: 'gm-buy', onClose: () => render(mount) }); }));
     mount.querySelectorAll('[data-del]').forEach(b => b.onclick = () => twice(b, '<i class="ti ti-trash"></i>', () => { const cc = cfg(); Store.set('game.rewards', cc.rewards.filter(x => x.id !== b.dataset.del)); render(mount); }));
-    if (repairedNow) overlay(`<div class="gm-rays warm"></div><div class="gm-fire"><i class="ti ti-flame"></i>${'<span></span>'.repeat(10)}</div><div class="gm-flash-l">${S.s.cur} ${pl(S.s.cur, 'день', 'дня', 'дней')}</div><div class="gm-flash-k warm">серия вернулась</div><p>Вчерашний пропуск закрыт квестами.</p><button class="gm-btn warm" data-close>Огонь</button>`, { cls: 'gm-streak' });
+    if (repairedNow) repFlash(S.s.cur);
     countUp(mount);
-    checkLevelUp();
+    mount.querySelectorAll('[data-news]').forEach(b => b.onclick = () => { const n = cfg().news.find(x => x.key === b.dataset.news); if (n) openNews(n); });
+    const ni = $('#gm-nitems'); if (ni) ni.onclick = () => { Store.set('game.news', cfg().news.filter(x => x.kind !== 'item')); wardrobe(() => render(mount, true)); };
+    const nc = $('#gm-nclr'); if (nc) nc.onclick = () => { Store.set('game.news', []); render(mount, true); };
+    if (!quiet) checkLevelUp();
+  }
+  function bigRing(S, lk, pct) {
+    const C = 2 * Math.PI * 96;
+    return `<div class="gm-bring" style="--ec:${GLOW[lk]}"><svg viewBox="0 0 220 220"><defs><linearGradient id="gmRg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4A7CFF"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>
+      <circle cx="110" cy="110" r="96" class="b"/><circle cx="110" cy="110" r="96" class="f" stroke-dasharray="${(C * pct / 100).toFixed(1)} ${C.toFixed(1)}"/></svg>
+      <div class="gm-bring-c"><i class="ti ${EMB[lk]}"></i><b>${S.L.lvl}</b><small>уровень</small></div></div>`;
+  }
+  function repFlash(n, manual) {
+    overlay(`<div class="gm-rays warm"></div><div class="gm-fire"><i class="ti ti-flame"></i>${'<span></span>'.repeat(10)}</div><div class="gm-flash-l">${n} ${pl(n, 'день', 'дня', 'дней')}</div><div class="gm-flash-k warm">серия вернулась</div><p>Вчерашний пропуск закрыт квестами.</p><button class="gm-btn warm" data-close>Огонь</button>`, { cls: 'gm-streak', news: manual ? null : { kind: 'rep', key: 'rep' + ymd(new Date()), n } });
+  }
+  /* карточка «Новое»: то, что не показали вспышкой */
+  const NEWS = {
+    lvl: (n) => ({ ico: 'ti-arrow-big-up-lines', c: '#8B5CF6', t: 'Уровень ' + n.lvl, s: n.newStage ? 'новый облик: ' + n.title : n.title }),
+    streak: (n) => ({ ico: 'ti-flame', c: '#FB923C', t: n.n + ' ' + pl(n.n, 'день', 'дня', 'дней') + ' подряд', s: STK_T[n.n] || '' }),
+    recap: (n) => ({ ico: 'ti-chart-bar', c: '#4A7CFF', t: 'Итоги недели', s: '+' + num(n.R.xp) + ' XP' + (n.R.perfect ? ' · идеальная' : '') }),
+    item: (n) => { const it = wrItems(state()).find(i => i.key === n.item); return { ico: 'ti-hanger', c: '#EAB308', t: 'Новое в шкафчике', s: it ? (it.kind === 'bg' ? 'Фон' : 'Рамка') + ' «' + it.name + '»' : '' }; },
+    rep: (n) => ({ ico: 'ti-flame', c: '#FB923C', t: 'Серия вернулась', s: n.n + ' ' + pl(n.n, 'день', 'дня', 'дней') }),
+  };
+  function openNews(n) {
+    Store.set('game.news', cfg().news.filter(x => x.key !== n.key));
+    const S = state();
+    if (n.kind === 'lvl') flash(S, false, n.newStage, true);
+    else if (n.kind === 'streak') streakFlash(n.n, true);
+    else if (n.kind === 'recap') recapFlash(n.R, true);
+    else if (n.kind === 'item') itemFlash(S, n.item, true);
+    else if (n.kind === 'rep') repFlash(n.n, true);
+    if (_mount && _mount.isConnected) render(_mount, true);
   }
   /* цифры набегают от нуля */
   function countUp(root) {
@@ -599,6 +649,7 @@ window.Game = (function () {
     const c = cfg(), ov = document.createElement('div'); ov.className = 'tr-modal-overlay';
     const vacOn = c.vacs.some(v => !v.to);
     ov.innerHTML = `<div class="tr-modal gm-set"><p class="tr-modal-title">Игровой режим</p>
+      <div class="gm-row"><span>Вид</span><div class="gm-seg" data-k="mode"><button data-v="hero" class="${c.mode !== 'min' ? 'on' : ''}">Персонаж</button><button data-v="min" class="${c.mode === 'min' ? 'on' : ''}">Минимал</button></div></div>
       <div class="gm-row"><span>Персонаж</span><div class="gm-seg" data-k="sex"><button data-v="m" class="${c.sex === 'm' ? 'on' : ''}">Парень</button><button data-v="f" class="${c.sex === 'f' ? 'on' : ''}">Девушка</button></div></div>
       <div class="gm-row"><span>Квестов в день</span><div class="gm-seg" data-k="qn">${[2, 3, 5].map(n => `<button data-v="${n}" class="${c.qn === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
       <div class="gm-row col"><span>Дни отдыха <small>серия в эти дни не сгорает</small></span><div class="gm-days">${[1, 2, 3, 4, 5, 6, 0].map(d => `<button data-d="${d}" class="${c.rest.includes(d) ? 'on' : ''}">${DOW[d]}</button>`).join('')}</div></div>

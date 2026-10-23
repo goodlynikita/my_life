@@ -8,9 +8,9 @@
 .gm-hero.sm .gm-hero-ph i{font-size:22px}
 .gm-hero.md{width:84px;height:110px;flex:0 0 auto;border-radius:16px;background:radial-gradient(circle at 50% 35%,rgba(91,140,255,.35),rgba(91,140,255,0) 70%)}
 .gm-hero.md .gm-hero-ph i{font-size:34px}
-.gm-hero.lg{width:200px;height:230px;margin:0 auto}
+.gm-hero.lg{width:220px;height:280px;margin:0 auto}
 .gm-hero.lg .gm-hero-ph i,.gm-hero.xl .gm-hero-ph i{font-size:84px}
-.gm-hero.xl{width:220px;height:270px;margin:0 auto}
+.gm-hero.xl{width:230px;height:300px;margin:0 auto}
 .gm-hero[data-stage="0"] .gm-hero-ph{color:rgba(255,255,255,.55)}
 
 /* полоска на главной */

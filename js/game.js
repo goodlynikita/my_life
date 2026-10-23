@@ -170,7 +170,7 @@ window.Game = (function () {
   }
 
   /* ── Картинка персонажа: img/hero/{m|f}{1..5}.webp, пока нет файла, аккуратная заглушка ── */
-  const HAS_IMG = false; /* включить, когда в img/hero/ лягут m1..m5.webp и f1..f5.webp */
+  const HAS_IMG = true; /* картинки img/hero/{m,f}1..5.webp */
   function heroImg(sex, stage, cls) {
     const src = 'img/hero/' + sex + (Math.min(4, stage) + 1) + '.webp';
     return `<div class="gm-hero ${cls || ''}" data-stage="${stage}">${HAS_IMG ? `<img src="${src}" alt="Персонаж" onerror="this.remove()">` : ''}<div class="gm-hero-ph"><i class="ti ti-user"></i></div></div>`;
@@ -257,7 +257,7 @@ window.Game = (function () {
         <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>всего ${num(S.total)} XP</span></div>
           ${SKO.map(k => { const x = S.sk[k] || 0; return `<button class="gm-sk" data-go="${SK[k].route}"><span class="gm-ski" style="--c:${SK[k].color}"><i class="ti ${SK[k].ico}"></i></span><span class="gm-skm"><span class="gm-skt"><b>${SK[k].name}</b><small>${SK[k].src}</small><em>${skillLvl(x)}</em></span><span class="gm-skb"><i style="width:${Math.round(skillInto(x) * 100)}%;background:${SK[k].color}"></i></span></span></button>`; }).join('')}
         </div>
-        ${S.next ? `<div class="gm-card gm-next">${heroImg(c.sex, S.stage + 1, 'md')}<div><div class="gm-k">Следующий облик</div><b>${esc(S.next[1])} · ур. ${S.next[0]}</b><p>${['Расправишь плечи и сменишь серую футболку', 'Майка, руки крепче, часы и аура', 'Медаль за большую цель и яркая аура', 'Плащ, венок и золотая аура'][S.stage] || ''}</p></div></div>` : ''}
+        ${S.next ? `<div class="gm-card gm-next">${heroImg(c.sex, S.stage + 1, 'md')}<div><div class="gm-k">Следующий облик</div><b>${esc(S.next[1])} · ур. ${S.next[0]}</b><p>${['Расправишь плечи, сменишь серое на спортивную форму', 'Майка, руки крепче, рельеф', 'Медаль и форма чемпиона', 'Плащ и золотой венок'][S.stage] || ''}</p></div></div>` : ''}
         <div class="gm-card"><div class="gm-h"><b>Серия · ${MON[m]}</b><span>лучшая ${S.s.best}</span></div>
           <div class="gm-cal">${cal}</div>
           <div class="gm-leg"><span><i class="ok"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span></div>

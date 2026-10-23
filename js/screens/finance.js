@@ -498,7 +498,7 @@ window.Screens.finance = function(mount) {
        Иначе оплаченная 5-го аренда каждый месяц выглядела бы как «быстрее плана» */
     const expectedNow = cats.reduce((s, c) => { const amt = +c.amt || 0, d = +c.day; return s + (d >= 1 && d <= 31 ? (Math.min(d, dimB) <= now.getDate() ? amt : Math.min(amt, spentBy[c.id] || 0)) : amt * monthPos / 100); }, 0); /* платёж, внесённый заранее, тоже по плану */
     const pace = spentPct > 100 ? 'over' : planSpent > expectedNow + Math.max(500, totalBase * 0.05) ? 'fast' : 'ok';
-    const R1 = 32, R2 = 22, C1 = +(2 * Math.PI * R1).toFixed(1), C2 = +(2 * Math.PI * R2).toFixed(1);
+    const R1 = 35, R2 = 26, C1 = +(2 * Math.PI * R1).toFixed(1), C2 = +(2 * Math.PI * R2).toFixed(1);
     const off = (C, p) => +(C * (1 - Math.min(100, Math.max(0, p)) / 100)).toFixed(1);
 
     content.innerHTML = `

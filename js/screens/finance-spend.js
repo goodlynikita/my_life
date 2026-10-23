@@ -753,16 +753,42 @@ window.FinSpend = (function () {
     const sp = catSpent(ymKey(new Date()))[id] || 0;
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay modal-finance';
     ov.innerHTML = `<div class="tr-modal sp-edit"><p class="tr-modal-title">Категория</p><div id="ce-box">${catRowHtml(c, sp)}</div>
-      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="ce-cancel">Отмена</button><button class="tr-modal-btn-primary" id="ce-ok">Сохранить</button></div></div>`;
+      <div class="ce-pay" id="ce-pay"></div>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="ce-cancel">Закрыть</button><button class="tr-modal-btn-primary" id="ce-ok">Сохранить</button></div></div>`;
     document.body.appendChild(ov);
     const box = ov.querySelector('#ce-box'); bindCatRows(box);
-    const close = () => ov.remove();
+    /* оплаты по категории прямо здесь: без вкладки «Расходы». Пишутся обычными тратами месяца с этой категорией */
+    const ym = ymKey(new Date()); let changed = false;
+    const payBox = ov.querySelector('#ce-pay');
+    const planNow = () => { const v = Math.round(parseAmt((box.querySelector('.ce-amt') || {}).value || '') || 0); return v > 0 ? v : (+c.amt || 0); };
+    const dd = (t) => { const d = new Date(t); return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0'); };
+    const drawPay = () => {
+      const recs = rawList(ym).filter(x => x.cat === id && !x.once).sort((a, z) => z.at - a.at);
+      const paid = recs.reduce((a, x) => a + x.amt, 0), plan = planNow(), left = Math.max(0, plan - paid);
+      const pct = plan > 0 ? Math.min(100, Math.round(paid / plan * 100)) : (paid ? 100 : 0);
+      payBox.innerHTML = `<div class="ce-pay-h"><span>Оплачено в этом месяце</span><b class="${plan && paid > plan ? 'over' : paid && paid >= plan ? 'ok' : ''}">${fmt(paid)}${plan ? ` <em>из ${fmt(plan)}</em>` : ''}</b></div>
+        ${plan ? `<div class="ce-pay-bar"><i style="width:${pct}%"></i></div>` : ''}
+        <div class="ce-pay-row"><input type="text" inputmode="decimal" id="ce-amt" placeholder="Сумма"><button type="button" class="ce-pay-b" id="ce-add"><i class="ti ti-plus"></i>Внести</button>${left > 0 ? `<button type="button" class="ce-pay-b on" id="ce-full"><i class="ti ti-check"></i>Оплатил ${fmt(left)}</button>` : ''}</div>
+        <p class="sp-pm-err" id="ce-err"></p>
+        ${recs.length ? `<div class="ce-pay-list">${recs.map(x => `<div class="ce-pay-it"><span>${dd(x.at)}</span><span class="ce-pay-n">${esc(x.note || c.name)}</span><b>${fmt(x.amt)}</b><button type="button" data-rm="${esc(x.id)}" aria-label="Удалить"><i class="ti ti-x"></i></button></div>`).join('')}</div>` : ''}`;
+      const add = (amt) => { if (!(amt > 0)) { payBox.querySelector('#ce-err').textContent = 'Укажи сумму'; return; }
+        const rec = { id: uid('s'), amt: Math.round(amt), cat: id, note: c.name, src: '', at: Date.now() };
+        saveList(ym, rawList(ym).concat([rec])); changed = true; drawPay(); toast(`Записал ${fmt(rec.amt)} · ${c.name}`); };
+      payBox.querySelector('#ce-add').onclick = () => add(parseAmt(payBox.querySelector('#ce-amt').value));
+      payBox.querySelector('#ce-amt').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(parseAmt(e.target.value)); } });
+      const fb = payBox.querySelector('#ce-full'); if (fb) fb.onclick = () => add(left);
+      payBox.querySelectorAll('[data-rm]').forEach(bt => bt.onclick = () => { const all = rawList(ym), x = all.find(r => r.id === bt.dataset.rm); if (!x) return;
+        saveList(ym, all.filter(r => r.id !== x.id)); changed = true; drawPay();
+        toast(`Удалил ${fmt(x.amt)}`, () => { saveList(ym, rawList(ym).concat([x])); changed = true; drawPay(); if (onDone) onDone(); }); });
+    };
+    drawPay();
+    const close = () => { ov.remove(); if (changed && onDone) onDone(); };
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     ov.querySelector('#ce-cancel').onclick = close;
     ov.querySelector('#ce-ok').onclick = () => {
       const edited = readCatRows(box, b.cats); /* строка удалена → категории нет */
       saveCats(b.cats.map(x => x.id === id ? edited[0] : x).filter(Boolean));
-      close(); if (onDone) onDone();
+      ov.remove(); if (onDone) onDone();
     };
   }
 

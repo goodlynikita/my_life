@@ -135,8 +135,10 @@ window.Game = (function () {
     else out.push({ id: 'move', sk: 'str', xp: 30, t: 'Движение: тренировка, теннис или шаги', s: 'любая запись в «Тренировках»', done: trained });
     /* привычки */
     const hl = toArr((S.habits || {}).list), dow = now.getDay(), wd = dow >= 1 && dow <= 5;
-    const sched = hl.filter(h => h.schedule === 'daily' || (h.schedule === 'weekday' && wd) || !h.schedule).length || hl.length;
-    if (hl.length) { const mk = today.slice(0, 7), dd = String(now.getDate()); const m = ((S.habits || {}).months || {})[mk] || {}; const dn = Object.values(m).filter(x => x && (x[dd] === 'done' || x[+dd] === 'done')).length;
+    let sl = hl.filter(h => h.schedule === 'daily' || (h.schedule === 'weekday' && wd) || !h.schedule); if (!sl.length) sl = hl;
+    const sched = sl.length;
+    /* считаем только привычки, которые стоят на сегодня */
+    if (hl.length) { const mk = today.slice(0, 7), dd = String(now.getDate()); const m = ((S.habits || {}).months || {})[mk] || {}; const dn = sl.filter(h => { const x = m[h.id]; return x && (x[dd] === 'done' || x[+dd] === 'done'); }).length;
       out.push({ id: 'habits', sk: 'dis', xp: 30, t: 'Привычки дня: ' + sched, s: 'сделано ' + dn + ' из ' + sched, done: dn >= sched }); }
     /* задачи */
     const tl = toArr((S.tasks || {}).list), tt = tl.filter(t => t.date === today || (t.done && t.doneAt && ymd(new Date(+t.doneAt)) === today));
@@ -166,7 +168,11 @@ window.Game = (function () {
     if (!q || !toArr(q.ids).length) return { picked: false, cands };
     const ids = toArr(q.ids), done = Object.assign({}, q.done || {});
     let ch = false; const fresh = []; const list = ids.map(id => { const x = cands.find(k => k.id === id) || { id, t: (q.t || {})[id] || 'Квест', s: '', xp: (q.xp || {})[id] || 30, sk: (q.sk || {})[id] || 'dis', done: !!done[id] };
-      if (x.done && !done[id]) { done[id] = true; ch = true; fresh.push(id); } return Object.assign({}, x, { done: !!done[id] }); });
+      /* сегодня отметка живая: сняли отметку в разделе, квест тоже снимается */
+      const live = cands.some(k => k.id === id);
+      if (x.done && !done[id]) { done[id] = true; ch = true; fresh.push(id); }
+      else if (live && !x.done && done[id]) { delete done[id]; ch = true; }
+      return Object.assign({}, x, { done: !!done[id] }); });
     if (ch) Store.set('game.quests.' + today + '.done', done);
     return { picked: true, list, cands, fresh, chest: q.chest || null };
   }

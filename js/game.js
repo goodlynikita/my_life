@@ -24,9 +24,12 @@ window.Game = (function () {
     wil: { name: 'Воля', src: 'цели', color: '#F472B6', ico: 'ti-flag-3', route: '/goals' },
   };
   const SKO = ['str', 'dis', 'cap', 'foc', 'wil'];
+  const DOW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
   const TITLES = [[1, 'Новичок'], [10, 'Боец'], [20, 'Воин'], [35, 'Чемпион'], [50, 'Легенда']];
 
-  function cfg() { const g = (Store.get() || {}).game || {}; return { on: g.on !== false, sex: g.sex === 'f' ? 'f' : 'm', qn: [2, 3, 5].includes(+g.qn) ? +g.qn : 3, rest: toArr(g.rest).map(Number).filter(n => n >= 0 && n <= 6), vacs: toArr(g.vacs).filter(v => v && v.from), quests: (g.quests && typeof g.quests === 'object') ? g.quests : {}, seenLvl: +g.seenLvl || 0 }; }
+  function cfg() { const g = (Store.get() || {}).game || {}; return { on: g.on !== false, sex: g.sex === 'f' ? 'f' : 'm', qn: [2, 3, 5].includes(+g.qn) ? +g.qn : 3, rest: toArr(g.rest).map(Number).filter(n => n >= 0 && n <= 6), vacs: toArr(g.vacs).filter(v => v && v.from), quests: (g.quests && typeof g.quests === 'object') ? g.quests : {}, seenLvl: +g.seenLvl || 0,
+    repairs: toArr(g.repairs).map(String), seenSt: g.seenSt == null ? null : +g.seenSt || 0, seenWeek: g.seenWeek || null,
+    rewards: toArr(g.rewards).filter(r => r && r.id && r.name), bought: toArr(g.bought).filter(b => b && b.at), shopFrom: g.shopFrom || null }; }
   const avail = () => OWNER();
   const on = () => avail() && cfg().on;
 
@@ -83,21 +86,25 @@ window.Game = (function () {
     /* квесты дня */
     const Q = cfg().quests;
     Object.keys(Q).forEach(day => { const q = Q[day] || {}, ids = toArr(q.ids), done = q.done || {}, xp = q.xp || {}, sk = q.sk || {};
-      ids.forEach(id => { if (done[id]) add(day, sk[id] || 'dis', +xp[id] || 30, 'Квест', 'quest'); });
-      if (ids.length && ids.every(id => done[id])) add(day, 'wil', 50, 'Все квесты дня', 'qall'); });
+      ids.forEach(id => { if (done[id]) add(day, sk[id] || 'dis', +xp[id] || 30, 'Квест: ' + ((q.t || {})[id] || ''), 'quest'); });
+      if (ids.length && ids.every(id => done[id])) add(day, 'wil', 50, 'Все квесты дня', 'qall');
+      if (q.chest && q.chest.kind === 'xp') add(day, 'wil', +q.chest.xp || 0, q.chest.rare ? 'Редкий сундук' : 'Сундук дня', 'chest'); });
     return out;
   }
 
   /* ── Серия: любое дело за день; щиты копятся (1 за 7 дней подряд, до 3); дни отдыха и отпуск не ломают ── */
   function streak(evs, c) {
-    const act = new Set(evs.filter(e => e.t !== 'Квест' && e.t !== 'Все квесты дня').map(e => e.day));
+    const act = new Set(evs.filter(e => !['quest', 'qall', 'chest'].includes(e.k)).map(e => e.day));
+    const chSh = new Set(Object.keys(c.quests || {}).filter(d => (c.quests[d] || {}).chest && c.quests[d].chest.kind === 'shield')), rep = new Set(c.repairs || []);
     const days = [...act].sort(); const st = {};
     if (!days.length) return { cur: 0, best: 0, shields: 0, st, act };
     const isRest = (d, k) => c.rest.includes(d.getDay()) || c.vacs.some(v => k >= v.from && (!v.to || k <= v.to));
     let cur = 0, best = 0, run = 0, sh = 0; const today = ymd(new Date());
     for (let d = fromYmd(days[0]); ymd(d) <= today; d.setDate(d.getDate() + 1)) {
       const k = ymd(d);
+      if (chSh.has(k)) sh = Math.min(3, sh + 1);
       if (act.has(k)) { cur++; run++; st[k] = 'ok'; if (run % 7 === 0) sh = Math.min(3, sh + 1); }
+      else if (rep.has(k)) { st[k] = 'rep'; }
       else if (k === today) { st[k] = 'wait'; }
       else if (isRest(d, k)) { st[k] = 'rest'; }
       else if (sh > 0) { sh--; st[k] = 'sh'; run = 0; }
@@ -156,10 +163,10 @@ window.Game = (function () {
     const cands = candidates();
     if (!q || !toArr(q.ids).length) return { picked: false, cands };
     const ids = toArr(q.ids), done = Object.assign({}, q.done || {});
-    let ch = false; const list = ids.map(id => { const x = cands.find(k => k.id === id) || { id, t: (q.t || {})[id] || 'Квест', s: '', xp: (q.xp || {})[id] || 30, sk: (q.sk || {})[id] || 'dis', done: !!done[id] };
-      if (x.done && !done[id]) { done[id] = true; ch = true; } return Object.assign({}, x, { done: !!done[id] }); });
+    let ch = false; const fresh = []; const list = ids.map(id => { const x = cands.find(k => k.id === id) || { id, t: (q.t || {})[id] || 'Квест', s: '', xp: (q.xp || {})[id] || 30, sk: (q.sk || {})[id] || 'dis', done: !!done[id] };
+      if (x.done && !done[id]) { done[id] = true; ch = true; fresh.push(id); } return Object.assign({}, x, { done: !!done[id] }); });
     if (ch) Store.set('game.quests.' + today + '.done', done);
-    return { picked: true, list, cands };
+    return { picked: true, list, cands, fresh, chest: q.chest || null };
   }
   function pick(ids) {
     const today = ymd(new Date()), cands = candidates(), xp = {}, sk = {}, t = {};
@@ -189,28 +196,124 @@ window.Game = (function () {
   }
   function bindHome(root) { const b = root.querySelector('#gm-bar'); if (b) b.onclick = () => Router.go('/hero'); checkLevelUp(); }
 
-  /* ── Вспышка нового уровня ── */
+  /* ── Вспышки: уровень, серия, итоги недели, сундук. Идут по очереди ── */
+  const _q = [];
+  function overlay(html, opts) {
+    opts = opts || {};
+    if (document.querySelector('.gm-flash')) { _q.push([html, opts]); return; }
+    const ov = document.createElement('div'); ov.className = 'gm-flash' + (opts.cls ? ' ' + opts.cls : '');
+    ov.innerHTML = `<div class="gm-flash-box">${html}</div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(() => ov.classList.add('in'));
+    try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate([20, 40, 30]); } catch (e) {}
+    const close = () => { ov.classList.remove('in'); setTimeout(() => { ov.remove(); if (opts.onClose) opts.onClose(); const n = _q.shift(); if (n) overlay(n[0], n[1]); }, 250); };
+    ov.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    if (opts.onOpen) opts.onOpen(ov, close);
+    if (opts.confetti !== false) setTimeout(() => confetti(ov.querySelector('.gm-flash-box')), 180);
+    return ov;
+  }
+  /* конфетти: лёгкие div, сами удаляются */
+  function confetti(host, n) {
+    if (!host || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    const cols = ['#4A7CFF', '#8B5CF6', '#22C55E', '#FACC15', '#F472B6', '#FB923C'];
+    const box = document.createElement('div'); box.className = 'gm-conf';
+    for (let i = 0; i < (n || 46); i++) { const b = document.createElement('i'); const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 170;
+      b.style.cssText = `--x:${(Math.cos(a) * d).toFixed(0)}px;--y:${(Math.sin(a) * d - 60).toFixed(0)}px;--r:${(Math.random() * 720 - 360).toFixed(0)}deg;background:${cols[i % cols.length]};animation-delay:${(Math.random() * 120).toFixed(0)}ms;${i % 3 ? '' : 'border-radius:50%;'}`;
+      box.appendChild(b); }
+    host.appendChild(box); setTimeout(() => box.remove(), 1700);
+  }
+  const STK = [7, 30, 100, 365];
+  const STK_T = { 7: 'Неделя без пропусков', 30: 'Месяц в деле', 100: 'Сотня. Это уже характер', 365: 'Год подряд. Легенда' };
+  const monday = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  function weekRecap(S) {
+    const m0 = monday(new Date()), from = new Date(m0); from.setDate(from.getDate() - 7);
+    const days = [], per = {}, sk = {}; for (let i = 0; i < 7; i++) { const d = new Date(from); d.setDate(d.getDate() + i); days.push(ymd(d)); }
+    S.evs.forEach(e => { if (days.includes(e.day)) { per[e.day] = (per[e.day] || 0) + e.xp; sk[e.sk] = (sk[e.sk] || 0) + e.xp; } });
+    const xp = Object.values(per).reduce((a, b) => a + b, 0);
+    const pf = new Date(from); pf.setDate(pf.getDate() - 7); const pk = ymd(pf), fk = days[0];
+    const prev = S.evs.filter(e => e.day >= pk && e.day < fk).reduce((a, e) => a + e.xp, 0);
+    const act = days.filter(d => S.s.st[d] === 'ok').length;
+    const bd = days.reduce((a, d) => (per[d] || 0) > (per[a] || 0) ? d : a, days[0]);
+    const top = SKO.reduce((a, k) => (sk[k] || 0) > (sk[a] || 0) ? k : a, 'str');
+    return { key: ymd(m0), xp, prev, act, perfect: act === 7, best: bd, bestXp: per[bd] || 0, top, topXp: sk[top] || 0 };
+  }
   function checkLevelUp() {
-    if (!on()) return; const S = state(), seen = S.c.seenLvl;
-    if (!seen) { Store.set('game.seenLvl', S.L.lvl); flash(S, true); return; }
-    if (S.L.lvl > seen) { const newStage = stageOf(S.L.lvl) > stageOf(seen); Store.set('game.seenLvl', S.L.lvl); flash(S, false, newStage); }
+    if (!on()) return; const S = state(), c = S.c, seen = c.seenLvl;
+    if (!seen) { Store.set('game.seenLvl', S.L.lvl); flash(S, true); }
+    else if (S.L.lvl > seen) { const newStage = stageOf(S.L.lvl) > stageOf(seen); Store.set('game.seenLvl', S.L.lvl); flash(S, false, newStage); }
+    /* праздник серии: первый запуск молча запоминает уже пройденную отметку */
+    const ms = STK.filter(x => S.s.cur >= x).pop() || 0;
+    if (c.seenSt == null) Store.set('game.seenSt', ms);
+    else if (ms > c.seenSt) { Store.set('game.seenSt', ms); streakFlash(ms); }
+    else if (ms < c.seenSt && S.s.cur < 7) Store.set('game.seenSt', ms);
+    /* итоги прошлой недели: один раз за неделю */
+    const R = weekRecap(S);
+    if (c.seenWeek !== R.key) { Store.set('game.seenWeek', R.key); if (R.xp > 0 && seen) recapFlash(R); }
   }
   function flash(S, first, newStage) {
-    if (document.querySelector('.gm-flash')) return;
-    const ov = document.createElement('div'); ov.className = 'gm-flash';
-    ov.innerHTML = `<div class="gm-flash-box">
-      <div class="gm-rays"></div>${heroImg(S.c.sex, S.stage, 'lg')}
+    overlay(`<div class="gm-rays"></div>${heroImg(S.c.sex, S.stage, 'lg')}
       <div class="gm-flash-k">${first ? 'Твой персонаж' : newStage ? 'Новый облик' : 'Новый уровень'}</div>
       <div class="gm-flash-l">Уровень ${S.L.lvl}</div>
       <div class="gm-flash-t">${esc(S.title)}</div>
       <p>${first ? 'Посчитал по всей твоей истории: тренировки, привычки, деньги, задачи и цели. Дальше очки капают сами.' : S.next ? 'До облика «' + esc(S.next[1]) + '» ' + (S.next[0] - S.L.lvl) + ' ' + pl(S.next[0] - S.L.lvl, 'уровень', 'уровня', 'уровней') : 'Высший облик. Легенда.'}</p>
-      <button class="gm-btn">${first ? 'Посмотреть' : 'Круто'}</button></div>`;
+      <button class="gm-btn" data-close>${first ? 'Посмотреть' : 'Круто'}</button>`, { cls: 'gm-lvlup', confetti: !first, onClose: () => { if (first) Router.go('/hero'); } });
+  }
+  function streakFlash(n) {
+    overlay(`<div class="gm-rays warm"></div><div class="gm-fire"><i class="ti ti-flame"></i>${'<span></span>'.repeat(10)}</div>
+      <div class="gm-flash-l">${n} ${pl(n, 'день', 'дня', 'дней')}</div><div class="gm-flash-k warm">подряд</div>
+      <p>${STK_T[n]}${n >= 30 ? '' : '. Держи щиты: каждые 7 дней даю новый.'}</p>
+      <button class="gm-btn warm" data-close>Огонь</button>`, { cls: 'gm-streak' });
+  }
+  function recapFlash(R) {
+    const d = fromYmd(R.best), diff = R.prev ? Math.round((R.xp - R.prev) / R.prev * 100) : null;
+    overlay(`<div class="gm-flash-k">Итоги недели</div>
+      <div class="gm-flash-l" data-count="${R.xp}">+${num(R.xp)} XP</div>
+      ${diff != null ? `<div class="gm-rc-d ${diff >= 0 ? 'up' : 'dn'}"><i class="ti ti-trending-${diff >= 0 ? 'up' : 'down'}"></i>${diff >= 0 ? '+' : ''}${diff}% к прошлой</div>` : ''}
+      ${R.perfect ? '<div class="gm-perf"><i class="ti ti-crown"></i>Идеальная неделя</div>' : ''}
+      <div class="gm-rc">
+        <div><b>${R.act}<small>/7</small></b><span>дней с делом</span></div>
+        <div><b>${DOW[d.getDay()]}</b><span>лучший день · ${num(R.bestXp)}</span></div>
+        <div style="--c:${SK[R.top].color}"><b class="c"><i class="ti ${SK[R.top].ico}"></i></b><span>${SK[R.top].name} · ${num(R.topXp)}</span></div>
+      </div>
+      <button class="gm-btn" data-close>Погнали дальше</button>`, { cls: 'gm-recap', confetti: R.perfect });
+  }
+  /* сундук: случайная награда за все квесты дня */
+  function openChest(onDone) {
+    const today = ymd(new Date()), S = state(), r = Math.random();
+    let ch;
+    if (r < 0.08) ch = { kind: 'xp', xp: 150, rare: true };
+    else if (r < 0.26 && S.s.shields < 3) ch = { kind: 'shield' };
+    else ch = { kind: 'xp', xp: [20, 30, 40, 50, 60, 80, 100][Math.floor(Math.random() * 7)] };
+    ch.at = Date.now();
+    Store.set('game.quests.' + today + '.chest', ch);
+    overlay(`<div class="gm-rays${ch.rare ? ' gold' : ''}"></div>
+      <div class="gm-chest"><div class="gm-chest-b"><i class="ti ti-gift"></i></div></div>
+      <div class="gm-chest-r">
+        <div class="gm-flash-k">${ch.rare ? 'Редкая находка' : 'Сундук дня'}</div>
+        <div class="gm-flash-l">${ch.kind === 'shield' ? '<i class="ti ti-shield-check"></i> Щит' : '+' + ch.xp + ' XP'}</div>
+        <p>${ch.kind === 'shield' ? 'Спасёт серию в пропущенный день.' : ch.rare ? 'Такое выпадает редко.' : 'Завтра будет новый.'}</p>
+        <button class="gm-btn" data-close>Забрать</button></div>`, { cls: 'gm-chestfl', confetti: false, onClose: onDone,
+      onOpen: (ov) => setTimeout(() => { ov.classList.add('opened'); confetti(ov.querySelector('.gm-flash-box'), ch.rare ? 70 : 46); }, 1100) });
+  }
+
+  /* ── Награды за XP: монеты = XP, набранный с момента первой награды, минус потраченное ── */
+  function coins(S) { const c = S.c; if (!c.shopFrom) return 0; const got = S.evs.filter(e => e.day >= c.shopFrom).reduce((a, e) => a + e.xp, 0); return Math.max(0, got - c.bought.reduce((a, b) => a + (+b.cost || 0), 0)); }
+  function rewardModal(onDone) {
+    const ov = document.createElement('div'); ov.className = 'tr-modal-overlay';
+    ov.innerHTML = `<div class="tr-modal gm-set"><p class="tr-modal-title">Новая награда</p>
+      <div class="gm-row col"><span>Что себе даришь</span><input class="gm-in" id="gm-rn" maxlength="60" placeholder="Кино, новые кроссы, массаж"></div>
+      <div class="gm-row col"><span>Цена в XP</span><div class="gm-seg gm-costs">${[300, 1000, 3000, 10000].map(n => `<button data-v="${n}">${num(n)}</button>`).join('')}</div><input class="gm-in" id="gm-rc" inputmode="numeric" placeholder="или своя цена"></div>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="gm-rx">Отмена</button><button class="tr-modal-btn-primary" id="gm-rok">Добавить</button></div></div>`;
     document.body.appendChild(ov);
-    requestAnimationFrame(() => ov.classList.add('in'));
-    try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate([20, 40, 30]); } catch (e) {}
-    const close = () => { ov.classList.remove('in'); setTimeout(() => ov.remove(), 250); };
-    ov.querySelector('.gm-btn').onclick = () => { close(); if (first) Router.go('/hero'); };
-    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    const $ = (q) => ov.querySelector(q), close = () => ov.remove();
+    setTimeout(() => $('#gm-rn').focus(), 50);
+    ov.querySelectorAll('.gm-costs button').forEach(b => b.onclick = () => { ov.querySelectorAll('.gm-costs button').forEach(x => x.classList.toggle('on', x === b)); $('#gm-rc').value = b.dataset.v; });
+    $('#gm-rx').onclick = close; ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    $('#gm-rok').onclick = () => { const name = $('#gm-rn').value.trim(), cost = Math.round(+String($('#gm-rc').value).replace(/\s/g, '')) || 0;
+      if (!name) { $('#gm-rn').focus(); return; } if (cost < 10) { $('#gm-rc').focus(); return; }
+      const c = cfg(); if (!c.shopFrom) Store.set('game.shopFrom', ymd(new Date()));
+      Store.set('game.rewards', c.rewards.concat([{ id: 'r' + Date.now().toString(36), name, cost }])); close(); onDone && onDone(); };
   }
 
   /* подсказки к экрану (кнопка «?») */
@@ -223,6 +326,8 @@ window.Game = (function () {
     { sel: '.gm-radar', t: 'Навыки', d: 'Сила от тренировок, Дисциплина от привычек, Капитал от финансов, Фокус от задач, Воля от целей и квестов. Чем ровнее фигура, тем гармоничнее прокачка.' },
     { sel: '.gm-week', t: 'Неделя', d: 'Сколько опыта набрал за каждый из последних 7 дней и из каких разделов.' },
     { sel: '.gm-cal', t: 'Календарь серии', d: 'Чем ярче день, тем больше сделал. Пунктир: день спас щит. Жёлтый: день отдыха. Дни отдыха и отпуск в настройках.' },
+    { sel: '.gm-chestrow', t: 'Сундук дня', d: 'Закрыл все квесты: открывай сундук. Внутри случайно опыт или щит, иногда редкая находка.' },
+    { sel: '.gm-shop', t: 'Награды', d: 'Назначь себе приз и цену в XP: кино, кроссы, массаж. Опыт копится с момента первой награды. Покупка не снижает уровень.' },
     { sel: '.gm-ach', t: 'Достижения', d: 'Открываются сами по твоим данным. Серые ещё впереди, под ними прогресс.' },
   ];
 
@@ -230,6 +335,9 @@ window.Game = (function () {
   function achievements(S) {
     const by = (k) => S.evs.filter(e => k.includes(e.k)), cnt = (...k) => by(k).length, days = (...k) => new Set(by(k).map(e => e.day)).size;
     const tr = cnt('train');
+    /* идеальные недели: пн..вс, все 7 дней с делом */
+    let pw = 0; const m0 = monday(new Date()), st = S.s.st, ks = Object.keys(st).sort();
+    if (ks.length) for (let w = monday(fromYmd(ks[0])); w < m0; w.setDate(w.getDate() + 7)) { let ok = true; for (let i = 0; i < 7; i++) { const d = new Date(w); d.setDate(d.getDate() + i); if (st[ymd(d)] !== 'ok') { ok = false; break; } } if (ok) pw++; }
     return [
       { ico: 'ti-barbell', c: SK.str.color, t: 'Первая тренировка', v: tr, n: 1 },
       { ico: 'ti-barbell', c: SK.str.color, t: '50 тренировок', v: tr, n: 50 },
@@ -240,6 +348,9 @@ window.Game = (function () {
       { ico: 'ti-crown', c: '#FB923C', t: '100 дней подряд', v: S.s.best, n: 100 },
       { ico: 'ti-calendar-star', c: '#FB923C', t: 'Год подряд', v: S.s.best, n: 365 },
       { ico: 'ti-ruler-measure', c: SK.str.color, t: '5 замеров тела', v: cnt('meas'), n: 5 },
+      { ico: 'ti-crown', c: '#FACC15', t: 'Идеальная неделя', v: pw, n: 1 },
+      { ico: 'ti-crown', c: '#FACC15', t: '4 идеальные недели', v: pw, n: 4 },
+      { ico: 'ti-gift', c: SK.wil.color, t: '10 сундуков', v: cnt('chest') + Object.values(S.c.quests).filter(q => q && q.chest && q.chest.kind === 'shield').length, n: 10 },
       { ico: 'ti-checks', c: SK.dis.color, t: '30 дней привычек', v: cnt('habday'), n: 30 },
       { ico: 'ti-wallet', c: SK.cap.color, t: '30 дней учёта денег', v: days('spend', 'pay'), n: 30 },
       { ico: 'ti-pig-money', c: SK.cap.color, t: '10 раз в копилку', v: cnt('piggy'), n: 10 },
@@ -251,7 +362,7 @@ window.Game = (function () {
 
   /* радар навыков (SVG) */
   function radar(lv) {
-    const cx = 110, cy = 104, R = 78, ang = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
+    const cx = 146, cy = 104, R = 78, ang = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
     const pt = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))].map(v => v.toFixed(1)).join(',');
     const mx = Math.max(5, ...lv);
     const grid = [0.25, 0.5, 0.75, 1].map(f => `<polygon points="${SKO.map((_, i) => pt(i, R * f)).join(' ')}" class="g"/>`).join('');
@@ -259,16 +370,21 @@ window.Game = (function () {
     const shape = SKO.map((_, i) => pt(i, R * Math.max(0.06, lv[i] / mx))).join(' ');
     const dots = SKO.map((k, i) => { const [x, y] = pt(i, R * Math.max(0.06, lv[i] / mx)).split(','); return `<circle cx="${x}" cy="${y}" r="4" fill="${SK[k].color}"/>`; }).join('');
     const lbl = SKO.map((k, i) => { const [x, y] = pt(i, R + 17).split(','); return `<text x="${x}" y="${(+y + 4).toFixed(1)}" text-anchor="middle" fill="${SK[k].color}">${SK[k].name}</text>`; }).join('');
-    return `<svg class="gm-radar" viewBox="-36 0 292 212" role="img" aria-label="Навыки">${grid}${axes}<polygon points="${shape}" class="s"/>${dots}${lbl}</svg>`;
+    return `<svg class="gm-radar" viewBox="0 0 292 212" role="img" aria-label="Навыки">${grid}${axes}<g class="gm-rg"><polygon points="${shape}" class="s"/>${dots}</g>${lbl}</svg>`;
   }
 
   /* ── Экран «Персонаж» ── */
-  const DOW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
   const MON = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
   const GLOW = ['#64748B', '#4A7CFF', '#8B5CF6', '#F59E0B', '#FACC15'];
   function render(mount) {
     if (!avail()) { Router.go('/home'); return; }
-    const S = state(), c = S.c, tq = todayQuests(), now = new Date(), today = ymd(now);
+    let S = state(); const c = S.c, tq = todayQuests(), now = new Date(), today = ymd(now);
+    /* вернуть серию: вчера пропуск без щита, серия была от 3 дней, сегодня закрыты все квесты */
+    const yd = new Date(now); yd.setDate(yd.getDate() - 1); const yk = ymd(yd);
+    let repair = null, repairedNow = false;
+    if (S.s.st[yk] === 'miss') { const alt = streak(S.evs, Object.assign({}, c, { repairs: c.repairs.concat([yk]) }));
+      if (alt.cur - S.s.cur >= 3) { repair = alt.cur;
+        if (tq.picked && tq.list.length && tq.list.every(x => x.done)) { Store.set('game.repairs', c.repairs.concat([yk]).slice(-30)); S = state(); repairedNow = true; repair = null; } } }
     const pct = Math.round(S.L.into / S.L.need * 100);
     /* опыт по дням */
     const dayXp = {}, daySk = {};
@@ -304,46 +420,58 @@ window.Game = (function () {
     /* квесты */
     const qDone = tq.picked ? tq.list.filter(x => x.done).length : 0, qAll = tq.picked && tq.list.length && qDone === tq.list.length;
     const ring = (d, n) => { const f = n ? d / n : 0, C = 2 * Math.PI * 15; return `<svg class="gm-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="b"/><circle cx="18" cy="18" r="15" class="f" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}"/><text x="18" y="22" text-anchor="middle">${d}/${n}</text></svg>`; };
-    const qRow = (x, pickMode, i) => `<${pickMode ? 'button' : 'div'} class="gm-q${pickMode ? ' pick' + (i < c.qn ? ' on' : '') : x.done ? ' done' : ''}" ${pickMode ? `data-id="${esc(x.id)}"` : `data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"`} style="--c:${(SK[x.sk] || SK.dis).color}"><span class="gm-qi"><i class="ti ${(SK[x.sk] || SK.dis).ico}"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small>${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em><span class="gm-cb"><i class="ti ti-check"></i></span></${pickMode ? 'button' : 'div'}>`;
+    const fresh = new Set(tq.fresh || []);
+    const qRow = (x, pickMode, i) => `<${pickMode ? 'button' : 'div'} class="gm-q${pickMode ? ' pick' + (i < c.qn ? ' on' : '') : x.done ? ' done' + (fresh.has(x.id) ? ' just' : '') : ''}" ${pickMode ? `data-id="${esc(x.id)}"` : `data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"`} style="--c:${(SK[x.sk] || SK.dis).color}"><span class="gm-qi"><i class="ti ${(SK[x.sk] || SK.dis).ico}"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small>${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em><span class="gm-cb"><i class="ti ti-check"></i></span></${pickMode ? 'button' : 'div'}>`;
     const qHtml = !tq.picked
       ? `<div class="gm-card gm-qc"><div class="gm-h"><b>Что берёшь сегодня?</b><span>до ${c.qn}</span></div>
           <div class="gm-ql">${tq.cands.map((x, i) => qRow(x, true, i)).join('')}</div>
           <button class="gm-btn" id="gm-take"><i class="ti ti-swords"></i> Беру</button></div>`
       : `<div class="gm-card gm-qc"><div class="gm-h gm-hq"><b>Квесты дня</b>${ring(qDone, tq.list.length)}</div>
           <div class="gm-ql">${tq.list.map(x => qRow(x, false)).join('')}</div>
-          <div class="gm-bonus${qAll ? ' on' : ''}"><i class="ti ti-gift"></i><span>Бонус за все квесты</span><em>+50</em></div></div>`;
+          <div class="gm-bonus${qAll ? ' on' : ''}"><i class="ti ti-star"></i><span>Бонус за все квесты</span><em>+50</em></div>
+          ${qAll ? (tq.chest ? `<div class="gm-chestrow got"><i class="ti ti-gift"></i><span>${tq.chest.rare ? 'Редкий сундук' : 'Сундук дня'}</span><em>${tq.chest.kind === 'shield' ? '<i class="ti ti-shield"></i> щит' : '+' + tq.chest.xp + ' XP'}</em></div>` : `<button class="gm-chestrow" id="gm-chest"><i class="ti ti-gift"></i><span>Открыть сундук дня</span><i class="ti ti-chevron-right"></i></button>`)
+                 : `<div class="gm-chestrow lock"><i class="ti ti-gift"></i><span>Сундук дня</span><em>после всех квестов</em></div>`}</div>`;
+    /* награды */
+    const coinsN = coins(S);
+    const shopHtml = `<div class="gm-card gm-shop"><div class="gm-h"><b>Награды</b>${c.shopFrom ? `<span class="gm-coins"><i class="ti ti-coin"></i><b data-count="${coinsN}">${num(coinsN)}</b></span>` : ''}</div>
+      ${c.rewards.map(r => { const ok = coinsN >= r.cost; return `<div class="gm-rw${ok ? ' ok' : ''}"><span class="gm-rwi"><i class="ti ti-gift"></i></span><span class="gm-rwm"><b>${esc(r.name)}</b><span class="gm-ap"><i style="width:${Math.round(Math.min(1, coinsN / r.cost) * 100)}%"></i></span><small>${ok ? 'можно брать' : 'ещё ' + num(r.cost - coinsN) + ' XP'}</small></span><button class="gm-rwb" data-buy="${esc(r.id)}"${ok ? '' : ' disabled'}><i class="ti ti-coin"></i>${num(r.cost)}</button><button class="gm-rwx" data-del="${esc(r.id)}" aria-label="Удалить"><i class="ti ti-x"></i></button></div>`; }).join('')}
+      <button class="gm-add" id="gm-radd"><i class="ti ti-plus"></i>${c.rewards.length ? 'Добавить награду' : 'Назначь себе награду за XP'}</button>
+      ${c.bought.length ? `<div class="gm-bought">${c.bought.slice(-3).reverse().map(b => { const d = new Date(+b.at); return `<span><i class="ti ti-check"></i>${esc(b.name)} · ${d.getDate()}.${p2(d.getMonth() + 1)}</span>`; }).join('')}</div>` : ''}</div>`;
+    const repairHtml = repair ? `<div class="gm-card gm-repair"><span class="gm-rpi"><i class="ti ti-flame"></i></span><div><b>Верни серию ${repair} ${pl(repair, 'день', 'дня', 'дней')}</b><small>закрой все квесты сегодня</small></div></div>` : '';
+    const perfectWk = wk.every(d => S.s.st[ymd(d)] === 'ok');
     const nextLv = S.L.lvl + 1;
     mount.innerHTML = `<div class="gm-screen" style="--gc:${GLOW[S.stage]}">
       <div class="gm-top">
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
-          <div class="gm-stage">${heroImg(c.sex, S.stage, 'xl')}</div>
+          <div class="gm-stage"><div class="gm-sparks">${Array.from({ length: 16 }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${heroImg(c.sex, S.stage, 'xl')}</div>
           <div class="gm-info">
             <div class="gm-who"><div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div><div class="gm-title">${esc(S.title)}</div></div>
-            <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b>${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
+            <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b data-count="${S.L.need - S.L.into}">${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
             <div class="gm-tiles">
-              <div class="gm-tile f"><i class="ti ti-flame"></i><b>${S.s.cur}</b><span>${pl(S.s.cur, 'день', 'дня', 'дней')} подряд</span></div>
+              <div class="gm-tile f"><i class="ti ti-flame"></i><b data-count="${S.s.cur}">${S.s.cur}</b><span>${pl(S.s.cur, 'день', 'дня', 'дней')} подряд</span></div>
               <div class="gm-tile s"><i class="ti ti-shield"></i><b>${S.s.shields}<small>/3</small></b><span>щиты</span></div>
-              <div class="gm-tile t"><i class="ti ti-bolt"></i><b>+${num(S.todayXp)}</b><span>сегодня</span></div>
-              <div class="gm-tile a"><i class="ti ti-star"></i><b>${num(S.total)}</b><span>всего XP</span></div>
+              <div class="gm-tile t"><i class="ti ti-bolt"></i><b data-count="${S.todayXp}" data-pre="+">+${num(S.todayXp)}</b><span>сегодня</span></div>
+              <div class="gm-tile a"><i class="ti ti-star"></i><b data-count="${S.total}">${num(S.total)}</b><span>всего XP</span></div>
             </div>
           </div>
         </div>
       </div>
       <div class="gm-body">
         <div class="gm-col">
-          ${qHtml}
+          ${repairHtml}${qHtml}
           <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>лучший: ${SK[SKO[lv.indexOf(Math.max(...lv))]].name}</span></div>
             <div class="gm-skw">${radar(lv)}<div class="gm-skl">${skHtml}</div></div></div>
+          ${shopHtml}
         </div>
         <div class="gm-col">
           <div class="gm-card"><div class="gm-h"><b>Путь</b><span>${S.stage + 1} из 5</span></div>
             <div class="gm-path"><div class="gm-pline"><i style="width:${pathPct}%"></i></div>${pathHtml}</div></div>
-          <div class="gm-card"><div class="gm-h"><b>Неделя</b><span>+${num(wSum)} XP${pSum ? ` · <em class="${wDiff >= 0 ? 'up' : 'dn'}">${wDiff >= 0 ? '+' : ''}${wDiff}%</em>` : ''}</span></div>
+          <div class="gm-card"><div class="gm-h"><b>Неделя${perfectWk ? ' <u class="gm-pw"><i class="ti ti-crown"></i>идеальная</u>' : ''}</b><span>+${num(wSum)} XP${pSum ? ` · <em class="${wDiff >= 0 ? 'up' : 'dn'}">${wDiff >= 0 ? '+' : ''}${wDiff}%</em>` : ''}</span></div>
             <div class="gm-week">${weekHtml}</div></div>
           <div class="gm-card"><div class="gm-h"><b>Серия · ${MON[m]}</b><span>${okN} ${pl(okN, 'день', 'дня', 'дней')} · рекорд ${S.s.best}</span></div>
             <div class="gm-cal">${cal}</div>
-            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span></div></div>
+            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span>${Object.values(S.s.st).includes('rep') ? '<span><i class="rep"></i>вернул</span>' : ''}</div></div>
           ${S.todayEv.length ? `<div class="gm-card"><div class="gm-h"><b>Сегодня</b><span>+${num(S.todayXp)} XP</span></div>${S.todayEv.slice(-8).reverse().map(e => `<div class="gm-ev" style="--c:${SK[e.sk].color}"><span class="gm-evi"><i class="ti ${SK[e.sk].ico}"></i></span><span>${esc(e.t)}</span><b>+${e.xp}</b></div>`).join('')}</div>` : ''}
         </div>
         <div class="gm-card gm-wide"><div class="gm-h"><b>Достижения</b><span>${achN} из ${ach.length}</span></div>
@@ -356,7 +484,23 @@ window.Game = (function () {
     mount.querySelectorAll('[data-go]').forEach(b => { if (b.dataset.go) b.onclick = () => Router.go(b.dataset.go); });
     mount.querySelectorAll('.gm-q.pick').forEach(b => b.onclick = () => { const onN = mount.querySelectorAll('.gm-q.pick.on').length; if (!b.classList.contains('on') && onN >= c.qn) return; b.classList.toggle('on'); });
     const tk = $('#gm-take'); if (tk) tk.onclick = () => { const ids = [...mount.querySelectorAll('.gm-q.pick.on')].map(b => b.dataset.id); if (!ids.length) return; pick(ids); render(mount); };
+    const ch = $('#gm-chest'); if (ch) ch.onclick = () => openChest(() => render(mount));
+    const ra = $('#gm-radd'); if (ra) ra.onclick = () => rewardModal(() => render(mount));
+    /* покупка и удаление: второе нажатие подтверждает */
+    const twice = (b, label, act) => { if (b.classList.contains('sure')) { act(); return; } b.classList.add('sure'); const old = b.innerHTML; b.innerHTML = label; setTimeout(() => { if (b.isConnected) { b.classList.remove('sure'); b.innerHTML = old; } }, 2600); };
+    mount.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => twice(b, 'Беру', () => { const cc = cfg(), r = cc.rewards.find(x => x.id === b.dataset.buy); if (!r || coins(state()) < r.cost) return;
+      Store.set('game.bought', cc.bought.concat([{ id: r.id, name: r.name, cost: r.cost, at: Date.now() }]).slice(-100));
+      overlay(`<div class="gm-rays gold"></div><div class="gm-chest opened"><div class="gm-chest-b"><i class="ti ti-gift"></i></div></div><div class="gm-flash-k">Награда твоя</div><div class="gm-flash-l sm">${esc(r.name)}</div><p>Заслужил. Минус ${num(r.cost)} XP из копилки наград, уровень не трогаю.</p><button class="gm-btn" data-close>Кайф</button>`, { cls: 'gm-buy', onClose: () => render(mount) }); }));
+    mount.querySelectorAll('[data-del]').forEach(b => b.onclick = () => twice(b, '<i class="ti ti-trash"></i>', () => { const cc = cfg(); Store.set('game.rewards', cc.rewards.filter(x => x.id !== b.dataset.del)); render(mount); }));
+    if (repairedNow) overlay(`<div class="gm-rays warm"></div><div class="gm-fire"><i class="ti ti-flame"></i>${'<span></span>'.repeat(10)}</div><div class="gm-flash-l">${S.s.cur} ${pl(S.s.cur, 'день', 'дня', 'дней')}</div><div class="gm-flash-k warm">серия вернулась</div><p>Вчерашний пропуск закрыт квестами.</p><button class="gm-btn warm" data-close>Огонь</button>`, { cls: 'gm-streak' });
+    countUp(mount);
     checkLevelUp();
+  }
+  /* цифры набегают от нуля */
+  function countUp(root) {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    root.querySelectorAll('[data-count]').forEach(el => { const to = +el.dataset.count || 0, pre = el.dataset.pre || '', suf = el.textContent.replace(/^[^\d]*[\d\s]*\d/, ''); if (to < 2) return;
+      const t0 = performance.now(), D = 900; const step = (t) => { const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 3); el.textContent = pre + num(to * e) + suf; if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); });
   }
 
   /* ── Настройки ── */

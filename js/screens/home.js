@@ -65,6 +65,7 @@ window.Screens.home = function(mount) {
     + '</button>'
     + '<button id="home-menu-btn" class="home-menu-btn" aria-label="Меню"><span></span><span></span><span></span></button>'
     + '</div>'
+    + (window.Game && Game.on() ? Game.homeHtml() : '')
     + (sliderHidden ? '' : '<div class="hero-slider" id="hero-slider">'
     + '<div class="hero-slides" id="hero-slides" style="width:'+(n*100)+'%">'
     + visSlides.join('')
@@ -94,6 +95,7 @@ window.Screens.home = function(mount) {
   });
 
   if (window.WinterArc) WinterArc.bind(mount);
+  if (window.Game && Game.on()) Game.bindHome(mount);
 
   // Переключатель темы
   var themeBtn = document.getElementById('home-theme-btn');

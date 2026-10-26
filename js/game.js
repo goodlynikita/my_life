@@ -198,12 +198,13 @@ window.Game = (function () {
   function homeHtml() {
     if (!on()) return '';
     const S = state(), tq = todayQuests(), qd = tq.picked ? tq.list.filter(x => x.done).length : 0, qn = tq.picked ? tq.list.length : 0;
+    const pct = Math.round(S.L.into / S.L.need * 100);
     return `<button class="gm-bar" id="gm-bar" aria-label="Персонаж">
-      <span class="gm-bar-av">${frameWrap(S.c.mode === 'min' ? `<div class="gm-hero sm gm-mini" style="--ec:${GLOW[lookOf(S)]};--p:${Math.round(S.L.into / S.L.need * 100)}"><b>${S.L.lvl}</b></div>` : heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}${S.c.news.length ? '<span class="gm-bar-dot"></span>' : ''}</span>
-      <div class="gm-bar-m"><div class="gm-bar-t"><b>Ур. ${S.L.lvl}</b><span>${esc(S.title)}</span><em>${S.s.cur ? '<i class="ti ti-flame"></i>' + S.s.cur : ''}</em></div>
-        <div class="gm-xp"><i style="width:${Math.round(S.L.into / S.L.need * 100)}%"></i></div>
-        <div class="gm-bar-s">${tq.picked ? 'Квесты ' + qd + ' из ' + qn + (qd === qn ? ' · все закрыты' : '') : 'Выбери квесты на сегодня'}${S.todayXp ? ' · <b>+' + num(S.todayXp) + ' XP</b>' : ''}</div></div>
-      <i class="ti ti-chevron-right gm-bar-go"></i></button>`;
+      <span class="gm-bar-av">${frameWrap(S.c.mode === 'min' ? `<div class="gm-hero sm gm-mini" style="--ec:${GLOW[lookOf(S)]};--p:${pct}"><b>${S.L.lvl}</b></div>` : heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}${S.c.news.length ? '<span class="gm-bar-dot"></span>' : ''}</span>
+      <span class="gm-bar-m"><span class="gm-bar-t"><b>${esc(S.title)}</b><span>${S.L.lvl} уровень</span></span>
+        <span class="gm-bar-s">${tq.picked ? 'Квесты ' + qd + ' из ' + qn + (qd === qn ? ', все закрыты' : '') : 'Выбери квесты на сегодня'}${S.todayXp ? ' · <b>+' + num(S.todayXp) + ' XP</b>' : ''}</span></span>
+      ${S.s.cur ? `<span class="gm-bar-r"><b><i class="ti ti-flame"></i>${S.s.cur}</b><small>${pl(S.s.cur, 'день', 'дня', 'дней')}</small></span>` : ''}
+      <span class="gm-bar-line"><i style="width:${pct}%"></i></span></button>`;
   }
   function bindHome(root) { const b = root.querySelector('#gm-bar'); if (b) b.onclick = () => Router.go('/hero'); checkLevelUp(); }
 

@@ -2293,3 +2293,4 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .in-rec-r{display:flex!important;flex-direction:column;align-items:flex-end;gap:0;min-width:64px}
 .in-rec-r b{line-height:1.1}
 .in-rec-r span{font-size:10.5px!important;opacity:.75;margin:0!important}
+.tr-ex-was{font-family:Montserrat,sans-serif;font-size:12.5px;font-weight:600;color:#7E89A8;letter-spacing:0;white-space:nowrap}

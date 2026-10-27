@@ -516,6 +516,10 @@ function trFamKey(s) {
   const f = k.replace(/\([^)]*\)/g, ' ')
     .replace(/(^| )(широк|узк|средн|обратн|прям|параллельн|нейтральн|разнохват|хват)[а-я]*/g, ' ')
     .replace(/(^| )к груди(?= |$)/g, ' ').replace(/(^| )за голову(?= |$)/g, ' ').replace(/(^| )с весом(?= |$)/g, ' ')
+    /* положение и тренажёр не меняют упражнение: «сгибания ног лёжа» = «сгибание ног в тренажёре» */
+    .replace(/^(.*(сгибан|разгибан|разведен|сведен|подъем|подьем).*)$/, m => m.replace(/(^| )(сидя|лежа|стоя)(?= |$)/g, ' ').replace(/(^| )(в|на) (тренажер[а-я]*|кроссовер[а-я]*|блок[а-я]*)(?= |$)/g, ' '))
+    /* единственное и множественное: «разгибание» = «разгибания», «ноги» = «ног» */
+    .split(' ').map(w => w.length > 5 ? w.replace(/ни[еяй]$/, 'ни') : w === 'ноги' ? 'ног' : w).join(' ')
     .replace(/\s+/g, ' ').trim();
   return f || k;
 }
@@ -976,6 +980,14 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
     const f = n => String(n).replace('.', ',');
     if (ws.length && Math.min(...ws) !== Math.max(...ws)) { wStr = f(Math.round(ws.reduce((a, b) => a + b, 0) / ws.length * 10) / 10); wLbl = 'ср. вес'; }
     if (rs.length && Math.min(...rs) !== Math.max(...rs)) rStr = Math.min(...rs) + '–' + Math.max(...rs);
+  }
+  /* упражнение ещё не заполнено: показываем прошлый раз из любого плана, а не «0 × 0» */
+  if (!wNum && !(+ex.reps) && !(+ex.sets)) {
+    progressBadge = ''; bar = '<div class="tr-progress-bar-track"></div>';
+    const li = trFindLastStrength(plan, ex.name), l = li && li.ex;
+    const f1 = n => String(Math.round((+n || 0) * 10) / 10).replace('.', ',');
+    if (l) return wrap(+l.weight > 0 ? `<span class="tr-ex-was">${f1(l.weight)} кг</span>` : '<span class="tr-ex-was">свой вес</span>', `<span class="tr-ex-was">прошлый раз ${trEsc(l.sets || 0)} × ${trEsc(l.reps || 0)}${+l.weight > 0 ? ' · ' + f1(l.weight) + ' кг' : ''}</span>`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
+    return wrap('<span class="tr-ex-pick">вес подбери</span>', '<span class="tr-ex-was">не заполнено</span>').replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
   }
   if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${trEsc(ex.sets)} × ${trEsc(ex.reps)}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
   return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${rStr} · ${wLbl} ${wStr} кг`);

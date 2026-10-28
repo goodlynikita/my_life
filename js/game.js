@@ -32,7 +32,8 @@ window.Game = (function () {
     repairs: toArr(g.repairs).map(String), seenSt: g.seenSt == null ? null : +g.seenSt || 0, seenWeek: g.seenWeek || null,
     rewards: toArr(g.rewards).filter(r => r && r.id && r.name), bought: toArr(g.bought).filter(b => b && b.at), shopFrom: g.shopFrom || null,
     look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String) }; }
-  const avail = () => OWNER();
+  /* открыт всем, кто вошёл; скрыть с главной: меню «···» → Персонаж */
+  const avail = () => { try { return !!(window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser()); } catch (e) { return false; } };
   const on = () => avail() && cfg().on;
 
   /* ── Уровни ── */
@@ -206,7 +207,7 @@ window.Game = (function () {
       ${S.s.cur ? `<span class="gm-bar-r"><b><i class="ti ti-flame"></i>${S.s.cur}</b><small>${pl(S.s.cur, 'день', 'дня', 'дней')}</small></span>` : ''}
       <span class="gm-bar-line"><i style="width:${pct}%"></i></span></button>`;
   }
-  function bindHome(root) { const b = root.querySelector('#gm-bar'); if (b) b.onclick = () => Router.go('/hero'); checkLevelUp(); }
+  function bindHome(root) { const b = root.querySelector('#gm-bar'); if (b) b.onclick = () => Router.go('/hero'); setTimeout(() => { if (b && b.isConnected) checkLevelUp(); }, 1200); }
 
   /* ── Вспышки: уровень, серия, итоги недели, сундук. Идут по очереди ── */
   const _q = []; let _autoShown = false, _newsTimer = null;
@@ -257,7 +258,12 @@ window.Game = (function () {
     return { key: ymd(m0), xp, prev, act, perfect: act === 7, best: bd, bestXp: per[bd] || 0, top, topXp: sk[top] || 0 };
   }
   function checkLevelUp() {
-    if (!on()) return; const S = state(), c = S.c, seen = c.seenLvl;
+    if (!on()) return;
+    /* идут подсказки для новичка: вспышки подождут следующего захода на экран */
+    if (document.querySelector('.tour-root')) return;
+    const S = state(), c = S.c, seen = c.seenLvl;
+    /* новичок без записей: знакомство с персонажем покажем, когда появится первый опыт */
+    if (!seen && !S.total) return;
     if (!seen) { Store.set('game.seenLvl', S.L.lvl); flash(S, true); }
     else if (S.L.lvl > seen) { const newStage = stageOf(S.L.lvl) > stageOf(seen); Store.set('game.seenLvl', S.L.lvl); flash(S, false, newStage); }
     /* праздник серии: первый запуск молча запоминает уже пройденную отметку */

@@ -1097,6 +1097,22 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 .imp-where{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
 @media (max-width:980px){.imp-grid{grid-template-columns:1fr;gap:36px}}
 @media (max-width:560px){.imp-demo{grid-template-columns:1fr;gap:12px}.imp-ar{margin:0 auto;transform:rotate(90deg)}.imp-shot{transform:none}.imp-where{gap:8px}.imp-where .ai-feat{padding:12px}.imp-where .ai-feat b{font-size:13px}.imp-where .ai-feat span{font-size:11.5px;line-height:1.4}}
+
+/* ── Персонаж: игра поверх всех разделов ── */
+.hz-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:50px;align-items:center}
+.hz-vis{position:relative;height:520px;border-radius:28px;background:radial-gradient(70% 60% at 50% 42%,rgba(139,92,246,.30),rgba(74,124,255,.10) 55%,transparent 75%);overflow:visible}
+.hz-vis::after{content:"";position:absolute;left:50%;bottom:34px;width:300px;height:44px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(139,92,246,.45),transparent 70%)}
+.hz-fig{position:absolute;bottom:40px;object-fit:contain;filter:drop-shadow(0 18px 30px rgba(0,0,0,.45));z-index:2}
+.hz-fig.c{left:50%;transform:translateX(-50%);height:440px;z-index:3}
+.hz-fig.l{left:4%;height:330px;opacity:.9}.hz-fig.r{right:4%;height:350px;opacity:.9}
+.hz-vis .chip{position:absolute}
+.hz-vis .h1{left:-6px;top:56px}.hz-vis .h2{right:-8px;top:150px}.hz-vis .h3{left:6%;bottom:6px}
+.hz-feats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
+.hz-f{padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.hz-f i{font-size:20px;color:var(--c,#A78BFA)}.hz-f b{display:block;font-size:14.5px;margin:6px 0 3px}.hz-f span{font-size:13px;color:var(--soft);line-height:1.45}
+.hz-note{margin-top:16px;font-size:13.5px;color:var(--faint)}
+@media (max-width:980px){.hz-grid{grid-template-columns:1fr;gap:26px}.hz-vis{height:400px;order:-1}.hz-fig.c{height:340px}.hz-fig.l{height:250px}.hz-fig.r{height:265px}}
+@media (max-width:560px){.hz-vis{height:340px}.hz-fig.c{height:290px}.hz-fig.l{height:200px;left:0}.hz-fig.r{height:215px;right:0}.hz-feats{gap:8px}.hz-f{padding:12px}.hz-f b{font-size:13.5px}.hz-f span{font-size:12px}.hz-vis .h2{right:0;top:110px}.hz-vis .h1{left:0;top:20px}}
 </style>
 </head>
 <body>
@@ -1234,7 +1250,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
         <div class="step-ico" style="background:rgba(74,124,255,.16);color:#8EA8FF"><i class="ti ti-barbell"></i></div>
         <h3>Тренировки:<br>план и прогресс</h3>
         <p>План на 8 недель. Записываешь подходы, а прогресс считается сам: сколько поднял за неделю и как растёт рабочий вес в каждом упражнении.</p>
-        <ul class="ticks"><li><i class="ti ti-check"></i>Силуэт показывает, какие мышцы работают</li><li><i class="ti ti-check"></i>Вес прошлого раза одной кнопкой</li><li><i class="ti ti-check"></i>Зал, бег, теннис, шаги, растяжка</li><li><i class="ti ti-check"></i>Калькулятор максимума на один раз</li></ul>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Силуэт показывает, какие мышцы работают</li><li><i class="ti ti-check"></i>Подходы как записал: 12×45 · 10×50, прошлый раз одной кнопкой</li><li><i class="ti ti-check"></i>Зал, бег, теннис, шаги, растяжка</li><li><i class="ti ti-check"></i>Калькулятор максимума на один раз</li></ul>
         <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/training_plan.webp?v=3" alt="" loading="lazy"></div></div></div>
       </div>
       <div class="step" data-img="habits_grid" data-glow="#22C55E" style="--c:#4ADE80;--glow:rgba(34,197,94,.35)">
@@ -1248,7 +1264,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
         <div class="step-ico" style="background:rgba(139,92,246,.16);color:#A78BFA"><i class="ti ti-chart-bar"></i></div>
         <h3>Деньги:<br>сколько можно тратить</h3>
         <p>Одна цифра: сколько денег свободно до зарплаты. И сколько можно тратить сегодня, чтобы хватило до конца.</p>
-        <ul class="ticks"><li><i class="ti ti-check"></i>Трата одной строкой: «кофе 420», категория подберётся сама</li><li><i class="ti ti-check"></i>Ближайшие платежи: аренда, связь, подписки</li><li><i class="ti ti-check"></i>Копилка сама откладывает процент с каждого дохода</li><li><i class="ti ti-check"></i>Помощник: спроси о своих деньгах обычными словами</li></ul>
+        <ul class="ticks"><li><i class="ti ti-check"></i>Трата одной строкой: «кофе 420», категория подберётся сама</li><li><i class="ti ti-check"></i>По каждой категории видно, сколько ещё осталось</li><li><i class="ti ti-check"></i>Копилка сама откладывает процент с каждого дохода</li><li><i class="ti ti-check"></i>Помощник: спроси о своих деньгах обычными словами</li></ul>
         <div class="m-shot"><div class="phone"><div class="scr"><img src="img/landing/finance_spend.webp?v=3" alt="" loading="lazy"></div></div></div>
       </div>
       <div class="step" data-img="goals" data-glow="#F2A93B" style="--c:#F2A93B;--glow:rgba(242,169,59,.35)">
@@ -1319,6 +1335,32 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 </div></section>
 
 <!-- Скрин или длинный текст: разбор в записи -->
+<!-- Персонаж -->
+<section id="hero-game" data-for="me"><div class="wrap hz-grid">
+  <div>
+    <span class="eyebrow">Новое</span>
+    <h2 class="rv">Персонаж, который<br><span class="grad-t">растёт вместе с тобой</span></h2>
+    <p class="sec-lead rv">Всё, что ты записываешь, даёт опыт: тренировки, привычки, деньги, задачи и цели. Растёт уровень, меняется облик, от новичка до легенды.</p>
+    <div class="hz-feats rv">
+      <div class="hz-f" style="--c:#22C55E"><i class="ti ti-swords"></i><b>Квесты дня</b><span>Утром выбираешь, что берёшь. Отмечаются сами, когда делаешь дело.</span></div>
+      <div class="hz-f" style="--c:#A78BFA"><i class="ti ti-gift"></i><b>Сундук дня</b><span>Закрыл все квесты: внутри опыт или щит, иногда редкая находка.</span></div>
+      <div class="hz-f" style="--c:#FB923C"><i class="ti ti-flame"></i><b>Серия и щиты</b><span>Неделя подряд даёт щит, он спасёт серию в пропущенный день.</span></div>
+      <div class="hz-f" style="--c:#FACC15"><i class="ti ti-coin"></i><b>Свои награды</b><span>Назначь себе приз: кино, кроссы, массаж. Копишь опыт и забираешь.</span></div>
+      <div class="hz-f" style="--c:#60A5FA"><i class="ti ti-chart-radar"></i><b>Пять навыков</b><span>Сила, Дисциплина, Капитал, Фокус, Воля. Видно, что проседает.</span></div>
+      <div class="hz-f" style="--c:#F472B6"><i class="ti ti-hanger"></i><b>Шкафчик</b><span>Фоны и рамки открываются за достижения. Итоги недели каждый понедельник.</span></div>
+    </div>
+    <p class="hz-note">Не любишь игры? Режим «Минимал» вместо персонажа или выключи совсем в меню.</p>
+  </div>
+  <div class="hz-vis rv">
+    <img class="hz-fig l" src="img/hero/f3.webp" alt="" loading="lazy">
+    <img class="hz-fig c" src="img/hero/m4.webp" alt="" loading="lazy">
+    <img class="hz-fig r" src="img/hero/f4.webp" alt="" loading="lazy">
+    <div class="chip h1"><i class="ti ti-arrow-big-up-lines" style="background:rgba(139,92,246,.18);color:#A78BFA"></i><div>26 уровень · Воин<small>до Чемпиона 9 уровней</small></div></div>
+    <div class="chip h2"><i class="ti ti-gift" style="background:rgba(250,204,21,.16);color:#FACC15"></i><div>Сундук дня: +80 XP<small>все квесты закрыты</small></div></div>
+    <div class="chip h3"><i class="ti ti-flame" style="background:rgba(251,146,60,.16);color:#FB923C"></i><div>102 дня подряд<small>3 щита в запасе</small></div></div>
+  </div>
+</div></section>
+
 <section class="imp" id="import" data-for="me"><div class="wrap imp-grid">
   <div>
     <span class="eyebrow">Скрины и длинные тексты</span>

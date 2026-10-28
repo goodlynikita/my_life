@@ -450,3 +450,7 @@ html[data-theme="light"] .gm-bgv[data-bg="aurora"]{background:radial-gradient(42
 /* заголовок облика всегда в цветах приложения, не от фона */
 .gm-title{background:linear-gradient(180deg,#FFFFFF 35%,#B9C7FF)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
 html[data-theme="light"] .gm-title{background:linear-gradient(180deg,#141A2E 35%,#3A4FB0)!important;-webkit-background-clip:text!important;background-clip:text!important}
+/* постамент: SVG-овал, ровный везде */
+.gm-pod{display:none!important}
+.gm-pod2{position:absolute;left:50%;bottom:8px;width:160px;height:32px;transform:translateX(-50%);z-index:0;overflow:visible;pointer-events:none;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 60%,transparent))}
+.gm-prev .gm-pod2{width:136px;height:27px;bottom:2px}

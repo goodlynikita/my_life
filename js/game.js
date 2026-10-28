@@ -340,6 +340,11 @@ window.Game = (function () {
     FRS.forEach(f => out.push({ key: 'fr:' + f.id, kind: 'frame', id: f.id, name: f.n, ok: unlockOk(S, f), base: !f.a && !f.l, cond: cond(f) }));
     return out;
   }
+  /* постамент: векторный овал с обводкой, толщина одинаковая по всему кругу в любом браузере */
+  const POD = { blue: ['#4A7CFF', '#7C9CFF'], fire: ['#F97316', '#FACC15'], neon: ['#22D3EE', '#E879F9'], gold: ['#B45309', '#FACC15'], diamond: ['#7DD3FC', '#F0F9FF'], rainbow: ['#EF4444', '#8B5CF6'] };
+  let _pid = 0;
+  function podHtml(fr) { const c = POD[fr]; if (!c) return ''; const id = 'gpod' + (++_pid);
+    return `<svg class="gm-pod2" viewBox="0 0 160 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></linearGradient></defs><ellipse cx="80" cy="16" rx="76" ry="12" fill="none" stroke="url(#${id})" stroke-width="3"/></svg>`; }
   const frameWrap = (html, fr) => `<span class="gm-fr fr-${fr}">${html}</span>`;
   function fxHtml(bg) {
     if (bg === 'night') return '<div class="gm-fx fx-night"><i></i><i></i></div>';
@@ -350,7 +355,7 @@ window.Game = (function () {
     return '';
   }
   function wrPreview(S, lk, bg, fr) {
-    return `<div class="gm-prev gm-bgv" data-bg="${bg}" style="--gc:${GLOW[lk]}">${fxHtml(bg)}<div class="gm-stage sm">${heroImg(S.c.sex, lk, 'lg')}<span class="gm-pod fr-${fr}"></span></div></div>`;
+    return `<div class="gm-prev gm-bgv" data-bg="${bg}" style="--gc:${GLOW[lk]}">${fxHtml(bg)}<div class="gm-stage sm">${heroImg(S.c.sex, lk, 'lg')}${podHtml(fr)}</div></div>`;
   }
   /* окно шкафчика: снизу на телефоне, по центру на компьютере */
   function wardrobe(onDone, tab) {
@@ -559,7 +564,7 @@ window.Game = (function () {
       <div class="gm-top gm-bgv" data-bg="${bg}">${fxHtml(bg)}
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
-          <div class="gm-stage"><div class="gm-sparks">${Array.from({ length: 16 }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `<span class="gm-pod fr-${fr}"></span>`}</div>
+          <div class="gm-stage"><div class="gm-sparks">${Array.from({ length: 16 }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
           <div class="gm-info">
             <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div></div>
             <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b data-count="${S.L.need - S.L.into}">${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>

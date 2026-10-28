@@ -454,3 +454,9 @@ html[data-theme="light"] .gm-title{background:linear-gradient(180deg,#141A2E 35%
 .gm-pod{display:none!important}
 .gm-pod2{position:absolute;left:50%;bottom:8px;width:160px;height:32px;transform:translateX(-50%);z-index:0;overflow:visible;pointer-events:none;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 60%,transparent))}
 .gm-prev .gm-pod2{width:136px;height:27px;bottom:2px}
+/* полоски как в приложении: ровный фирменный градиент, без блика и свечения */
+.gm-xp.lg{height:8px}.gm-xp.lg i{box-shadow:none!important}.gm-xp.lg i::after{display:none!important}
+.gm-xp i{background:linear-gradient(90deg,#4A7CFF,#8B5CF6)!important}
+.gm-bar-line i{box-shadow:none!important}
+.gm-pline i{background:linear-gradient(90deg,#4A7CFF,#8B5CF6)!important}
+.gm-rec2-bar i,.gm-ap i{opacity:1}

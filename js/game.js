@@ -17,11 +17,11 @@ window.Game = (function () {
   const pl = (n, a, b, c) => { const x = Math.abs(n) % 10, y = Math.abs(n) % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
 
   const SK = {
-    str: { name: 'Сила', src: 'тренировки', color: '#5B8CFF', ico: 'ti-barbell', route: '/training' },
-    dis: { name: 'Дисциплина', src: 'привычки', color: '#22C55E', ico: 'ti-checks', route: '/habits' },
+    str: { name: 'Сила', src: 'тренировки', color: '#60A5FA', ico: 'ti-barbell', route: '/training' },
+    dis: { name: 'Дисциплина', src: 'привычки', color: '#4ADE80', ico: 'ti-checks', route: '/habits' },
     cap: { name: 'Капитал', src: 'финансы', color: '#A78BFA', ico: 'ti-coin', route: '/finance' },
-    foc: { name: 'Фокус', src: 'задачи', color: '#F2B544', ico: 'ti-target', route: '/tasks' },
-    wil: { name: 'Воля', src: 'цели', color: '#F472B6', ico: 'ti-flag-3', route: '/goals' },
+    foc: { name: 'Фокус', src: 'задачи', color: '#F0645A', ico: 'ti-target', route: '/tasks' },
+    wil: { name: 'Воля', src: 'цели', color: '#F2A93B', ico: 'ti-flag-3', route: '/goals' },
   };
   const SKO = ['str', 'dis', 'cap', 'foc', 'wil'];
   const DOW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];

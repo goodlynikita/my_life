@@ -665,3 +665,5 @@ html.fin-inv-on .modal-finance #se-del, html.fin-inv-on .modal-finance #om-del, 
 .fin-dark .pg-hist-t{color:#ADADAD}.pg-hist-t span{flex:1}.pg-hist-ch{transition:transform .2s}
 .pg-hist.open .pg-hist-ch{transform:rotate(180deg)}
 .pg-hist-b[hidden]{display:none}
+/* Баланс: в заголовках блоков сколько осталось */
+.plan-val .plan-left{color:#C9BDF7;font-weight:600}.plan-val .plan-left.ok{color:var(--tk-green,#5FC98B)}

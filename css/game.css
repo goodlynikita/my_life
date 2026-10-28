@@ -429,3 +429,21 @@ html[data-theme="light"] .gm-bar-r b{color:#C2410C;opacity:.8}
 html[data-theme="light"] .fx-gold i:first-child{background:radial-gradient(circle,rgba(234,179,8,.25),transparent 65%)!important}
 /* свечение и огоньки за персонажем в цвет фона */
 .gm-bgv[data-bg="gold"]{--gc:#F59E0B}.gm-bgv[data-bg="dawn"]{--gc:#FB7185}.gm-bgv[data-bg="ice"]{--gc:#38BDF8}.gm-bgv[data-bg="aurora"]{--gc:#2DD4BF}
+/* постамент: ровное кольцо одной толщины, строго по центру под ногами */
+.gm-pod{-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;-webkit-mask-composite:xor!important;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)!important;padding:2.5px;box-sizing:border-box;width:150px!important;height:30px!important;bottom:10px!important;left:50%!important;transform:translateX(-50%)!important;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--gc) 70%,transparent))}
+.gm-prev .gm-pod{width:130px!important;height:26px!important;bottom:4px!important}
+/* фоны в цветах приложения: основа всегда наша тёмно-синяя, цвет фона только свечением за персонажем */
+.gm-bgv[data-bg]:not([data-bg="base"]){background-color:var(--bg)}
+.gm-bgv[data-bg="gold"]{background:radial-gradient(42% 46% at 50% 36%,rgba(250,204,21,.20),transparent 70%),radial-gradient(90% 75% at 50% 30%,#22305F 0%,#141C3D 48%,var(--bg) 100%)!important}
+.gm-bgv[data-bg="dawn"]{background:radial-gradient(42% 46% at 50% 36%,rgba(251,113,133,.20),transparent 70%),radial-gradient(90% 75% at 50% 30%,#2A2D66 0%,#141C3D 48%,var(--bg) 100%)!important}
+.gm-bgv[data-bg="ice"]{background:radial-gradient(42% 46% at 50% 36%,rgba(56,189,248,.20),transparent 70%),radial-gradient(90% 75% at 50% 30%,#1D3566 0%,#141C3D 48%,var(--bg) 100%)!important}
+.gm-bgv[data-bg="night"]{background:radial-gradient(42% 46% at 50% 36%,rgba(139,92,246,.22),transparent 70%),radial-gradient(90% 75% at 50% 30%,#241F5A 0%,#121838 50%,var(--bg) 100%)!important}
+.gm-bgv[data-bg="aurora"]{background:radial-gradient(42% 46% at 50% 36%,rgba(45,212,191,.16),transparent 70%),radial-gradient(90% 75% at 50% 30%,#1B3060 0%,#141C3D 48%,var(--bg) 100%)!important}
+html[data-theme="light"] .gm-bgv[data-bg="gold"]{background:radial-gradient(42% 46% at 50% 36%,rgba(234,179,8,.22),transparent 70%),radial-gradient(90% 75% at 50% 30%,#CBD6F3 0%,var(--top) 52%,var(--bg) 100%)!important}
+html[data-theme="light"] .gm-bgv[data-bg="dawn"]{background:radial-gradient(42% 46% at 50% 36%,rgba(244,114,182,.22),transparent 70%),radial-gradient(90% 75% at 50% 30%,#CBD6F3 0%,var(--top) 52%,var(--bg) 100%)!important}
+html[data-theme="light"] .gm-bgv[data-bg="ice"]{background:radial-gradient(42% 46% at 50% 36%,rgba(56,189,248,.22),transparent 70%),radial-gradient(90% 75% at 50% 30%,#CBD6F3 0%,var(--top) 52%,var(--bg) 100%)!important}
+html[data-theme="light"] .gm-bgv[data-bg="night"]{background:radial-gradient(42% 46% at 50% 36%,rgba(139,92,246,.22),transparent 70%),radial-gradient(90% 75% at 50% 30%,#CDCBF3 0%,var(--top) 52%,var(--bg) 100%)!important}
+html[data-theme="light"] .gm-bgv[data-bg="aurora"]{background:radial-gradient(42% 46% at 50% 36%,rgba(45,212,191,.18),transparent 70%),radial-gradient(90% 75% at 50% 30%,#CBD6F3 0%,var(--top) 52%,var(--bg) 100%)!important}
+/* на Золоте и Рассвете огоньки тёплые, но свечение за персонажем мягче, чем раньше */
+.fx-gold i:first-child{background:radial-gradient(circle,rgba(250,204,21,.16),transparent 62%)!important}
+.fx-dawn i{opacity:.55}

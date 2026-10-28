@@ -560,7 +560,7 @@ window.Screens.finance = function(mount) {
           <div class="plan-main">
             <div class="plan-name">Базовые расходы</div>
           </div>
-          <div class="plan-val"><b>${finFmtFull(totalBase)}</b><span>${pctS(totalBase) ? pctS(totalBase) + ' дохода' : ''}</span></div>
+          <div class="plan-val"><b>${finFmtFull(totalBase)}</b>${(() => { const left = cats.reduce((a, c) => a + Math.max(0, (+c.amt || 0) - (spentBy[c.id] || 0)), 0); return totalBase > 0 ? (left > 0 ? `<span class="plan-left">осталось ${finFmtFull(left)}</span>` : '<span class="plan-left ok">всё оплачено</span>') : ''; })()}</div>
         </div>
         <div class="plan-cats">
           ${cats.length ? cats.map(c => { const sp = spentBy[c.id] || 0, amt = +c.amt || 0, over = amt > 0 && sp > amt, fill = amt > 0 ? Math.min(100, Math.round(sp / amt * 100)) : (sp ? 100 : 0), day = +c.day >= 1 && +c.day <= 31 ? Math.round(+c.day) : 0; return `
@@ -579,7 +579,7 @@ window.Screens.finance = function(mount) {
           <div class="plan-main">
             <div class="plan-name">Разовые платежи и цели</div>
           </div>
-          <div class="plan-val">${onceSum > 0 ? `<b>${finFmtFull(onceSum)}</b><span>${pctS(onceSum) ? pctS(onceSum) + ' дохода' : ''}</span>` : ''}</div>
+          <div class="plan-val">${onceSum > 0 ? `<b>${finFmtFull(onceSum)}</b>${(() => { const left = onceNow.reduce((a, p) => a + (p.done ? 0 : Math.max(0, p.amt - (onceP[p.id] || 0))), 0); return left > 0 ? `<span class="plan-left">осталось ${finFmtFull(left)}</span>` : '<span class="plan-left ok">всё оплачено</span>'; })()}` : ''}</div>
         </div>
         <div class="plan-cats">
           ${onceNow.concat(onceNext).map(p => { const d = FS.pDate(p.date), later = d >= mEnd, mo = later ? FS.perMonth(p, now) : 0, paidP = Math.min(p.amt, (onceP[p.id] || 0)); return `

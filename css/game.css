@@ -447,3 +447,6 @@ html[data-theme="light"] .gm-bgv[data-bg="aurora"]{background:radial-gradient(42
 /* на Золоте и Рассвете огоньки тёплые, но свечение за персонажем мягче, чем раньше */
 .fx-gold i:first-child{background:radial-gradient(circle,rgba(250,204,21,.16),transparent 62%)!important}
 .fx-dawn i{opacity:.55}
+/* заголовок облика всегда в цветах приложения, не от фона */
+.gm-title{background:linear-gradient(180deg,#FFFFFF 35%,#B9C7FF)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+html[data-theme="light"] .gm-title{background:linear-gradient(180deg,#141A2E 35%,#3A4FB0)!important;-webkit-background-clip:text!important;background-clip:text!important}

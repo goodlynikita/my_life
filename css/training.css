@@ -2294,3 +2294,23 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .in-rec-r b{line-height:1.1}
 .in-rec-r span{font-size:10.5px!important;opacity:.75;margin:0!important}
 .tr-ex-was{font-family:Montserrat,sans-serif;font-size:12.5px;font-weight:600;color:#7E89A8;letter-spacing:0;white-space:nowrap}
+/* Итоги: аккуратная строка упражнения */
+.tr-sum-one{display:inline-block;font-family:Montserrat,sans-serif;font-size:11.5px;font-weight:700;color:#8A93AD;background:rgba(255,255,255,.06);padding:4px 9px;border-radius:999px;white-space:nowrap}
+.tr-sum-meta{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.tr-sum-was{color:#7E89A8}.tr-sum-ar{color:#4C5674}.tr-sum-now{color:#D6DAE8;font-weight:600}.tr-sum-wk{color:#5F6985;font-size:.92em;margin-left:2px}
+.tr-hist-row .tr-ex-stats{flex-shrink:0;white-space:nowrap}
+.tr-hist-v small{display:block;font-size:11px;font-weight:600;color:#7E89A8;margin-top:1px}
+/* Разбор: рекорды понятнее */
+.in-rec2{padding:12px 0;border-top:1px solid rgba(110,139,255,.1)}.in-card .in-h+.in-rec2{border-top:0}
+.in-rec2-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.in-rec2-n{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}.in-rec2-n b{font-size:14.5px;color:#F2F4F8;font-weight:700}
+.in-rec2-max{text-align:right;flex-shrink:0}.in-rec2-max b{display:block;font-size:18px;font-weight:800;color:#fff;line-height:1.1}.in-rec2-max span{font-size:10.5px;color:#7C86A6;white-space:nowrap}
+.in-rec2-mid{display:flex;align-items:center;gap:10px;margin-top:4px;font-size:12px;color:#8F9BBE}.in-rec2-mid b{color:#D6DAE8;font-weight:700}
+.in-tr2{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:#8F9BBE}
+.in-tr2.up{color:#7BE0A0;background:rgba(34,197,94,.12)}.in-tr2.down{color:#F87171;background:rgba(239,68,68,.12)}
+.in-rec2-goal{display:flex;align-items:center;gap:10px;margin-top:9px}
+.in-rec2-bar{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}.in-rec2-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#4A7CFF,#8B5CF6)}.in-rec2-bar i.got{background:#22C55E}
+.in-rec2-goal>span{font-size:11.5px;font-weight:600;color:#8F9BBE;white-space:nowrap}
+.in-rec2-goal .in-goal{width:30px;height:30px;flex-shrink:0}
+/* Разбор на всю ширину, как план */
+.ai-wrap.in-wrap{padding-left:0;padding-right:0}

@@ -420,3 +420,12 @@ html[data-theme="light"] .gm-bar{background:linear-gradient(135deg,#F1F2FA,#E7E9
 html[data-theme="light"] .gm-bar::before,html[data-theme="light"] .gm-bar::after{opacity:.15}
 html[data-theme="light"] .gm-bar-t b{color:#3B3F63}html[data-theme="light"] .gm-bar-t span,html[data-theme="light"] .gm-bar-s{color:#7A7FA0}
 html[data-theme="light"] .gm-bar-r b{color:#C2410C;opacity:.8}
+/* Золото без лучей: мягкое тёплое сияние ровно за персонажем и медленный блик */
+.fx-gold i{animation:none!important;background:none!important;-webkit-mask:none!important;mask:none!important}
+.fx-gold i:first-child{left:50%;top:42%;width:360px;height:360px;margin:-180px 0 0 -180px;border-radius:50%;background:radial-gradient(circle,rgba(250,204,21,.28),rgba(245,158,11,.10) 45%,transparent 68%)!important;animation:gmGlowG 5s ease-in-out infinite!important}
+.fx-gold i:last-child{inset:0;width:auto;height:auto;margin:0;left:0;top:0;border-radius:0;background:linear-gradient(110deg,transparent 35%,rgba(253,230,138,.08) 50%,transparent 65%)!important;background-size:250% 100%!important;animation:gmSweep 9s ease-in-out infinite!important}
+@keyframes gmGlowG{50%{transform:scale(.92);opacity:.75}}
+@keyframes gmSweep{0%{background-position:120% 0}100%{background-position:-120% 0}}
+html[data-theme="light"] .fx-gold i:first-child{background:radial-gradient(circle,rgba(234,179,8,.25),transparent 65%)!important}
+/* свечение и огоньки за персонажем в цвет фона */
+.gm-bgv[data-bg="gold"]{--gc:#F59E0B}.gm-bgv[data-bg="dawn"]{--gc:#FB7185}.gm-bgv[data-bg="ice"]{--gc:#38BDF8}.gm-bgv[data-bg="aurora"]{--gc:#2DD4BF}

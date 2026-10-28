@@ -647,3 +647,21 @@ html.fin-inv-on .modal-finance #se-del, html.fin-inv-on .modal-finance #om-del, 
 .ce-pay-it button{border:0;background:none;color:#8D87A8;width:28px;height:28px;border-radius:8px;cursor:pointer}
 .ce-pay-row input{flex:1 1 100%!important}
 .ce-pay-b{flex:1 1 0;justify-content:center}
+/* Баланс: в категориях сколько осталось */
+.plan-cat-sp .plan-cat-amt{display:block;text-align:right;line-height:1.25;white-space:nowrap}
+.plan-cat-sp .plan-cat-amt b.left{font-weight:600;color:#fff}
+.plan-cat-sp .plan-cat-amt small{display:block;font-size:11px;font-weight:500;color:var(--tk-faint,#8A8A8A)}
+.plan-cat-sp .plan-cat-amt em.ok{color:var(--tk-green,#5FC98B);font-weight:600}
+/* окно категории: день платежа такой же, как поле плана (iOS рисовал свой select) */
+.ce-bot select,html.fin-dark-on .modal-finance .ce-bot select{-webkit-appearance:none!important;appearance:none!important;height:38px!important;line-height:38px!important;padding:0 30px 0 10px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ADADAD' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:12px!important;margin:0!important;vertical-align:top}
+.ce-bot label{justify-content:flex-start}
+/* копилка компактнее */
+.fin-dark .pg-card{padding:16px 18px 16px!important;border-radius:20px!important}
+.fin-dark .pg-balance{font-size:32px!important;margin:4px 0 2px!important}
+.fin-dark .pg-btn{height:40px!important;font-size:13.5px!important}
+.pg-actions{margin-top:12px!important}
+/* история копилки свёрнута */
+.pg-hist-t{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;border:0;background:none;color:inherit;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;text-align:left}
+.fin-dark .pg-hist-t{color:#ADADAD}.pg-hist-t span{flex:1}.pg-hist-ch{transition:transform .2s}
+.pg-hist.open .pg-hist-ch{transform:rotate(180deg)}
+.pg-hist-b[hidden]{display:none}

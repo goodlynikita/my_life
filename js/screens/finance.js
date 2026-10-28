@@ -567,7 +567,7 @@ window.Screens.finance = function(mount) {
             <div class="plan-cat plan-cat-sp" data-id="${escH(c.id)}" role="button" tabindex="0">
               <span class="plan-dot" style="background:${colH(c.color)};"></span>
               <span class="plan-cat-name"><span class="plan-cat-nm">${escH(c.name)}</span>${day ? `<em class="plan-day" title="платёж ${day} числа"><i class="ti ti-calendar-event"></i>${day}</em>` : ''}${dlt(c.id)}</span>
-              <span class="plan-cat-amt">${sp ? `<em class="${over ? 'over' : ''}">${finFmtFull(sp)}</em> из ` : ''}${finFmtFull(amt)}</span>
+              <span class="plan-cat-amt">${!sp || !amt ? finFmtFull(amt || sp) : over ? `<em class="over">+${finFmtFull(sp - amt)} сверх</em><small>из ${finFmtFull(amt)}</small>` : sp >= amt ? `<em class="ok">оплачено</em><small>${finFmtFull(amt)}</small>` : `<b class="left">осталось ${finFmtFull(amt - sp)}</b><small>из ${finFmtFull(amt)}</small>`}</span>
               <span class="plan-cat-pct">${totalBase > 0 ? Math.round(amt / totalBase * 100) + '%' : ''}</span>
               ${amt > 0 ? `<span class="plan-cat-bar"><span data-k="bal:${escH(c.id)}" data-w="${fill}" style="width:0;background:${over ? '#EB5850' : colH(c.color)}"></span><i style="left:${monthPos}%" title="где должен быть сегодня"></i></span>` : ''}
             </div>`; }).join('') : '<div class="plan-empty">Категорий нет. Добавь их в настройках</div>'}
@@ -592,7 +592,7 @@ window.Screens.finance = function(mount) {
           <div class="plan-cat plan-once-add" role="button" tabindex="0"><i class="ti ti-plus"></i><span>Добавить платёж</span></div>
         </div>` : ''}
 
-        ${planInc > 0 ? `<div class="plan-step">
+        ${planInc > 0 && !shortAmt ? `<div class="plan-step">
           <div class="plan-ico" style="--c:${shortAmt ? '#E0B252' : '#0EA5E9'};"><i class="ti ${shortAmt ? 'ti-scale' : 'ti-target-arrow'}"></i></div>
           <div class="plan-main">
             <div class="plan-name">${shortAmt ? 'Не хватает до плана' : 'Свободно на цели'}</div>

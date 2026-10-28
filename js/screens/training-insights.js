@@ -148,7 +148,7 @@ window.TrainingInsights = (function () {
     wc.lag = few ? [] : Object.keys(NORM).filter(g => groups.includes(g) && Math.round((sets[g] || 0) / wks) < NORM[g][0]).map(g => `${g}: ${Math.round((sets[g] || 0) / wks)} подх. в неделю`);
     const focus = few ? 'Записать 2–3 тренировки, и я покажу, что подтянуть' : pls[0] ? `Сменить упражнение «${pls[0].name}»: вес стоит на месте` : wc.lag[0] ? `Добавить подходов на ${wc.lag[0].split(':')[0].toLowerCase()}: пока меньше нормы` : wc.count ? 'Держать темп и добирать повторы до верха диапазона' : 'Вернуться в режим: хотя бы 2 тренировки';
 
-    content.innerHTML = `<div class="ai-wrap">${tabsHtml}
+    content.innerHTML = `<div class="ai-wrap in-wrap">${tabsHtml}
       <div class="in-card in-week">
         <div class="in-h"><div><b>${wc.cur ? 'Эта неделя' : 'Итоги недели'}</b><span>${fmtD(wc.from)} – ${fmtD(wc.to)}</span></div>${isMon ? '<em class="in-new">новый отчёт</em>' : ''}</div>
         <div class="in-kpis">
@@ -175,12 +175,19 @@ window.TrainingInsights = (function () {
       </div>
 
       ${recs.length ? `<div class="in-card">
-        <div class="in-h"><div><b>Рекорды и прогноз</b><span>Лучший подход и сколько поднимешь на один раз</span></div></div>
-        ${recs.map(r => `<div class="in-rec" data-k="${esc(r.key)}">
-          <div class="in-rec-l"><b>${esc(r.name)}${r.pr ? '<em class="in-pr">рекорд</em>' : ''}</b><span>лучший подход ${kg(r.bw)} кг × ${r.br} · <i class="in-tr ${r.slope > 0.15 ? 'up' : r.slope < -0.15 ? 'down' : ''}">${r.slope > 0.15 ? 'растёт' : r.slope < -0.15 ? 'падает' : 'стоит'}</i></span><span>${r.best >= r.target ? `цель ${r.target} кг на 1 раз взята` : r.weeks && r.weeks <= 52 ? `цель ${r.target} кг на 1 раз через ~${r.weeks} ${pl(r.weeks, 'неделю', 'недели', 'недель')}` : `цель ${r.target} кг на 1 раз`}</span></div>
-          <div class="in-rec-r"><b>≈${Math.round(r.best)}</b><span>кг на 1 раз</span></div>
-          <button class="in-goal" data-k="${esc(r.key)}" data-t="${r.target}" title="Своя цель"><i class="ti ti-flag"></i></button>
-        </div>`).join('')}
+        <div class="in-h"><div><b>Рекорды и прогноз</b><span>максимум на 1 повтор считаю по лучшему подходу</span></div></div>
+        ${recs.map(r => { const tr = r.slope > 0.15 ? 'up' : r.slope < -0.15 ? 'down' : 'flat', got = r.best >= r.target;
+          const pct = Math.max(4, Math.min(100, Math.round(r.best / r.target * 100)));
+          return `<div class="in-rec2" data-k="${esc(r.key)}">
+          <div class="in-rec2-top">
+            <div class="in-rec2-n"><b>${esc(r.name)}</b>${r.pr ? '<em class="in-pr">рекорд</em>' : ''}</div>
+            <div class="in-rec2-max"><b>≈${Math.round(r.best)} кг</b><span>макс. на 1 раз</span></div>
+          </div>
+          <div class="in-rec2-mid"><span>лучший подход <b>${kg(r.bw)} кг × ${r.br}</b></span><span class="in-tr2 ${tr}"><i class="ti ti-trending-${tr === 'up' ? 'up' : tr === 'down' ? 'down' : 'right'}"></i>${tr === 'up' ? 'растёт' : tr === 'down' ? 'падает' : 'стоит'}</span></div>
+          <div class="in-rec2-goal"><div class="in-rec2-bar"><i class="${got ? 'got' : ''}" style="width:${pct}%"></i></div>
+            <span>${got ? `цель ${r.target} кг взята` : `цель ${r.target} кг${r.weeks && r.weeks <= 52 ? ` · ~${r.weeks} ${pl(r.weeks, 'неделя', 'недели', 'недель')}` : ''}`}</span>
+            <button class="in-goal" data-k="${esc(r.key)}" data-t="${r.target}" title="Своя цель"><i class="ti ti-flag"></i></button></div>
+        </div>`; }).join('')}
       </div>` : ''}
 
       <div class="in-card">

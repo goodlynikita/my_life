@@ -68,7 +68,7 @@ window.FinPiggy = (function () {
     return { p, months, balance, cur, withdrawnTotal, avgAuto };
   }
 
-  let activeView = 'months';
+  let activeView = 'months', histOpen = false;
   const openMonths = new Set();
 
   function html(pct) {
@@ -124,12 +124,15 @@ window.FinPiggy = (function () {
           <button class="pg-btn pg-btn-ghost" id="pg-reset" aria-label="Обнулить копилку" title="Обнулить копилку"><i class="ti ti-refresh"></i></button>
         </div>
       </div>
-      <div class="pg-list-card">
+      <div class="pg-list-card pg-hist${histOpen ? ' open' : ''}">
+        <button class="pg-hist-t" id="pg-hist-t"><i class="ti ti-history"></i><span>История копилки</span><i class="ti ti-chevron-down pg-hist-ch"></i></button>
+        <div class="pg-hist-b"${histOpen ? '' : ' hidden'}>
         <div class="pg-seg">
           <button class="pg-seg-btn${activeView === 'months' ? ' on' : ''}" data-v="months">По месяцам</button>
           <button class="pg-seg-btn${activeView === 'ops' ? ' on' : ''}" data-v="ops">Операции${p.ops.length ? ' · ' + p.ops.length : ''}</button>
         </div>
         <div class="pg-list">${activeView === 'months' ? monthsHtml : opsHtml}</div>
+        </div>
       </div>`;
   }
 
@@ -313,6 +316,7 @@ window.FinPiggy = (function () {
     $('#pg-reset').addEventListener('click', () => openReset(pct, rerender));
     $('#pg-settings').addEventListener('click', () => openSettings(rerender));
     root.querySelectorAll('.pg-seg-btn').forEach(b => b.addEventListener('click', () => { activeView = b.dataset.v; rerender(); }));
+    const ht = root.querySelector('#pg-hist-t'); if (ht) ht.addEventListener('click', () => { histOpen = !histOpen; const c = ht.closest('.pg-hist'); c.classList.toggle('open', histOpen); c.querySelector('.pg-hist-b').hidden = !histOpen; });
     root.querySelectorAll('.pg-row-exp[data-mk]').forEach(r => r.addEventListener('click', () => { const k = r.dataset.mk; openMonths.has(k) ? openMonths.delete(k) : openMonths.add(k); rerender(); }));
     root.querySelectorAll('.pg-op-del').forEach(b => b.addEventListener('click', () => {
       if (!confirm('Удалить эту операцию? Баланс пересчитается.')) return;

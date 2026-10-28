@@ -252,6 +252,8 @@ function trSyncCatalogFromStore() {
       const v = cat.exercises[k];
       MUSCLE_BLOCK_EXERCISES[k] = Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {}).filter(Boolean);
     });
+    /* в каталоге из базы бывают дубли (одно упражнение дважды): в списках и «Весах» показываем один раз */
+    trDedupeCatalog(MUSCLE_BLOCK_EXERCISES);
     if (!TR_COACH) try { localStorage.setItem('nik_exercises_v2', JSON.stringify(MUSCLE_BLOCK_EXERCISES)); } catch(e) {}
   }
 }
@@ -677,6 +679,31 @@ function trTonnage(ex) {
   return Math.round((ex.sets * ex.reps * ex.weight) * 10) / 10;
 }
 
+/* подходы как записаны: «12×45 · 10×50 · 10×50 · 10×50 кг». Если все одинаковые: «4 × 10 · 50 кг» */
+function trSetsList(ex) { const sd = ex && ex.setDetails ? (Array.isArray(ex.setDetails) ? ex.setDetails : Object.values(ex.setDetails)) : []; return sd.filter(d => d && ((+d.reps || 0) > 0 || (+d.weight || 0) > 0)); }
+function trSetsStr(ex) {
+  const f = n => String(Math.round((+n || 0) * 10) / 10).replace('.', ',');
+  const sd = trSetsList(ex);
+  const same = sd.length && sd.every(d => (+d.reps || 0) === (+sd[0].reps || 0) && (+d.weight || 0) === (+sd[0].weight || 0));
+  if (!sd.length || same) {
+    const n = sd.length || +ex.sets || 0, r = sd.length ? +sd[0].reps || 0 : +ex.reps || 0, w = sd.length ? +sd[0].weight || 0 : +ex.weight || 0;
+    return `${n} × ${r}${w > 0 ? ' · ' + f(w) + ' кг' : ''}`;
+  }
+  const anyW = sd.some(d => (+d.weight || 0) > 0);
+  let parts = sd.map(d => anyW ? `${+d.reps || 0}×${f(d.weight)}` : String(+d.reps || 0));
+  /* больше 5 подходов: одинаковые подряд склеиваем «10×50 ×3» */
+  if (parts.length > 5) { const g = []; parts.forEach(x => { const l = g[g.length - 1]; if (l && l.v === x) l.n++; else g.push({ v: x, n: 1 }); }); parts = g.map(x => x.n > 1 ? x.v + ' ×' + x.n : x.v); }
+  return parts.join(' · ') + (anyW ? ' кг' : ' повт.');
+}
+/* рабочий (самый тяжёлый) вес и повторы на нём: для прогрессии */
+function trTopSet(ex) {
+  const sd = trSetsList(ex);
+  if (!sd.length) return { weight: +ex.weight || 0, reps: +ex.reps || 0, sets: +ex.sets || 0 };
+  const top = Math.max(...sd.map(d => +d.weight || 0));
+  const atTop = sd.filter(d => (+d.weight || 0) === top);
+  return { weight: top, reps: Math.min(...atTop.map(d => +d.reps || 0)), sets: sd.length };
+}
+
 function trPace(ex) {
   if (!ex.distance || ex.distance === 0) return null;
   const paceMin = ex.duration / ex.distance;
@@ -857,7 +884,7 @@ function trProgressionHint(plan, exName) {
     return {
       type: 'last',
       html: `<div class="tr-prog-hint tr-prog-hold">
-        <div class="tr-prog-last">Прошлый раз: ${trEsc(last.sets)} × ${trEsc(last.reps)} × ${trEsc(last.weight)} кг${whereLine}</div>
+        <div class="tr-prog-last">Прошлый раз: ${trEsc(trSetsStr(last))}${whereLine}</div>
       </div>`
     };
   }
@@ -872,8 +899,9 @@ function trProgressionHint(plan, exName) {
     };
   }
 
-  const { sets, reps, weight } = last;
-  const lastLine = `${trEsc(sets)} × ${trEsc(reps)} × ${trEsc(weight)} кг${whereLine}`;
+  /* прогрессия по рабочему подходу, а в строке «Прошлый раз» все подходы как записаны */
+  const { sets, reps, weight } = trTopSet(last);
+  const lastLine = `${trEsc(trSetsStr(last))}${whereLine}`;
 
   if (prog.step === 0) {
     /* Пресс — только повторы */
@@ -986,11 +1014,11 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
     progressBadge = ''; bar = '<div class="tr-progress-bar-track"></div>';
     const li = trFindLastStrength(plan, ex.name), l = li && li.ex;
     const f1 = n => String(Math.round((+n || 0) * 10) / 10).replace('.', ',');
-    if (l) return wrap(+l.weight > 0 ? `<span class="tr-ex-was">${f1(l.weight)} кг</span>` : '<span class="tr-ex-was">свой вес</span>', `<span class="tr-ex-was">прошлый раз ${trEsc(l.sets || 0)} × ${trEsc(l.reps || 0)}${+l.weight > 0 ? ' · ' + f1(l.weight) + ' кг' : ''}</span>`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
+    if (l) return wrap(+l.weight > 0 ? `<span class="tr-ex-was">${f1(trTopSet(l).weight)} кг</span>` : '<span class="tr-ex-was">свой вес</span>', `<span class="tr-ex-was">прошлый раз ${trEsc(trSetsStr(l))}</span>`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
     return wrap('<span class="tr-ex-pick">вес подбери</span>', '<span class="tr-ex-was">не заполнено</span>').replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
   }
   if (!wNum) return wrap(/подтяг|отжим|брусь|планк|скруч|подъём ног|гиперэкст/i.test(ex.name) ? 'свой вес' : '<span class="tr-ex-pick">вес подбери</span>', `${trEsc(ex.sets)} × ${trEsc(ex.reps)}`).replace(/<span class="tr-progress [^"]*">[^<]*<\/span>/, '');
-  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, `${trEsc(ex.sets)} × ${rStr} · ${wLbl} ${wStr} кг`);
+  return wrap(`${tonnage.toLocaleString('ru-RU')} кг`, trEsc(trSetsStr(ex)));
 }
 
 function trMigrateDayToSessions(day) {
@@ -2829,7 +2857,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       return expanded.includes(cat);
     });
 
-    const allForCat = [...inOrder, ...custom];
+    const allForCat = [...new Set([...inOrder, ...custom])];
     if (allForCat.length === 0) return '';
 
     const exerciseRows = allForCat.map(name => {
@@ -3410,10 +3438,13 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   if (!first) return '';
 
   const fw = (v) => String(Math.round((+v || 0) * 10) / 10).replace('.', ',');
-  const lbl = (e) => (+e.weight || 0) > 0 ? `${trEsc(e.sets)}×${trEsc(e.reps)}×${fw(e.weight)} кг` : `${trEsc(e.sets)}×${trEsc(e.reps)}`;
-  const w1 = +first.ex.weight || 0, wN = +last.ex.weight || 0;
-  const r1 = (+first.ex.sets || 0) * (+first.ex.reps || 0), rN = (+last.ex.sets || 0) * (+last.ex.reps || 0);
-  /* со своим весом (0 кг) сравниваем повторы, а не килограммы */
+  /* один и тот же показатель везде: средний вес по подходам (как в плане), чтобы шапка и история сходились */
+  const effW = (e) => { const ds = trSetsList(e).map(d => +d.weight || 0).filter(x => x > 0); return ds.length ? ds.reduce((a, b) => a + b, 0) / ds.length : (+e.weight || 0); };
+  const varW = (e) => { const ds = trSetsList(e).map(d => +d.weight || 0).filter(x => x > 0); return ds.length > 1 && Math.min(...ds) !== Math.max(...ds); };
+  const totR = (e) => { const sd = trSetsList(e); return sd.length ? sd.reduce((a, d) => a + (+d.reps || 0), 0) : (+e.sets || 0) * (+e.reps || 0); };
+  const wTxt = (e) => (varW(e) ? 'ср. ' : '') + fw(effW(e)) + ' кг';
+  const w1 = effW(first.ex), wN = effW(last.ex);
+  const r1 = totR(first.ex), rN = totR(last.ex);
   /* со своим весом или тот же вес, но выросли повторы: показываем повторы */
   const byReps = (w1 === 0 && wN === 0) || (Math.abs(wN - w1) < 0.05 && rN !== r1);
   const diff = byReps ? rN - r1 : Math.round((wN - w1) * 10) / 10;
@@ -3422,7 +3453,8 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '';
   const sign = diff > 0 ? '+' : diff < 0 ? '−' : '';
   const head = n < 2
-    ? `<span class="tr-ex-weight num" style="color:#9D9A92;">одна запись</span>`
+    ? `<span class="tr-sum-one">1 запись</span>`
+    : diff === 0 ? `<span class="tr-sum-one">стоит</span>`
     : byReps
       ? `<span class="tr-ex-weight num" style="color:${color};">${sign}${Math.abs(diff)} ${diff === 0 ? 'повторов' : 'повт.'} ${arrow}${pct ? ' ' + sign + Math.abs(pct) + '%' : ''}</span>`
       : `<span class="tr-ex-weight num" style="color:${color};">${sign}${fw(Math.abs(diff))} кг ${arrow}${w1 > 0 && pct ? ' ' + sign + Math.abs(pct) + '%' : ''}</span>`;
@@ -3431,25 +3463,22 @@ function trRenderWasNowWeightRow(exerciseName, plan) {
   const barColor = diff > 0 ? '#A8C97F' : diff < 0 ? '#FF5C5C' : '#3A3D45';
   const bar = n < 2 ? '' : `<div class="tr-progress-bar-track"><div class="tr-progress-bar-fill" style="left:${diff < 0 ? (50 - clamp) + '%' : '50%'}; width:${clamp > 0 ? clamp + '%' : '0%'}; background:${barColor};"></div></div>`;
 
-  /* история: каждая запись, свежие сверху, разница веса к прошлому разу */
-  const wR = (e) => { const ds = Array.isArray(e.setDetails) ? e.setDetails.map(d => +d.weight || 0).filter(x => x > 0) : [];
-    return ds.length > 1 && Math.min(...ds) !== Math.max(...ds) ? 'ср. ' + fw(ds.reduce((a, b) => a + b, 0) / ds.length) : fw(e.weight); };
-  const effW = (e) => { const ds = Array.isArray(e.setDetails) ? e.setDetails.map(d => +d.weight || 0).filter(x => x > 0) : []; return ds.length > 1 ? ds.reduce((a, b) => a + b, 0) / ds.length : (+e.weight || 0); };
+  /* история: каждая запись с подходами как записаны, разница среднего веса к прошлому разу */
   const histHtml = `<div class="tr-hist" hidden>${log.map((r, i) => { const pw = i ? effW(log[i - 1].ex) : 0, cw = effW(r.ex), d = i && pw && cw ? Math.round((cw - pw) * 10) / 10 : 0;
-      return `<div class="tr-hist-r"><span class="tr-hist-w">Нед. ${r.wi + 1}<em>${trEsc(r.date || '')}</em></span><span class="tr-hist-v num">${trEsc(r.ex.sets)}×${trEsc(r.ex.reps)}${cw > 0 ? ` · ${wR(r.ex)} кг` : ''}</span><span class="tr-hist-d num ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? (d > 0 ? '+' : '−') + fw(Math.abs(d)) + ' кг' : ''}</span></div>`; }).reverse().join('')}</div>`;
+      return `<div class="tr-hist-r"><span class="tr-hist-w">Нед. ${r.wi + 1}<em>${trEsc(r.date || '')}</em></span><span class="tr-hist-v num">${trEsc(trSetsStr(r.ex))}${varW(r.ex) ? `<small>ср. ${fw(cw)} кг</small>` : ''}</span><span class="tr-hist-d num ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? (d > 0 ? '+' : '−') + fw(Math.abs(d)) + ' кг' : ''}</span></div>`; }).reverse().join('')}</div>`;
 
+  const meta = n < 2
+    ? `<span class="tr-sum-now">${trEsc(trSetsStr(last.ex))}</span><span class="tr-sum-wk">нед. ${last.wi + 1}</span>`
+    : (byReps
+      ? `<span class="tr-sum-was">${r1} повт.</span><span class="tr-sum-ar">→</span><span class="tr-sum-now">${rN} повт.</span><span class="tr-sum-wk">нед. ${first.wi + 1} → ${last.wi + 1}</span>`
+      : `<span class="tr-sum-was">${wTxt(first.ex)}</span><span class="tr-sum-ar">→</span><span class="tr-sum-now">${wTxt(last.ex)}</span><span class="tr-sum-wk">нед. ${first.wi + 1} → ${last.wi + 1}</span>`);
   return `
     <div class="tr-exercise tr-hist-row" role="button" tabindex="0">
       <div class="tr-ex-top">
         <div class="tr-ex-name">${trEsc(exerciseName)}<i class="ti ti-chevron-down tr-hist-chev"></i></div>
         <div class="tr-ex-stats">${head}</div>
       </div>
-      <div class="tr-ex-bottom">
-        <div class="tr-ex-meta num" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          ${n < 2 ? `<span style="color:#E8E5DC;">Неделя ${last.wi + 1}: ${lbl(last.ex)}</span>`
-            : `<span style="color:#9D9A92;">Неделя ${first.wi + 1}: ${lbl(first.ex)}</span><span style="color:#555;">→</span><span style="color:#E8E5DC;">Неделя ${last.wi + 1}: ${lbl(last.ex)}</span>`}
-        </div>
-      </div>
+      <div class="tr-ex-bottom"><div class="tr-ex-meta num tr-sum-meta">${meta}</div></div>
       ${bar}
     </div>${histHtml}`;
 }

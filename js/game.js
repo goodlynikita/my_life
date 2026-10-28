@@ -338,7 +338,7 @@ window.Game = (function () {
   function fxHtml(bg) {
     if (bg === 'night') return '<div class="gm-fx fx-night"><i></i><i></i></div>';
     if (bg === 'aurora') return '<div class="gm-fx fx-aurora"><i></i><i></i><i></i></div>';
-    if (bg === 'gold') return '<div class="gm-fx fx-gold"><i></i></div>';
+    if (bg === 'gold') return '<div class="gm-fx fx-gold"><i></i><i></i></div>';
     if (bg === 'dawn') return '<div class="gm-fx fx-dawn"><i></i></div>';
     if (bg === 'ice') return '<div class="gm-fx fx-ice">' + Array.from({ length: 26 }, (_, i) => `<i style="--l:${(i * 37) % 100}%;--d:${((i * 0.61) % 7).toFixed(2)}s;--t:${6 + (i % 5)}s;--s:${2 + (i % 3)}px;--x:${(i % 2 ? 1 : -1) * (10 + i % 20)}px"></i>`).join('') + '</div>';
     return '';

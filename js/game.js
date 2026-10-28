@@ -343,7 +343,7 @@ window.Game = (function () {
   /* постамент: векторный овал с обводкой, толщина одинаковая по всему кругу в любом браузере */
   const POD = { blue: ['#4A7CFF', '#7C9CFF'], fire: ['#F97316', '#FACC15'], neon: ['#22D3EE', '#E879F9'], gold: ['#B45309', '#FACC15'], diamond: ['#7DD3FC', '#F0F9FF'], rainbow: ['#EF4444', '#8B5CF6'] };
   let _pid = 0;
-  function podHtml(fr) { const c = POD[fr]; if (!c) return ''; const id = 'gpod' + (++_pid);
+  function podHtml(fr) { return ''; /* постамент убран по просьбе Ника, рамка остаётся на аватарке */ const c = POD[fr]; if (!c) return ''; const id = 'gpod' + (++_pid);
     return `<svg class="gm-pod2" viewBox="0 0 160 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></linearGradient></defs><ellipse cx="80" cy="16" rx="76" ry="12" fill="none" stroke="url(#${id})" stroke-width="3"/></svg>`; }
   const frameWrap = (html, fr) => `<span class="gm-fr fr-${fr}">${html}</span>`;
   function fxHtml(bg) {

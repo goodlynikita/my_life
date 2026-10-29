@@ -541,3 +541,37 @@ html[data-theme="light"] .gm-think,html[data-theme="light"] .gm-think::before,ht
 html[data-theme="light"] .gm-zz b{color:#4A5470}
 @media (prefers-reduced-motion:reduce){.gm-think,.gm-zz b,.gm-fog i,.gm-rain,.gm-rain u,.gm-nd.low .gm-ndb i{animation:none}.gm-think,.gm-zz b{opacity:1}}
 @media (prefers-reduced-motion:reduce){.gm-stage .gm-hero img{animation:none!important}}
+/* реплика персонажа */
+.gm-say{position:absolute;top:-6px;left:50%;z-index:4;max-width:230px;width:max-content;padding:9px 13px;border-radius:14px;background:rgba(255,255,255,.95);color:#141A2E;font-size:13px;font-weight:700;line-height:1.3;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.28);pointer-events:none;opacity:0;transform:translate(-50%,8px) scale(.9);transition:opacity .3s,transform .35s cubic-bezier(.2,1.3,.4,1)}
+.gm-say::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:inherit;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+.gm-say.in{opacity:1;transform:translate(-50%,0) scale(1)}
+.gm-stage.saying .gm-think{display:none}
+html[data-theme="light"] .gm-say{background:#E6E8EE}
+/* реакция: шкалы доливаются, над персонажем +XP, прыжок */
+.gm-pops{position:absolute;left:50%;top:30%;z-index:5;pointer-events:none}
+.gm-pops span{position:absolute;left:0;top:calc(var(--i) * 24px);white-space:nowrap;transform:translateX(-50%);font-size:15px;font-weight:800;color:var(--c);text-shadow:0 2px 10px rgba(0,0,0,.45);opacity:0;animation:gmPop 1.8s cubic-bezier(.2,.8,.2,1) calc(.5s + var(--i) * .25s) both}
+@keyframes gmPop{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
+.gm-stage.joy .gm-hero{animation:gmJoy .9s cubic-bezier(.3,1.4,.5,1) .45s}
+@keyframes gmJoy{0%,100%{transform:scale(var(--hs,1))}35%{transform:translateY(-14px) scale(calc(var(--hs,1) * 1.03))}60%{transform:translateY(0) scale(var(--hs,1))}75%{transform:translateY(-4px) scale(var(--hs,1))}}
+/* черты */
+.gm-ndtr{font-size:15px;margin-left:6px;color:var(--c);vertical-align:-2px}
+.gm-ndf.p{color:var(--c);opacity:.75}
+.gm-ml span.tr{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 22%,transparent),color-mix(in srgb,var(--c) 10%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 40%,transparent)}
+.gm-trbig{position:relative;width:96px;height:96px;margin:6px auto 14px;border-radius:28px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 22%,#141A2E);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 50%,transparent),0 0 40px color-mix(in srgb,var(--c) 45%,transparent);animation:gmUp .5s both}
+.gm-trbig i{font-size:50px;color:var(--c)}
+/* вещи у ног */
+.gm-props{position:absolute;left:50%;bottom:0;width:0;height:0;z-index:2;pointer-events:none}
+.gm-prop{position:absolute;bottom:0;display:block;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+.gm-prop svg{display:block;width:100%;height:auto}
+.gm-prop.p-str{left:-150px;width:56px;bottom:2px}
+.gm-prop.p-cap{left:-92px;width:38px}
+.gm-prop.p-foc{left:52px;width:54px}
+.gm-prop.p-dis{left:110px;width:32px}
+.gm-prop.p-wil{left:86px;width:30px;bottom:14px}
+.gm-prop.p-wil .gm-flag{transform-origin:6px 16px;animation:gmFlagW 2.6s ease-in-out infinite}
+@keyframes gmFlagW{50%{transform:skewY(-6deg) scaleX(.94)}}
+.gm-prop.new{animation:gmPropIn .7s cubic-bezier(.2,1.5,.4,1) .6s both}
+.gm-prop.new::after{content:"";position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),transparent 65%);animation:gmPropFx 1.2s ease-out .6s both}
+@keyframes gmPropIn{0%{opacity:0;transform:translateY(-30px) scale(.4)}100%{opacity:1;transform:none}}
+@keyframes gmPropFx{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
+@media (prefers-reduced-motion:reduce){.gm-pops span,.gm-stage.joy .gm-hero,.gm-prop.new,.gm-prop.new::after,.gm-flag{animation:none!important}.gm-pops{display:none}}

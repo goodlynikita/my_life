@@ -31,7 +31,7 @@ window.Game = (function () {
   function cfg() { const g = (Store.get() || {}).game || {}; return { on: g.on !== false, sex: g.sex === 'f' ? 'f' : 'm', qn: [2, 3, 5].includes(+g.qn) ? +g.qn : 3, rest: toArr(g.rest).map(Number).filter(n => n >= 0 && n <= 6), vacs: toArr(g.vacs).filter(v => v && v.from), quests: (g.quests && typeof g.quests === 'object') ? g.quests : {}, seenLvl: +g.seenLvl || 0,
     repairs: toArr(g.repairs).map(String), seenSt: g.seenSt == null ? null : +g.seenSt || 0, seenWeek: g.seenWeek || null,
     rewards: toArr(g.rewards).filter(r => r && r.id && r.name), bought: toArr(g.bought).filter(b => b && b.at), shopFrom: g.shopFrom || null,
-    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String), needsOff: toArr(g.needsOff).map(String), seenNeed: (g.seenNeed && typeof g.seenNeed === 'object') ? g.seenNeed : {} }; }
+    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String), needsOff: toArr(g.needsOff).map(String), seenNeed: (g.seenNeed && typeof g.seenNeed === 'object') ? g.seenNeed : {}, seenTraits: g.seenTraits == null ? null : toArr(g.seenTraits).map(String) }; }
   /* открыт всем, кто вошёл; скрыть с главной: меню «···» → Персонаж */
   const avail = () => { try { return !!(window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser()); } catch (e) { return false; } };
   const on = () => avail() && cfg().on;
@@ -129,24 +129,33 @@ window.Game = (function () {
   const gainOf = (e) => e.k === 'hab' ? Math.round(e.xp * 0.6) : e.k === 'spend' ? Math.round(e.xp * 1.2) : e.k === 'task' ? (e.xp >= 20 ? 18 : 12) : (NGAIN[e.k] != null ? NGAIN[e.k] : 10);
   const needSt = (k, v) => NEED[k].st[v >= 80 ? 0 : v >= 55 ? 1 : v >= 30 ? 2 : 3];
   const MOODS = [['Выдохся', '#F0645A', 'ti-mood-sad'], ['Устал', '#F2A93B', 'ti-mood-empty'], ['Норм', '#94A3B8', 'ti-mood-smile'], ['В форме', '#4A7CFF', 'ti-mood-happy'], ['В ударе', '#4ADE80', 'ti-bolt']];
+  const TR_DAYS = 30;
+  const TRT = { str: ['Спортсмен', 'Спортсменка', 'ti-run'], dis: ['Человек режима', 'Человек режима', 'ti-clock-check'], cap: ['Бережливый', 'Бережливая', 'ti-pig-money'], foc: ['Собранный', 'Собранная', 'ti-target-arrow'], wil: ['Целеустремлённый', 'Целеустремлённая', 'ti-mountain'] };
+  const trName = (k) => TRT[k][cfg().sex === 'f' ? 1 : 0];
+  const sx = (t) => String(t).replace(/\{([^|}]*)\|([^}]*)\}/g, (_, m, f) => cfg().sex === 'f' ? f : m);
   function needs(S) {
     const c = S.c, today = ymd(new Date()), per = {}, first = {};
     const put = (d, k, g) => { (per[d] = per[d] || {})[k] = (per[d][k] || 0) + g; if (!first[k] || d < first[k]) first[k] = d; };
     S.evs.forEach(e => { const g = gainOf(e); if (g > 0 && SK[e.sk]) put(e.day, e.sk, g); });
     S.s.act.forEach(d => put(d, 'wil', 8)); /* любой день с делом держит Волю */
     const isVac = (k) => c.vacs.some(v => k >= v.from && (!v.to || k <= v.to));
-    const lim = ymd(new Date(Date.now() - 60 * 864e5)), n = {};
+    const lim = ymd(new Date(Date.now() - 400 * 864e5)), n = {};
     SKO.forEach(k => {
-      if (!first[k]) { n[k] = { on: false, why: 'new', v: 70, d: 0 }; return; }
-      let v = 70, y = 70;
+      if (!first[k]) { n[k] = { on: false, why: 'new', v: 70, d: 0, tr: false, hi: 0 }; return; }
+      /* черта: 30 дней подряд выше 80, сфера тает на 30% медленнее; 14 дней ниже 30 и черта уходит */
+      let v = 70, y = 70, hi = 0, lo = 0, tr = false;
       for (let d = fromYmd(first[k] < lim ? lim : first[k]); ymd(d) <= today; d.setDate(d.getDate() + 1)) {
         const key = ymd(d), g = Math.min(k === 'wil' ? 90 : 60, (per[key] || {})[k] || 0);
         if (key === today) { y = v; v = Math.min(100, v + g); break; }
         v = Math.min(100, v + g);
-        if (!isVac(key)) v -= (k === 'str' && c.rest.includes(d.getDay())) ? NEED.str.rest : NEED[k].decay;
+        if (!isVac(key)) {
+          if (v >= 80) { hi++; if (hi >= TR_DAYS) tr = true; } else hi = 0;
+          if (v < 30) { lo++; if (lo >= 14) tr = false; } else lo = 0;
+          v -= ((k === 'str' && c.rest.includes(d.getDay())) ? NEED.str.rest : NEED[k].decay) * (tr ? 0.7 : 1);
+        }
         v = Math.max(5, v);
       }
-      n[k] = { on: !c.needsOff.includes(k), why: c.needsOff.includes(k) ? 'off' : '', v: Math.round(v), d: Math.round(v - y) };
+      n[k] = { on: !c.needsOff.includes(k), why: c.needsOff.includes(k) ? 'off' : '', v: Math.round(v), d: Math.round(v - y), tr, hi };
     });
     const on = SKO.filter(k => n[k].on), vals = on.map(k => n[k].v);
     const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 70, mn = vals.length ? Math.min(...vals) : 70;
@@ -174,14 +183,98 @@ window.Game = (function () {
     if (N.m === 0) o.push('<span class="gm-rain"><i class="ti ti-cloud-filled"></i><u></u><u></u><u></u><u></u></span>');
     return o.length ? `<div class="gm-mfx">${o.join('')}</div>` : '';
   }
+  /* ── Реплики: персонаж говорит по состоянию. Сам всплывает только когда поменялся повод, раз в день на повод ── */
+  const SAY = {
+    'low:str': ['Я засидел{ся|ась}. Может, хоть пройдёмся?', 'Мышцы скучают по железу', 'Кости хрустят. Пора размяться', 'Давно не потели вместе', 'Тело просит движения, я серьёзно', 'Шаги тоже считаются, если что'],
+    'low:dis': ['Режим поплыл. Давай хоть одну привычку', 'Привычки сами себя не отметят', 'Без режима я как без будильника', 'Одна галочка, и мне уже легче', 'Чуть-чуть порядка, и я снова в строю'],
+    'low:cap': ['Куда ушли деньги? Я не знаю, и это тревожно', 'Запиши траты, мне так спокойнее', 'Без учёта денег я нервничаю', 'Пара строк в расходах, и я выдохну'],
+    'low:foc': ['В голове туман. Закроем пару задач?', 'Дела копятся, я это чувствую', 'Одна закрытая задача, и уже яснее', 'Теряю фокус. Помоги'],
+    'low:wil': ['Куда мы вообще идём? Напомни цель', 'Запал гаснет. Закроем все квесты дня?', 'Мне нужна маленькая победа', 'Вернём ритм, по одному делу в день'],
+    m4: ['Я в ударе. Не сбавляем', 'Чувствую себя легендой', 'Вот это форма. Так держать', 'Энергии через край', 'Сегодня мы непобедимы', 'Красота. Всё под контролем'],
+    m3: ['Всё ровно. Держим темп', 'Хороший день, чтобы стать сильнее', 'Я готов{|а}. Что сегодня берём?', 'Чувствую себя хорошо', 'Шаг за шагом, и всё получается'],
+    m2: ['Норм, но можно лучше', 'Средненько. Подтянем что-нибудь?', 'Я в порядке. Пока что', 'Есть куда расти, и это хорошо'],
+    m1: ['Что-то я подустал{|а}', 'Давай одно маленькое дело, и станет легче', 'Не лучший период, но мы вытащим'],
+    m0: ['Я выдохся. Помоги мне', 'Всё навалилось. Начнём с малого?', 'Одно дело сегодня, и я оживу'],
+    'r:pr': ['Новый рекорд! Я горжусь нами', 'Видел{|а}, сколько подняли? Это мы'],
+    'r:goal': ['Цель взята! Это было мощно', 'Мы это сделали. Следующая?'],
+    'r:qall': ['Все квесты закрыты. Я доволен{|ьна}', 'День закрыт полностью. Уважаю'],
+    'r:train': ['Вот это тренировка. Чувствую силу', 'После зала я другой человек', 'Пампануло. Кайф', 'Мышцы гудят, и это приятно'],
+    'r:task': ['Минус задача. Голова легче', 'Люблю закрывать дела', 'Список тает, а я расту'],
+    'r:cap': ['Деньги посчитаны, спится лучше', 'Копилка растёт, и я вместе с ней', 'Всё по полочкам. Спокойно'],
+    'r:hab': ['Галочки радуют глаз', 'Режим держим. Уважаю', 'Ещё один день по плану'],
+    vac: ['Отпуск. Я заслужил{|а}', 'Отдыхаем, всё заморожено', 'Перезаряжаюсь. Потом вернусь сильнее'],
+  };
+  function sayCat(S, N) {
+    const today = ymd(new Date()), ks = new Set(S.evs.filter(e => e.day === today).map(e => e.k));
+    if (c_isVac(S, today)) return 'vac';
+    const r = ['pr', 'goal', 'qall', 'train', 'task'].find(k => ks.has(k)) || (['pay', 'piggy', 'spend'].some(k => ks.has(k)) ? 'cap' : '') || (['hab', 'habday'].some(k => ks.has(k)) ? 'hab' : '');
+    if (r) return 'r:' + r;
+    if (N.worst && N.n[N.worst].v < 45) return 'low:' + N.worst;
+    return 'm' + N.m;
+  }
+  const c_isVac = (S, k) => S.c.vacs.some(v => k >= v.from && (!v.to || k <= v.to));
+  const dayNo = () => Math.floor((Date.now() + 3 * 36e5) / 864e5);
+  let _sayTap = 0, _sayTm = null;
+  function sayText(cat, shift) { const L = SAY[cat] || SAY.m3; return sx(L[(dayNo() + (shift || 0)) % L.length]); }
+  function bindSay(mount, S, N) {
+    if (!mount.querySelector('#gm-say')) return;
+    const cat = sayCat(S, N);
+    const show = (t) => { const st = mount.querySelector('.gm-stage'), box = mount.querySelector('#gm-say'); if (!st || !box) return; box.textContent = t; st.classList.add('saying'); box.classList.remove('in'); void box.offsetWidth; box.classList.add('in'); clearTimeout(_sayTm); _sayTm = setTimeout(() => { box.classList.remove('in'); st.classList.remove('saying'); }, 6500); };
+    let shown = []; try { const x = JSON.parse(localStorage.getItem('you_gm_say') || '{}'); shown = x.d === ymd(new Date()) ? (x.c || []) : []; } catch (e) {}
+    if (!shown.includes(cat)) { setTimeout(() => { if (mount.isConnected) show(sayText(cat)); }, 900); try { localStorage.setItem('you_gm_say', JSON.stringify({ d: ymd(new Date()), c: shown.concat([cat]) })); } catch (e) {} }
+    const st = mount.querySelector('.gm-stage'), hero = st.querySelector('.gm-hero') || st; hero.style.cursor = 'pointer';
+    hero.onclick = () => { _sayTap++; show(sayText(cat, _sayTap)); };
+  }
+  /* ── Вещи у ног: появляются, пока сфера выше 80 ── */
+  const PROPS = {
+    wil: '<svg viewBox="0 0 34 72"><ellipse cx="4.5" cy="70" rx="6" ry="2" fill="rgba(0,0,0,.25)"/><rect x="3" y="4" width="3" height="66" rx="1.5" fill="#8792A8"/><g class="gm-flag"><path d="M6 7C14 4 20 12 31 8V26C20 30 14 22 6 25Z" fill="#F2A93B"/><path d="M6 7C14 4 20 12 31 8V12C20 16 14 8 6 11Z" fill="#FFD27A" opacity=".55"/></g><circle cx="4.5" cy="4" r="3" fill="#F2A93B"/></svg>',
+    str: '<svg viewBox="0 0 64 30"><rect x="14" y="13" width="36" height="4" rx="2" fill="#8792A8"/><rect x="6" y="5" width="8" height="20" rx="3" fill="#3A62C9"/><rect x="50" y="5" width="8" height="20" rx="3" fill="#3A62C9"/><rect x="1" y="9" width="6" height="12" rx="2" fill="#60A5FA"/><rect x="57" y="9" width="6" height="12" rx="2" fill="#60A5FA"/><rect x="7.5" y="7" width="2" height="16" rx="1" fill="#fff" opacity=".3"/><rect x="51.5" y="7" width="2" height="16" rx="1" fill="#fff" opacity=".3"/></svg>',
+    cap: '<svg viewBox="0 0 44 34">' + [26, 20, 14, 8].map(y => `<ellipse cx="22" cy="${y + 5}" rx="16" ry="5" fill="#6D4FD6"/><rect x="6" y="${y}" width="32" height="5" fill="#6D4FD6"/><ellipse cx="22" cy="${y}" rx="16" ry="5" fill="#A78BFA"/><ellipse cx="22" cy="${y}" rx="10" ry="3" fill="none" stroke="#DDD3FF" stroke-width="1.2" opacity=".8"/>`).join('') + '</svg>',
+    foc: '<svg viewBox="0 0 60 38"><rect x="8" y="2" width="44" height="29" rx="3" fill="#1E2A4A" stroke="#3B4A72"/><rect x="11" y="5" width="38" height="23" rx="1.5" fill="#0F1730"/><rect x="15" y="10" width="18" height="2.4" rx="1.2" fill="#F0645A"/><rect x="15" y="15" width="26" height="2.4" rx="1.2" fill="#8FA8FF" opacity=".8"/><rect x="15" y="20" width="14" height="2.4" rx="1.2" fill="#8FA8FF" opacity=".5"/><path d="M2 31H58L55 36H5Z" fill="#8792A8"/><rect x="24" y="31" width="12" height="2" rx="1" fill="#5E687E"/></svg>',
+    dis: '<svg viewBox="0 0 40 44"><circle cx="9" cy="9" r="6" fill="#2F9E5B"/><circle cx="31" cy="9" r="6" fill="#2F9E5B"/><path d="M10 38L7 42M30 38L33 42" stroke="#2F9E5B" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="25" r="15" fill="#4ADE80"/><circle cx="20" cy="25" r="11.5" fill="#ECFDF3"/><path d="M20 25V17M20 25L26 28" stroke="#14532D" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="25" r="1.6" fill="#14532D"/></svg>',
+  };
+  const propsOf = (N) => SKO.filter(k => N.n[k].on && N.n[k].v >= 80);
+  function propsHtml(N, fresh) {
+    const ps = propsOf(N); if (!ps.length || isMin()) return '';
+    return `<div class="gm-props">${['wil', 'str', 'cap', 'foc', 'dis'].filter(k => ps.includes(k)).map(k => `<span class="gm-prop p-${k}${fresh.includes(k) ? ' new' : ''}" title="${SK[k].name} выше 80">${PROPS[k]}</span>`).join('')}</div>`;
+  }
+  /* прошлый заход: чтобы шкалы доливались на глазах, а новые вещи появлялись с эффектом */
+  function lastSeen() { try { return JSON.parse(localStorage.getItem('you_gm_nv') || 'null'); } catch (e) { return null; } }
+  function reactNeeds(mount, N, old) {
+    try { localStorage.setItem('you_gm_nv', JSON.stringify({ v: Object.fromEntries(SKO.map(k => [k, N.n[k].on ? N.n[k].v : null])), p: propsOf(N) })); } catch (e) {}
+    if (!old || !old.v) return;
+    const pops = [];
+    SKO.forEach((k, i) => { const o = old.v[k], v = N.n[k].v; if (o == null || !N.n[k].on || o === v) return;
+      const row = mount.querySelectorAll('.gm-nd')[i]; if (row) { row.style.setProperty('--v', o + '%'); setTimeout(() => row.style.setProperty('--v', v + '%'), 450); }
+      if (v > o) pops.push(`<span style="--c:${SK[k].color};--i:${pops.length}">+${v - o} ${SK[k].name}</span>`); });
+    const st = mount.querySelector('.gm-stage');
+    if (pops.length && st) { const box = document.createElement('div'); box.className = 'gm-pops'; box.innerHTML = pops.join(''); st.appendChild(box); st.classList.add('joy'); setTimeout(() => { st.classList.remove('joy'); }, 1300); setTimeout(() => box.remove(), 2600 + pops.length * 250); }
+  }
+  /* черты: новая вспышкой (одна за заход, остальное в «Новое»), потерянная тихо */
+  function traitFlash(k, manual) {
+    overlay(`<div class="gm-rays"></div><div class="gm-trbig" style="--c:${SK[k].color}"><i class="ti ${TRT[k][2]}"></i></div>
+      <div class="gm-flash-k">Новая черта</div><div class="gm-flash-l">${trName(k)}</div><div class="gm-flash-t">${SK[k].name} тает медленнее</div>
+      <p>${sx('Ты месяц держал{|а} ' + SK[k].name.toLowerCase().replace(/а$/, 'у').replace(/я$/, 'ю') + ' выше 80. Черта с тобой, пока не запустишь сферу на 2 недели.')}</p>
+      <button class="gm-btn" data-close>Круто</button>`, { cls: 'gm-lvlup', news: manual ? null : { kind: 'trait', key: 'trait:' + k, k } });
+  }
+  function checkTraits(S, N) {
+    const cur = SKO.filter(k => N.n[k].tr), seen = S.c.seenTraits || [];
+    const got = cur.filter(k => !seen.includes(k)), lost = seen.filter(k => !cur.includes(k));
+    if (!got.length && !lost.length) return;
+    Store.set('game.seenTraits', cur);
+    got.forEach(k => traitFlash(k));
+    lost.forEach(k => addNews({ kind: 'trlost', key: 'trlost:' + k, k }));
+  }
   function needsHtml(S, N) {
     const rows = SKO.map(k => { const x = N.n[k], sk = SK[k];
       const st = x.on ? needSt(k, x.v) : x.why === 'off' ? 'не учитывается' : 'ещё нет записей';
       return `<button class="gm-nd${x.on ? '' : ' off'}${x.on && x.v < 30 ? ' low' : ''}" data-go="${sk.route}" style="--c:${sk.color};--v:${x.on ? x.v : 0}%">
         <span class="gm-ndi"><i class="ti ${sk.ico}"></i></span>
-        <span class="gm-ndm"><span class="gm-ndt"><b>${sk.name}</b><small>${st}</small></span><span class="gm-ndb"><i></i></span>${x.on && x.v < 45 ? `<small class="gm-ndf">${NEED[k].fix}</small>` : ''}</span>
+        <span class="gm-ndm"><span class="gm-ndt"><b>${sk.name}${x.tr ? `<i class="ti ${TRT[k][2]} gm-ndtr" title="${trName(k)}"></i>` : ''}</b><small>${st}</small></span><span class="gm-ndb"><i></i></span>${x.on && x.v < 45 ? `<small class="gm-ndf">${NEED[k].fix}</small>` : x.on && !x.tr && x.hi >= 3 && x.v >= 80 ? `<small class="gm-ndf p">черта «${trName(k)}»: ${x.hi} из ${TR_DAYS} дней</small>` : ''}</span>
         <em>${x.on && x.d > 0 ? '+' + x.d : ''}</em></button>`; }).join('');
-    const ml = N.ml.length ? `<div class="gm-ml">${N.ml.map(m => `<span style="--c:${m.c}"${m.p ? '' : ' class="neg"'}><i class="ti ${m.ico}"></i>${esc(m.t)}</span>`).join('')}</div>` : '';
+    const trs = SKO.filter(k => N.n[k].tr).map(k => ({ t: trName(k), ico: TRT[k][2], c: SK[k].color, p: 1, tr: 1 }));
+    N = Object.assign({}, N, { ml: trs.concat(N.ml) });
+    const ml = N.ml.length ? `<div class="gm-ml">${N.ml.map(m => `<span style="--c:${m.c}"${m.tr ? ' class="tr"' : ''}><i class="ti ${m.ico}"></i>${esc(m.t)}</span>`).join('')}</div>` : '';
     return `<div class="gm-card gm-needs"><div class="gm-h"><b>Состояние</b><span class="gm-mood" style="--c:${N.mood[1]}"><i class="ti ${N.mood[2]}"></i>${N.mood[0]}</span></div>${ml}<div class="gm-ndl">${rows}</div></div>`;
   }
   /* просела потребность: тихая строка в «Новом», не чаще раза в 3 дня на сферу */
@@ -374,7 +467,7 @@ window.Game = (function () {
     /* итоги прошлой недели: один раз за неделю */
     const R = weekRecap(S);
     checkItems(S);
-    try { checkNeeds(S, needs(S)); } catch (e) {}
+    try { const N = needs(S); checkNeeds(S, N); checkTraits(S, N); } catch (e) {}
     if (c.seenWeek !== R.key) { Store.set('game.seenWeek', R.key); if (R.xp > 0 && seen) recapFlash(R); }
   }
   function flash(S, first, newStage, manual) {
@@ -532,7 +625,7 @@ window.Game = (function () {
   /* подсказки к экрану (кнопка «?») */
   const TIPS = [
     { sel: '.gm-stage', t: 'Персонаж', d: 'Растёт каждый уровень: чуть крупнее, ярче контур и аура, новый знак ранга. Цвет ауры от навыка, который ты качаешь больше всего. Облик меняется на 10, 20, 35 и 50 уровне.' },
-    { sel: '.gm-needs', t: 'Состояние', d: 'Как в Sims: пять потребностей от твоих сфер. Все начинают «в форме». Каждый день без дел в сфере шкала понемногу тает, дела её пополняют. От этого меняется персонаж: краски, дыхание, мысли над головой, а когда совсем запустил, сонные «z», туман или тучка. Отпуск всё замораживает, дни отдыха щадят Силу. Ненужную сферу выключи в настройках.' },
+    { sel: '.gm-needs', t: 'Состояние', d: 'Как в Sims: пять потребностей от твоих сфер. Все начинают «в форме». Каждый день без дел в сфере шкала понемногу тает, дела её пополняют. От этого меняется персонаж: краски, дыхание, мысли над головой, а когда совсем запустил, сонные «z», туман или тучка. Сфера выше 80: у ног появляется её вещь. Месяц выше 80: черта, сфера тает медленнее. Нажми на персонажа, он что-нибудь скажет. Отпуск всё замораживает, дни отдыха щадят Силу. Ненужную сферу выключи в настройках.' },
     { sel: '.gm-xpw', t: 'Опыт', d: 'Очки капают сами из того, что ты записываешь: тренировки, привычки, деньги, задачи, цели. Штрафов нет. Каждый следующий уровень чуть дороже.' },
     { sel: '.gm-tiles', t: 'Серия и щиты', d: 'Серия: дни подряд, когда было хоть одно дело в любом разделе. Каждые 7 дней подряд дают щит (до 3), он сам спасёт серию в пропущенный день.' },
     { sel: '.gm-path', t: 'Путь', d: 'Все облики персонажа. Следующие откроются на своём уровне.' },
@@ -637,7 +730,7 @@ window.Game = (function () {
     const qDone = tq.picked ? tq.list.filter(x => x.done).length : 0, qAll = tq.picked && tq.list.length && qDone === tq.list.length;
     const ring = (d, n) => { const f = n ? d / n : 0, C = 2 * Math.PI * 15; return `<svg class="gm-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="b"/><circle cx="18" cy="18" r="15" class="f" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}"/><text x="18" y="22" text-anchor="middle">${d}/${n}</text></svg>`; };
     const fresh = new Set(tq.fresh || []);
-    const N = needs(S);
+    const N = needs(S), old0 = quiet ? null : lastSeen();
     const qRow = (x, pickMode, i) => `<${pickMode ? 'button' : 'div'} class="gm-q${pickMode ? ' pick' + (i < c.qn ? ' on' : '') : x.done ? ' done' + (fresh.has(x.id) ? ' just' : '') : ''}" ${pickMode ? `data-id="${esc(x.id)}"` : `data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"`} style="--c:${(SK[x.sk] || SK.dis).color}"><span class="gm-qi"><i class="ti ${(SK[x.sk] || SK.dis).ico}"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small>${pickMode && N.n[x.sk] && N.n[x.sk].on && N.n[x.sk].v < 45 ? '<u class="gm-qneed">нужно</u>' : ''}${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em><span class="gm-cb"><i class="ti ti-check"></i></span></${pickMode ? 'button' : 'div'}>`;
     const qHtml = !tq.picked
       ? `<div class="gm-card gm-qc"><div class="gm-h"><b>Что берёшь сегодня?</b><span>до ${c.qn}</span></div>
@@ -671,7 +764,7 @@ window.Game = (function () {
       <div class="gm-top gm-bgv" data-bg="${bg}">${fxHtml(bg)}
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
-          <div class="gm-stage" data-mood="${N.m}" style="${growVars(S.L.lvl, ak)};${moodVars(N)}">${moodFx(N)}<div class="gm-sparks">${Array.from({ length: Math.min(20, 3 + Math.round(13 * grow(S.L.lvl).g) + (N.m === 4 ? 4 : 0) - (N.m < 2 ? 3 : 0)) }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
+          <div class="gm-stage" data-mood="${N.m}" style="${growVars(S.L.lvl, ak)};${moodVars(N)}">${moodFx(N)}<div class="gm-say" id="gm-say"></div>${propsHtml(N, old0 ? propsOf(N).filter(k => !toArr(old0.p).includes(k)) : [])}<div class="gm-sparks">${Array.from({ length: Math.min(20, 3 + Math.round(13 * grow(S.L.lvl).g) + (N.m === 4 ? 4 : 0) - (N.m < 2 ? 3 : 0)) }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
           <div class="gm-info">
             <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div>${pipsHtml(S.L.lvl, ak)}<button class="gm-moodc" id="gm-moodc" style="--c:${N.mood[1]}"><i class="ti ${N.mood[2]}"></i>${N.mood[0]}${N.worst && N.n[N.worst].v < 45 ? ' · ' + needSt(N.worst, N.n[N.worst].v) : ''}</button></div>
             <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b data-count="${S.L.need - S.L.into}">${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
@@ -725,6 +818,8 @@ window.Game = (function () {
     mount.querySelectorAll('[data-del]').forEach(b => b.onclick = () => twice(b, '<i class="ti ti-trash"></i>', () => { const cc = cfg(); Store.set('game.rewards', cc.rewards.filter(x => x.id !== b.dataset.del)); render(mount); }));
     if (repairedNow) repFlash(S.s.cur);
     countUp(mount);
+    if (!quiet) reactNeeds(mount, N, old0);
+    bindSay(mount, S, N);
     mount.querySelectorAll('[data-news]').forEach(b => b.onclick = () => { const n = cfg().news.find(x => x.key === b.dataset.news); if (n) openNews(n); });
     const ni = $('#gm-nitems'); if (ni) ni.onclick = () => { Store.set('game.news', cfg().news.filter(x => x.kind !== 'item')); wardrobe(() => render(mount, true)); };
     const nc = $('#gm-nclr'); if (nc) nc.onclick = () => { Store.set('game.news', []); render(mount, true); };
@@ -746,6 +841,8 @@ window.Game = (function () {
     recap: (n) => ({ ico: 'ti-chart-bar', c: '#4A7CFF', t: 'Итоги недели', s: '+' + num(n.R.xp) + ' XP' + (n.R.perfect ? ' · идеальная' : '') }),
     item: (n) => { const it = wrItems(state()).find(i => i.key === n.item); return { ico: 'ti-hanger', c: '#EAB308', t: 'Новое в шкафчике', s: it ? (it.kind === 'bg' ? 'Фон' : 'Рамка') + ' «' + it.name + '»' : '' }; },
     rep: (n) => ({ ico: 'ti-flame', c: '#FB923C', t: 'Серия вернулась', s: n.n + ' ' + pl(n.n, 'день', 'дня', 'дней') }),
+    trait: (n) => SK[n.k] ? ({ ico: TRT[n.k][2], c: SK[n.k].color, t: 'Черта: ' + trName(n.k), s: SK[n.k].name + ' тает медленнее' }) : null,
+    trlost: (n) => SK[n.k] ? ({ ico: TRT[n.k][2], c: '#94A3B8', t: 'Черта ушла: ' + trName(n.k), s: 'вернётся за месяц выше 80' }) : null,
     need: (n) => SK[n.k] ? ({ ico: SK[n.k].ico, c: '#F0645A', t: 'Персонаж: ' + NEED[n.k].st[3], s: NEED[n.k].fix }) : null,
   };
   function openNews(n) {
@@ -757,6 +854,8 @@ window.Game = (function () {
     else if (n.kind === 'item') itemFlash(S, n.item, true);
     else if (n.kind === 'rep') repFlash(n.n, true);
     else if (n.kind === 'need' && SK[n.k]) { Router.go(SK[n.k].route); return; }
+    else if (n.kind === 'trait' && SK[n.k]) traitFlash(n.k, true);
+    else if (n.kind === 'trlost' && SK[n.k]) { Router.go(SK[n.k].route); return; }
     if (_mount && _mount.isConnected) render(_mount, true);
   }
   /* цифры набегают от нуля */

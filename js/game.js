@@ -42,6 +42,26 @@ window.Game = (function () {
   const titleOf = (L) => { let t = TITLES[0]; TITLES.forEach(x => { if (L >= x[0]) t = x; }); return t[1]; };
   const stageOf = (L) => { let s = 0; TITLES.forEach((x, i) => { if (L >= x[0]) s = i; }); return s; };
   const nextStage = (L) => TITLES.find(x => x[0] > L) || null;
+  /* рост внутри облика: каждый уровень чуть крупнее, ярче контур и аура, новый знак ранга */
+  function grow(L) {
+    const s = stageOf(L), a = TITLES[s][0], b = TITLES[s + 1] ? TITLES[s + 1][0] : a + 10;
+    const n = b - a, k = s === 4 ? ((L - a) % 10) + 1 : L - a + 1;
+    return { s, n, k, g: s === 4 ? 1 : (n > 1 ? (k - 1) / (n - 1) : 1), stars: s === 4 ? Math.floor((L - a) / 10) : 0 };
+  }
+  const SKG = { str: 'силы', dis: 'дисциплины', cap: 'капитала', foc: 'фокуса', wil: 'воли' };
+  const TRAIT = { str: ['плечи шире', 'хват крепче', 'спина ровнее', 'руки сильнее'], dis: ['осанка ровнее', 'ритм устойчивее', 'режим крепче'], cap: ['опора надёжнее', 'взгляд спокойнее', 'запас прочнее'], foc: ['взгляд острее', 'голова яснее', 'шаг увереннее'], wil: ['шаг твёрже', 'характер крепче', 'цель ближе'] };
+  /* цвет ауры: навык, который качаешь больше всего за 2 недели */
+  function auraSk(S) {
+    const lim = ymd(new Date(Date.now() - 14 * 864e5)), m = {};
+    S.evs.forEach(e => { if (e.sk && e.day >= lim) m[e.sk] = (m[e.sk] || 0) + (e.xp || 0); });
+    if (!Object.keys(m).length) S.evs.forEach(e => { if (e.sk) m[e.sk] = (m[e.sk] || 0) + (e.xp || 0); });
+    return SKO.reduce((b, k) => (m[k] || 0) > (m[b] || 0) ? k : b, 'str');
+  }
+  const growVars = (L, ak) => { const g = grow(L).g, c = SK[ak].color; return `--hs:${(0.93 + 0.07 * g).toFixed(3)};--gs:${(0.82 + 0.26 * g).toFixed(2)};--ac:${c};--ap:${Math.round(30 + 35 * g)}%;--gz:${Math.round(260 + 100 * g)}px;--rim:${c}${Math.round(30 + 120 * g).toString(16).padStart(2, '0')};--rb:${(3 + 11 * g).toFixed(1)}px`; };
+  function pipsHtml(L, ak) {
+    const r = grow(L);
+    return `<div class="gm-pips"><span class="gm-pipr">${Array.from({ length: r.n }, (_, i) => `<i class="${i < r.k ? 'on' : ''}${i === r.k - 1 ? ' cur' : ''}"></i>`).join('')}</span><small>${r.stars ? '<b>★' + r.stars + '</b> ' : ''}ранг ${r.k} из ${r.n} · <em style="color:${SK[ak].color}">аура ${SKG[ak]}</em></small></div>`;
+  }
   const skillLvl = (xp) => 1 + Math.floor(Math.sqrt(Math.max(0, xp) / 40));
   const skillInto = (xp) => { const l = skillLvl(xp), a = 40 * (l - 1) * (l - 1), b = 40 * l * l; return (xp - a) / (b - a); };
 
@@ -278,12 +298,15 @@ window.Game = (function () {
   }
   function flash(S, first, newStage, manual) {
     if (first) _autoShown = true;
-    overlay(`<div class="gm-rays"></div>${heroImg(S.c.sex, S.stage, 'lg')}
+    const ak = auraSk(S), r = grow(S.L.lvl), tr = TRAIT[ak][S.L.lvl % TRAIT[ak].length];
+    const anim = !first && !newStage && S.L.lvl > 1;
+    const chg = anim ? `<div class="gm-chg"><span><i class="ti ti-arrow-up"></i>крупнее</span><span><i class="ti ti-sun"></i>ярче контур</span><span><i class="ti ti-chevrons-up"></i>ранг ${r.k} из ${r.n}</span><span style="--c:${SK[ak].color}"><i class="ti ${SK[ak].ico}"></i>${tr}</span></div>` : '';
+    overlay(`<div class="gm-rays"></div><div class="gm-grow" style="${growVars(anim ? S.L.lvl - 1 : S.L.lvl, ak)}">${heroImg(S.c.sex, S.stage, 'lg')}</div>
       <div class="gm-flash-k">${first ? 'Твой персонаж' : newStage ? 'Новый облик' : 'Новый уровень'}</div>
       <div class="gm-flash-l">Уровень ${S.L.lvl}</div>
-      <div class="gm-flash-t">${esc(S.title)}</div>
+      <div class="gm-flash-t">${esc(S.title)}</div>${chg}
       <p>${first ? 'Посчитал по всей твоей истории: тренировки, привычки, деньги, задачи и цели. Дальше очки капают сами.' : S.next ? 'До облика «' + esc(S.next[1]) + '» ' + (S.next[0] - S.L.lvl) + ' ' + pl(S.next[0] - S.L.lvl, 'уровень', 'уровня', 'уровней') : 'Высший облик. Легенда.'}</p>
-      <button class="gm-btn" data-close>${first ? 'Посмотреть' : 'Круто'}</button>`, { cls: 'gm-lvlup', confetti: !first, news: first || manual ? null : { kind: 'lvl', key: 'lvl' + S.L.lvl, lvl: S.L.lvl, title: S.title, newStage: !!newStage }, onClose: () => { if (first) Router.go('/hero'); } });
+      <button class="gm-btn" data-close>${first ? 'Посмотреть' : 'Круто'}</button>`, { cls: 'gm-lvlup', confetti: !first, news: first || manual ? null : { kind: 'lvl', key: 'lvl' + S.L.lvl, lvl: S.L.lvl, title: S.title, newStage: !!newStage }, onOpen: (ov) => { if (anim) setTimeout(() => { const g = ov.querySelector('.gm-grow'); if (g) g.setAttribute('style', growVars(S.L.lvl, ak)); }, 650); }, onClose: () => { if (first) Router.go('/hero'); } });
   }
   function streakFlash(n, manual) {
     overlay(`<div class="gm-rays warm"></div><div class="gm-fire"><i class="ti ti-flame"></i>${'<span></span>'.repeat(10)}</div>
@@ -427,7 +450,7 @@ window.Game = (function () {
 
   /* подсказки к экрану (кнопка «?») */
   const TIPS = [
-    { sel: '.gm-stage', t: 'Персонаж', d: 'Растёт вместе с тобой. Облик меняется на 10, 20, 35 и 50 уровне: Новичок, Боец, Воин, Чемпион, Легенда.' },
+    { sel: '.gm-stage', t: 'Персонаж', d: 'Растёт каждый уровень: чуть крупнее, ярче контур и аура, новый знак ранга. Цвет ауры от навыка, который ты качаешь больше всего. Облик меняется на 10, 20, 35 и 50 уровне.' },
     { sel: '.gm-xpw', t: 'Опыт', d: 'Очки капают сами из того, что ты записываешь: тренировки, привычки, деньги, задачи, цели. Штрафов нет. Каждый следующий уровень чуть дороже.' },
     { sel: '.gm-tiles', t: 'Серия и щиты', d: 'Серия: дни подряд, когда было хоть одно дело в любом разделе. Каждые 7 дней подряд дают щит (до 3), он сам спасёт серию в пропущенный день.' },
     { sel: '.gm-path', t: 'Путь', d: 'Все облики персонажа. Следующие откроются на своём уровне.' },
@@ -556,6 +579,7 @@ window.Game = (function () {
     const repairHtml = repair ? `<div class="gm-card gm-repair"><span class="gm-rpi"><i class="ti ti-flame"></i></span><div><b>Верни серию ${repair} ${pl(repair, 'день', 'дня', 'дней')}</b><small>закрой все квесты сегодня</small></div></div>` : '';
     const perfectWk = wk.every(d => S.s.st[ymd(d)] === 'ok');
     const nextLv = S.L.lvl + 1;
+    const ak = auraSk(S);
     const lk = lookOf(S), bg = bgOf(S), fr = frOf(S), wi = wrItems(S), wNew = wi.filter(i => i.ok && !i.base && !c.seenItems.includes(i.key)).length;
     const wrHtml = `<button class="gm-card gm-wr" id="gm-wr"><div class="gm-h"><b>Шкафчик${wNew ? ` <u class="gm-newn">${wNew} ${pl(wNew, 'новое', 'новых', 'новых')}</u>` : ''}</b><span>${wi.filter(i => i.ok).length} из ${wi.length}</span></div>
       <div class="gm-wr-row"><span class="gm-wr-av">${frameWrap(heroImg(c.sex, lk, 'sm'), fr)}</span>
@@ -564,9 +588,9 @@ window.Game = (function () {
       <div class="gm-top gm-bgv" data-bg="${bg}">${fxHtml(bg)}
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
-          <div class="gm-stage"><div class="gm-sparks">${Array.from({ length: 16 }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
+          <div class="gm-stage" style="${growVars(S.L.lvl, ak)}"><div class="gm-sparks">${Array.from({ length: 3 + Math.round(13 * grow(S.L.lvl).g) }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
           <div class="gm-info">
-            <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div></div>
+            <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div>${pipsHtml(S.L.lvl, ak)}</div>
             <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b data-count="${S.L.need - S.L.into}">${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
             <div class="gm-tiles">
               <div class="gm-tile f"><i class="ti ti-flame"></i><b data-count="${S.s.cur}">${S.s.cur}</b><span>${pl(S.s.cur, 'день', 'дня', 'дней')} подряд</span></div>

@@ -36,7 +36,7 @@ window.Tasks = (function () {
   function save(arr) { Store.set('tasks.list', arr.map(t => JSON.parse(JSON.stringify(t)))); }
   const ord = (t) => (t.order != null && isFinite(+t.order)) ? +t.order : +t.createdAt || 0;
   /* в дне сначала задачи со временем (по времени), потом остальные в своём порядке */
-  const byOrd = (x, y) => (x.done - y.done) || ((x.time ? 0 : 1) - (y.time ? 0 : 1)) || (x.time && y.time ? x.time.localeCompare(y.time) : 0) || (ord(x) - ord(y));
+  const byOrd = (x, y) => (x.done - y.done) || ((x.time ? 0 : 1) - (y.time ? 0 : 1)) || (x.time && y.time ? x.time.localeCompare(y.time) : 0) || ((+x.prio || 4) - (+y.prio || 4)) || (ord(x) - ord(y));
   function add(title, date, desc, proj, time, prio) { title = String(title || '').trim().slice(0, 200); if (!title) return; const a = list();
     const same = a.filter(t => (t.date || null) === (date || null)); const mx = same.length ? Math.max(...same.map(ord)) : 0;
     a.push({ id: uid(), title, date: date || null, done: false, createdAt: Date.now(), order: Math.max(mx + 1, Date.now()), prio: [1, 2, 3].includes(prio) ? prio : 4, desc: String(desc || '').trim().slice(0, 2000) || null, proj: proj || null, time: (date && time) || null }); save(a); }
@@ -394,17 +394,21 @@ window.Tasks = (function () {
     const pj = (id) => (projOf(id) || {}).name || '';
     return [AIKit.todayInfo(), 'ПРОЕКТЫ: ' + (projects().map(p => p.name).join(', ') || 'нет'), 'ЗАГРУЗКА ПО ДНЯМ (задач): ' + load,
       'ПРОСРОЧЕНО: ' + (late.map(t => `[${t.id}] ${t.title} (${t.date})`).join('; ') || 'нет'),
-      'ОТКРЫТЫЕ ЗАДАЧИ:\n' + open.slice(0, 80).map(t => `[${t.id}] ${t.title} | ${t.date || 'без даты'}${t.time ? ' ' + t.time : ''} | P${t.prio}${t.proj ? ' | ' + pj(t.proj) : ''}`).join('\n')].join('\n');
+      'ТОЛЬКО ЧТО ДОБАВЛЕНЫ (через помощника): ' + (() => { const ids = toArr((aiHist().filter(m => m.addedIds).slice(-1)[0] || {}).addedIds); const a = all.filter(t => ids.includes(t.id)); return a.length ? a.map(t => `[${t.id}] ${t.title}`).join('; ') : 'нет'; })(),
+      'ОТКРЫТЫЕ ЗАДАЧИ:\n' + open.slice().sort((x, y) => (+y.createdAt || 0) - (+x.createdAt || 0)).slice(0, 150).map(t => `[${t.id}] ${t.title} | ${t.date || 'без даты'}${t.time ? ' ' + t.time : ''} | P${t.prio}${t.proj ? ' | ' + pj(t.proj) : ''}`).join('\n')].join('\n');
   }
   function aiPanel(redraw, prefill, focusEnd) {
     if (!window.AIKit) return;
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay tk-ov ' + themeCls();
     let busy = false, img = null;
     const saveHist = (h) => Store.set('tasks.ai', h.slice(-20).map(m => JSON.parse(JSON.stringify(m))));
-    const propHtml = (m, i) => { const P = m.prop || {}, ts = toArr(P.tasks), mv = toArr(P.moves); if (!ts.length && !mv.length) return '';
+    const propHtml = (m, i) => { const P = m.prop || {}, ts = toArr(P.tasks), mv = toArr(P.moves), ed = toArr(P.edits), dl = toArr(P.dels); if (!ts.length && !mv.length && !ed.length && !dl.length) return '';
       return `<div class="tk-ai-prop${m.applied ? ' done' : ''}">${ts.map((t, k) => `<label class="tk-ai-t"><input type="checkbox" data-t="${i}:${k}" ${m.applied ? 'disabled' : 'checked'}><div><b>${esc(t.title)}</b><span>${t.date ? dayLabel(t.date) : 'без срока'}${t.time ? ' ' + esc(t.time) : ''}${t.prio && t.prio < 4 ? ' · P' + t.prio : ''}${t.proj ? ' · ' + esc(t.proj) : ''}${toArr(t.subs).length ? ' · подзадач: ' + toArr(t.subs).length : ''}</span></div></label>`).join('')}
         ${mv.map((x, k) => { const t = list().find(y => y.id === x.id); return t ? `<label class="tk-ai-t mv"><input type="checkbox" data-m="${i}:${k}" ${m.applied ? 'disabled' : 'checked'}><div><b>Перенести «${esc(t.title)}»</b><span>на ${dayLabel(x.date).toLowerCase()}</span></div></label>` : ''; }).join('')}
-        ${m.applied ? '<div class="tk-ai-ok"><i class="ti ti-check"></i>Добавлено</div>' : `<button class="tk-btn red" data-apply="${i}">Добавить в задачи</button>`}</div>`; };
+        ${ed.map((x, k) => { const t = list().find(y => y.id === x.id); if (!t) return ''; const ch = [x.title && x.title !== t.title ? '«' + esc(x.title) + '»' : '', x.date ? dayLabel(x.date).toLowerCase() : '', x.time ? esc(x.time) : '', x.prio ? 'P' + x.prio : ''].filter(Boolean).join(' · ');
+          return `<label class="tk-ai-t mv"><input type="checkbox" data-e="${i}:${k}" ${m.applied ? 'disabled' : 'checked'}><div><b>Изменить «${esc(t.title)}»</b><span>${ch || 'без изменений'}</span></div></label>`; }).join('')}
+        ${dl.map((id, k) => { const t = list().find(y => y.id === id); return t ? `<label class="tk-ai-t del"><input type="checkbox" data-d="${i}:${k}" ${m.applied ? 'disabled' : 'checked'}><div><b>Удалить «${esc(t.title)}»</b><span>${t.date ? dayLabel(t.date) : 'без срока'}</span></div></label>` : ''; }).join('')}
+        ${m.applied ? '<div class="tk-ai-ok"><i class="ti ti-check"></i>Готово</div>' : `<button class="tk-btn red" data-apply="${i}">${ts.length ? 'Добавить в задачи' : dl.length && !ed.length && !mv.length ? 'Удалить' : 'Применить'}</button>`}</div>`; };
     const draw = () => {
       const h = aiHist();
       ov.innerHTML = `<div class="tk-ai"><div class="tk-tm-h"><b><i class="ti ti-sparkles"></i> Помощник</b><button class="tk-x" data-close aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
@@ -425,12 +429,17 @@ window.Tasks = (function () {
         const h0 = aiHist().concat([{ role: 'user', text: text || 'Разбери скрин', img: img ? 1 : null, ts: Date.now() }]); saveHist(h0);
         const im = img; img = null; busy = true; draw();
         try {
-          const d = await AIKit.call({ mode: 'tasks', context: aiCtx(), image: im || undefined, messages: h0.slice(-6).map(m => ({ role: m.role, text: m.role === 'user' ? m.text : (m.text + (m.prop ? '\n' + JSON.stringify({ tasks: m.prop.tasks || [] }).slice(0, 1500) : '')) })) });
+          const d = await AIKit.call({ mode: 'tasks', context: aiCtx(), image: im || undefined, messages: h0.slice(-6).map(m => ({ role: m.role, text: m.role === 'user' ? m.text : (m.text + (m.prop ? '\n' + JSON.stringify({ tasks: m.prop.tasks || [] }).slice(0, 1500) : '') + (m.addedIds ? '\nДобавлены задачи с id: ' + toArr(m.addedIds).join(', ') : '')) })) });
           const js = AIKit.json(d.text) || { reply: d.text, tasks: [], moves: [] };
           const okD = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : null, okT = (v) => /^\d{2}:\d{2}$/.test(v || '') ? v : null;
           const prop = { tasks: toArr(js.tasks).filter(t => t && t.title).slice(0, 40).map(t => ({ title: String(t.title).slice(0, 200), date: okD(t.date), time: okT(t.time), prio: [1, 2, 3, 4].includes(+t.prio) ? +t.prio : 4, proj: t.proj ? String(t.proj).slice(0, 40) : null, subs: toArr(t.subs).map(String).filter(Boolean).slice(0, 10) })),
-            moves: toArr(js.moves).filter(x => x && x.id && okD(x.date)).slice(0, 40) };
-          saveHist(aiHist().concat([{ role: 'assistant', text: String(js.reply || 'Готово').slice(0, 2000), prop: prop.tasks.length || prop.moves.length ? prop : null, ts: Date.now() }]));
+            moves: toArr(js.moves).filter(x => x && x.id && okD(x.date)).slice(0, 40),
+            edits: toArr(js.edits).filter(x => x && x.id && list().some(t => t.id === x.id)).slice(0, 60).map(x => ({ id: String(x.id), title: x.title ? String(x.title).slice(0, 200) : null, date: okD(x.date), time: okT(x.time), prio: [1, 2, 3, 4].includes(+x.prio) ? +x.prio : null })),
+            dels: toArr(js.dels).map(String).filter(id => list().some(t => t.id === id)).slice(0, 80) };
+          const any = prop.tasks.length || prop.moves.length || prop.edits.length || prop.dels.length;
+          let rep = String(js.reply || '').slice(0, 2000);
+          if (!any && (!rep || /^готово\.?$/i.test(rep.trim()))) rep = 'Не нашёл, какие задачи менять. Напиши название или дату, и я сделаю.';
+          saveHist(aiHist().concat([{ role: 'assistant', text: rep || 'Готово', prop: any ? prop : null, ts: Date.now() }]));
         } catch (e) { saveHist(aiHist().concat([{ role: 'assistant', text: AIKit.errText(e), ts: Date.now() }])); }
         busy = false; draw();
       };
@@ -438,15 +447,18 @@ window.Tasks = (function () {
       ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && innerWidth > 900) { e.preventDefault(); send(); } });
       ov.querySelectorAll('[data-apply]').forEach(b => b.onclick = () => {
         const i = +b.dataset.apply, h = aiHist(), m = h[i]; if (!m || !m.prop) return;
-        const before = list(); let n = 0, mv = 0;
+        const before = list(); let n = 0, mv = 0, ne = 0, nd = 0; const added = [];
         toArr(m.prop.tasks).forEach((t, k) => { const c = ov.querySelector(`[data-t="${i}:${k}"]`); if (!c || !c.checked) return;
           let pid = null; if (t.proj) { const ex = projects().find(p => p.name.toLowerCase() === t.proj.toLowerCase()); if (ex) pid = ex.id; }
           add(t.title, t.date, '', pid, t.time, t.prio);
-          if (t.subs && t.subs.length) { const a = list(), last = a[a.length - 1]; if (last) patch(last.id, { subs: t.subs.map(x => ({ id: uid(), title: x.slice(0, 200), done: false })) }); }
+          { const a = list(), last = a[a.length - 1]; if (last) { added.push(last.id); if (t.subs && t.subs.length) patch(last.id, { subs: t.subs.map(x => ({ id: uid(), title: x.slice(0, 200), done: false })) }); } }
           n++; });
         toArr(m.prop.moves).forEach((x, k) => { const c = ov.querySelector(`[data-m="${i}:${k}"]`); if (!c || !c.checked) return; patch(x.id, { date: x.date }); mv++; });
-        m.applied = true; saveHist(h); draw(); redraw();
-        toast((n ? 'Добавлено задач: ' + n : '') + (n && mv ? ', ' : '') + (mv ? 'перенесено: ' + mv : '') || 'Готово', before, redraw);
+        toArr(m.prop.edits).forEach((x, k) => { const c = ov.querySelector(`[data-e="${i}:${k}"]`); if (!c || !c.checked) return; const p = {};
+          if (x.title) p.title = x.title; if (x.date) p.date = x.date; if (x.time) p.time = x.time; if (x.prio) p.prio = x.prio; if (Object.keys(p).length) { patch(x.id, p); ne++; } });
+        toArr(m.prop.dels).forEach((id, k) => { const c = ov.querySelector(`[data-d="${i}:${k}"]`); if (!c || !c.checked) return; remove(id); nd++; });
+        m.applied = true; if (added.length) m.addedIds = added; saveHist(h); draw(); redraw();
+        toast([n ? 'добавлено: ' + n : '', mv ? 'перенесено: ' + mv : '', ne ? 'изменено: ' + ne : '', nd ? 'удалено: ' + nd : ''].filter(Boolean).join(', ').replace(/^./, c => c.toUpperCase()) || 'Готово', before, redraw);
       });
       if (prefill != null) { ta.value = prefill; prefill = null; }
       setTimeout(() => { ta.focus(); if (focusEnd) ta.setSelectionRange(ta.value.length, ta.value.length); }, 50);

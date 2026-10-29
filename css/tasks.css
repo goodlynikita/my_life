@@ -356,3 +356,4 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 .tk-col .tk-card.tk-due { border-color: color-mix(in srgb, var(--t-acc) 45%, var(--t-line)); background: color-mix(in srgb, var(--t-acc) 6%, var(--t-card)); box-shadow: inset 3px 0 0 var(--t-acc), var(--t-shadow); }
 .tk-list .tk-card.tk-due { background: color-mix(in srgb, var(--t-acc) 5%, transparent); padding-left: 10px; margin-left: -10px; border-radius: 6px 6px 0 0; }
 .tk-card.tk-due .tk-m.late { font-weight: 600; }
+.tk-ai-t.del b{color:#DC4C3E}

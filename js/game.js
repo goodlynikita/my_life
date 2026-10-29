@@ -31,7 +31,7 @@ window.Game = (function () {
   function cfg() { const g = (Store.get() || {}).game || {}; return { on: g.on !== false, sex: g.sex === 'f' ? 'f' : 'm', qn: [2, 3, 5].includes(+g.qn) ? +g.qn : 3, rest: toArr(g.rest).map(Number).filter(n => n >= 0 && n <= 6), vacs: toArr(g.vacs).filter(v => v && v.from), quests: (g.quests && typeof g.quests === 'object') ? g.quests : {}, seenLvl: +g.seenLvl || 0,
     repairs: toArr(g.repairs).map(String), seenSt: g.seenSt == null ? null : +g.seenSt || 0, seenWeek: g.seenWeek || null,
     rewards: toArr(g.rewards).filter(r => r && r.id && r.name), bought: toArr(g.bought).filter(b => b && b.at), shopFrom: g.shopFrom || null,
-    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String) }; }
+    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String), needsOff: toArr(g.needsOff).map(String), seenNeed: (g.seenNeed && typeof g.seenNeed === 'object') ? g.seenNeed : {} }; }
   /* открыт всем, кто вошёл; скрыть с главной: меню «···» → Персонаж */
   const avail = () => { try { return !!(window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser()); } catch (e) { return false; } };
   const on = () => avail() && cfg().on;
@@ -113,6 +113,86 @@ window.Game = (function () {
       if (ids.length && ids.every(id => done[id])) add(day, 'wil', 50, 'Все квесты дня', 'qall');
       if (q.chest && q.chest.kind === 'xp') add(day, 'wil', +q.chest.xp || 0, q.chest.rare ? 'Редкий сундук' : 'Сундук дня', 'chest'); });
     return out;
+  }
+
+  /* ── Состояние как в Sims: 5 потребностей от сфер. Каждый стартует с 70 («в форме»), с первого своего дела.
+     Каждый прожитый день без дел убывает, дела пополняют (до 100). Отпуск замораживает, дни отдыха щадят Силу.
+     Сфера без единой записи или выключенная в настройках на настроение не влияет ── */
+  const NEED = {
+    str: { decay: 9, rest: 3, st: ['заряжен', 'в тонусе', 'засиделся', 'тело просит движения'], fix: 'тренировка, теннис или шаги' },
+    dis: { decay: 14, st: ['железный режим', 'режим держится', 'режим поплыл', 'всё вразнос'], fix: 'отметь привычки дня' },
+    cap: { decay: 6, st: ['спокоен за деньги', 'деньги под контролем', 'траты без учёта', 'тревожно за деньги'], fix: 'запиши траты или оплату' },
+    foc: { decay: 10, st: ['ясная голова', 'в фокусе', 'дела копятся', 'голова в тумане'], fix: 'закрой пару задач' },
+    wil: { decay: 6, st: ['горит целью', 'держит курс', 'теряет запал', 'потерял цель'], fix: 'закрой все квесты дня' },
+  };
+  const NGAIN = { train: 35, steps: 10, pr: 15, meas: 10, habday: 20, pay: 25, piggy: 25, goal: 60, qall: 25, quest: 8, chest: 0 };
+  const gainOf = (e) => e.k === 'hab' ? Math.round(e.xp * 0.6) : e.k === 'spend' ? Math.round(e.xp * 1.2) : e.k === 'task' ? (e.xp >= 20 ? 18 : 12) : (NGAIN[e.k] != null ? NGAIN[e.k] : 10);
+  const needSt = (k, v) => NEED[k].st[v >= 80 ? 0 : v >= 55 ? 1 : v >= 30 ? 2 : 3];
+  const MOODS = [['Выдохся', '#F0645A', 'ti-mood-sad'], ['Устал', '#F2A93B', 'ti-mood-empty'], ['Норм', '#94A3B8', 'ti-mood-smile'], ['В форме', '#4A7CFF', 'ti-mood-happy'], ['В ударе', '#4ADE80', 'ti-bolt']];
+  function needs(S) {
+    const c = S.c, today = ymd(new Date()), per = {}, first = {};
+    const put = (d, k, g) => { (per[d] = per[d] || {})[k] = (per[d][k] || 0) + g; if (!first[k] || d < first[k]) first[k] = d; };
+    S.evs.forEach(e => { const g = gainOf(e); if (g > 0 && SK[e.sk]) put(e.day, e.sk, g); });
+    S.s.act.forEach(d => put(d, 'wil', 8)); /* любой день с делом держит Волю */
+    const isVac = (k) => c.vacs.some(v => k >= v.from && (!v.to || k <= v.to));
+    const lim = ymd(new Date(Date.now() - 60 * 864e5)), n = {};
+    SKO.forEach(k => {
+      if (!first[k]) { n[k] = { on: false, why: 'new', v: 70, d: 0 }; return; }
+      let v = 70, y = 70;
+      for (let d = fromYmd(first[k] < lim ? lim : first[k]); ymd(d) <= today; d.setDate(d.getDate() + 1)) {
+        const key = ymd(d), g = Math.min(k === 'wil' ? 90 : 60, (per[key] || {})[k] || 0);
+        if (key === today) { y = v; v = Math.min(100, v + g); break; }
+        v = Math.min(100, v + g);
+        if (!isVac(key)) v -= (k === 'str' && c.rest.includes(d.getDay())) ? NEED.str.rest : NEED[k].decay;
+        v = Math.max(5, v);
+      }
+      n[k] = { on: !c.needsOff.includes(k), why: c.needsOff.includes(k) ? 'off' : '', v: Math.round(v), d: Math.round(v - y) };
+    });
+    const on = SKO.filter(k => n[k].on), vals = on.map(k => n[k].v);
+    const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 70, mn = vals.length ? Math.min(...vals) : 70;
+    /* мудлеты: свежие события дают плюс к настроению, провалы видно отдельно */
+    const y1 = ymd(new Date(Date.now() - 864e5)), rec = S.evs.filter(e => e.day >= y1), ml = [];
+    if (rec.some(e => e.k === 'pr')) ml.push({ t: 'Гордится рекордом', ico: 'ti-trophy', c: '#60A5FA', p: 1 });
+    if (rec.some(e => e.k === 'goal')) ml.push({ t: 'Цель взята', ico: 'ti-flag-3', c: '#F2A93B', p: 1 });
+    if (rec.some(e => e.k === 'qall')) ml.push({ t: 'Всё закрыл', ico: 'ti-star', c: '#8B5CF6', p: 1 });
+    if (S.s.cur >= 7) ml.push({ t: S.s.cur + ' ' + pl(S.s.cur, 'день', 'дня', 'дней') + ' подряд', ico: 'ti-flame', c: '#FB923C', p: 1 });
+    if (isVac(today)) ml.push({ t: 'В отпуске', ico: 'ti-beach', c: '#38BDF8', p: 1 });
+    const score = Math.min(100, Math.round(avg * 0.6 + mn * 0.4 + ml.filter(m => m.p).length * 4));
+    const m = score >= 85 ? 4 : score >= 65 ? 3 : score >= 45 ? 2 : score >= 25 ? 1 : 0;
+    const worst = on.slice().sort((a, b) => n[a].v - n[b].v)[0] || null;
+    return { n, on, score, m, mood: MOODS[m], ml, worst };
+  }
+  /* как состояние меняет персонажа: краски, дыхание, аура */
+  const moodVars = (N) => `--ms:${[0.5, 0.72, 0.9, 1, 1.12][N.m]};--mb:${[0.8, 0.9, 0.97, 1, 1.04][N.m]};--mt:${[7, 6, 5, 4.6, 3.4][N.m]}s;--mk:${[0.35, 0.6, 0.85, 1, 1.25][N.m]}${N.m < 2 ? ';--rim:rgba(120,130,150,.25)' : ''}`;
+  /* эффекты над головой: мысль о самой просевшей потребности, сонные «z», туман, тучка */
+  function moodFx(N) {
+    const w = N.worst, low = w && N.n[w].v < 45, o = [];
+    if (low) o.push(`<span class="gm-think" style="--c:${SK[w].color}"><i class="ti ${SK[w].ico}"></i></span>`);
+    else if (N.m === 4) o.push(`<span class="gm-think happy" style="--c:#4ADE80"><i class="ti ti-bolt"></i></span>`);
+    if (N.n.str.on && N.n.str.v < 30) o.push('<span class="gm-zz"><b>z</b><b>z</b><b>z</b></span>');
+    if (N.n.foc.on && N.n.foc.v < 30) o.push('<span class="gm-fog"><i></i><i></i></span>');
+    if (N.m === 0) o.push('<span class="gm-rain"><i class="ti ti-cloud-filled"></i><u></u><u></u><u></u><u></u></span>');
+    return o.length ? `<div class="gm-mfx">${o.join('')}</div>` : '';
+  }
+  function needsHtml(S, N) {
+    const rows = SKO.map(k => { const x = N.n[k], sk = SK[k];
+      const st = x.on ? needSt(k, x.v) : x.why === 'off' ? 'не учитывается' : 'ещё нет записей';
+      return `<button class="gm-nd${x.on ? '' : ' off'}${x.on && x.v < 30 ? ' low' : ''}" data-go="${sk.route}" style="--c:${sk.color};--v:${x.on ? x.v : 0}%">
+        <span class="gm-ndi"><i class="ti ${sk.ico}"></i></span>
+        <span class="gm-ndm"><span class="gm-ndt"><b>${sk.name}</b><small>${st}</small></span><span class="gm-ndb"><i></i></span>${x.on && x.v < 45 ? `<small class="gm-ndf">${NEED[k].fix}</small>` : ''}</span>
+        <em>${x.on && x.d > 0 ? '+' + x.d : ''}</em></button>`; }).join('');
+    const ml = N.ml.length ? `<div class="gm-ml">${N.ml.map(m => `<span style="--c:${m.c}"${m.p ? '' : ' class="neg"'}><i class="ti ${m.ico}"></i>${esc(m.t)}</span>`).join('')}</div>` : '';
+    return `<div class="gm-card gm-needs"><div class="gm-h"><b>Состояние</b><span class="gm-mood" style="--c:${N.mood[1]}"><i class="ti ${N.mood[2]}"></i>${N.mood[0]}</span></div>${ml}<div class="gm-ndl">${rows}</div></div>`;
+  }
+  /* просела потребность: тихая строка в «Новом», не чаще раза в 3 дня на сферу */
+  function checkNeeds(S, N) {
+    const c = S.c, today = ymd(new Date()), lim = ymd(new Date(Date.now() - 3 * 864e5)), seen = Object.assign({}, c.seenNeed); let ch = false;
+    /* одна строка на всё: самая просевшая сфера */
+    const w = N.worst;
+    if (w && N.n[w].v < 30 && !(seen.all && seen.all > lim)) { seen.all = today; ch = true; addNews({ kind: 'need', key: 'need', k: w }); }
+    const rm = c.news.filter(x => x.kind === 'need' && (!w || N.n[w].v >= 30));
+    if (rm.length) Store.set('game.news', cfg().news.filter(x => !rm.some(r => r.key === x.key)));
+    if (ch) Store.set('game.seenNeed', seen);
   }
 
   /* ── Серия: любое дело за день; щиты копятся (1 за 7 дней подряд, до 3); дни отдыха и отпуск не ломают ── */
@@ -219,10 +299,10 @@ window.Game = (function () {
   function homeHtml() {
     if (!on()) return '';
     const S = state(), tq = todayQuests(), qd = tq.picked ? tq.list.filter(x => x.done).length : 0, qn = tq.picked ? tq.list.length : 0;
-    const pct = Math.round(S.L.into / S.L.need * 100);
+    const pct = Math.round(S.L.into / S.L.need * 100), N = needs(S);
     return `<button class="gm-bar" id="gm-bar" aria-label="Персонаж">
-      <span class="gm-bar-av">${frameWrap(S.c.mode === 'min' ? `<div class="gm-hero sm gm-mini" style="--ec:${GLOW[lookOf(S)]};--p:${pct}"><b>${S.L.lvl}</b></div>` : heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}${S.c.news.length ? '<span class="gm-bar-dot"></span>' : ''}</span>
-      <span class="gm-bar-m"><span class="gm-bar-t"><b>${esc(S.title)}</b><span>${S.L.lvl} уровень</span></span>
+      <span class="gm-bar-av" style="${moodVars(N)}">${frameWrap(S.c.mode === 'min' ? `<div class="gm-hero sm gm-mini" style="--ec:${GLOW[lookOf(S)]};--p:${pct}"><b>${S.L.lvl}</b></div>` : heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}${S.c.news.length ? '<span class="gm-bar-dot"></span>' : ''}</span>
+      <span class="gm-bar-m"><span class="gm-bar-t"><b>${esc(S.title)}</b><span>${S.L.lvl} уровень</span><span class="gm-bar-md" style="--c:${N.mood[1]}">${N.mood[0]}</span></span>
         <span class="gm-bar-s">${tq.picked ? 'Квесты ' + qd + ' из ' + qn + (qd === qn ? ', все закрыты' : '') : 'Выбери квесты на сегодня'}${S.todayXp ? ' · <b>+' + num(S.todayXp) + ' XP</b>' : ''}</span></span>
       ${S.s.cur ? `<span class="gm-bar-r"><b><i class="ti ti-flame"></i>${S.s.cur}</b><small>${pl(S.s.cur, 'день', 'дня', 'дней')}</small></span>` : ''}
       <span class="gm-bar-line"><i style="width:${pct}%"></i></span></button>`;
@@ -294,6 +374,7 @@ window.Game = (function () {
     /* итоги прошлой недели: один раз за неделю */
     const R = weekRecap(S);
     checkItems(S);
+    try { checkNeeds(S, needs(S)); } catch (e) {}
     if (c.seenWeek !== R.key) { Store.set('game.seenWeek', R.key); if (R.xp > 0 && seen) recapFlash(R); }
   }
   function flash(S, first, newStage, manual) {
@@ -451,6 +532,7 @@ window.Game = (function () {
   /* подсказки к экрану (кнопка «?») */
   const TIPS = [
     { sel: '.gm-stage', t: 'Персонаж', d: 'Растёт каждый уровень: чуть крупнее, ярче контур и аура, новый знак ранга. Цвет ауры от навыка, который ты качаешь больше всего. Облик меняется на 10, 20, 35 и 50 уровне.' },
+    { sel: '.gm-needs', t: 'Состояние', d: 'Как в Sims: пять потребностей от твоих сфер. Все начинают «в форме». Каждый день без дел в сфере шкала понемногу тает, дела её пополняют. От этого меняется персонаж: краски, дыхание, мысли над головой, а когда совсем запустил, сонные «z», туман или тучка. Отпуск всё замораживает, дни отдыха щадят Силу. Ненужную сферу выключи в настройках.' },
     { sel: '.gm-xpw', t: 'Опыт', d: 'Очки капают сами из того, что ты записываешь: тренировки, привычки, деньги, задачи, цели. Штрафов нет. Каждый следующий уровень чуть дороже.' },
     { sel: '.gm-tiles', t: 'Серия и щиты', d: 'Серия: дни подряд, когда было хоть одно дело в любом разделе. Каждые 7 дней подряд дают щит (до 3), он сам спасёт серию в пропущенный день.' },
     { sel: '.gm-path', t: 'Путь', d: 'Все облики персонажа. Следующие откроются на своём уровне.' },
@@ -555,10 +637,11 @@ window.Game = (function () {
     const qDone = tq.picked ? tq.list.filter(x => x.done).length : 0, qAll = tq.picked && tq.list.length && qDone === tq.list.length;
     const ring = (d, n) => { const f = n ? d / n : 0, C = 2 * Math.PI * 15; return `<svg class="gm-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="b"/><circle cx="18" cy="18" r="15" class="f" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}"/><text x="18" y="22" text-anchor="middle">${d}/${n}</text></svg>`; };
     const fresh = new Set(tq.fresh || []);
-    const qRow = (x, pickMode, i) => `<${pickMode ? 'button' : 'div'} class="gm-q${pickMode ? ' pick' + (i < c.qn ? ' on' : '') : x.done ? ' done' + (fresh.has(x.id) ? ' just' : '') : ''}" ${pickMode ? `data-id="${esc(x.id)}"` : `data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"`} style="--c:${(SK[x.sk] || SK.dis).color}"><span class="gm-qi"><i class="ti ${(SK[x.sk] || SK.dis).ico}"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small>${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em><span class="gm-cb"><i class="ti ti-check"></i></span></${pickMode ? 'button' : 'div'}>`;
+    const N = needs(S);
+    const qRow = (x, pickMode, i) => `<${pickMode ? 'button' : 'div'} class="gm-q${pickMode ? ' pick' + (i < c.qn ? ' on' : '') : x.done ? ' done' + (fresh.has(x.id) ? ' just' : '') : ''}" ${pickMode ? `data-id="${esc(x.id)}"` : `data-go="${esc(SK[x.sk] ? SK[x.sk].route : '')}"`} style="--c:${(SK[x.sk] || SK.dis).color}"><span class="gm-qi"><i class="ti ${(SK[x.sk] || SK.dis).ico}"></i></span><span class="gm-qm"><b>${esc(x.t)}</b><small>${pickMode && N.n[x.sk] && N.n[x.sk].on && N.n[x.sk].v < 45 ? '<u class="gm-qneed">нужно</u>' : ''}${esc((SK[x.sk] || SK.dis).name)}${x.s ? ' · ' + esc(x.s) : ''}</small></span><em>+${x.xp}</em><span class="gm-cb"><i class="ti ti-check"></i></span></${pickMode ? 'button' : 'div'}>`;
     const qHtml = !tq.picked
       ? `<div class="gm-card gm-qc"><div class="gm-h"><b>Что берёшь сегодня?</b><span>до ${c.qn}</span></div>
-          <div class="gm-ql">${tq.cands.map((x, i) => qRow(x, true, i)).join('')}</div>
+          <div class="gm-ql">${tq.cands.map((x, i) => [x, i]).sort((a, b) => { const va = N.n[a[0].sk] && N.n[a[0].sk].on ? N.n[a[0].sk].v : 70, vb = N.n[b[0].sk] && N.n[b[0].sk].on ? N.n[b[0].sk].v : 70; return (va < 45) === (vb < 45) ? a[1] - b[1] : va < 45 ? -1 : 1; }).map((p, i) => qRow(p[0], true, i)).join('')}</div>
           <button class="gm-btn" id="gm-take"><i class="ti ti-swords"></i> Беру</button></div>`
       : `<div class="gm-card gm-qc"><div class="gm-h gm-hq"><b>Квесты дня</b>${ring(qDone, tq.list.length)}</div>
           <div class="gm-ql">${tq.list.map(x => qRow(x, false)).join('')}</div>
@@ -588,9 +671,9 @@ window.Game = (function () {
       <div class="gm-top gm-bgv" data-bg="${bg}">${fxHtml(bg)}
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
-          <div class="gm-stage" style="${growVars(S.L.lvl, ak)}"><div class="gm-sparks">${Array.from({ length: 3 + Math.round(13 * grow(S.L.lvl).g) }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
+          <div class="gm-stage" data-mood="${N.m}" style="${growVars(S.L.lvl, ak)};${moodVars(N)}">${moodFx(N)}<div class="gm-sparks">${Array.from({ length: Math.min(20, 3 + Math.round(13 * grow(S.L.lvl).g) + (N.m === 4 ? 4 : 0) - (N.m < 2 ? 3 : 0)) }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
           <div class="gm-info">
-            <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div>${pipsHtml(S.L.lvl, ak)}</div>
+            <div class="gm-who">${c.mode === 'min' ? '' : `<div class="gm-lvl"><span>${S.L.lvl}</span> уровень</div>`}<div class="gm-title">${esc(S.title)}</div>${pipsHtml(S.L.lvl, ak)}<button class="gm-moodc" id="gm-moodc" style="--c:${N.mood[1]}"><i class="ti ${N.mood[2]}"></i>${N.mood[0]}${N.worst && N.n[N.worst].v < 45 ? ' · ' + needSt(N.worst, N.n[N.worst].v) : ''}</button></div>
             <div class="gm-xpw"><div class="gm-xpt"><span>до ${nextLv} ур.</span><b data-count="${S.L.need - S.L.into}">${num(S.L.need - S.L.into)} XP</b></div><div class="gm-xp lg"><i style="width:${pct}%"></i></div><div class="gm-xps"><span>${num(S.L.into)} из ${num(S.L.need)}</span><span>${S.next ? esc(S.next[1]) + ' на ' + S.next[0] + ' ур.' : 'высший облик'}</span></div></div>
             <div class="gm-tiles">
               <div class="gm-tile f"><i class="ti ti-flame"></i><b data-count="${S.s.cur}">${S.s.cur}</b><span>${pl(S.s.cur, 'день', 'дня', 'дней')} подряд</span></div>
@@ -603,7 +686,7 @@ window.Game = (function () {
       </div>
       <div class="gm-body">
         <div class="gm-col">
-          ${newsHtml}${repairHtml}${qHtml}
+          ${newsHtml}${repairHtml}${needsHtml(S, N)}${qHtml}
           <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>лучший: ${SK[SKO[lv.indexOf(Math.max(...lv))]].name}</span></div>
             <div class="gm-skw">${radar(lv)}<div class="gm-skl">${skHtml}</div></div></div>
           ${shopHtml}
@@ -627,6 +710,7 @@ window.Game = (function () {
     $('#gm-set').onclick = () => settings(() => render(mount));
     $('#gm-help').onclick = () => { if (window.Tour && Tour.play) Tour.play(TIPS.filter(x => document.querySelector(x.sel)), 'screen:/hero'); };
     mount.querySelectorAll('[data-go]').forEach(b => { if (b.dataset.go) b.onclick = () => Router.go(b.dataset.go); });
+    const mc = mount.querySelector('#gm-moodc'); if (mc) mc.onclick = () => { const t = mount.querySelector('.gm-needs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
     mount.querySelectorAll('.gm-q.pick').forEach(b => b.onclick = () => { const onN = mount.querySelectorAll('.gm-q.pick.on').length; if (!b.classList.contains('on') && onN >= c.qn) return; b.classList.toggle('on'); });
     const tk = $('#gm-take'); if (tk) tk.onclick = () => { const ids = [...mount.querySelectorAll('.gm-q.pick.on')].map(b => b.dataset.id); if (!ids.length) return; pick(ids); render(mount); };
     $('#gm-wr').onclick = () => wardrobe(() => render(mount));
@@ -662,6 +746,7 @@ window.Game = (function () {
     recap: (n) => ({ ico: 'ti-chart-bar', c: '#4A7CFF', t: 'Итоги недели', s: '+' + num(n.R.xp) + ' XP' + (n.R.perfect ? ' · идеальная' : '') }),
     item: (n) => { const it = wrItems(state()).find(i => i.key === n.item); return { ico: 'ti-hanger', c: '#EAB308', t: 'Новое в шкафчике', s: it ? (it.kind === 'bg' ? 'Фон' : 'Рамка') + ' «' + it.name + '»' : '' }; },
     rep: (n) => ({ ico: 'ti-flame', c: '#FB923C', t: 'Серия вернулась', s: n.n + ' ' + pl(n.n, 'день', 'дня', 'дней') }),
+    need: (n) => SK[n.k] ? ({ ico: SK[n.k].ico, c: '#F0645A', t: 'Персонаж: ' + NEED[n.k].st[3], s: NEED[n.k].fix }) : null,
   };
   function openNews(n) {
     Store.set('game.news', cfg().news.filter(x => x.key !== n.key));
@@ -671,6 +756,7 @@ window.Game = (function () {
     else if (n.kind === 'recap') recapFlash(n.R, true);
     else if (n.kind === 'item') itemFlash(S, n.item, true);
     else if (n.kind === 'rep') repFlash(n.n, true);
+    else if (n.kind === 'need' && SK[n.k]) { Router.go(SK[n.k].route); return; }
     if (_mount && _mount.isConnected) render(_mount, true);
   }
   /* цифры набегают от нуля */
@@ -690,6 +776,7 @@ window.Game = (function () {
       <div class="gm-row"><span>Квестов в день</span><div class="gm-seg" data-k="qn">${[2, 3, 5].map(n => `<button data-v="${n}" class="${c.qn === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
       <div class="gm-row col"><span>Дни отдыха <small>серия в эти дни не сгорает</small></span><div class="gm-days">${[1, 2, 3, 4, 5, 6, 0].map(d => `<button data-d="${d}" class="${c.rest.includes(d) ? 'on' : ''}">${DOW[d]}</button>`).join('')}</div></div>
       <div class="gm-row"><span>Отпуск <small>серия заморожена</small></span><button class="gm-sw${vacOn ? ' on' : ''}" id="gm-vac" aria-label="Отпуск"></button></div>
+      <div class="gm-row col"><span>Состояние <small>какие сферы влияют на настроение</small></span><div class="gm-days gm-nset">${SKO.map(k => `<button data-k="${k}" class="${c.needsOff.includes(k) ? '' : 'on'}">${SK[k].name}</button>`).join('')}</div></div>
       <div class="gm-row"><span>Показывать на главной</span><button class="gm-sw${c.on ? ' on' : ''}" id="gm-on" aria-label="Игровой режим"></button></div>
       <div class="tr-modal-actions"><button class="tr-modal-btn-primary" id="gm-ok" style="flex:1">Готово</button></div></div>`;
     document.body.appendChild(ov);
@@ -697,7 +784,8 @@ window.Game = (function () {
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     ov.querySelector('#gm-ok').onclick = close;
     ov.querySelectorAll('.gm-seg').forEach(sg => sg.querySelectorAll('button').forEach(b => b.onclick = () => { sg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); Store.set('game.' + sg.dataset.k, sg.dataset.k === 'qn' ? +b.dataset.v : b.dataset.v); }));
-    ov.querySelectorAll('.gm-days button').forEach(b => b.onclick = () => { b.classList.toggle('on'); Store.set('game.rest', [...ov.querySelectorAll('.gm-days button.on')].map(x => +x.dataset.d)); });
+    ov.querySelectorAll('.gm-days:not(.gm-nset) button').forEach(b => b.onclick = () => { b.classList.toggle('on'); Store.set('game.rest', [...ov.querySelectorAll('.gm-days:not(.gm-nset) button.on')].map(x => +x.dataset.d)); });
+    ov.querySelectorAll('.gm-nset button').forEach(b => b.onclick = () => { b.classList.toggle('on'); Store.set('game.needsOff', [...ov.querySelectorAll('.gm-nset button:not(.on)')].map(x => x.dataset.k)); });
     ov.querySelector('#gm-on').onclick = (e) => { e.currentTarget.classList.toggle('on'); Store.set('game.on', e.currentTarget.classList.contains('on')); };
     ov.querySelector('#gm-vac').onclick = (e) => { const b = e.currentTarget; b.classList.toggle('on'); const t = ymd(new Date()); let v = cfg().vacs;
       if (b.classList.contains('on')) v = v.concat([{ from: t }]); else v = v.map(x => x.to ? x : Object.assign({}, x, { to: ymd(new Date(Date.now() - 864e5)) < x.from ? x.from : ymd(new Date(Date.now() - 864e5)) }));

@@ -1574,3 +1574,11 @@ html.no-anim *, html.no-anim *::before, html.no-anim *::after{animation-duration
 /* Широкая в центре: две, одна на всю ширину (той же высоты), две */
 .home2-grid.layout-mid { grid-template-columns: 1fr 1fr; }
 .home2-grid.layout-mid .home2-tile.tile-wide { grid-column: 1 / -1; }
+/* экран входа: выбор «сам / тренер» сверху */
+.lg-role{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.lg-role-b{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:10px 12px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(242,244,248,0.75);font-family:'Montserrat',sans-serif;font-size:14px;text-decoration:none;cursor:pointer;box-sizing:border-box}
+.lg-role-b i{font-size:20px;color:#8EA8FF}
+.lg-role-b b{font-weight:800}
+.lg-role-b.on{border-color:rgba(74,124,255,0.75);background:rgba(74,124,255,0.16);color:#fff}
+a.lg-role-b{border-color:rgba(139,92,246,0.5);background:linear-gradient(135deg,rgba(74,124,255,0.12),rgba(139,92,246,0.16))}
+a.lg-role-b i{color:#A78BFA}

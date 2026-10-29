@@ -23,6 +23,11 @@ window.Screens.login = function(mount, opts) {
       </div>
 
       <div style="width:100%;max-width:380px;">
+        <!-- Кто ты: сам или тренер -->
+        <div class="lg-role">
+          <button type="button" class="lg-role-b on" aria-pressed="true"><i class="ti ti-barbell"></i><b>Занимаюсь сам</b></button>
+          <a href="coach.html?reg=1" class="lg-role-b"><i class="ti ti-user-star"></i><b>Я тренер</b></a>
+        </div>
         <!-- Вкладки -->
         <div style="display:flex;background:rgba(255,255,255,0.06);border-radius:14px;padding:4px;margin-bottom:16px;gap:4px;">
           <button id="tab-login" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(74,124,255,0.9);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all .2s;">Войти</button>
@@ -72,7 +77,6 @@ window.Screens.login = function(mount, opts) {
       </div>
 
       <div style="margin-top:20px;"></div>
-      <a href="coach.html" class="login-coach-link"><i class="ti ti-user-star"></i><span><b>Вы тренер?</b> Откройте кабинет тренера</span><i class="ti ti-chevron-right"></i></a>
       <a href="start.html" style="margin-top:10px;font-size:12px;font-weight:700;color:rgba(142,168,255,0.75);text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="ti ti-sparkles"></i> Что умеет YOU</a>
       <div class="lg-legal"><a href="legal/terms.html" target="_blank" rel="noopener">Соглашение</a> · <a href="legal/privacy.html" target="_blank" rel="noopener">Политика данных</a> · <a href="legal/requisites.html" target="_blank" rel="noopener">Реквизиты</a></div>
     </div>`;

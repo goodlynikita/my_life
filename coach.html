@@ -870,6 +870,7 @@ $('#r-btn').onclick = async () => {
     await createTrainer(c.user, n);
     boot(c.user);
   } catch (x) {
+    if (x.code === 'auth/email-already-in-use') { document.querySelector('#auth-seg [data-m="login"]').click(); $('#l-email').value = e; $('#l-err').style.color = '#C7D2FE'; $('#l-err').textContent = 'Этот email уже есть в YOU. Введите пароль от него, и кабинет создастся'; setTimeout(() => $('#l-pwd').focus(), 50); $('#r-btn').disabled = false; return; }
     $('#r-err').textContent = x.code === 'auth/email-already-in-use' ? 'Этот email уже есть. Войдите, и кабинет можно будет создать' : x.code === 'auth/invalid-email' ? 'Некорректный email' : 'Не получилось. Попробуйте ещё раз';
   }
   $('#r-btn').disabled = false;
@@ -950,6 +951,8 @@ async function createTrainer(u, name) {
 }
 
 try { const h = document.querySelector('#auth .ca-hero'); if (h) $('#bc-hero').innerHTML = h.innerHTML; } catch (e) {}
+/* пришли по кнопке «Я тренер»: сразу создание кабинета */
+try { if (new URLSearchParams(location.search).get('reg') === '1') { const b = document.querySelector('#auth-seg [data-m="reg"]'); if (b) b.click(); } } catch (e) {}
 onAuthStateChanged(auth, (u) => { me = u; if (!u) { show('auth'); return; } boot(u); });
 
 async function boot(u) {

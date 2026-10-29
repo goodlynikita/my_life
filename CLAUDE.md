@@ -14,6 +14,7 @@ PWA «YOU»: трекер жизни (тренировки, привычки, ф
 - `index.html`: само приложение YOU (SPA на чистом JS, без сборщика).
 - `coach.html`: кабинет тренера. План клиента в нём рисуется тем же кодом, что и в YOU (`js/screens/training.js`), через `window.__coachMode` и подмену `Store` на данные клиента.
 - `admin.html`: админка. `start.html`: лендинг.
+- Вход тренера: на экране входа YOU сверху выбор «Занимаюсь сам / Я тренер» (`.lg-role`, «Я тренер» ведёт на `coach.html?reg=1`, там сразу открыта регистрация); в меню «···» у всех пункт «Я тренер: создать кабинет» (у тренеров «Кабинет тренера»); если email уже есть в YOU, регистрация в кабинете сама переключает на вход с подсказкой; кнопки для тренеров на лендинге тоже на `?reg=1`.
 - Данные: Firebase Realtime Database, проект `nik-track`. Корень данных владельца: `nik-data`.
 - AI-тренер: облачная функция Yandex Cloud `ai-coach` (код в `server/yandex-ai-coach/index.js`) → YandexGPT. Адрес функции в `js/config.js` (`aiChatUrl`).
 - Хостинг: you-app.ru (Yandex Object Storage). Выкладка автоматически через GitHub Actions (`.github/workflows/deploy.yml`) при пуше в `main`. Папка `server`, `*.md` и `*.zip` на сайт не попадают.

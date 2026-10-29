@@ -1133,7 +1133,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   <a class="btn btn-ghost btn-sm nav-login" href="./#/login" data-for="me">Войти</a>
   <a class="btn btn-main btn-sm" href="./#/register" data-for="me">Получить приложение</a>
   <a class="btn btn-ghost btn-sm nav-login" href="coach.html" data-for="coach">Войти</a>
-  <a class="btn btn-main btn-sm" href="coach.html" data-for="coach">Открыть кабинет</a>
+  <a class="btn btn-main btn-sm" href="coach.html?reg=1" data-for="coach">Создать кабинет</a>
 </div></nav>
 
 <!-- Переключатель для телефона -->
@@ -1173,7 +1173,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <h1><span class="line"><span>Клиенты растут</span></span><span class="line"><span>быстрее, а вы</span></span><span class="line"><span class="grad-t">видите всё.</span></span></h1>
     <p class="lead">План, прогресс, графики, итоги недели и AI-помощник по каждому клиенту в одном месте. Вы направляете клиента и вовремя меняете нагрузку, а не собираете отчёты по мессенджерам и таблицам.</p>
     <div class="hero-cta">
-      <a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a>
+      <a class="btn btn-main mag" href="coach.html?reg=1"><i class="ti ti-user-star"></i> Создать кабинет тренера</a>
       <a class="btn btn-ghost" href="#c-how"><i class="ti ti-player-play"></i> Как это работает</a>
     </div>
     <div class="hero-note"><span><i class="ti ti-circle-check"></i> Онлайн и в зале</span><span><i class="ti ti-circle-check"></i> Отдельная иконка на телефоне</span><span><i class="ti ti-circle-check"></i> Клиенту бесплатно</span></div>
@@ -1340,14 +1340,16 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   <div>
     <span class="eyebrow">Новое</span>
     <h2 class="rv">Персонаж, который<br><span class="grad-t">растёт вместе с тобой</span></h2>
-    <p class="sec-lead rv">Всё, что ты записываешь, даёт опыт: тренировки, привычки, деньги, задачи и цели. Растёт уровень, меняется облик, от новичка до легенды.</p>
+    <p class="sec-lead rv">Всё, что ты записываешь, даёт опыт: тренировки, привычки, деньги, задачи и цели. Персонаж растёт с каждым уровнем и живёт как в Sims: забросил сферу, он устаёт, вернулся к делам, снова в форме.</p>
     <div class="hz-feats rv">
-      <div class="hz-f" style="--c:#22C55E"><i class="ti ti-swords"></i><b>Квесты дня</b><span>Утром выбираешь, что берёшь. Отмечаются сами, когда делаешь дело.</span></div>
-      <div class="hz-f" style="--c:#A78BFA"><i class="ti ti-gift"></i><b>Сундук дня</b><span>Закрыл все квесты: внутри опыт или щит, иногда редкая находка.</span></div>
+      <div class="hz-f" style="--c:#4ADE80"><i class="ti ti-mood-happy"></i><b>Живое состояние</b><span>Пять шкал от твоих сфер. Все начинают в форме, без дел шкала тает, дела её пополняют.</span></div>
+      <div class="hz-f" style="--c:#60A5FA"><i class="ti ti-message-circle"></i><b>Говорит и реагирует</b><span>Радуется рекорду, просит размяться, подпрыгивает от каждого сделанного дела.</span></div>
+      <div class="hz-f" style="--c:#F2A93B"><i class="ti ti-award"></i><b>Черты характера</b><span>Месяц держишь сферу высоко: «Спортсмен», «Бережливый», «Собранный».</span></div>
+      <div class="hz-f" style="--c:#A78BFA"><i class="ti ti-barbell"></i><b>Растёт каждый уровень</b><span>Крупнее, ярче аура, знаки ранга, у ног вещи сильных сфер. Облик от новичка до легенды.</span></div>
+      <div class="hz-f" style="--c:#22C55E"><i class="ti ti-swords"></i><b>Квесты и сундук</b><span>Утром выбираешь, что берёшь. Закрыл все: сундук с опытом или щитом.</span></div>
       <div class="hz-f" style="--c:#FB923C"><i class="ti ti-flame"></i><b>Серия и щиты</b><span>Неделя подряд даёт щит, он спасёт серию в пропущенный день.</span></div>
       <div class="hz-f" style="--c:#FACC15"><i class="ti ti-coin"></i><b>Свои награды</b><span>Назначь себе приз: кино, кроссы, массаж. Копишь опыт и забираешь.</span></div>
-      <div class="hz-f" style="--c:#60A5FA"><i class="ti ti-chart-radar"></i><b>Пять навыков</b><span>Сила, Дисциплина, Капитал, Фокус, Воля. Видно, что проседает.</span></div>
-      <div class="hz-f" style="--c:#F472B6"><i class="ti ti-hanger"></i><b>Шкафчик</b><span>Фоны и рамки открываются за достижения. Итоги недели каждый понедельник.</span></div>
+      <div class="hz-f" style="--c:#F472B6"><i class="ti ti-hanger"></i><b>Шкафчик</b><span>Фоны и рамки за достижения. Итоги недели каждый понедельник.</span></div>
     </div>
     <p class="hz-note">Не любишь игры? Режим «Минимал» вместо персонажа или выключи совсем в меню.</p>
   </div>
@@ -1356,7 +1358,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <img class="hz-fig c" src="img/hero/m4.webp" alt="" loading="lazy">
     <img class="hz-fig r" src="img/hero/f4.webp" alt="" loading="lazy">
     <div class="chip h1"><i class="ti ti-arrow-big-up-lines" style="background:rgba(139,92,246,.18);color:#A78BFA"></i><div>26 уровень · Воин<small>до Чемпиона 9 уровней</small></div></div>
-    <div class="chip h2"><i class="ti ti-gift" style="background:rgba(250,204,21,.16);color:#FACC15"></i><div>Сундук дня: +80 XP<small>все квесты закрыты</small></div></div>
+    <div class="chip h2"><i class="ti ti-mood-happy" style="background:rgba(74,222,128,.16);color:#4ADE80"></i><div>В ударе<small>черта «Спортсмен»</small></div></div>
     <div class="chip h3"><i class="ti ti-flame" style="background:rgba(251,146,60,.16);color:#FB923C"></i><div>102 дня подряд<small>3 щита в запасе</small></div></div>
   </div>
 </div></section>
@@ -1489,7 +1491,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       <div class="ai-feat"><i class="ti ti-lock"></i><b>Только тренировки</b><span>Клиент сам выдаёт ключ доступа. Его деньги, привычки и цели закрыты</span></div>
     </div>
     <div class="coach-cta rv">
-      <a class="btn btn-main" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a>
+      <a class="btn btn-main" href="coach.html?reg=1"><i class="ti ti-user-star"></i> Создать кабинет тренера</a>
       <span>До 50 клиентов бесплатно</span>
     </div>
   </div>
@@ -1565,7 +1567,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 <section id="c-how" data-for="coach"><div class="wrap">
   <div class="center"><span class="eyebrow">Как начать</span><h2 class="rv">Подключить клиента: три шага</h2></div>
   <div class="c-steps">
-    <div class="c-step rv"><span>1</span><i class="ti ti-user-star"></i><b>Создайте кабинет</b><p>Откройте кабинет тренера и зарегистрируйтесь. Поставьте его на экран телефона: будет отдельная иконка «YOU Тренер».</p></div>
+    <div class="c-step rv"><span>1</span><i class="ti ti-user-star"></i><b>Создайте кабинет</b><p>Нажмите «Создать кабинет тренера», впишите имя, email и пароль. Поставьте его на экран телефона: будет отдельная иконка «YOU Тренер».</p></div>
     <div class="c-step rv"><span>2</span><i class="ti ti-key"></i><b>Клиент выдаёт ключ</b><p>Клиент ставит YOU и в меню создаёт ключ доступа со своей фамилией и именем. Вводите ключ, и он в списке. Или отправьте ему свою ссылку.</p></div>
     <div class="c-step rv"><span>3</span><i class="ti ti-chart-dots"></i><b>Ведите и смотрите</b><p>Составляете план сами, из шаблона или с AI. Клиент тренируется и отмечает, а вы видите посещаемость, силу и замеры.</p></div>
   </div>
@@ -1601,7 +1603,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <h2>Сейчас всё <span class="grad-t">бесплатно</span></h2>
     <p>Пока идёт ранний доступ, кабинет полностью бесплатный: до 50 клиентов и все функции без ограничений. Для клиентов приложение тоже бесплатное.</p>
     <div class="ce-list"><span><i class="ti ti-check"></i>До 50 клиентов</span><span><i class="ti ti-check"></i>Шаблоны и AI</span><span><i class="ti ti-check"></i>Итоги недели</span><span><i class="ti ti-check"></i>Замеры и графики</span></div>
-    <a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a>
+    <a class="btn btn-main mag" href="coach.html?reg=1"><i class="ti ti-user-star"></i> Создать кабинет тренера</a>
   </div>
 </div></section>
 
@@ -1616,7 +1618,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     <details class="qa rv"><summary>Есть расписание занятий?<i class="ti ti-plus"></i></summary><p>Да, плитка «Расписание»: неделя, записи со временем, повтор каждую неделю и отметка «Провёл». Клиент сразу видит запись у себя: в плане и на главном экране «С тренером в 18:00».</p></details>
     <details class="qa rv"><summary>Сколько это стоит?<i class="ti ti-plus"></i></summary><p>Сейчас идёт ранний доступ: кабинет бесплатный, до 50 клиентов и все функции. Для клиента приложение тоже бесплатное.</p></details>
   </div>
-  <div class="center" style="margin-top:40px"><a class="btn btn-main mag" href="coach.html"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
+  <div class="center" style="margin-top:40px"><a class="btn btn-main mag" href="coach.html?reg=1"><i class="ti ti-user-star"></i> Создать кабинет тренера</a></div>
 </div></section>
 
 <!-- Тизер для тренеров в режиме «для себя» -->
@@ -1738,7 +1740,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
       </div></div>
     </div>
   </div>
-  <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Начать бесплатно</a><a class="btn btn-main mag" href="coach.html" data-for="coach"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
+  <div class="center" style="margin-top:34px"><a class="btn btn-main mag" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Начать бесплатно</a><a class="btn btn-main mag" href="coach.html?reg=1" data-for="coach"><i class="ti ti-user-star"></i> Создать кабинет тренера</a></div>
 </div></section>
 
 <!-- CTA -->
@@ -1784,7 +1786,7 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   <p>ИП Недомолкин Никита Андреевич · ИНН 366231388645 · ОГРНИП 321366800115530 · г. Воронеж</p>
 </div></footer>
 
-<div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Получить приложение</a><a class="btn btn-main" href="coach.html" data-for="coach"><i class="ti ti-user-star"></i> Открыть кабинет тренера</a></div>
+<div class="mcta" id="mcta"><a class="btn btn-main" href="./#/register" data-for="me"><i class="ti ti-rocket"></i> Получить приложение</a><a class="btn btn-main" href="coach.html?reg=1" data-for="coach"><i class="ti ti-user-star"></i> Создать кабинет тренера</a></div>
 
 <script>
 (function(){

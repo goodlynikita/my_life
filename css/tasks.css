@@ -357,3 +357,6 @@ body.tk-drag-on, body.tk-drag-on * { cursor: grabbing !important; user-select: n
 .tk-list .tk-card.tk-due { background: color-mix(in srgb, var(--t-acc) 5%, transparent); padding-left: 10px; margin-left: -10px; border-radius: 6px 6px 0 0; }
 .tk-card.tk-due .tk-m.late { font-weight: 600; }
 .tk-ai-t.del b{color:#DC4C3E}
+/* помощник крупнее: шире и почти на всю высоту, на телефоне на весь экран */
+@media (min-width: 901px) { .tk-ai { max-width: 860px; height: calc(100dvh - 48px); padding: 18px 22px 14px; } .tk-ai-m { font-size: 14.5px; max-width: 80%; } .tk-ai-in textarea { min-height: 64px; font-size: 14.5px; } }
+@media (max-width: 900px) { .tk-ov:has(.tk-ai) { padding: 0 !important; align-items: stretch !important; } .tk-ai { height: 100dvh; border-radius: 0; padding-top: calc(14px + env(safe-area-inset-top, 0px)); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); } }

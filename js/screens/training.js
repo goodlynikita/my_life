@@ -1919,6 +1919,7 @@ window.Screens.training = function (mount) {
         <button class="tr-tab" data-tab="working-weight"><span class="tt-lg">Рабочий вес</span><span class="tt-sm">Веса</span></button>
         <button class="tr-tab" data-tab="summary">Итоги</button>
         <button class="tr-tab" data-tab="nutrition">Питание</button>
+        ${window.Challenges && !window.__coachMode ? '<button class="tr-tab" data-tab="challenges">Челленджи</button>' : ''}
         <button class="tr-tab tr-tab-ai" data-tab="ai"><i class="ti ti-sparkles"></i> Программа</button>
         <button class="tr-tab tr-tab-ai" data-tab="ai-insights"><i class="ti ti-chart-dots"></i> Разбор</button>
         ${window.APP_CONFIG && APP_CONFIG.aiChatUrl ? '<button class="tr-tab tr-tab-ai" data-tab="ai-chat"><i class="ti ti-message-chatbot"></i> Чат</button>' : ''}
@@ -2344,6 +2345,8 @@ window.Screens.training = function (mount) {
     const AIV = { 'ai': 'plan', 'ai-insights': 'insights', 'ai-chat': 'chat' }, aiTab = tab;
     if (AIV[tab]) { window._aiView = AIV[tab]; window._aiHideViews = true; tab = 'ai'; }
     const prevTab = content.dataset.tab; content.dataset.tab = aiTab;
+    /* челленджи живут отдельно от плана: работают и без плана тренировок */
+    if (tab === 'challenges' && window.Challenges) { Challenges.render(content); return; }
     refreshUndoState();
     let plan = getPlan();
 

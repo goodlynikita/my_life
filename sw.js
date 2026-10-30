@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v288';
+const CACHE = 'nik-system-v289';
 
 const STATIC = [
   './',
@@ -16,6 +16,7 @@ const STATIC = [
   './css/home.css',
   './css/slides-kit.css',
   './css/training.css',
+  './css/challenges.css',
   './css/coach-home.css',
   './css/sections.css',
   './css/finance.css',
@@ -55,6 +56,7 @@ const STATIC = [
   './js/share-tpl.js',
   './js/screens/training-chat.js',
   './js/screens/training-insights.js',
+  './js/screens/training-challenges.js',
   './js/screens/habits.js',
   './js/screens/finance.js',
   './js/screens/finance-piggy.js',

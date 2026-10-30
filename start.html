@@ -1216,6 +1216,73 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   #c-top .hero-in{display:flex!important;flex-direction:column}
   #c-top .pill{order:1;align-self:flex-start}#c-top h1{order:2}#c-top .c-hero-ph{order:3;margin:6px 0 18px}#c-top .lead{order:4}#c-top .hero-cta{order:5}#c-top .hero-note{order:6}
 }
+
+/* ═══ Телефон v3: одна сетка. Заголовок → телефон прямо по центру → плашка на нижнем крае телефона → текст → фишки ═══ */
+@media (max-width:760px){
+  /* переключатель просто сверху страницы, не висит над заголовками */
+  .modesw-m{position:relative!important;transform:none!important;opacity:1!important;pointer-events:auto!important;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 0!important}
+  .modesw-m::before{display:none!important}
+  .modesw-m .modesw{background:#141A2A!important}
+  /* герой: ровные отступы вместо общего gap */
+  .hero{padding-top:18px!important}
+  #top .hero-in,#c-top .hero-in{gap:0!important;align-items:stretch!important}
+  #top .pill,#c-top .pill{margin:0 0 16px!important}
+  #top h1,#c-top h1{margin:0 0 6px!important}
+  #top .lead,#c-top .lead{margin:0 0 18px!important}
+  #top .hero-res{margin:0 0 22px!important}
+  .hero-cta{flex-direction:column;gap:10px!important}
+  .hero-cta .btn{width:100%;justify-content:center}
+  .hero-login{margin-top:14px!important;text-align:center}
+  .hero-note{margin-top:14px!important;justify-content:center;gap:6px 14px!important;font-size:12.5px}
+  /* герой YOU: один телефон прямо, плашки по бокам внутри экрана */
+  #top .phones{height:auto!important;margin:18px 0 26px!important;perspective:none}
+  #top .phones-in{position:relative!important;inset:auto;display:flex;justify-content:center;transform:none!important;padding:8px 0}
+  #top .p-left,#top .p-right{display:none!important}
+  #top .p-main{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:min(250px,66vw)!important;animation:none!important}
+  #top .chip{white-space:normal;max-width:205px;background:#141A2A;animation:none!important;font-size:12.5px;padding:9px 12px 9px 9px}
+  #top .chip small{font-size:11px;line-height:1.3}
+  #top .c1{left:auto!important;right:0!important;top:56px!important;bottom:auto!important}
+  #top .c2{right:auto!important;left:0!important;top:46%!important;bottom:auto!important}
+  #top .c3{left:auto!important;right:0!important;bottom:22px!important;top:auto!important}
+  /* герой тренера: один телефон прямо, уведомления на нижнем крае */
+  #c-top .c-hero-ph{margin:18px 0 26px!important;padding-bottom:20px}
+  .c-hero .ai-phones{height:auto!important;display:flex;justify-content:center}
+  .c-hero .ai-phones .pa{display:none!important}
+  .c-hero .ai-phones .pb{position:relative!important;left:auto;right:auto;top:auto;transform:none!important;width:min(250px,66vw)!important;animation:none!important}
+  .c-notif{left:50%!important;top:auto!important;bottom:0!important;transform:translateX(-50%);width:min(320px,100%)!important}
+  .cn{background:#141A2A}
+  .c-notif .cn:not(.out):nth-last-child(n+3){display:none}
+  /* все телефоны прямо и без покачивания */
+  .phone.float,.c-cl-ph .phone,.story-pic img{animation:none!important}
+  .c-cl-ph .phone,.story-pic img{transform:none!important}
+  .c-cl-ph .phone{width:min(260px,70vw)!important}
+  /* общий приём: низ экрана телефона мягко уходит в тень, плашка лежит на нижнем крае */
+  .dx-ph,.chs-vis,.ai-x .aid{position:relative;display:flex!important;flex-direction:column;align-items:center;min-height:0!important;padding:0 0 4px!important}
+  .dx-ph .phone,.chs-vis .phone,.aid .phone{position:relative!important;width:min(260px,70vw)!important;transform:none!important}
+  .dx-ph .phone .scr::after,.chs-vis .phone .scr::after{background:linear-gradient(180deg,transparent 52%,rgba(9,12,20,.9) 88%)!important}
+  .dx-ph .dx-float,.dx-goal .gl-pay,.chs-board,.aid-plan{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(320px,100%)!important;margin:-92px auto 0!important;opacity:1!important;z-index:4;animation:none!important;background:#141A2A!important;box-shadow:0 18px 44px rgba(0,0,0,.6)!important;box-sizing:border-box}
+  .aid-plan{margin-top:-70px!important}
+  .ai-x .aid{margin:22px 0 22px!important}
+  .chs-pill,.dx-f-note{display:none!important}
+  .dx-glow,.chs-glow{top:30%!important}
+  /* порядок как в живых экранах: заголовок, текст, телефон, фишки */
+  .chs-grid,.hz-grid,.imp-grid{display:flex!important;flex-direction:column;align-items:stretch!important;gap:0!important}
+  .hz-vis,.chs-vis,.imp-demo{align-self:stretch;width:100%}
+  .chs-t,.hz-grid>div:first-child,.imp-grid>div:first-child{display:contents}
+  .chs .eyebrow,#hero-game .eyebrow,.imp .eyebrow{order:1;align-self:flex-start}
+  .chs h2,#hero-game h2,.imp h2{order:2}
+  .chs .sec-lead,#hero-game .sec-lead,.imp .sec-lead{order:3}
+  .chs-vis{order:4;margin:22px 0 22px!important}
+  .hz-vis{order:4;margin:18px 0 18px!important}
+  .imp-demo{order:4;margin:22px 0 22px}
+  .chs .hz-feats,#hero-game .hz-feats,.imp-where{order:5}
+  .chs-btn{order:6;margin-top:16px}
+  .hz-note{order:6}
+  /* «Знакомо?»: карточки не наезжают друг на друга */
+  .merge-scene{height:470px!important}
+  /* текст живых экранов: телефон отделён от текста ровным отступом */
+  .dx .dx-ph{margin:18px 0 18px!important}
+}
 </style>
 </head>
 <body>

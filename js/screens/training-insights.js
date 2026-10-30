@@ -194,10 +194,12 @@ window.TrainingInsights = (function () {
         <div class="in-h"><div><b>Плато</b><span>3 тренировки подряд без роста</span></div></div>
         ${pls.length ? pls.slice(0, 3).map(p => {
           const sw = (prefs.swaps || {})[p.key];
+          const seq = String(p.seq || '').split(' → ');
           return `<div class="in-pl">
-            <div class="in-pl-t"><b>${esc(p.name)}</b><span>${esc(p.seq)}</span></div>
+            <div class="in-pl-l"><span class="in-pl-ico"><i class="ti ti-player-pause"></i></span><div class="in-pl-t"><b>${esc(p.name)}</b><small>последние ${seq.length} ${pl(seq.length, 'тренировка', 'тренировки', 'тренировок')}</small></div></div>
+            <div class="in-pl-seq">${seq.map((x, i) => `${i ? '<i class="ti ti-arrow-right"></i>' : ''}<span${i === seq.length - 1 ? ' class="last"' : ''}>${esc(x)}</span>`).join('')}</div>
             ${sw ? `<div class="in-pl-done"><i class="ti ti-check"></i> В AI-плане заменено на «${esc(sw)}» <button class="in-undo" data-k="${esc(p.key)}">вернуть</button></div>`
-              : `<div class="in-alts">${p.alts.map(a => `<button class="in-alt" data-k="${esc(p.key)}" data-to="${esc(a)}"><i class="ti ti-arrows-exchange"></i> ${esc(a)}</button>`).join('')}</div>`}
+              : `<div class="in-alts"><span class="in-alts-l">Заменить на</span>${p.alts.map(a => `<button class="in-alt" data-k="${esc(p.key)}" data-to="${esc(a)}"><i class="ti ti-arrows-exchange"></i> ${esc(a)}</button>`).join('')}</div>`}
           </div>`;
         }).join('') : few ? '<div class="in-ok"><i class="ti ti-info-circle"></i> Пока мало тренировок, чтобы судить</div>' : '<div class="in-ok"><i class="ti ti-circle-check"></i> Плато нет, всё растёт</div>'}
       </div>

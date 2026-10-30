@@ -226,10 +226,110 @@ window.Challenges = (() => {
     if (v != null) return `<span class="cl-ts ok"><i class="ti ti-circle-check-filled"></i>сегодня ${c.type === 'nofx' ? (v === 1 ? 'держусь' : 'сорвался') : 'записано'}</span>`;
     return '<span class="cl-ts wait"><i class="ti ti-point-filled"></i>сегодня ещё не отмечено</span>';
   }
+  /* ── Вместе с друзьями: общий код, у каждого своя строка прогресса (без чужого веса, только изменения и проценты) ── */
+  const FS = () => window.FirebaseSync && FirebaseSync.chGet ? FirebaseSync : null;
+  let _unwatch = null, _members = null, _membersCode = null;
+  const myName = () => { const u = window.FirebaseSync && FirebaseSync.currentUser ? FirebaseSync.currentUser() : null; return ((u && u.displayName) || '').trim() || 'Участник'; };
+  function memberRow(c) {
+    const R = calc(c), h = hl(R), t = today();
+    return { name: String(c.myName || myName()).slice(0, 40), pct: Math.round(R.pct * 1000) / 1000, main: (h.num + ' ' + h.unit).trim().slice(0, 30), sub: String(h.of).slice(0, 40),
+      today: (c.log || {})[t] != null || (c.type === 'pr' && R.rows.some(r => r.d === t && r.v != null)), streak: R.streak || 0, done: !!R.reached, at: Date.now() };
+  }
+  /* отправляем свою строку, только если что-то поменялось */
+  function syncMember(c) {
+    const fs = FS(); if (!c || !c.group || !fs) return;
+    const row = memberRow(c), sig = JSON.stringify(Object.assign({}, row, { at: 0 }));
+    let prev = ''; try { prev = localStorage.getItem('you_chm_' + c.group) || ''; } catch (e) {}
+    if (prev === sig) return;
+    fs.chPut(c.group, row).then(() => { try { localStorage.setItem('you_chm_' + c.group, sig); } catch (e) {} }).catch(() => {});
+  }
+  const groupDef = (c) => { const d = { type: c.type, title: c.title, start: c.start, end: c.end }; ['unit', 'perDay', 'ex', 'key'].forEach(k => { if (c[k] != null) d[k] = c[k]; }); if (['sum', 'pr', 'daily'].includes(c.type) && c.goal != null) d.goal = c.goal; return d; };
+  const inviteUrl = (code) => location.origin + location.pathname.replace(/[^/]*$/, '') + '#/ch/' + code;
+  async function invite(c) {
+    const fs = FS(); if (!fs) return;
+    let code = c.group;
+    if (!code) {
+      try { code = await fs.chCreate(groupDef(c), myName()); } catch (e) { alert('Не получилось создать ссылку. Проверь интернет'); return; }
+      Store.set('training.challenges.' + c.id + '.group', code); Store.set('training.challenges.' + c.id + '.owner', true);
+      c = get(c.id); syncMember(c); if (_mount) detail(_mount, c);
+    }
+    const url = inviteUrl(code), text = `Присоединяйся к челленджу «${c.title}» в YOU`;
+    const s = sheet(`<div class="cl-sh-h"><p class="tr-modal-title">Позвать в челлендж</p><button class="cl-x" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
+      <div class="cl-inv"><span class="cl-ico lg"><i class="ti ti-users-group"></i></span><b>${esc(c.title)}</b><small>${dLong(c.start)} → ${dLong(c.end)}</small>
+        <div class="cl-code">${esc(code)}</div><div class="cl-url">${esc(url)}</div></div>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-secondary" id="iv-copy"><i class="ti ti-copy"></i> Скопировать</button><button class="tr-modal-btn-primary" id="iv-share"><i class="ti ti-share-3"></i> Отправить</button></div>`);
+    const cp = s.ov.querySelector('#iv-copy');
+    cp.onclick = async () => { try { await navigator.clipboard.writeText(text + ': ' + url); cp.innerHTML = '<i class="ti ti-check"></i> Скопировано'; } catch (e) { prompt('Скопируй ссылку', url); } };
+    const sh = s.ov.querySelector('#iv-share');
+    if (!navigator.share) sh.style.display = 'none';
+    sh.onclick = async () => { try { await navigator.share({ title: c.title, text, url }); } catch (e) {} };
+  }
+  /* таблица участников, живая: обновляется, пока экран открыт */
+  function membersHtml(c) {
+    if (!c.group) return `<div class="cl-gh"><div class="tr-group-title cl-gt">Участники</div><button class="tr-measure-add-inline" id="cl-inv"><i class="ti ti-user-plus"></i> Позвать друзей</button></div>`;
+    const me = FS() ? FS().chMe() : '';
+    const list = Object.entries(_membersCode === c.group && _members ? _members : {}).filter(([, m]) => m && m.name).map(([uid, m]) => Object.assign({ uid }, m))
+      .sort((a, b) => (b.done - a.done) || (b.pct - a.pct) || (b.streak - a.streak));
+    if (!list.some(m => m.uid === me)) list.push(Object.assign({ uid: me }, memberRow(c)));
+    list.sort((a, b) => (b.done - a.done) || (b.pct - a.pct) || (b.streak - a.streak));
+    const medal = ['#FACC15', '#CBD5E1', '#F59E0B'];
+    return `<div class="cl-gh"><div class="tr-group-title cl-gt">Участники <em class="cl-n">${list.length}</em></div><button class="tr-measure-add-inline" id="cl-inv"><i class="ti ti-user-plus"></i> Позвать</button></div>
+      <div class="in-card cl-mem">${list.map((m, i) => `<div class="cl-mr${m.uid === me ? ' me' : ''}">
+        <span class="cl-rk"${i < 3 && list.length > 1 ? ` style="--m:${medal[i]}"` : ''}>${i + 1}</span>
+        <span class="cl-av">${esc((m.name || '?').trim().charAt(0).toUpperCase())}</span>
+        <span class="cl-mm"><span class="cl-mt"><b>${esc(m.name)}${m.uid === me ? ' <small>ты</small>' : ''}</b><em>${esc(m.main || '')}</em></span>
+          <span class="cl-bar"><i style="width:${Math.max(0, Math.min(100, (+m.pct || 0) * 100)).toFixed(1)}%"></i></span>
+          <span class="cl-ms">${m.done ? '<span class="ok"><i class="ti ti-trophy"></i>цель взята</span>' : m.today ? '<span class="ok"><i class="ti ti-circle-check-filled"></i>сегодня отметился</span>' : '<span>сегодня ещё нет</span>'}<span>${Math.round((+m.pct || 0) * 100)}%</span></span></span></div>`).join('')}</div>`;
+  }
+  function watchMembers(c) {
+    const fs = FS();
+    if (_unwatch && (_membersCode !== (c && c.group))) { try { _unwatch(); } catch (e) {} _unwatch = null; _members = null; }
+    if (!fs || !c || !c.group || _unwatch) return;
+    _membersCode = c.group;
+    _unwatch = fs.chWatch(c.group, (m) => {
+      _members = m;
+      const box = _mount && _mount.querySelector('#cl-memb'); const cur = get(c.id);
+      if (box && cur && _open === c.id) { box.innerHTML = membersHtml(cur); bindMembers(_mount, cur); }
+    });
+  }
+  function bindMembers(root, c) { const b = root.querySelector('#cl-inv'); if (b) b.onclick = () => invite(get(c.id)); }
+  /* вход по ссылке #/ch/КОД */
+  async function join() {
+    let code = ''; try { code = localStorage.getItem('you_ch') || ''; localStorage.removeItem('you_ch'); } catch (e) {}
+    const fs = FS(); if (!code || !fs) return;
+    const mine = all().find(c => c.group === code);
+    const go = (id) => { _open = id; _openWeeks = {}; if (window.Router && Router.currentPath && Router.currentPath() !== '/training') Router.go('/training'); setTimeout(() => { const t = document.querySelector('.tr-tab[data-tab="challenges"]'); if (t) t.click(); }, 350); };
+    if (mine) return go(mine.id);
+    let g = null; try { g = await fs.chGet(code); } catch (e) {}
+    if (!g) { const s0 = sheet(`<div class="cl-inv"><span class="cl-ico lg"><i class="ti ti-link-off"></i></span><b>Челлендж не найден</b><small>Проверь ссылку или попроси новую</small></div><div class="tr-modal-actions"><button class="tr-modal-btn-primary" data-x>Понятно</button></div>`); return; }
+    const T = TYPES[g.type] || TYPES.weight, mem = Object.values(g.members || {}).filter(m => m && m.name);
+    const needSv = g.type === 'weight' || g.type === 'meas', u = unitOf(g);
+    const sv0 = needSv ? lastMeas(g.type === 'weight' ? 'Вес' : g.key) : null;
+    const s = sheet(`<div class="cl-sh-h"><p class="tr-modal-title">Вступить в челлендж</p><button class="cl-x" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
+      <div class="cl-inv" style="--c:${T.c}"><span class="cl-ico lg"><i class="ti ${T.ico}"></i></span><b>${esc(g.title)}</b><small>${T.n} · ${dLong(g.start)} → ${dLong(g.end)}</small>
+        <div class="cl-who"><i class="ti ti-users"></i>${esc(g.ownerName || '')}${mem.length > 1 ? ' и ещё ' + (mem.length - 1) : ''}</div></div>
+      <label class="cl-f"><span>Как тебя показать</span><input id="jn-n" type="text" maxlength="40" value="${esc(myName() === 'Участник' ? '' : myName())}" placeholder="Имя"></label>
+      ${needSv ? `<div class="cl-f2"><label class="cl-f"><span>Сейчас, ${esc(u)}</span><input id="jn-sv" type="text" inputmode="decimal" value="${sv0 != null ? esc(String(sv0).replace('.', ',')) : ''}"></label><label class="cl-f"><span>Твоя цель, ${esc(u)}</span><input id="jn-g" type="text" inputmode="decimal"></label></div>` : ''}
+      ${g.type === 'pr' ? `<label class="cl-f"><span>Твоя цель, кг</span><input id="jn-g" type="text" inputmode="decimal" value="${g.goal != null ? esc(String(g.goal).replace('.', ',')) : ''}"></label>` : ''}
+      <div class="cl-err" id="jn-err"></div>
+      <div class="tr-modal-actions"><button class="tr-modal-btn-primary" id="jn-ok">Вступить</button></div>`);
+    s.ov.querySelector('#jn-ok').onclick = () => {
+      const $ = (id) => s.ov.querySelector('#' + id), err = (m) => { $('jn-err').textContent = m; };
+      const name = $('jn-n').value.trim(); if (!name) return err('Впиши имя, его увидят участники');
+      const o = Object.assign({ id: 'c' + Date.now().toString(36), at: Date.now(), log: {}, group: code, myName: name }, { type: g.type, title: g.title, start: g.start, end: g.end });
+      ['unit', 'perDay', 'ex', 'key', 'goal'].forEach(k => { if (g[k] != null) o[k] = g[k]; });
+      if (needSv) { o.startVal = parseNum($('jn-sv').value); o.goal = parseNum($('jn-g').value); if (o.startVal == null || o.goal == null || o.startVal === o.goal) return err('Впиши, сколько сейчас и свою цель'); if (o.start < today()) o.start = today(); }
+      if (g.type === 'pr') { o.goal = parseNum($('jn-g').value) || g.goal; }
+      save(o); syncMember(get(o.id)); s.close(); go(o.id);
+    };
+  }
+
   function render(mount) {
     _mount = mount;
+    all().forEach(syncMember);
     if (_open && get(_open)) return detail(mount, get(_open));
     _open = null;
+    if (_unwatch) { try { _unwatch(); } catch (e) {} _unwatch = null; _membersCode = null; }
     const list = all().sort((a, b) => (b.at || 0) - (a.at || 0)), t = today();
     const act = list.filter(c => !c.done && c.end >= t), fin = list.filter(c => c.done || c.end < t);
     const item = (c) => { const R = calc(c), T = TYPES[c.type], h = hl(R);
@@ -314,7 +414,7 @@ window.Challenges = (() => {
         if (k === 'key') { const v = lastMeas(st.key); if (v != null) { st.sv = v; box.querySelector('[data-k="sv"]').value = numV(v); } }
         prev(); }); });
       const del = box.querySelector('#cf-del');
-      if (del) { let sure = false; del.onclick = () => { if (!sure) { sure = true; del.textContent = 'Точно удалить?'; return; } Store.set('training.challenges.' + edit.id, null); _open = null; s.close(); if (_mount) render(_mount); }; }
+      if (del) { let sure = false; del.onclick = () => { if (!sure) { sure = true; del.textContent = 'Точно удалить?'; return; } if (edit.group && FS()) FS().chPut(edit.group, null).catch(() => {}); Store.set('training.challenges.' + edit.id, null); _open = null; s.close(); if (_mount) render(_mount); }; }
       box.querySelector('#cf-ok').onclick = submit;
       prev();
     };
@@ -450,10 +550,12 @@ window.Challenges = (() => {
       ${todayCard(R)}
       </div><div class="cl-colr">
       ${chart(R, (mount.clientWidth > 1000 ? mount.clientWidth / 2 : (mount.clientWidth || 360)) - 64)}
+      <div id="cl-memb">${membersHtml(c)}</div>
       <div class="cl-gh"><div class="tr-group-title cl-gt">Дневник</div><button class="tr-measure-add-inline" id="cl-share2"><i class="ti ti-share-3"></i> В сторис</button></div>
       ${tableHtml(R)}
     </div></div></div>`;
     const $ = (s) => mount.querySelector(s);
+    bindMembers(mount, c); watchMembers(c);
     tips(mount);
     $('#cl-back').onclick = () => { _open = null; render(mount); };
     $('#cl-edit').onclick = () => form({ type: c.type }, c);
@@ -476,6 +578,7 @@ window.Challenges = (() => {
     { sel: '.cl-today', t: 'Отметка за сегодня', d: 'Одно число в день. Кнопки рядом ускоряют ввод. Забыл вчера? Нажми на день в дневнике и впиши.' },
     { sel: '.cl-chart', t: 'Динамика', d: 'Синяя линия: твои результаты. Пунктир: как надо идти, чтобы успеть. Точки после сегодня: куда приведёт текущий темп.' },
     { sel: '.cl-tw', t: 'Дневник', d: 'Все дни по неделям. Зелёный: шаг к цели, красный: шаг назад. Нажми на день, чтобы поправить.' },
+    { sel: '#cl-memb', t: 'Вместе с друзьями', d: 'Позови друзей по ссылке: у каждого свой старт и своя цель, а здесь видно, кто впереди и кто сегодня уже отметился. Чужой вес не показываем, только изменения и проценты.' },
     { sel: '#cl-share', t: 'Поделиться', d: 'Соберу красивую карточку для сторис с таблицей недели и результатом.' },
   ];
   function tips(mount) {
@@ -488,6 +591,7 @@ window.Challenges = (() => {
   /* после записи: перерисовать и отпраздновать, если цель взята впервые */
   function after(c) {
     const fresh = get(c.id), R = calc(fresh);
+    setTimeout(() => syncMember(get(c.id)), 50);
     if (R.reached && !fresh.done) { Store.set('training.challenges.' + c.id + '.done', today()); win(fresh); }
     if (_mount) detail(_mount, get(c.id));
   }
@@ -621,5 +725,5 @@ window.Challenges = (() => {
     go.onclick = async () => { try { await navigator.share({ files: [file], title: c.title }); } catch (e) {} };
   }
 
-  return { render, calc, TIPS, _all: all };
+  return { render, calc, TIPS, join, _all: all };
 })();

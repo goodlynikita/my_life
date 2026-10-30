@@ -246,6 +246,22 @@
         }
       }
     },
+    "chGroups": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.child('ownerUid').val() === auth.uid) || (data.exists() && data.child('ownerUid').val() === auth.uid))",
+        ".validate": "$code.matches(/^[A-Z0-9]{6,10}$/) && newData.child('title').isString() && newData.child('title').val().length <= 60 && newData.child('type').isString() && newData.child('type').val().matches(/^(weight|pr|sum|daily|meas|nofx)$/)"
+      }
+    },
+    "chMembers": {
+      "$code": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && $uid === auth.uid && root.child('chGroups').child($code).exists()",
+          ".validate": "newData.child('name').isString() && newData.child('name').val().length <= 40 && newData.child('pct').isNumber()"
+        }
+      }
+    },
     "userShared": {
       "$uid": {
         ".read": "auth != null && $uid === auth.uid",

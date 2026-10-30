@@ -60,6 +60,12 @@ const Router = (() => {
       location.hash = loggedIn ? '/training' : '/register';
       return;
     }
+    /* Приглашение в общий челлендж: #/ch/КОД → после входа предложим вступить */
+    if (path.indexOf('/ch/') === 0) {
+      try { localStorage.setItem('you_ch', decodeURIComponent(path.slice(4)).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10)); } catch (e) {}
+      location.hash = loggedIn ? '/training' : '/register';
+      return;
+    }
     if (path.indexOf('/join/') === 0) {
       try { localStorage.setItem('you_join', decodeURIComponent(path.slice(6)).toUpperCase()); } catch (e) {}
       location.hash = loggedIn ? '/training' : '/register';
@@ -95,6 +101,10 @@ const Router = (() => {
         if (path === '/training') TrainerLink.decorate();
         let pend = null; try { pend = localStorage.getItem('you_join'); } catch (e) {}
         if (pend && Auth.role() !== 'coach') setTimeout(() => TrainerLink.offer(), 700);
+      }
+      if (window.Challenges && Challenges.join && loggedIn && Auth.role() !== 'coach') {
+        let pc = null; try { pc = localStorage.getItem('you_ch'); } catch (e) {}
+        if (pc) setTimeout(() => Challenges.join(), 900);
       }
       if (window.ShareTpl && loggedIn && Auth.role() !== 'coach') {
         let pt = null; try { pt = localStorage.getItem('you_tpl'); } catch (e) {}

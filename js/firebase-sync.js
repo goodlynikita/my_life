@@ -656,6 +656,27 @@ const FirebaseSync = (() => {
     await set(ref(_db, 'userShared/' + u.uid + '/' + code), null);
   }
 
+  /* ── Общие челленджи ──
+     chGroups/{code}           условия (пишет автор), читает любой вошедший по коду
+     chMembers/{code}/{uid}    строка участника: имя и прогресс (каждый пишет только свою) */
+  async function chCreate(def, ownerName) {
+    const u = _auth.currentUser; if (!u) throw new Error('auth');
+    let code = tplCode();
+    for (let i = 0; i < 5 && (await get(ref(_db, 'chGroups/' + code))).exists(); i++) code = tplCode();
+    const rec = Object.assign({}, def, { code, ownerUid: u.uid, ownerName: String(ownerName || u.displayName || 'Участник').slice(0, 40), createdAt: Date.now() });
+    await set(ref(_db, 'chGroups/' + code), sanitizeKeys(rec));
+    return code;
+  }
+  async function chGet(code) {
+    code = String(code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!code) return null;
+    const s = await get(ref(_db, 'chGroups/' + code)); if (!s.exists()) return null;
+    let members = {}; try { const m = await get(ref(_db, 'chMembers/' + code)); members = m.exists() ? m.val() : {}; } catch (e) {}
+    return Object.assign({ code }, s.val(), { members });
+  }
+  async function chPut(code, row) { const u = _auth.currentUser; if (!u || !code) return; await set(ref(_db, 'chMembers/' + code + '/' + u.uid), row ? sanitizeKeys(row) : null); }
+  function chWatch(code, cb) { if (!code) return () => {}; return onValue(ref(_db, 'chMembers/' + code), (snap) => cb(snap.val() || {}), () => {}); }
+  const chMe = () => (_auth.currentUser || {}).uid || '';
+
   async function findInvite(code) {
     code = String(code || '').trim().toUpperCase(); if (!code) return null;
     const s = await get(ref(_db, 'invites/' + code)); return s.exists() ? { code, ...s.val() } : null;
@@ -829,6 +850,7 @@ const FirebaseSync = (() => {
 
   return {
     shareTemplate, getShared, markSharedUse, mySharedList, removeShared,
+    chCreate, chGet, chPut, chWatch, chMe,
     isTrainer, becomeTrainer, findInvite, myTrainer, createAccessKey, myAccessKey, revokeAccessKey, connectTrainer, disconnectTrainer, myTrainerCached: () => _myTrainer, loadSlots, slotsOn,
     inboxClaim, inboxDrop, inboxTake,
     /* быстрый старт: экран уже показан из копии на телефоне, сервер подтягиваем фоном (правки за это время не теряются) */

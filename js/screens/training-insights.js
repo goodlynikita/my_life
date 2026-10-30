@@ -262,7 +262,7 @@ window.TrainingInsights = (function () {
     g.fillStyle = '#fff'; g.font = F(900, 50); g.fillText('YOU', 200, 175);
     /* заголовок */
     g.font = F(900, 108); g.fillText('Мой прогресс', 80, 390);
-    const tg = g.createLinearGradient(80, 0, 900, 0); tg.addColorStop(0, '#6E94FF'); tg.addColorStop(.6, '#A78BFA'); tg.addColorStop(1, '#F472B6');
+    const tg = g.createLinearGradient(80, 0, 900, 0); tg.addColorStop(0, '#FFFFFF'); tg.addColorStop(1, '#9DB4FF');
     g.fillStyle = tg; g.fillText('за 8 недель', 80, 515);
     /* показатели */
     const kp = [[String(win.length), pl(win.length, 'тренировка', 'тренировки', 'тренировок')], [ton(tonnage(win)), 'поднято'], [String(prs), pl(prs, 'рекорд', 'рекорда', 'рекордов')]];

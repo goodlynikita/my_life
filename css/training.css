@@ -1070,7 +1070,7 @@
 
 .tr-1rm-hero {
   text-align:center; padding:28px 20px 22px;
-  background:linear-gradient(145deg, rgba(74,124,255,0.12) 0%, rgba(124,58,237,0.08) 100%);
+  background:linear-gradient(145deg, rgba(74,124,255,0.12) 0%, rgba(44,79,168,0.08) 100%);
   border:1px solid rgba(74,124,255,0.25); border-radius:20px; margin-bottom:20px;
   position:relative; overflow:hidden;
 }
@@ -1096,7 +1096,7 @@
 .tr-1rm-input::placeholder { color:var(--tr-bone-faint); }
 
 .tr-1rm-btn {
-  width:100%; padding:15px; background:linear-gradient(135deg,#4A7CFF,#7C3AED);
+  width:100%; padding:15px; background:linear-gradient(135deg,#2C4FA8,#3A62C9);
   border:none; border-radius:14px; color:#fff; font-size:15px; font-weight:800;
   cursor:pointer; box-shadow:0 4px 20px rgba(74,124,255,0.4);
   transition:transform .15s, box-shadow .15s; margin-bottom:20px;
@@ -1108,7 +1108,7 @@
 
 .tr-1rm-answer {
   text-align:center; padding:24px 20px 20px;
-  background:linear-gradient(145deg, rgba(74,124,255,0.1) 0%, rgba(124,58,237,0.06) 100%);
+  background:linear-gradient(145deg, rgba(74,124,255,0.1) 0%, rgba(44,79,168,0.06) 100%);
   border:1.5px solid rgba(74,124,255,0.4); border-radius:20px; margin-bottom:16px;
   box-shadow:0 0 40px rgba(74,124,255,0.15);
 }
@@ -1679,7 +1679,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .tr-day-coachnote i { font-size: 16px; color: #8EA8FF; margin-top: 1px; } .tr-day-coachnote b { color: #fff; }
 
 /* ── v116: итоги недели от тренера ── */
-.tr-cweek { margin: 12px 12px 4px; padding: 14px; border-radius: 18px; background: linear-gradient(150deg, rgba(74,124,255,0.2), rgba(139,92,246,0.14)); border: 1px solid rgba(110,148,255,0.35); }
+.tr-cweek { margin: 12px 12px 4px; padding: 14px; border-radius: 18px; background: linear-gradient(150deg, rgba(74,124,255,0.2), rgba(44,79,168,0.14)); border: 1px solid rgba(110,148,255,0.35); }
 .tr-cweek-h { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
 .tr-cweek-h > i { width: 36px; height: 36px; border-radius: 11px; background: linear-gradient(135deg, #3F6FF0, #5B8CFF); color: #fff; font-size: 19px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .tr-cweek-h div { flex: 1; min-width: 0; } .tr-cweek-h b { display: block; font-size: 14.5px; color: #fff; } .tr-cweek-h span { font-size: 11.5px; color: #A5B4FC; }
@@ -2251,9 +2251,9 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 @keyframes qShake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .q-t.shake{animation:qShake .3s ease 2;border-color:#E8A23A}
 /* Разбор: совет тренера про разнообразие */
-.in-coach{padding-top:6px;padding-bottom:6px;background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(139,92,246,.10))}
+.in-coach{padding-top:6px;padding-bottom:6px;background:linear-gradient(135deg,rgba(74,124,255,.12),rgba(44,79,168,.10))}
 .in-coach .in-row{border-top:0}
-.in-coach .in-row>i{color:#A78BFA;font-size:22px}
+.in-coach .in-row>i{color:#7EA0FF;font-size:22px}
 /* «Веса»: числа и заголовки справа с отступом, «Рост» не липнет к краю (перебивает старый padding 2px !important) */
 .tr-ww-table th:not(:first-child),.tr-ww-table td:not(:first-child){padding-left:4px!important;padding-right:8px!important;text-align:right!important}
 .tr-ww-table th:last-child,.tr-ww-table td:last-child{padding-right:14px!important}
@@ -2309,7 +2309,7 @@ html[data-theme="light"] .in-share-box img { filter: invert(1) hue-rotate(180deg
 .in-tr2{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:#8F9BBE}
 .in-tr2.up{color:#7BE0A0;background:rgba(34,197,94,.12)}.in-tr2.down{color:#F87171;background:rgba(239,68,68,.12)}
 .in-rec2-goal{display:flex;align-items:center;gap:10px;margin-top:9px}
-.in-rec2-bar{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}.in-rec2-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#4A7CFF,#8B5CF6)}.in-rec2-bar i.got{background:#22C55E}
+.in-rec2-bar{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}.in-rec2-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#2C4FA8,#4A7CFF)}.in-rec2-bar i.got{background:#22C55E}
 .in-rec2-goal>span{font-size:11.5px;font-weight:600;color:#8F9BBE;white-space:nowrap}
 .in-rec2-goal .in-goal{width:30px;height:30px;flex-shrink:0}
 /* Разбор на всю ширину, как план */

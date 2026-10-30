@@ -956,6 +956,26 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 .dx-fbar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);margin:8px 0 10px;overflow:hidden}.dx-fbar span{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#8FD17F,#4CAF50);transition:width 1.4s var(--ease) .3s}
 .dx-ph.in .dx-fbar span{width:94%}
 .dx-badges{display:flex;gap:6px}.dx-badges span{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#5E6475;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+.dx-f-wk{right:-56px;top:150px;width:262px}
+.wk-d{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}
+.wk-d span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 7px;border-radius:10px;font-size:10.5px;font-weight:700;color:var(--faint);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.wk-d span i{font-size:13px;color:#8EA8FF}
+.wk-d .ok{background:rgba(58,98,201,.22);border-color:rgba(74,124,255,.35);color:#C9D6FF}.wk-d .ok i{color:#fff}
+.wk-d .rs i{color:#5E6475}
+.wk-d .now{background:linear-gradient(180deg,#3A62C9,#2C4FA8);border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(58,98,201,.45)}.wk-d .now i{color:#FFD66B}
+.wk-tr{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:13px;background:rgba(242,193,78,.1);border:1px solid rgba(242,193,78,.35)}
+.wk-tr>i{font-size:18px;color:#F2C14E}.wk-tr b{display:block;font-size:12.5px;color:#FFE7A6}.wk-tr small{display:block;font-size:11px;color:var(--soft)}
+.dx-f-tk{left:-36px;bottom:110px;width:250px}
+.dx-f-tk .dx-fh em{margin-left:auto;font-style:normal;color:#F06A5F;font-size:11.5px}
+.tk-r{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:9px;padding:7px 0;border-top:1px solid rgba(255,255,255,.06);font-size:12.5px}
+.dx-fh+.tk-r{border-top:none}
+.tk-r b{font-weight:600;color:#E6EAF5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tk-r small{font-size:11px;color:var(--faint)}.tk-r small.tk-hot{color:#F06A5F;font-weight:700}
+.tk-r .ck{width:18px;height:18px;border-radius:50%;border:1.6px solid var(--pc);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.ck.p1{--pc:#F06A5F}.ck.p2{--pc:#F2A93B}.ck.p4{--pc:#7A8197}
+.tk-r.dn .ck{background:var(--pc)}.tk-r.dn b{color:var(--faint);text-decoration:line-through}
+.tk-r .ck i{opacity:0;transform:scale(.4);transition:opacity .3s,transform .4s var(--ease)}
+.dx-ph.in .tk-r.dn .ck i{opacity:1;transform:none}
+.dx-ph.in .tk-r.dn:nth-of-type(2) .ck i{transition-delay:.5s}.dx-ph.in .tk-r.dn:nth-of-type(3) .ck i{transition-delay:.8s}.dx-ph.in .tk-r.dn:nth-of-type(4) .ck i{transition-delay:1.1s}
 .dx-badges .got{color:#0E1A10;background:linear-gradient(135deg,#A6E096,#5DBB63);border-color:transparent}.dx-badges .nx{border:1px dashed rgba(143,209,127,.7);color:#8FD17F}
 .dx-goal .gl-pay{right:-14px;bottom:110px;width:auto;margin:0}
 .dx-ph.in .gl-pay{opacity:1;transform:none}
@@ -1644,6 +1664,9 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     </div>
     <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
       <div class="phone float"><div class="scr dx-scr dx-frames" data-frames><img src="img/landing/real/cal1.webp?v=1" alt="" loading="lazy" decoding="async" class="on"><img src="img/landing/real/cal2.webp?v=1" alt="" loading="lazy" decoding="async"></div></div>
+      <div class="dx-float dx-f-wk"><div class="dx-fh"><i class="ti ti-calendar-week"></i>Эта неделя</div>
+        <div class="wk-d"><span class="ok">Пн<i class="ti ti-check"></i></span><span class="rs">Вт<i class="ti ti-moon"></i></span><span class="ok">Ср<i class="ti ti-check"></i></span><span class="now">Чт<i class="ti ti-user-star"></i></span><span>Пт<i class="ti ti-barbell"></i></span><span class="rs">Сб<i class="ti ti-moon"></i></span><span>Вс<i class="ti ti-ball-tennis"></i></span></div>
+        <div class="wk-tr"><i class="ti ti-user-star"></i><div><b>С тренером в 18:30</b><small>Чт · ноги, зал</small></div></div></div>
     </div>
   </div>
   <div class="dx dx-tk">
@@ -1655,6 +1678,11 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
     </div>
     <div class="dx-ph rv rv-r"><div class="dx-glow"></div>
       <div class="phone float"><div class="scr dx-scr dx-frames" data-frames><img src="img/landing/real/tk1.webp?v=1" alt="" loading="lazy" decoding="async" class="on"><img src="img/landing/real/tk2.webp?v=1" alt="" loading="lazy" decoding="async"><img src="img/landing/real/tk3.webp?v=1" alt="" loading="lazy" decoding="async"></div></div>
+      <div class="dx-float dx-f-tk"><div class="dx-fh"><i class="ti ti-list-check"></i>Сегодня<em>3 из 4</em></div>
+        <div class="tk-r dn"><span class="ck p1"><i class="ti ti-check"></i></span><b>Тренировка: ноги</b><small>08:00</small></div>
+        <div class="tk-r dn"><span class="ck p2"><i class="ti ti-check"></i></span><b>Созвон с клиентом</b><small>12:00</small></div>
+        <div class="tk-r dn"><span class="ck p4"><i class="ti ti-check"></i></span><b>Оплатить связь</b><small>900 ₽</small></div>
+        <div class="tk-r"><span class="ck p1"></span><b>Позвонить маме</b><small class="tk-hot">19:00</small></div></div>
     </div>
   </div>
 </div></section>

@@ -1106,6 +1106,7 @@ const SEC_COL = { clients: 'blue', add: 'blue', feed: 'green', tpl: 'violet', sc
 const goAdd = () => { view = { name: 'list', tab: 'add' }; window.scrollTo(0, 0); render(); };
 const SEC_ACT = { clients: ['ti-user-plus', 'Добавить клиента', goAdd], sched: ['ti-plus', 'Новая запись', () => { const b = $('#sc-add'); if (b) b.click(); else { schedSel = null; schedWeek = 0; render(); setTimeout(() => { const x = $('#sc-add'); if (x) x.click(); }, 50); } }] };
 function render() {
+  if (window.Tour && Tour.stop) Tour.stop(); /* подсказки прошлого экрана не висят на новом */
   if (view.name !== 'client') liveStop();
   const atHub = view.name === 'list' && (!view.tab || view.tab === 'hub');
   $('#main').classList.toggle('hub-w', atHub);

@@ -1211,6 +1211,10 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
   .ai-feat span,.hz-f span{font-size:12.5px!important;line-height:1.45!important}
   .chs-btn{width:100%;justify-content:center}
   .imp-where{grid-template-columns:1fr!important;gap:8px!important}
+  /* герой для тренеров: телефоны тоже сразу под заголовком */
+  #c-top .hero-in>div:first-child{display:contents}
+  #c-top .hero-in{display:flex!important;flex-direction:column}
+  #c-top .pill{order:1;align-self:flex-start}#c-top h1{order:2}#c-top .c-hero-ph{order:3;margin:6px 0 18px}#c-top .lead{order:4}#c-top .hero-cta{order:5}#c-top .hero-note{order:6}
 }
 </style>
 </head>
@@ -1736,8 +1740,9 @@ p,li,.sec-lead,.lead{text-wrap:pretty;hyphens:manual;-webkit-hyphens:manual;over
 <section id="c-faq" style="padding-top:0" data-for="coach"><div class="wrap">
   <div class="center"><span class="eyebrow">Вопросы тренеров</span><h2 class="rv">Частые вопросы</h2></div>
   <div class="faq">
+    <details class="qa rv"><summary>Как зарегистрироваться тренеру?<i class="ti ti-plus"></i></summary><p>Нажмите «Создать кабинет тренера», впишите имя, email и пароль. Уже пользуетесь YOU как клиент? Войдите тем же email или в приложении откройте меню «···» → «Я тренер», и кабинет создастся для вашего аккаунта.</p></details>
     <details class="qa rv"><summary>Это отдельное приложение?<i class="ti ti-plus"></i></summary><p>Кабинет тренера открывается по своей ссылке и ставится на экран отдельной иконкой «YOU Тренер». Если вы и сами тренируетесь в YOU, войдите в оба тем же email.</p></details>
-    <details class="qa rv"><summary>Что видит тренер у клиента?<i class="ti ti-plus"></i></summary><p>Только тренировки: план, веса, повторы, отметки, комментарии и замеры тела. Финансы, привычки и цели клиента закрыты правилами базы.</p></details>
+    <details class="qa rv"><summary>Что видит тренер у клиента?<i class="ti ti-plus"></i></summary><p>Только тренировки: план, веса, повторы, отметки, комментарии, замеры тела и челленджи. Финансы, привычки и цели клиента закрыты правилами базы.</p></details>
     <details class="qa rv"><summary>Я тренирую в зале, это подойдёт?<i class="ti ti-plus"></i></summary><p>Да. Отмечайте проведённые тренировки галочкой в плане клиента, вносите веса и замеры сами. Посещаемость и прогресс посчитаются так же, как у онлайн-клиентов.</p></details>
     <details class="qa rv"><summary>AI не заменит меня для клиента?<i class="ti ti-plus"></i></summary><p>Нет. Когда у клиента есть тренер, его собственный AI-план выключается, чтобы не было двух разных планов. AI работает на вас: подсказывает прогрессию и плато, а решение принимаете вы.</p></details>
     <details class="qa rv"><summary>Как подключить клиента?<i class="ti ti-plus"></i></summary><p>Клиент регистрируется в YOU, в меню выбирает «Подключить тренера» и создаёт ключ с фамилией и именем. Вы нажимаете «Добавить» в шапке кабинета и вводите ключ. Ключ одноразовый и действует сутки. Второй способ: ваша ссылка-приглашение.</p></details>

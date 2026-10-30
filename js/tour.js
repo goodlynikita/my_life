@@ -9,7 +9,7 @@
    ============================================================ */
 window.Tour = (function () {
   const SINCE = Date.parse('2026-09-29T00:00:00Z'); /* аккаунты, созданные после запуска подсказок */
-  let running = false, queue = [];
+  let running = false, queue = [], _stop = null;
 
   /* ── Шаги ── */
   const SCREENS = {
@@ -203,10 +203,12 @@ window.Tour = (function () {
       </div>`;
     document.body.appendChild(root);
     const hole = root.querySelector('.tour-hole'), tip = root.querySelector('.tour-tip'), arrow = root.querySelector('.tour-arrow');
-    let i = 0, target = null;
+    let i = 0, target = null, mo = null;
 
     function place() {
       if (!target) return;
+      /* экран сменился и цели больше нет: подсказку закрываем, а не висим в пустом углу */
+      if (!target.isConnected) { const again = find(items[i].sel); if (again) target = again; else { finish(); return; } }
       const r = target.getBoundingClientRect(), pad = 6, vw = innerWidth, vh = innerHeight;
       const hx = Math.max(4, r.left - pad), hy = Math.max(4, r.top - pad);
       const hw = Math.min(vw - 8, r.width + pad * 2), hh = Math.min(vh - 8, r.height + pad * 2);
@@ -249,6 +251,7 @@ window.Tour = (function () {
     }
     function next() { i++; if (i >= items.length) finish(); else show(); }
     function finish() {
+      if (root.dataset.done) return; root.dataset.done = '1'; _stop = null; if (mo) mo.disconnect();
       markSeen(key); running = false;
       removeEventListener('resize', place); removeEventListener('scroll', place, true); removeEventListener('keydown', onKey);
       root.classList.add('out'); setTimeout(() => root.remove(), 250);
@@ -256,6 +259,10 @@ window.Tour = (function () {
       setTimeout(pump, 400);
     }
     function onKey(e) { if (e.key === 'Escape') finish(); if (e.key === 'Enter' || e.key === 'ArrowRight') next(); }
+    _stop = finish;
+    /* цель пропала из страницы (перерисовали экран): закрываемся сами */
+    mo = new MutationObserver(() => { if (target && !target.isConnected && !find(items[i].sel)) { mo.disconnect(); finish(); } });
+    mo.observe(document.body, { childList: true, subtree: true });
     root.querySelector('.tour-next').addEventListener('click', next);
     root.querySelector('.tour-skip').addEventListener('click', finish);
     root.querySelector('.tour-off').addEventListener('click', () => { disableAll(); finish(); });
@@ -335,5 +342,5 @@ window.Tour = (function () {
     if (tab) setTimeout(() => onTab(path, tab), 450);
   }, true);
 
-  return { onScreen, onTab, restart, play, _state: st };
+  return { onScreen, onTab, restart, play, stop: () => { if (_stop) _stop(); }, _state: st };
 })();

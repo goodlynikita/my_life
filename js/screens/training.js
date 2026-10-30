@@ -113,6 +113,14 @@ const TRAINING_CATEGORIES = [
   { id: 'Отдых',  label: 'Отдых',             color: TR_GROUP_COLORS['Отдых'],  desc: 'День восстановления' },
 ];
 
+/* цвет тега тренировки: вид из каталога, иначе категория («Спорт», «Кардио»…), иначе группа вида */
+function trSessionColor(typeName) {
+  const t = (TRAINING_TYPES || []).find(x => x.name === typeName);
+  if (t) return trSafeColor(t.color, '#8A8985');
+  const c = TRAINING_CATEGORIES.find(x => x.id === typeName);
+  if (c) return c.color;
+  return TR_GROUP_COLORS[typeName] || '#8A8985';
+}
 function trIsGymType(typeName) {
   return (TRAINING_TYPES.find(t => t.name === typeName) || {}).group === 'Зал' || typeName === 'Тренажерный зал';
 }
@@ -1121,7 +1129,7 @@ function trRenderDay(day, plan, weekIndex, dayIdx) {
 
   const sessionsHtml = sessions.map((session, sessionIdx) => {
     const isRest = session.type === 'Отдых';
-    const typeColor = trBadgeColor(TRAINING_TYPES, session.type);
+    const typeColor = trSessionColor(session.type);
     const groupTags = (session.groups || []).map(g => {
       const c = trBadgeColor(MUSCLE_GROUPS, g);
       return `<span class="tr-day-tag has-session" style="${trTagStyle(c)}">${trEsc(trGL(g))}</span>`;
@@ -2275,8 +2283,8 @@ window.Screens.training = function (mount) {
         const overlay = document.createElement('div');
         overlay.className = 'tr-modal-overlay';
         const opts = TRAINING_TYPES.map(t =>
-          `<button class="tr-type-pick-btn" data-type="${trEsc(t.name)}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid #2A2D35;color:${t.name===session.type?trBadgeColor(TRAINING_TYPES,t.name):'#E8E5DC'};cursor:pointer;font-size:13px;font-weight:${t.name===session.type?700:400};text-align:left;font-family:inherit;">
-            <span style="width:8px;height:8px;border-radius:50%;background:${trBadgeColor(TRAINING_TYPES,t.name)};flex-shrink:0;"></span>
+          `<button class="tr-type-pick-btn" data-type="${trEsc(t.name)}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid #2A2D35;color:${t.name===session.type?trSessionColor(t.name):'#E8E5DC'};cursor:pointer;font-size:13px;font-weight:${t.name===session.type?700:400};text-align:left;font-family:inherit;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${trSessionColor(t.name)};flex-shrink:0;"></span>
             ${trEsc(t.name)}
             ${t.name===session.type?'<i class="ti ti-check" style="margin-left:auto;font-size:14px;"></i>':''}
           </button>`

@@ -198,36 +198,61 @@ window.Challenges = (() => {
 
   /* ── экран ── */
   let _mount = null, _open = null, _openWeeks = {};
+  /* крупная цифра: число, единица и «из чего» отдельно, чтобы ровно сверстать */
+  function hl(R) {
+    const c = R.c, u = unitOf(c), dp = dpOf(c);
+    if (c.type === 'weight' || c.type === 'meas') return { num: sgn(R.change, dp), unit: u, of: 'из ' + sgn(R.need, dp) + ' ' + u };
+    if (c.type === 'pr') return { num: R.cur != null ? fmt(R.cur, 1) : '–', unit: 'кг', of: 'цель ' + fmt(c.goal, 1) + ' кг' };
+    if (c.type === 'sum') return { num: fmt(R.cur), unit: u, of: 'из ' + fmt(c.goal) };
+    if (c.type === 'daily') return { num: String(R.ok), unit: 'из ' + R.total, of: 'дней в норме' };
+    return { num: String(R.streak), unit: pl(R.streak, 'день', 'дня', 'дней'), of: 'подряд без срывов' };
+  }
+  /* концы полосы: откуда и куда */
+  function ends(R) {
+    const c = R.c, u = unitOf(c), dp = dpOf(c);
+    if (c.type === 'weight' || c.type === 'meas') return [fmt(c.startVal, dp) + ' ' + u, fmt(c.goal, dp) + ' ' + u];
+    if (c.type === 'pr') return [R.base != null ? fmt(R.base, 1) + ' кг' : 'старт', fmt(c.goal, 1) + ' кг'];
+    if (c.type === 'sum') return ['0', fmt(c.goal) + ' ' + u];
+    return [dLong(c.start), dLong(c.end)];
+  }
+  const barHtml = (R, lg) => `<div class="cl-bar${lg ? ' lg' : ''}"><i style="width:${(R.pct * 100).toFixed(1)}%"></i>${R.started && !R.over && !R.reached ? `<u style="left:${(R.timePct * 100).toFixed(1)}%"></u>` : ''}</div>`;
+  /* записано ли сегодня: строка внизу карточки */
+  function todayState(R) {
+    const c = R.c, t = today(), v = (c.log || {})[t];
+    if (!R.started) return `<span class="cl-ts"><i class="ti ti-clock"></i>старт ${dLong(c.start)}</span>`;
+    if (R.over || c.done) return `<span class="cl-ts"><i class="ti ti-flag"></i>${R.reached ? 'цель взята' : 'завершён ' + dLong(c.end)}</span>`;
+    if (c.type === 'pr') return '<span class="cl-ts"><i class="ti ti-refresh"></i>из тренировок</span>';
+    if (c.type === 'meas' && v == null) return `<span class="cl-ts"><i class="ti ti-ruler-measure"></i>из замеров</span>`;
+    if (v != null) return `<span class="cl-ts ok"><i class="ti ti-circle-check-filled"></i>сегодня ${c.type === 'nofx' ? (v === 1 ? 'держусь' : 'сорвался') : 'записано'}</span>`;
+    return '<span class="cl-ts wait"><i class="ti ti-point-filled"></i>сегодня ещё не отмечено</span>';
+  }
   function render(mount) {
     _mount = mount;
     if (_open && get(_open)) return detail(mount, get(_open));
     _open = null;
     const list = all().sort((a, b) => (b.at || 0) - (a.at || 0)), t = today();
     const act = list.filter(c => !c.done && c.end >= t), fin = list.filter(c => c.done || c.end < t);
-    const card = (c) => { const R = calc(c), T = TYPES[c.type], h = headline(R);
-      return `<button class="cl-card" data-open="${esc(c.id)}" style="--c:${T.c}">
-        <span class="cl-ci"><i class="ti ${T.ico}"></i></span>
-        <span class="cl-cm"><span class="cl-ct"><b>${esc(c.title)}</b>${paceChip(R)}</span>
-          <span class="cl-big">${esc(h.big)}<small>${esc(h.sub)}</small></span>
-          <span class="cl-bar"><i style="width:${(R.pct * 100).toFixed(1)}%"></i>${R.started && !R.over && c.type !== 'nofx' && c.type !== 'daily' ? `<u style="left:${(R.timePct * 100).toFixed(1)}%"></u>` : ''}</span>
-          <span class="cl-cs">${R.started ? (R.over ? 'завершён ' + dLong(c.end) : 'день ' + R.dayNo + ' из ' + R.total + ' · осталось ' + R.left + ' ' + pl(R.left, 'день', 'дня', 'дней')) : 'старт ' + dLong(c.start)}</span></span>
-        <i class="ti ti-chevron-right cl-go"></i></button>`; };
+    const item = (c) => { const R = calc(c), T = TYPES[c.type], h = hl(R);
+      return `<button class="cl-item" data-open="${esc(c.id)}" style="--c:${T.c}">
+        <span class="cl-it-top"><span class="cl-ico"><i class="ti ${T.ico}"></i></span><span class="cl-it-t"><b>${esc(c.title)}</b><small>${R.started ? (R.over ? dLong(c.start) + ' → ' + dLong(c.end) : 'до ' + dLong(c.end) + ' · осталось ' + R.left + ' ' + pl(R.left, 'день', 'дня', 'дней')) : 'с ' + dLong(c.start) + ' по ' + dLong(c.end)}</small></span><i class="ti ti-chevron-right cl-go"></i></span>
+        <span class="cl-it-mid"><span class="cl-num">${esc(h.num)}<small>${esc(h.unit)}</small></span><span class="cl-of">${esc(h.of)}</span>${paceChip(R)}</span>
+        ${barHtml(R)}
+        <span class="cl-it-bot">${todayState(R)}<span class="cl-pct">${Math.round(R.pct * 100)}%</span></span></button>`; };
+    const empty = !act.length;
     mount.innerHTML = `<div class="cl-wrap">
-      ${act.length ? `<div class="cl-h"><b>Активные</b><button class="cl-add" id="cl-new"><i class="ti ti-plus"></i>Новый</button></div><div class="cl-list">${act.map(card).join('')}</div>` : ''}
-      ${!act.length ? `<div class="cl-hero"><i class="ti ti-trophy"></i><b>Челленджи</b><span>Выбери вызов на месяц или до праздника</span></div>` : ''}
-      ${!act.length ? tplHtml() : ''}
-      ${fin.length ? `<details class="cl-fin"${act.length ? '' : ' open'}><summary>Завершённые <span>${fin.length}</span><i class="ti ti-chevron-down"></i></summary><div class="cl-list">${fin.map(card).join('')}</div></details>` : ''}
+      ${empty ? `<div class="in-card cl-empty"><span class="cl-eico"><i class="ti ti-trophy"></i></span><b>Челленджи</b><span>Вызов себе на срок: похудеть к дате, взять рекорд, сделать 3000 отжиманий</span></div>
+        <div class="tr-group-title cl-gt">Готовые</div>${tplGrid()}` : `
+        <div class="cl-gh"><div class="tr-group-title cl-gt">Активные <em class="cl-n">${act.length}</em></div><button class="tr-measure-add-inline" id="cl-new"><i class="ti ti-plus"></i> Новый</button></div>
+        <div class="cl-list">${act.map(item).join('')}</div>`}
+      ${fin.length ? `<details class="cl-fin"${empty ? ' open' : ''}><summary class="tr-group-title cl-gt">Завершённые <em class="cl-n">${fin.length}</em><i class="ti ti-chevron-down cl-chev"></i></summary><div class="cl-list">${fin.map(item).join('')}</div></details>` : ''}
     </div>`;
     mount.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { _open = b.dataset.open; _openWeeks = {}; render(mount); window.scrollTo({ top: 0 }); });
-    const nb = mount.querySelector('#cl-new'); if (nb) nb.onclick = () => pickTpl();
-    bindTpl(mount);
+    const nb = mount.querySelector('#cl-new'); if (nb) nb.onclick = () => form({ type: 'weight' });
+    mount.querySelectorAll('[data-tpl]').forEach(b => b.onclick = () => form(b.dataset.tpl === 'own' ? { type: 'weight', own: true } : Object.assign({}, TPL[+b.dataset.tpl])));
   }
-  function tplHtml() {
-    return `<div class="cl-tpls">${TPL.map((t, i) => `<button class="cl-tpl" data-tpl="${i}" style="--c:${TYPES[t.type].c}"><i class="ti ${TYPES[t.type].ico}"></i><b>${esc(t.title)}</b><small>${TYPES[t.type].n}</small></button>`).join('')}
-      <button class="cl-tpl own" data-tpl="own"><i class="ti ti-pencil-plus"></i><b>Свой челлендж</b><small>любой из 6 видов</small></button></div>`;
-  }
-  function bindTpl(root, close) {
-    root.querySelectorAll('[data-tpl]').forEach(b => b.onclick = () => { if (close) close(); if (b.dataset.tpl === 'own') pickType(); else form(Object.assign({}, TPL[+b.dataset.tpl])); });
+  function tplGrid() {
+    return `<div class="cl-tpls">${TPL.map((t, i) => `<button class="cl-tpl" data-tpl="${i}" style="--c:${TYPES[t.type].c}"><span class="cl-ico"><i class="ti ${TYPES[t.type].ico}"></i></span><b>${esc(t.title)}</b><small>${TYPES[t.type].n}</small></button>`).join('')}
+      <button class="cl-tpl own" data-tpl="own"><span class="cl-ico"><i class="ti ti-plus"></i></span><b>Свой челлендж</b><small>любой из 6 видов</small></button></div>`;
   }
   function sheet(html, cls) {
     const ov = document.createElement('div'); ov.className = 'tr-modal-overlay cl-ov';
@@ -238,100 +263,205 @@ window.Challenges = (() => {
     ov.querySelectorAll('[data-x]').forEach(b => b.onclick = close);
     return { ov, close };
   }
-  function pickTpl() {
-    const s = sheet(`<div class="cl-sh-h"><p class="tr-modal-title">Новый челлендж</p><button class="cl-x" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>${tplHtml()}`);
-    bindTpl(s.ov, s.close);
-  }
-  function pickType() {
-    const s = sheet(`<div class="cl-sh-h"><p class="tr-modal-title">Какой челлендж?</p><button class="cl-x" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
-      <div class="cl-types">${Object.entries(TYPES).map(([k, T]) => `<button class="cl-type" data-ty="${k}" style="--c:${T.c}"><span class="cl-ci"><i class="ti ${T.ico}"></i></span><span><b>${T.n}</b><small>${T.ex}</small></span></button>`).join('')}</div>`);
-    s.ov.querySelectorAll('[data-ty]').forEach(b => b.onclick = () => { s.close(); form({ type: b.dataset.ty, title: '' }); });
-  }
 
-  /* форма создания и правки */
+  /* ── создание и правка: вид сверху, шаблоны чипами, сроки в одно касание, живая проверка цели ── */
   function form(t, edit) {
-    const c = edit || {}, type = t.type, T = TYPES[type], td = today();
-    const start = c.start || td;
-    const end = c.end || (typeof t.end === 'function' ? t.end() : addDays(start, (t.days || 30) - 1));
-    let startVal = c.startVal, goal = c.goal;
-    if (!edit) {
-      if (type === 'weight') { startVal = lastMeas('Вес'); goal = startVal != null && t.delta ? Math.round((startVal + t.delta) * 10) / 10 : null; }
-      if (type === 'meas') { startVal = lastMeas(t.key || 'Талия'); goal = startVal != null && t.delta ? Math.round((startVal + t.delta) * 10) / 10 : null; }
-      if (type === 'pr') { goal = t.goal || null; }
-      if (type === 'sum') goal = t.goal || null;
-    }
-    const exs = type === 'pr' ? exNames() : [];
-    const row = (lbl, inner) => `<div class="tr-modal-row"><label>${lbl}${inner}</label></div>`;
-    const two = (a, b) => `<div class="tr-modal-row">${a}${b}</div>`;
-    const lab = (lbl, inner) => `<label>${lbl}${inner}</label>`;
-    const numIn = (id, v, ph) => `<input id="${id}" type="text" inputmode="decimal" value="${v != null ? esc(String(v).replace('.', ',')) : ''}" placeholder="${ph || ''}">`;
-    let spec = '';
-    if (type === 'weight') spec = two(lab('Вес на старте, кг', numIn('cf-sv', startVal, '90,5')), lab('Цель, кг', numIn('cf-g', goal, '80')));
-    if (type === 'meas') spec = row('Что меряем', `<select id="cf-key" class="tr-color-select">${MEAS_KEYS.map(k => `<option${(c.key || t.key || 'Талия') === k ? ' selected' : ''}>${k}</option>`).join('')}</select>`) + two(lab('На старте', numIn('cf-sv', startVal)), lab('Цель', numIn('cf-g', goal)));
-    if (type === 'pr') spec = row('Упражнение', `<input id="cf-ex" type="text" list="cf-exl" value="${esc(c.ex || t.ex || '')}" placeholder="Жим лёжа"><datalist id="cf-exl">${exs.map(n => `<option value="${esc(n)}">`).join('')}</datalist>`) + row('Цель, кг', numIn('cf-g', goal, '100'));
-    if (type === 'sum') spec = two(lab('Цель за весь срок', numIn('cf-g', goal, '3000')), lab('Единица', `<input id="cf-u" type="text" value="${esc(c.unit || t.unit || 'раз')}">`));
-    if (type === 'daily') spec = two(lab('Норма в день', numIn('cf-pd', c.perDay || t.perDay, '10000')), lab('Единица', `<input id="cf-u" type="text" value="${esc(c.unit || t.unit || 'раз')}">`));
-    const s = sheet(`<div class="cl-sh-h"><p class="tr-modal-title"><i class="ti ${T.ico}" style="color:${T.c}"></i> ${edit ? 'Изменить челлендж' : T.n}</p><button class="cl-x" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
-      ${row('Название', `<input id="cf-t" type="text" maxlength="60" value="${esc(c.title || t.title || '')}" placeholder="${esc(TPL.find(x => x.type === type)?.title || '')}">`)}
-      ${spec}
-      ${two(lab('Старт', `<input id="cf-s" type="date" value="${start}">`), lab('Финиш', `<input id="cf-e" type="date" value="${end}">`))}
-      <div class="cl-err" id="cf-err"></div>
-      <div class="tr-modal-actions">${edit ? '<button class="tr-modal-btn-secondary" id="cf-del">Удалить</button>' : ''}<button class="tr-modal-btn-primary" id="cf-ok">${edit ? 'Сохранить' : 'Начать'}</button></div>`);
-    const $ = (id) => s.ov.querySelector('#' + id);
-    if ($('cf-key')) $('cf-key').onchange = () => { const v = lastMeas($('cf-key').value); if (v != null && !$('cf-sv').value) $('cf-sv').value = String(v).replace('.', ','); };
-    if ($('cf-del')) { let sure = false; $('cf-del').onclick = () => { if (!sure) { sure = true; $('cf-del').textContent = 'Точно удалить?'; return; } Store.set('training.challenges.' + c.id, null); _open = null; s.close(); if (_mount) render(_mount); }; }
-    $('cf-ok').onclick = () => {
-      const err = (m) => { $('cf-err').textContent = m; };
-      const title = $('cf-t').value.trim() || (TPL.find(x => x.type === type) || {}).title || T.n;
-      const st = $('cf-s').value, en = $('cf-e').value;
-      if (!st || !en || en <= st) return err('Финиш должен быть позже старта');
-      const o = Object.assign({}, c, { id: c.id || ('c' + Date.now().toString(36)), type, title, start: st, end: en, at: c.at || Date.now(), log: c.log || {} });
-      if (type === 'weight' || type === 'meas') {
-        o.startVal = parseNum($('cf-sv').value); o.goal = parseNum($('cf-g').value);
-        if (o.startVal == null || o.goal == null) return err('Впиши старт и цель');
-        if (o.startVal === o.goal) return err('Цель должна отличаться от старта');
-        if (type === 'meas') o.key = $('cf-key').value;
+    const td = today();
+    const st = {};
+    const fill = (src, isEdit) => {
+      const c = isEdit ? src : {};
+      st.type = src.type; st.title = c.title || src.title || '';
+      st.start = c.start || td;
+      st.end = c.end || (typeof src.end === 'function' ? src.end() : addDays(st.start, (src.days || 30) - 1));
+      st.sv = c.startVal; st.g = c.goal; st.unit = c.unit || src.unit || (st.type === 'daily' ? 'шагов' : 'раз'); st.perDay = c.perDay || src.perDay || null;
+      st.ex = c.ex || src.ex || ''; st.key = c.key || src.key || 'Талия';
+      if (!isEdit) {
+        if (st.type === 'weight') { st.sv = lastMeas('Вес'); st.g = st.sv != null && src.delta ? Math.round((st.sv + src.delta) * 10) / 10 : null; }
+        if (st.type === 'meas') { st.sv = lastMeas(st.key); st.g = st.sv != null && src.delta ? Math.round((st.sv + src.delta) * 10) / 10 : null; }
+        if (st.type === 'pr' || st.type === 'sum') st.g = src.goal || null;
       }
-      if (type === 'pr') { o.ex = $('cf-ex').value.trim(); o.goal = parseNum($('cf-g').value); if (!o.ex || !o.goal) return err('Впиши упражнение и цель'); }
-      if (type === 'sum') { o.goal = parseNum($('cf-g').value); o.unit = $('cf-u').value.trim() || 'раз'; if (!o.goal) return err('Впиши цель'); }
-      if (type === 'daily') { o.perDay = parseNum($('cf-pd').value); o.unit = $('cf-u').value.trim() || 'раз'; if (!o.perDay) return err('Впиши норму в день'); }
-      save(o); s.close(); _open = o.id; _openWeeks = {}; if (_mount) render(_mount);
     };
-    setTimeout(() => { const f = s.ov.querySelector('input:not([type=date])'); if (f && !f.value) f.focus(); }, 80);
+    fill(edit || t, !!edit);
+    const s = sheet('<div class="cl-form"></div>', 'cl-formsh');
+    const box = s.ov.querySelector('.cl-form');
+    const numV = (v) => v != null ? String(v).replace('.', ',') : '';
+    const PRE = [['2 недели', 14], ['30 дней', 30], ['60 дней', 60], ['90 дней', 90], ['До НГ', 'ny']];
+    const draw = () => {
+      const T = TYPES[st.type], tpls = TPL.map((x, i) => [x, i]).filter(([x]) => x.type === st.type);
+      const lab = (l, inner, cls) => `<label class="cl-f${cls ? ' ' + cls : ''}"><span>${l}</span>${inner}</label>`;
+      const num = (k, ph) => `<input data-k="${k}" type="text" inputmode="decimal" value="${esc(numV(st[k]))}" placeholder="${ph || ''}">`;
+      let spec = '';
+      if (st.type === 'weight') spec = `<div class="cl-f2">${lab('Сейчас, кг', num('sv', '90,5'))}${lab('Цель, кг', num('g', '80'))}</div>`;
+      if (st.type === 'meas') spec = `${lab('Что меряем', `<div class="cl-sel"><select data-k="key">${MEAS_KEYS.map(k => `<option${st.key === k ? ' selected' : ''}>${k}</option>`).join('')}</select><i class="ti ti-chevron-down"></i></div>`)}<div class="cl-f2">${lab('Сейчас', num('sv'))}${lab('Цель', num('g'))}</div>`;
+      if (st.type === 'pr') spec = `${lab('Упражнение', `<input data-k="ex" type="text" list="cf-exl" value="${esc(st.ex)}" placeholder="Жим лёжа"><datalist id="cf-exl">${exNames().map(n => `<option value="${esc(n)}">`).join('')}</datalist>`)}${lab('Цель, кг', num('g', '100'))}`;
+      if (st.type === 'sum') spec = `<div class="cl-f2">${lab('Всего за срок', num('g', '3000'))}${lab('Единица', `<input data-k="unit" type="text" value="${esc(st.unit)}">`)}</div>`;
+      if (st.type === 'daily') spec = `<div class="cl-f2">${lab('Норма в день', num('perDay', '10000'))}${lab('Единица', `<input data-k="unit" type="text" value="${esc(st.unit)}">`)}</div>`;
+      box.innerHTML = `<div class="cl-sh-h"><p class="tr-modal-title">${edit ? 'Изменить челлендж' : 'Новый челлендж'}</p><button class="cl-x" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
+        ${edit ? '' : `<div class="cl-tyrow">${Object.entries(TYPES).map(([k, x]) => `<button class="cl-ty${k === st.type ? ' on' : ''}" data-ty="${k}" style="--c:${x.c}"><i class="ti ${x.ico}"></i><span>${x.n}</span></button>`).join('')}</div>
+        ${tpls.length ? `<div class="cl-chips">${tpls.map(([x, i]) => `<button class="cl-chipb" data-tp="${i}">${esc(x.title)}</button>`).join('')}</div>` : ''}`}
+        ${lab('Название', `<input data-k="title" type="text" maxlength="60" value="${esc(st.title)}" placeholder="${esc((tpls[0] || [{}])[0].title || T.n)}">`)}
+        ${spec}
+        <div class="cl-f"><span>Срок</span><div class="cl-chips pre">${PRE.map(([l, d]) => `<button class="cl-chipb" data-pre="${d}">${l}</button>`).join('')}</div>
+          <div class="cl-f2 dates"><input data-k="start" type="date" value="${st.start}"><i class="ti ti-arrow-right"></i><input data-k="end" type="date" value="${st.end}"></div></div>
+        <div class="cl-prev" id="cf-prev"></div>
+        <div class="cl-err" id="cf-err"></div>
+        <div class="tr-modal-actions">${edit ? '<button class="tr-modal-btn-secondary" id="cf-del">Удалить</button>' : ''}<button class="tr-modal-btn-primary" id="cf-ok">${edit ? 'Сохранить' : 'Начать челлендж'}</button></div>`;
+      box.querySelectorAll('[data-x]').forEach(b => b.onclick = s.close);
+      box.querySelectorAll('[data-ty]').forEach(b => b.onclick = () => { const tp = TPL.find(x => x.type === b.dataset.ty) || { type: b.dataset.ty }; fill(Object.assign({}, tp, { title: '' }), false); draw(); });
+      box.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => { fill(Object.assign({}, TPL[+b.dataset.tp]), false); draw(); });
+      box.querySelectorAll('[data-pre]').forEach(b => b.onclick = () => { const d = b.dataset.pre; st.end = d === 'ny' ? ny() : addDays(st.start, +d - 1); box.querySelector('[data-k="end"]').value = st.end; prev(); });
+      box.querySelectorAll('[data-k]').forEach(el => { const ev = el.tagName === 'SELECT' ? 'change' : 'input'; el.addEventListener(ev, () => {
+        const k = el.dataset.k; st[k] = ['sv', 'g', 'perDay'].includes(k) ? parseNum(el.value) : el.value;
+        if (k === 'key') { const v = lastMeas(st.key); if (v != null) { st.sv = v; box.querySelector('[data-k="sv"]').value = numV(v); } }
+        prev(); }); });
+      const del = box.querySelector('#cf-del');
+      if (del) { let sure = false; del.onclick = () => { if (!sure) { sure = true; del.textContent = 'Точно удалить?'; return; } Store.set('training.challenges.' + edit.id, null); _open = null; s.close(); if (_mount) render(_mount); }; }
+      box.querySelector('#cf-ok').onclick = submit;
+      prev();
+    };
+    /* живая подсказка: реальна ли цель */
+    const prev = () => {
+      const el = box.querySelector('#cf-prev'); if (!el) return;
+      const days = st.start && st.end && st.end > st.start ? diffDays(st.start, st.end) + 1 : null;
+      let h = '', warn = '';
+      if (!days) h = 'Выбери срок';
+      else if ((st.type === 'weight' || st.type === 'meas') && st.sv != null && st.g != null && st.sv !== st.g) {
+        const d = st.g - st.sv, wk = d / days * 7, u = st.type === 'weight' ? 'кг' : unitOf({ type: 'meas', key: st.key });
+        h = `<b>${sgn(d, 1)} ${u}</b> за ${days} ${pl(days, 'день', 'дня', 'дней')}, это <b>${sgn(wk, 2)} ${u}</b> в неделю`;
+        if (st.type === 'weight' && wk < -1) warn = 'Быстро. Безопасно худеть на 0,5–1 кг в неделю';
+        if (st.type === 'weight' && wk > 0.5) warn = 'Быстро. Чистая масса растёт на 0,25–0,5 кг в неделю';
+      } else if (st.type === 'pr' && st.g) {
+        const ps = st.ex ? prSeries(st.ex) : [], best = ps.length ? Math.max(...ps.map(x => x.v)) : null;
+        h = best != null ? `Сейчас лучший подход <b>${fmt(best, 1)} кг</b>, нужно <b>${sgn(st.g - best, 1)} кг</b> за ${days} ${pl(days, 'день', 'дня', 'дней')}` : 'Этого упражнения пока нет в тренировках. Первый подход станет стартом';
+      } else if (st.type === 'sum' && st.g) h = `Это <b>${fmt(Math.ceil(st.g / days))} ${esc(st.unit)}</b> в день, ${days} ${pl(days, 'день', 'дня', 'дней')}`;
+      else if (st.type === 'daily' && st.perDay) h = `<b>${days} ${pl(days, 'день', 'дня', 'дней')}</b> по ${fmt(st.perDay)} ${esc(st.unit)}`;
+      else if (st.type === 'nofx') h = `<b>${days} ${pl(days, 'день', 'дня', 'дней')}</b>. Отмечай только срывы, остальные дни считаются чистыми`;
+      else h = 'Заполни цель';
+      el.innerHTML = `<i class="ti ti-${warn ? 'alert-triangle' : 'target-arrow'}"></i><span>${h}${warn ? `<em>${warn}</em>` : ''}</span>`;
+      el.classList.toggle('warn', !!warn);
+    };
+    const submit = () => {
+      const err = (m) => { box.querySelector('#cf-err').textContent = m; };
+      const T = TYPES[st.type], c = edit || {};
+      const title = (st.title || '').trim() || (TPL.find(x => x.type === st.type) || {}).title || T.n;
+      if (!st.start || !st.end || st.end <= st.start) return err('Финиш должен быть позже старта');
+      const o = Object.assign({}, c, { id: c.id || ('c' + Date.now().toString(36)), type: st.type, title, start: st.start, end: st.end, at: c.at || Date.now(), log: c.log || {} });
+      if (st.type === 'weight' || st.type === 'meas') {
+        if (st.sv == null || st.g == null) return err('Впиши, сколько сейчас и какая цель');
+        if (st.sv === st.g) return err('Цель должна отличаться от старта');
+        o.startVal = st.sv; o.goal = st.g; if (st.type === 'meas') o.key = st.key;
+      }
+      if (st.type === 'pr') { o.ex = (st.ex || '').trim(); o.goal = st.g; if (!o.ex || !o.goal) return err('Впиши упражнение и цель'); }
+      if (st.type === 'sum') { o.goal = st.g; o.unit = (st.unit || '').trim() || 'раз'; if (!o.goal) return err('Впиши цель'); }
+      if (st.type === 'daily') { o.perDay = st.perDay; o.unit = (st.unit || '').trim() || 'раз'; if (!o.perDay) return err('Впиши норму в день'); }
+      save(o); s.close(); _open = o.id; _openWeeks = {}; if (_mount) render(_mount); window.scrollTo({ top: 0 });
+    };
+    draw();
+    setTimeout(() => { const f = box.querySelector('input[data-k="sv"], input[data-k="g"], input[data-k="ex"], input[data-k="perDay"]'); if (f && !f.value) f.focus(); }, 120);
   }
 
-  /* детальный экран: шапка, ввод за сегодня, таблица по неделям */
-  function detail(mount, c) {
-    const R = calc(c), T = TYPES[c.type], h = headline(R), u = unitOf(c), dp = dpOf(c), t = today();
-    const fl = forecastLine(R);
-    const logToday = (c.log || {})[t];
-    let input = '';
-    if (R.started && !R.over && !c.done) {
-      if (c.type === 'nofx') input = `<div class="cl-in nofx"><span>Сегодня</span><button class="cl-yes${logToday === 1 ? ' on' : ''}" data-mark="1"><i class="ti ti-check"></i>Держусь</button><button class="cl-no${logToday === 0 ? ' on' : ''}" data-mark="0"><i class="ti ti-x"></i>Сорвался</button></div>`;
-      else if (c.type !== 'pr' && c.type !== 'meas') input = `<div class="cl-in"><span>Сегодня</span><input id="cl-v" type="text" inputmode="decimal" value="${logToday != null ? esc(String(logToday).replace('.', ',')) : ''}" placeholder="${c.type === 'weight' ? fmt(R.cur, 2) : '0'}"><em>${esc(u)}</em><button id="cl-save">${logToday != null ? 'Обновить' : 'Записать'}</button></div>`;
-      else if (c.type === 'meas') input = `<div class="cl-in"><span>${esc(c.key)} сегодня</span><input id="cl-v" type="text" inputmode="decimal" value="${logToday != null ? esc(String(logToday).replace('.', ',')) : ''}" placeholder="${fmt(R.cur, 1)}"><em>${esc(u)}</em><button id="cl-save">Записать</button></div>`;
-      else input = `<div class="cl-auto"><i class="ti ti-refresh"></i>Берётся из твоих тренировок: «${esc(c.ex)}», лучший рабочий подход</div>`;
+  /* цифры под шапкой: самое полезное для каждого вида */
+  function kpis(R) {
+    const c = R.c, u = unitOf(c), dp = dpOf(c), t = today();
+    const k = (v, l, cls) => `<div><b class="${cls || ''}">${v}</b><span>${l}</span></div>`;
+    const tone = (x, dir) => x == null || !x ? '' : x * dir > 0 ? 'up' : 'down';
+    if (c.type === 'weight' || c.type === 'meas') {
+      const vals = R.rows.filter(r => r.v != null), wkAgo = addDays(t, -7);
+      const base = vals.filter(r => r.d <= wkAgo).pop() || vals[0];
+      const wk = base && vals.length ? R.cur - base.v : null;
+      const needWk = R.left > 0 && !R.reached ? (c.goal - R.cur) / R.left * 7 : null;
+      return k(fmt(R.cur, dp), 'сейчас, ' + u) + k(wk != null ? sgn(wk, dp) : '–', 'за 7 дней', tone(wk, R.dir)) + k(needWk != null ? sgn(needWk, dp) : '–', 'нужно в неделю');
     }
+    if (c.type === 'pr') return k(R.cur != null ? fmt(R.cur, 1) : '–', 'лучший, кг') + k(R.change ? sgn(R.change, 1) : '0', 'прирост, кг', tone(R.change, 1)) + k(String(R.rows.filter(r => r.v != null).length), 'тренировок');
+    if (c.type === 'sum') return k(fmt(Math.round(R.avg || 0)), 'в среднем за день') + k(R.reached ? '0' : fmt(Math.ceil(R.needDay)), 'нужно в день') + k(Math.round(R.pct * 100) + '%', 'от цели');
+    const passed = R.rows.filter(r => r.d < t || (c.log || {})[r.d] != null).length || 1;
+    let best = 0, run = 0; R.rows.forEach(r => { if (r.ok) { run++; best = Math.max(best, run); } else if (r.bad) run = 0; });
+    if (c.type === 'daily') return k(String(R.streak), 'подряд') + k(String(best), 'лучшая серия') + k(Math.round(R.ok / passed * 100) + '%', 'дней в норме');
+    return k(String(R.streak), 'подряд') + k(String(R.best || best), 'лучшая серия') + k(String(R.fails), 'срывов', R.fails ? 'down' : '');
+  }
+
+  /* график: факт, линия «как надо», прогноз, цель */
+  function chart(R, cw) {
+    const c = R.c; if (!['weight', 'meas', 'pr', 'sum'].includes(c.type) || !R.started) return '';
+    /* ширина в реальных пикселях карточки: на компьютере график шире, а подписи остаются мелкими */
+    const W = Math.max(280, Math.min(900, Math.round(cw || 320))), H = W > 500 ? 200 : 150, L = 8, Rr = 8, T = 16, B = 22, total = Math.max(1, diffDays(c.start, c.end));
+    const pts = c.type === 'sum' ? R.rows.filter(r => r.v != null || r.d < today()).map(r => [r.i, r.cum]) : R.rows.filter(r => r.v != null).map(r => [r.i, r.v]);
+    const s0 = c.type === 'sum' ? 0 : c.type === 'pr' ? (R.base != null ? R.base : (pts[0] ? pts[0][1] : c.goal)) : c.startVal;
+    if (c.type !== 'sum' && pts.length < 1) return '';
+    let fc = null;
+    if (c.type === 'sum' && R.avg > 0 && !R.reached) fc = [total, R.fc];
+    else if (R.slope != null && pts.length && !R.reached) { const last = pts[pts.length - 1], endX = R.fcDay ? Math.min(total, diffDays(c.start, R.fcDay)) : total; fc = [endX, last[1] + R.slope * (endX - last[0])]; }
+    const ys = pts.map(p => p[1]).concat([s0, c.goal]).concat(fc ? [fc[1]] : []);
+    let y0 = Math.min(...ys), y1 = Math.max(...ys); const pad = (y1 - y0) * 0.12 || 1; y0 -= pad; y1 += pad;
+    const X = (x) => L + (W - L - Rr) * x / total, Y = (y) => T + (H - T - B) * (1 - (y - y0) / (y1 - y0));
+    const path = pts.map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
+    const last = pts[pts.length - 1];
+    const area = pts.length > 1 ? `${path} L${X(last[0]).toFixed(1)} ${H - B} L${X(pts[0][0]).toFixed(1)} ${H - B} Z` : '';
+    const tx = X(Math.min(total, diffDays(c.start, today())));
+    const id = 'clg' + c.id;
+    return `<div class="in-card cl-chart"><div class="in-h"><div><b>Динамика</b><span>${c.type === 'sum' ? 'накоплено' : 'по дням'} и линия «как надо»</span></div></div>
+      <svg viewBox="0 0 ${W} ${H}" class="cl-svg" role="img" aria-label="График челленджа">
+        <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A7CFF" stop-opacity=".35"/><stop offset="1" stop-color="#4A7CFF" stop-opacity="0"/></linearGradient></defs>
+        <line x1="${L}" x2="${W - Rr}" y1="${Y(c.goal).toFixed(1)}" y2="${Y(c.goal).toFixed(1)}" class="cl-gl"/>
+        <text x="${W - Rr}" y="${(Y(c.goal) - 5).toFixed(1)}" text-anchor="end" class="cl-glt">цель ${fmt(c.goal, dpOf(c))}</text>
+        <line x1="${X(0).toFixed(1)}" y1="${Y(s0).toFixed(1)}" x2="${X(total).toFixed(1)}" y2="${Y(c.goal).toFixed(1)}" class="cl-ideal"/>
+        <line x1="${tx.toFixed(1)}" x2="${tx.toFixed(1)}" y1="${T}" y2="${H - B}" class="cl-now"/>
+        ${area ? `<path d="${area}" fill="url(#${id})"/>` : ''}
+        ${pts.length > 1 ? `<path d="${path}" class="cl-line"/>` : ''}
+        ${fc && last ? `<line x1="${X(last[0]).toFixed(1)}" y1="${Y(last[1]).toFixed(1)}" x2="${X(fc[0]).toFixed(1)}" y2="${Y(fc[1]).toFixed(1)}" class="cl-fcl"/>` : ''}
+        ${pts.length <= 40 ? pts.map(p => `<circle cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="2.2" class="cl-dot"/>`).join('') : ''}
+        ${last ? `<circle cx="${X(last[0]).toFixed(1)}" cy="${Y(last[1]).toFixed(1)}" r="4.5" class="cl-last"/>` : ''}
+        <text x="${L}" y="${H - 6}" class="cl-ax">${dLong(c.start)}</text><text x="${W - Rr}" y="${H - 6}" text-anchor="end" class="cl-ax">${dLong(c.end)}</text>
+      </svg>
+      ${forecastLine(R) ? `<div class="cl-fc"><i class="ti ti-chart-line"></i><span>${forecastLine(R)}</span></div>` : ''}</div>`;
+  }
+
+  /* ввод за сегодня: под каждый вид свой, чтобы в одно-два касания */
+  function todayCard(R) {
+    const c = R.c, t = today(), v = (c.log || {})[t], u = unitOf(c), dp = dpOf(c);
+    if (!R.started || R.over || c.done) return '';
+    const head = `<div class="cl-th"><b>Сегодня</b><span>${dLong(t)}, ${DOW[new Date().getDay()]}</span>${v != null ? '<em><i class="ti ti-circle-check-filled"></i>записано</em>' : ''}</div>`;
+    if (c.type === 'nofx') return `<div class="in-card cl-today">${head}<div class="cl-yn"><button class="cl-yes${v === 1 ? ' on' : ''}" data-mark="1"><i class="ti ti-check"></i>Держусь</button><button class="cl-no${v === 0 ? ' on' : ''}" data-mark="0"><i class="ti ti-x"></i>Сорвался</button></div></div>`;
+    if (c.type === 'pr') return `<div class="in-card cl-today">${head}<div class="cl-auto"><i class="ti ti-refresh"></i><span>Лучший рабочий подход берётся из тренировок по упражнению «${esc(c.ex)}»</span><button class="cl-mini" data-day="${t}">Вручную</button></div></div>`;
+    const step = c.type === 'weight' ? 0.1 : c.type === 'meas' ? 0.5 : null;
+    const pre = v != null ? v : (c.type === 'weight' || c.type === 'meas') ? R.cur : null;
+    let extra = '';
+    if (c.type === 'sum') { const pd = c.goal / (R.total || 1), q = u === 'км' ? [1, 3, 5, 10] : pd >= 200 ? [50, 100, 200, 500] : pd >= 40 ? [10, 25, 50, 100] : pd >= 10 ? [5, 10, 20, 50] : [1, 2, 5, 10];
+      extra = `<div class="cl-quick">${q.map(n => `<button data-add="${n}">+${fmt(n)}</button>`).join('')}</div>`; }
+    if (c.type === 'daily') extra = `<div class="cl-quick"><button data-set="${c.perDay}"><i class="ti ti-check"></i>Норма ${fmt(c.perDay)}</button></div>`;
+    return `<div class="in-card cl-today">${head}
+      <div class="cl-step">${step ? `<button data-st="-1" aria-label="Меньше"><i class="ti ti-minus"></i></button>` : ''}<input id="cl-v" type="text" inputmode="decimal" value="${pre != null ? esc(fmt(pre, step ? dp : null)) : ''}" placeholder="0"><span>${esc(u)}</span>${step ? `<button data-st="1" aria-label="Больше"><i class="ti ti-plus"></i></button>` : ''}</div>
+      ${extra}<button class="tr-modal-btn-primary cl-save" id="cl-save">${v != null ? 'Обновить' : 'Записать'}</button></div>`;
+  }
+
+  function detail(mount, c) {
+    const R = calc(c), T = TYPES[c.type], h = hl(R), t = today(), e = ends(R);
+    const showEnds = ['weight', 'meas', 'pr', 'sum'].includes(c.type);
     mount.innerHTML = `<div class="cl-wrap cl-det" style="--c:${T.c}">
-      <div class="cl-top"><button class="cl-back" id="cl-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><span class="cl-tt"><i class="ti ${T.ico}"></i>${T.n}</span>
-        <span class="cl-acts"><button class="cl-back" id="cl-share" aria-label="Поделиться"><i class="ti ti-share-3"></i></button><button class="cl-back" id="cl-edit" aria-label="Изменить"><i class="ti ti-pencil"></i></button></span></div>
-      <div class="cl-head">
-        <h2>${esc(c.title)}</h2>
-        <div class="cl-per">${dLong(c.start)} → ${dLong(c.end)} · ${R.started ? (R.over ? 'завершён' : 'день ' + R.dayNo + ' из ' + R.total) : 'старт через ' + diffDays(t, c.start) + ' ' + pl(diffDays(t, c.start), 'день', 'дня', 'дней')}</div>
-        <div class="cl-hbig"><b>${esc(h.big)}</b><span>${esc(h.sub)}</span></div>
-        <div class="cl-bar lg"><i style="width:${(R.pct * 100).toFixed(1)}%"></i>${R.started && !R.over && c.type !== 'nofx' && c.type !== 'daily' ? `<u style="left:${(R.timePct * 100).toFixed(1)}%"></u>` : ''}</div>
-        <div class="cl-hrow">${paceChip(R)}${R.started && !R.over ? `<span class="cl-left">осталось ${R.left} ${pl(R.left, 'день', 'дня', 'дней')}</span>` : ''}</div>
-        ${fl ? `<div class="cl-fc"><i class="ti ti-chart-line"></i><span>${fl}</span></div>` : ''}
+      <div class="cl-top"><button class="cl-btn-i" id="cl-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><span class="cl-tt">${T.n}</span>
+        <button class="cl-btn-i" id="cl-share" aria-label="Поделиться"><i class="ti ti-share-3"></i></button><button class="cl-btn-i" id="cl-edit" aria-label="Изменить"><i class="ti ti-pencil"></i></button></div>
+      <div class="in-card cl-hero">
+        <div class="cl-hh"><span class="cl-ico lg"><i class="ti ${T.ico}"></i></span><div><h2>${esc(c.title)}</h2><span>${dLong(c.start)} → ${dLong(c.end)} · ${R.started ? (R.over ? 'завершён' : 'день ' + R.dayNo + ' из ' + R.total) : 'старт через ' + diffDays(t, c.start) + ' ' + pl(diffDays(t, c.start), 'день', 'дня', 'дней')}</span></div></div>
+        <div class="cl-hnum"><b>${esc(h.num)}</b><span>${esc(h.unit)}</span><em>${esc(h.of)}</em></div>
+        ${barHtml(R, true)}
+        <div class="cl-ends">${showEnds ? `<span>${esc(e[0])}</span>` : `<span>${Math.round(R.pct * 100)}%</span>`}${paceChip(R) || (R.started && !R.over ? `<span class="cl-left">осталось ${R.left} ${pl(R.left, 'день', 'дня', 'дней')}</span>` : '')}${showEnds ? `<span>${esc(e[1])}</span>` : `<span>${R.started && !R.over ? 'ещё ' + R.left + ' ' + pl(R.left, 'день', 'дня', 'дней') : ''}</span>`}</div>
+        <div class="in-kpis cl-kpis">${kpis(R)}</div>
       </div>
-      ${input}
+      ${todayCard(R)}
+      ${chart(R, (mount.clientWidth || 360) - 64)}
+      <div class="cl-gh"><div class="tr-group-title cl-gt">Дневник</div><button class="tr-measure-add-inline" id="cl-share2"><i class="ti ti-share-3"></i> В сторис</button></div>
       ${tableHtml(R)}
     </div>`;
     const $ = (s) => mount.querySelector(s);
     $('#cl-back').onclick = () => { _open = null; render(mount); };
     $('#cl-edit').onclick = () => form({ type: c.type }, c);
-    $('#cl-share').onclick = () => share(c);
-    const sv = $('#cl-save'), vi = $('#cl-v');
-    if (sv) { const go = () => { const v = parseNum(vi.value); setLog(c, t, v); after(c); }; sv.onclick = go; vi.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }); }
+    $('#cl-share').onclick = $('#cl-share2').onclick = () => share(c);
+    const vi = $('#cl-v'), sv = $('#cl-save');
+    const dp = dpOf(c), stepV = c.type === 'weight' ? 0.1 : 0.5;
+    mount.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { const cur = parseNum(vi.value) || 0; vi.value = fmt(Math.round((cur + +b.dataset.st * stepV) * 100) / 100, dp); });
+    mount.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { vi.value = fmt((parseNum(vi.value) || 0) + +b.dataset.add); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); });
+    mount.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { vi.value = fmt(+b.dataset.set); });
+    if (sv) { const go = () => { setLog(c, t, parseNum(vi.value)); after(c); }; sv.onclick = go; vi.addEventListener('keydown', e2 => { if (e2.key === 'Enter') go(); }); vi.addEventListener('focus', () => vi.select()); }
     mount.querySelectorAll('[data-mark]').forEach(b => b.onclick = () => { const v = +b.dataset.mark; setLog(c, t, (c.log || {})[t] === v ? null : v); after(c); });
     mount.querySelectorAll('[data-wk]').forEach(b => b.onclick = () => { const k = b.dataset.wk; _openWeeks[k] = !_openWeeks[k]; detail(mount, get(c.id)); });
     mount.querySelectorAll('[data-day]').forEach(r => r.onclick = () => editDay(get(c.id), r.dataset.day));
@@ -395,7 +525,8 @@ window.Challenges = (() => {
       let sum = '';
       if (c.type === 'weight' || c.type === 'meas' || c.type === 'pr') {
         const vs = wr.filter(r => r.v != null); const endV = c.type === 'pr' ? (vs.length ? Math.max(...vs.map(r => r.v)) : null) : (vs.length ? vs[vs.length - 1].v : null);
-        const wd = endV != null && prevEnd != null ? endV - prevEnd : null, tot = endV != null && (c.type === 'pr' ? R.base : c.startVal) != null ? endV - (c.type === 'pr' ? R.base : c.startVal) : null;
+        const only0 = wr.every(r => r.i === 0);
+        const wd = !only0 && endV != null && prevEnd != null ? endV - prevEnd : null, tot = only0 ? null : endV != null && (c.type === 'pr' ? R.base : c.startVal) != null ? endV - (c.type === 'pr' ? R.base : c.startVal) : null;
         sum = `<td class="cl-v hl">${endV != null ? fmt(endV, dp) : '–'}</td><td class="cl-c${cls(wd, c.type === 'pr' ? 1 : good)}">${wd != null ? sgn(wd, dp) : ''}</td><td class="cl-t${cls(tot, c.type === 'pr' ? 1 : good)}">${tot != null ? sgn(tot, dp) : ''}</td>`;
         if (endV != null) prevEnd = c.type === 'pr' ? Math.max(prevEnd || 0, endV) : endV;
       } else if (c.type === 'sum') { const s0 = wr.reduce((a, r) => a + (r.v || 0), 0); sum = `<td class="cl-v hl">${fmt(s0)}</td><td class="cl-t">${fmt(wr[wr.length - 1].cum)}</td><td></td>`; }
@@ -428,7 +559,7 @@ window.Challenges = (() => {
     txt(h.sub, 80, 605, F(600, 34), '#A9B4D6');
     /* полоска */
     rr(80, 650, W - 160, 22, 11, 'rgba(255,255,255,.1)');
-    if (R.pct > 0) { const pg = x.createLinearGradient(80, 0, W - 80, 0); pg.addColorStop(0, '#4A7CFF'); pg.addColorStop(1, '#8B5CF6'); rr(80, 650, Math.max(22, (W - 160) * R.pct), 22, 11, pg); }
+    if (R.pct > 0) { const pg = x.createLinearGradient(80, 0, W - 80, 0); pg.addColorStop(0, '#2C4FA8'); pg.addColorStop(1, '#4A7CFF'); rr(80, 650, Math.max(22, (W - 160) * R.pct), 22, 11, pg); }
     txt(Math.round(R.pct * 100) + '%', W - 80, 720, F(700, 30), '#C9D3F5', 'right');
     /* таблица последних дней */
     let rows = R.rows.filter(r => c.type === 'pr' ? r.v != null : true).slice(-7);

@@ -240,8 +240,7 @@ window.Challenges = (() => {
         <span class="cl-it-bot">${todayState(R)}<span class="cl-pct">${Math.round(R.pct * 100)}%</span></span></button>`; };
     const empty = !act.length;
     mount.innerHTML = `<div class="cl-wrap">
-      ${empty ? `<div class="in-card cl-empty"><span class="cl-eico"><i class="ti ti-trophy"></i></span><b>Челленджи</b><span>Вызов себе на срок: похудеть к дате, взять рекорд, сделать 3000 отжиманий</span></div>
-        <div class="tr-group-title cl-gt">Готовые</div>${tplGrid()}` : `
+      ${empty ? `<div class="tr-group-title cl-gt">Готовые</div>${tplGrid()}` : `
         <div class="cl-gh"><div class="tr-group-title cl-gt">Активные <em class="cl-n">${act.length}</em></div><button class="tr-measure-add-inline" id="cl-new"><i class="ti ti-plus"></i> Новый</button></div>
         <div class="cl-list">${act.map(item).join('')}</div>`}
       ${fin.length ? `<details class="cl-fin"${empty ? ' open' : ''}><summary class="tr-group-title cl-gt">Завершённые <em class="cl-n">${fin.length}</em><i class="ti ti-chevron-down cl-chev"></i></summary><div class="cl-list">${fin.map(item).join('')}</div></details>` : ''}
@@ -399,7 +398,7 @@ window.Challenges = (() => {
     const area = pts.length > 1 ? `${path} L${X(last[0]).toFixed(1)} ${H - B} L${X(pts[0][0]).toFixed(1)} ${H - B} Z` : '';
     const tx = X(Math.min(total, diffDays(c.start, today())));
     const id = 'clg' + c.id;
-    return `<div class="in-card cl-chart"><div class="in-h"><div><b>Динамика</b><span>${c.type === 'sum' ? 'накоплено' : 'по дням'} и линия «как надо»</span></div></div>
+    return `<div class="in-card cl-chart"><div class="in-h"><div><b>Динамика</b></div><span class="cl-lg"><i class="cl-lg-f"></i>ты<i class="cl-lg-i"></i>план</span></div>
       <svg viewBox="0 0 ${W} ${H}" class="cl-svg" role="img" aria-label="График челленджа">
         <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A7CFF" stop-opacity=".35"/><stop offset="1" stop-color="#4A7CFF" stop-opacity="0"/></linearGradient></defs>
         <line x1="${L}" x2="${W - Rr}" y1="${Y(c.goal).toFixed(1)}" y2="${Y(c.goal).toFixed(1)}" class="cl-gl"/>
@@ -439,7 +438,8 @@ window.Challenges = (() => {
     const showEnds = ['weight', 'meas', 'pr', 'sum'].includes(c.type);
     mount.innerHTML = `<div class="cl-wrap cl-det" style="--c:${T.c}">
       <div class="cl-top"><button class="cl-btn-i" id="cl-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><span class="cl-tt">${T.n}</span>
-        <button class="cl-btn-i" id="cl-share" aria-label="Поделиться"><i class="ti ti-share-3"></i></button><button class="cl-btn-i" id="cl-edit" aria-label="Изменить"><i class="ti ti-pencil"></i></button></div>
+        <button class="cl-btn-i" id="cl-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="cl-btn-i" id="cl-share" aria-label="Поделиться"><i class="ti ti-share-3"></i></button><button class="cl-btn-i" id="cl-edit" aria-label="Изменить"><i class="ti ti-pencil"></i></button></div>
+      <div class="cl-cols"><div class="cl-coll">
       <div class="in-card cl-hero">
         <div class="cl-hh"><span class="cl-ico lg"><i class="ti ${T.ico}"></i></span><div><h2>${esc(c.title)}</h2><span>${dLong(c.start)} → ${dLong(c.end)} · ${R.started ? (R.over ? 'завершён' : 'день ' + R.dayNo + ' из ' + R.total) : 'старт через ' + diffDays(t, c.start) + ' ' + pl(diffDays(t, c.start), 'день', 'дня', 'дней')}</span></div></div>
         <div class="cl-hnum"><b>${esc(h.num)}</b><span>${esc(h.unit)}</span><em>${esc(h.of)}</em></div>
@@ -448,13 +448,16 @@ window.Challenges = (() => {
         <div class="in-kpis cl-kpis">${kpis(R)}</div>
       </div>
       ${todayCard(R)}
-      ${chart(R, (mount.clientWidth || 360) - 64)}
+      </div><div class="cl-colr">
+      ${chart(R, (mount.clientWidth > 1000 ? mount.clientWidth / 2 : (mount.clientWidth || 360)) - 64)}
       <div class="cl-gh"><div class="tr-group-title cl-gt">Дневник</div><button class="tr-measure-add-inline" id="cl-share2"><i class="ti ti-share-3"></i> В сторис</button></div>
       ${tableHtml(R)}
-    </div>`;
+    </div></div></div>`;
     const $ = (s) => mount.querySelector(s);
+    tips(mount);
     $('#cl-back').onclick = () => { _open = null; render(mount); };
     $('#cl-edit').onclick = () => form({ type: c.type }, c);
+    $('#cl-help').onclick = () => { if (window.Tour && Tour.play) Tour.play(TIPS.filter(x => mount.querySelector(x.sel)), 'tab:training.challenge'); };
     $('#cl-share').onclick = $('#cl-share2').onclick = () => share(c);
     const vi = $('#cl-v'), sv = $('#cl-save');
     const dp = dpOf(c), stepV = c.type === 'weight' ? 0.1 : 0.5;
@@ -465,6 +468,22 @@ window.Challenges = (() => {
     mount.querySelectorAll('[data-mark]').forEach(b => b.onclick = () => { const v = +b.dataset.mark; setLog(c, t, (c.log || {})[t] === v ? null : v); after(c); });
     mount.querySelectorAll('[data-wk]').forEach(b => b.onclick = () => { const k = b.dataset.wk; _openWeeks[k] = !_openWeeks[k]; detail(mount, get(c.id)); });
     mount.querySelectorAll('[data-day]').forEach(r => r.onclick = () => editDay(get(c.id), r.dataset.day));
+  }
+  /* подсказки экрана челленджа: один раз, как на остальных экранах */
+  const TIPS = [
+    { sel: '.cl-hero', t: 'Твой челлендж', d: 'Сколько уже сделано и сколько осталось. Белая метка на полоске: где ты должен быть сегодня по плану. Заливка дальше метки: опережаешь.' },
+    { sel: '.cl-kpis', t: 'Главные цифры', d: 'Где ты сейчас, как прошла неделя и сколько нужно, чтобы успеть к финишу.' },
+    { sel: '.cl-today', t: 'Отметка за сегодня', d: 'Одно число в день. Кнопки рядом ускоряют ввод. Забыл вчера? Нажми на день в дневнике и впиши.' },
+    { sel: '.cl-chart', t: 'Динамика', d: 'Синяя линия: твои результаты. Пунктир: как надо идти, чтобы успеть. Точки после сегодня: куда приведёт текущий темп.' },
+    { sel: '.cl-tw', t: 'Дневник', d: 'Все дни по неделям. Зелёный: шаг к цели, красный: шаг назад. Нажми на день, чтобы поправить.' },
+    { sel: '#cl-share', t: 'Поделиться', d: 'Соберу красивую карточку для сторис с таблицей недели и результатом.' },
+  ];
+  function tips(mount) {
+    try {
+      const st = window.Tour && Tour._state ? Tour._state() : null;
+      if (!st || !st.enabled || (st.seen || {})['tab:training.challenge'] || !Tour.play) return;
+      setTimeout(() => { if (mount.querySelector('.cl-hero')) Tour.play(TIPS.filter(x => mount.querySelector(x.sel)), 'tab:training.challenge'); }, 600);
+    } catch (e) {}
   }
   /* после записи: перерисовать и отпраздновать, если цель взята впервые */
   function after(c) {
@@ -602,5 +621,5 @@ window.Challenges = (() => {
     go.onclick = async () => { try { await navigator.share({ files: [file], title: c.title }); } catch (e) {} };
   }
 
-  return { render, calc, _all: all };
+  return { render, calc, TIPS, _all: all };
 })();

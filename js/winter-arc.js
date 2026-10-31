@@ -8,8 +8,8 @@
 window.WinterArc = (function () {
   const SRC = 'img/winterarc.mp4';
   let busy = false;
-  /* выбранный дизайн хранится на устройстве; Winter Arc открыт всем с 1 ноября, владельцу сразу */
-  const RELEASE = '2026-11-01';
+  /* выбранный дизайн хранится на устройстве; Winter Arc пока только владельцу (Ник отложил выход), остальным заставка «в разработке» */
+  const RELEASE = '2099-01-01';
   const isOwner = () => { try { const u = window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser(); const o = (window.AUTH_CONFIG || {}).ownerEmail; return !!(u && o && (u.email || '').toLowerCase() === o.toLowerCase()); } catch (e) { return false; } };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const available = () => isOwner() || today() >= RELEASE;

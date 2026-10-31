@@ -582,7 +582,7 @@ window.Screens.goals = function(mount) {
               + '<span class="goals-item-v3-name" style="'+(g.done?'text-decoration:line-through;':'')+'">'
               + goalsEsc(g.name)+'<span style="font-size:10px;color:#9D9A92;">'+mt+'</span>'
               + (g.note ? (/^https?:\/\/\S+$/i.test(g.note) ? '<a class="goals-note-link" href="'+goalsEsc(g.note)+'" target="_blank" rel="noopener" title="'+goalsEsc(g.note)+'"><i class="ti ti-link"></i></a>' : '<span class="goals-note">'+goalsEsc(g.note)+'</span>') : '')
-              + (g.payId ? '<i class="ti ti-calendar-dollar goals-paid-ic" title="В платежах"></i>' : '')
+              + (goalsInPlanned(g) ? '<i class="ti ti-calendar-dollar goals-paid-ic" title="В платежах"></i>' : '')
               + '</span>'
               + '<span class="goals-item-v3-amt">'+amtDisplay+'</span>'
               + '</div>';

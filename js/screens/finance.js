@@ -489,6 +489,11 @@ window.Screens.finance = function(mount) {
       const arr = Object.values(((Store.get().finance || {}).spend || {})[FS.ymKey(pd)] || {}); arr.forEach(x => { if (x && !x.once && +x.at <= cut) { const k = x.cat || '_other'; prevBy[k] = (prevBy[k] || 0) + (+x.amt || 0); } }); } catch (e) {}
     const hasPrev = Object.keys(prevBy).length > 0;
     const dlt = (id) => { if (!hasPrev) return ''; const d = (spentBy[id] || 0) - (prevBy[id] || 0); if (Math.abs(d) < 300) return ''; return `<em class="plan-dlt ${d > 0 ? 'up' : 'dn'}" title="к этому же дню прошлого месяца">${d > 0 ? '+' : '−'}${finFmtFull(Math.abs(d))}</em>`; };
+    /* в среднем за прошлые месяцы: видно, насколько план расходится с реальностью */
+    const avgBy = FS && FS.catAvg ? FS.catAvg(3) : {};
+    const avgLine = (id, amt) => { const a = avgBy[id] || 0; if (!avgBy._months || (!a && !amt)) return '';
+      const off = amt > 0 ? (a - amt) / amt : 0, cls = off >= 0.1 ? ' up' : off <= -0.1 ? ' dn' : '';
+      return `<span class="plan-cat-avg${cls}">в среднем ${finFmtFull(a)} за ${avgBy._months} мес</span>`; };
     const dimB = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const monthPos = Math.round(now.getDate() / dimB * 100);
     /* кольцо месяца: сколько плана уже потрачено против того, сколько месяца прошло */
@@ -569,7 +574,7 @@ window.Screens.finance = function(mount) {
               <span class="plan-cat-name"><span class="plan-cat-nm">${escH(c.name)}</span>${day ? `<em class="plan-day" title="платёж ${day} числа"><i class="ti ti-calendar-event"></i>${day}</em>` : ''}${dlt(c.id)}</span>
               <span class="plan-cat-amt">${!sp || !amt ? finFmtFull(amt || sp) : over ? `<em class="over">+${finFmtFull(sp - amt)} сверх</em><small>из ${finFmtFull(amt)}</small>` : sp >= amt ? `<em class="ok">оплачено</em><small>${finFmtFull(amt)}</small>` : `<b class="left">осталось ${finFmtFull(amt - sp)}</b><small>из ${finFmtFull(amt)}</small>`}</span>
               <span class="plan-cat-pct">${totalBase > 0 ? Math.round(amt / totalBase * 100) + '%' : ''}</span>
-              ${amt > 0 ? `<span class="plan-cat-bar"><span data-k="bal:${escH(c.id)}" data-w="${fill}" style="width:0;background:${over ? '#EB5850' : colH(c.color)}"></span><i style="left:${monthPos}%" title="где должен быть сегодня"></i></span>` : ''}
+              ${amt > 0 ? `<span class="plan-cat-bar"><span data-k="bal:${escH(c.id)}" data-w="${fill}" style="width:0;background:${over ? '#EB5850' : colH(c.color)}"></span><i style="left:${monthPos}%" title="где должен быть сегодня"></i></span>` : ''}${avgLine(c.id, amt)}
             </div>`; }).join('') : '<div class="plan-empty">Категорий нет. Добавь их в настройках</div>'}
 
         </div>

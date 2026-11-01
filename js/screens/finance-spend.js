@@ -103,6 +103,15 @@ window.FinSpend = (function () {
     /* траты по разовым платежам в категории не идут: эти деньги зарезервированы отдельно */
     const out = {}; list(ym).forEach(x => { const k = x.once ? '_once' : (x.cat || '_other'); out[k] = (out[k] || 0) + x.amt; }); return out;
   }
+  /* сколько в среднем уходит на категорию в месяц: последние n закрытых месяцев, где вообще есть записи трат */
+  function catAvg(n) {
+    n = n || 3; const now = new Date(), sum = {}; let months = 0;
+    for (let i = 1; i <= 12 && months < n; i++) {
+      const recs = rawList(ymKey(new Date(now.getFullYear(), now.getMonth() - i, 1))); if (!recs.length) continue;
+      months++; recs.forEach(x => { if (x.once) return; const k = x.cat || '_other'; sum[k] = (sum[k] || 0) + x.amt; });
+    }
+    const out = { _months: months }; Object.keys(sum).forEach(k => { out[k] = Math.round(sum[k] / months / 100) * 100; }); return out;
+  }
   /* день зарплаты: считаем «до зарплаты» вместо «до конца месяца». Нет дня = до конца месяца */
   function payday() { const d = Math.round(+(Store.get().finance || {}).payday); return d >= 2 && d <= 31 ? d : 0; }
   /* день P в месяце: 31-е в 30-дневном месяце = последний день */
@@ -782,6 +791,11 @@ window.FinSpend = (function () {
         toast(`Удалил ${fmt(x.amt)}`, () => { saveList(ym, rawList(ym).concat([x])); changed = true; drawPay(); if (onDone) onDone(); }); });
     };
     drawPay();
+    /* среднее за прошлые месяцы: подсказка, сколько ставить в план */
+    const av = catAvg(3), avg = av[id] || 0;
+    if (av._months) { const el = document.createElement('div'); el.className = 'ce-avg';
+      el.innerHTML = `<span>В среднем за ${av._months} мес<b>${fmt(avg)}</b></span>${avg > 0 && avg !== (+c.amt || 0) ? '<button type="button" class="ce-pay-b">Поставить в план</button>' : ''}`;
+      box.after(el); const bt = el.querySelector('button'); if (bt) bt.onclick = () => { const inp = box.querySelector('.ce-amt'); if (inp) { inp.value = String(avg); inp.dispatchEvent(new Event('input', { bubbles: true })); } drawPay(); bt.remove(); }; }
     const close = () => { ov.remove(); if (changed && onDone) onDone(); };
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     ov.querySelector('#ce-cancel').onclick = close;
@@ -990,5 +1004,5 @@ window.FinSpend = (function () {
     setTimeout(() => t.classList.add('out'), 4200); setTimeout(() => t.remove(), 4600);
   }
 
-  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS, addBank, toast, splitMulti, multiModal };
+  return { oncePaid, planned, onceModal, perMonth, pDate, render, calc, catSpent, catAvg, parse, parseAmt, payments, ymKey, catKey, budget, learn, animate, countUp, catModal, catRowHtml, bindCatRows, readCatRows, saveCats, esc, col, PALETTE, TIPS, addBank, toast, splitMulti, multiModal };
 })();

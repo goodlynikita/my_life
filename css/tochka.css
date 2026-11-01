@@ -667,3 +667,10 @@ html.fin-inv-on .modal-finance #se-del, html.fin-inv-on .modal-finance #om-del, 
 .pg-hist-b[hidden]{display:none}
 /* Баланс: в заголовках блоков сколько осталось */
 .plan-val .plan-left{color:#C9BDF7;font-weight:600}.plan-val .plan-left.ok{color:var(--tk-green,#5FC98B)}
+
+/* среднее за прошлые месяцы под полоской категории и в окне категории */
+.plan-cat-avg{grid-column:2 / -1;font-size:11.5px;color:var(--tk-faint,#8A8A8A);margin-top:-1px}
+.plan-cat-avg.up{color:#F2A93B}.plan-cat-avg.dn{color:#5FC98B}
+.ce-avg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:var(--tk-raised,#2C2837);font-size:13px;color:var(--tk-faint,#8A8A8A)}
+.ce-avg b{display:block;font-size:15px;color:#fff;margin-top:2px}
+.ce-avg .ce-pay-b{flex:0 0 auto}

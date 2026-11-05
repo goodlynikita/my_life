@@ -43,6 +43,9 @@ window.TrainingInsights = (function () {
       const b3 = Math.max(...last3.map(e1)), bb = before.length ? Math.max(...before.map(e1)) : 0;
       const flat = before.length ? b3 <= bb * 1.005 : (e1(last3[2]) <= e1(last3[0]) * 1.005);
       if (!flat || e1(last3[2]) > e1(last3[0]) * 1.005) return;
+      /* средний вес по подходам вырос (как в «Итогах»): это рост, а не плато */
+      { const av = (r) => +r.avgW || +r.weight || 0, a3 = Math.max(...last3.map(av)), ab = before.length ? Math.max(...before.map(av)) : 0;
+        if (av(last3[2]) > av(last3[0]) * 1.005 || (before.length && a3 > ab * 1.005)) return; }
       /* дошёл до верха диапазона повторов: это не плато, программа сама прибавит вес */
       { const g = (A.GOALS || {})[(((Store.get().training || {}).aiPrefs) || {}).goal || 'mass'] || { hi: 12 };
         let hi = g.hi; if (x.cls.kind === 'iso' && hi <= 6) hi = 12; if (/отведени|махи|разведени/i.test(x.name || '')) hi = Math.max(hi, 20);

@@ -712,6 +712,10 @@ function trTopSet(ex) {
   return { weight: top, reps: Math.min(...atTop.map(d => +d.reps || 0)), sets: sd.length };
 }
 
+/* средний вес по подходам: тот же показатель, что в «Итогах» и в плане («ср. вес») */
+function trAvgW(ex) { const ws = trSetsList(ex).map(d => +d.weight || 0).filter(w => w > 0); return ws.length ? ws.reduce((a, b) => a + b, 0) / ws.length : (+ex.weight || 0); }
+function trVarW(ex) { const ws = trSetsList(ex).map(d => +d.weight || 0).filter(w => w > 0); return ws.length > 1 && Math.min(...ws) !== Math.max(...ws); }
+
 function trPace(ex) {
   if (!ex.distance || ex.distance === 0) return null;
   const paceMin = ex.duration / ex.distance;
@@ -2876,7 +2880,8 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
       /* рост рабочего веса к первой записи этого упражнения в плане (а не к неделе 1, где его могло не быть) */
       const first = trFirstLogged(plan, name);
       const progress = { pct: 0, dir: 'flat', none: !first || first === ex };
-      if (!progress.none) { const a = +first.weight || 0, b = +ex.weight || 0, ra = +first.reps || 0, rb = +ex.reps || 0;
+      /* рост по среднему весу подходов, как в «Итогах»: один тяжёлый подход в начале не делает минус */
+      if (!progress.none) { const a = trAvgW(first), b = trAvgW(ex), ra = +first.reps || 0, rb = +ex.reps || 0;
         progress.pct = a > 0 && b > 0 ? Math.round((b - a) / a * 100) : ra > 0 ? Math.round((rb - ra) / ra * 100) : 0;
         progress.dir = progress.pct > 0 ? 'up' : progress.pct < 0 ? 'down' : 'flat'; }
       const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '';
@@ -2886,7 +2891,7 @@ function trRenderWorkingWeight(plan, baseWeekIndex) {
           <td class="tr-ww-name">${trEsc(name)}</td>
           <td class="tr-ww-num num">${trEsc(ex.sets)}</td>
           <td class="tr-ww-num num">${trEsc(ex.reps)}</td>
-          <td class="tr-ww-num num tr-ww-weight">${trEsc(String(ex.weight).replace(".", ","))}&nbsp;кг</td>
+          <td class="tr-ww-num num tr-ww-weight">${trVarW(ex) ? '<small class="tr-ww-avg">ср.</small> ' : ''}${trEsc(String(Math.round(trAvgW(ex) * 10) / 10).replace(".", ","))}&nbsp;кг</td>
           <td class="tr-ww-num num tr-progress ${progress.dir}">${progress.none ? '<span class="tr-ww-na">–</span>' : (progress.pct ? sign + progress.pct + '%' : '0%') + `<i class="tr-arr">${arrow}</i>`}</td>
         </tr>`;
     }).join('');

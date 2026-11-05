@@ -244,7 +244,7 @@ window.TrainingAI = (function () {
     history.forEach(h => h.exercises.forEach(e => {
       const x = ex[e.key] || (ex[e.key] = { key: e.key, name: e.name, names: {}, cls: null, count: 0, last: null, first: null, best1rm: 0 });
       x.count++; x.names[e.name] = (x.names[e.name] || 0) + 1;
-      const rec = { sets: +e.sets || 0, reps: +e.reps || 0, weight: +e.weight || 0, date: h.date, planNum: h.planNum };
+      const rec = { sets: +e.sets || 0, reps: +e.reps || 0, weight: +e.weight || 0, avgW: typeof trAvgW === 'function' ? trAvgW(e) : (+e.weight || 0), date: h.date, planNum: h.planNum };
       if (!x.first) x.first = rec;
       (x.hist || (x.hist = [])).push(rec); if (x.hist.length > 16) x.hist.shift();
       x.last = rec; x.name = e.name; /* последнее использованное название */

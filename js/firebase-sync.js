@@ -299,7 +299,7 @@ const FirebaseSync = (() => {
       for (const k of old) { await set(ref(_db, base + '/' + k), null); await set(ref(_db, base + '/_list/' + k), null); }
     } catch (e) { console.warn('snapshot failed', e); }
   }
-  async function pullIntoStore() {
+  async function pullIntoStore(options = {}) {
     if (isCoachUser(_auth.currentUser)) {
       try {
         const root = await resolveCoachRoot();
@@ -323,7 +323,7 @@ const FirebaseSync = (() => {
       if (navigator.onLine === false) throw new Error('offline');
       const snap = await Promise.race([
         get(ref(_db, root)),
-        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 6000))
+        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), options.timeoutMs || 6000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
       if (userRoot() !== root) return 'error';
@@ -337,10 +337,13 @@ const FirebaseSync = (() => {
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000); /* 5 минут */
       return hasData || restoredSections ? true : false;
     } catch(e) {
+      if (userRoot() !== root) return 'error';
       console.error('pullIntoStore failed', e);
       setStatus('Нет связи', true);
       _loaded = false;
       _offline = true; _startRetry();
+      /* Дадим app.js загрузить копию и отметить базу, затем продолжим сверку фоном. */
+      if (navigator.onLine !== false) setTimeout(_retryPull, 0);
       return 'error';
     }
   }
@@ -388,7 +391,7 @@ const FirebaseSync = (() => {
   }
   async function _retryPull() {
     const root = userRoot();
-    if (_loaded || !_offline || !root || !_auth.currentUser || isCoachUser(_auth.currentUser)) return;
+    if (_loaded || !_offline || navigator.onLine === false || !root || !_auth.currentUser || isCoachUser(_auth.currentUser)) return;
     try {
       const snap = await Promise.race([get(ref(_db, root)), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
       if (_loaded || userRoot() !== root) return;
@@ -527,12 +530,12 @@ const FirebaseSync = (() => {
     return a && a.active && a.text ? a : null;
   }
 
-  async function isBlocked(user) {
+  async function isBlocked(user, waitMs = 3000) {
     if (!user || isCoachUser(user)) return false;
     try {
       /* без сети не ждём: get() у Firebase офлайн может висеть бесконечно, а приложение должно открыться */
       if (navigator.onLine === false) return false;
-      const snap = await _withT(get(ref(_db, 'userIndex/' + user.uid + '/blocked')), 3000);
+      const snap = await _withT(get(ref(_db, 'userIndex/' + user.uid + '/blocked')), waitMs);
       return snap.exists() && snap.val() === true;
     } catch (e) { return false; }
   }

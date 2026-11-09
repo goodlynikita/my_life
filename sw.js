@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v307';
+const CACHE = 'nik-system-v308';
 
 const STATIC = [
   './',
@@ -27,6 +27,8 @@ const STATIC = [
   './css/tour.css',
   './css/light.css',
   './js/theme.js',
+  './js/moved.js',
+  './js/hi.js',
   './js/palette.js',
   './js/config.js',
   './js/store.js',
@@ -121,8 +123,15 @@ function putCache(req, res) {
 self.addEventListener('fetch', e => {
   const req = e.request, url = req.url;
   if (req.method !== 'GET' || LIVE.test(url) || !/^https?:/.test(url)) return;
-  /* Страница: свежая из сети (не дольше 3 секунд), иначе из кеша своей версии. Исправления доходят сразу */
   if (req.mode === 'navigate') {
+    const page = new URL(url), base = new URL('./', self.location.href);
+    /* Оболочка приложения и её скрипты берутся из одной установленной версии.
+       Новую версию целиком загружает install, проверка SW остаётся фоновой. */
+    if (page.origin === base.origin && (page.pathname === base.pathname || page.pathname === base.pathname + 'index.html')) {
+      e.respondWith(mine().then(c => c.match(req, { ignoreSearch: true }).then(hit => hit || c.match('./index.html')).then(hit => hit || fetch(req))));
+      return;
+    }
+    /* Другие страницы: сеть с ожиданием до 3 секунд, затем кеш своей версии. */
     e.respondWith(mine().then(c => new Promise(resolve => {
       let done = false; const fromCache = () => c.match(req, { ignoreSearch: true }).then(r => r || c.match('./index.html')).then(r => r || c.match('./'));
       const t = setTimeout(() => fromCache().then(r => { if (r && !done) { done = true; resolve(r); } }), 3000);

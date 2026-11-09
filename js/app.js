@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await new Promise((resolve) => {
       const unsubscribe = FirebaseSync.onAuth(async (user) => {
         unsubscribe();
+        const isCoach = FirebaseSync.isCoach && FirebaseSync.isCoach();
+        const hasOwnBackup = !!(user && !isCoach && Store.hasLocalBackup && Store.hasLocalBackup(user.uid));
         /* Быстрый старт без ожидания сети: есть копия данных этого же аккаунта на телефоне, значит показываем сразу,
            а сервер (и проверку блокировки) подтягиваем фоном. Тренеру так нельзя: у него чужие данные */
         let lastUid = ''; try { lastUid = localStorage.getItem('nik_backup_uid') || ''; } catch (e) {}
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (FirebaseSync.isBlocked) FirebaseSync.isBlocked(user).then(b => { if (b) { window._accountBlocked = true; FirebaseSync.logout().then(() => location.reload()); } }).catch(() => {});
           resolve(); return;
         }
-        if (user && FirebaseSync.isBlocked && await FirebaseSync.isBlocked(user)) {
+        if (user && FirebaseSync.isBlocked && await FirebaseSync.isBlocked(user, hasOwnBackup ? 600 : 3000)) {
           /* Доступ закрыт из админки */
           window._accountBlocked = true;
           await FirebaseSync.logout();
@@ -63,17 +65,21 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (FirebaseSync.touchUserIndex) FirebaseSync.touchUserIndex(user);
           /* Пользователь залогинен — грузим его данные */
           try {
-            const result = await FirebaseSync.pullIntoStore();
-            const isCoach = FirebaseSync.isCoach && FirebaseSync.isCoach();
+            /* При слабой сети быстро переходим в прежний офлайн-путь с копией этого аккаунта.
+               До сверки с сервером очередь не отправляется, слияние выполняет _retryPull. */
+            const result = await FirebaseSync.pullIntoStore({ timeoutMs: hasOwnBackup ? 1200 : 6000 });
             if (result === true && !isCoach) try { localStorage.setItem('nik_backup_uid', user.uid); } catch (e) {}
-            if (result !== true) {
+            if (result === false) {
+              /* Сервер ответил пустыми данными: старую локальную копию не возвращаем. */
+              Store.replaceAll({});
+            } else if (result !== true) {
               /* Firebase недоступен — пробуем локальный бекап (тренеру — никогда: там могут быть чужие данные) */
-              const hasLocal = !isCoach && Store.loadFromLocalBackup && Store.loadFromLocalBackup();
+              const hasLocal = !isCoach && Store.loadFromLocalBackup && Store.loadFromLocalBackup(user.uid);
               if (!hasLocal) Store.replaceAll({}); else if (FirebaseSync.markBase) FirebaseSync.markBase();
             }
           } catch(e) {
             /* Офлайн — берём локальный бекап (не для тренера) */
-            const hasLocal = !(FirebaseSync.isCoach && FirebaseSync.isCoach()) && Store.loadFromLocalBackup && Store.loadFromLocalBackup();
+            const hasLocal = !isCoach && Store.loadFromLocalBackup && Store.loadFromLocalBackup(user.uid);
             if (!hasLocal) Store.replaceAll({}); else if (FirebaseSync.markBase) FirebaseSync.markBase();
           }
         } else {

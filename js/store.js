@@ -170,16 +170,22 @@ const Store = (() => {
     }
   }
 
-  function loadFromLocalBackup() {
+  function readLocalBackup(uid) {
     try {
+      if (uid && localStorage.getItem('nik_backup_uid') !== uid) return null;
       const raw = localStorage.getItem('nik_local_backup');
-      if (!raw) return false;
+      if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 1) {
-        data = ensureShape(parsed);
-        return true;
-      }
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length > 1) return parsed;
     } catch(e) {}
+    return null;
+  }
+
+  function hasLocalBackup(uid) { return !!readLocalBackup(uid); }
+
+  function loadFromLocalBackup(uid) {
+    const parsed = readLocalBackup(uid);
+    if (parsed) { data = ensureShape(parsed); return true; }
     return false;
   }
 
@@ -200,5 +206,5 @@ const Store = (() => {
   }
   /* были ли выкинуты пустые элементы в тренировках при последней загрузке (один раз) */
   function takeTrainingCompacted() { const v = _trCompacted; _trCompacted = false; return v; }
-  return { shape: ensureShape, takeTrainingCompacted, get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, loadFromLocalBackup, subscribe };
+  return { shape: ensureShape, takeTrainingCompacted, get, set: setAndNotify, replaceAll: replaceAllAndNotify, load, loadSeedFromRepo, defaultData, hasLocalBackup, loadFromLocalBackup, subscribe };
 })();

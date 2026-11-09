@@ -78,6 +78,7 @@ const FirebaseSync = (() => {
   function setStatus(text, isError) {
     const el = document.getElementById('sync-status');
     if (!el) return;
+    if (!isError && _conflictMessage) { text = _conflictMessage; isError = true; }
     /* обычные «Сохранение / Сохранено / Данные загружены» не показываем: плашка мешала кнопкам и тостам.
        Показываем только то, что требует внимания */
     if (!isError && /^(Сохранение|Сохранено|Данные загружены)/.test(text)) { el.style.opacity = '0'; return; }
@@ -90,123 +91,133 @@ const FirebaseSync = (() => {
 
   /* что было на сервере по каждому разделу, когда мы его последний раз видели (база для слияния) */
   const _baseSec = {}, _baseRev = {};
-  function _setBase(remote) { if (!remote || typeof remote !== 'object') return; const rv = remote._rev || {};
+  function _setBase(remote) {
+    Object.keys(_baseSec).forEach(k => delete _baseSec[k]); Object.keys(_baseRev).forEach(k => delete _baseRev[k]);
+    if (!remote || typeof remote !== 'object') return; const rv = remote._rev || {};
     Object.keys(remote).forEach(k => { if (k === '_rev') return; try { _baseSec[k] = JSON.parse(JSON.stringify(remote[k])); } catch (e) {} _baseRev[k] = rv[k] === undefined ? null : rv[k]; }); }
-  /* Отдельный журнал несохранённых тренировок переживает закрытие страницы.
-     Обычный backup при входе заменяется серверной копией, поэтому очереди в памяти мало.
-     Журнал привязан к аккаунту и удаляется только после подтверждения его отправки. */
-  function _trainingPendingKey() {
+  /* Журнал каждого изменённого раздела переживает закрытие страницы.
+     Старый ключ training оставлен совместимым с v306. */
+  const _clone = v => v === undefined ? undefined : JSON.parse(JSON.stringify(v));
+  let _conflictMessage = null;
+  function _pendingKey(top) {
     const u = _auth.currentUser;
-    return u && !isCoachUser(u) ? 'nik_training_pending_' + u.uid : null;
+    if (!u || isCoachUser(u)) return null;
+    return top === 'training' ? 'nik_training_pending_' + u.uid : 'nik_section_pending_' + u.uid + '_' + top;
   }
-  function _readPendingTraining() {
+  function _readPendingSection(top) {
     try {
-      const key = _trainingPendingKey(), p = key && JSON.parse(localStorage.getItem(key) || 'null');
-      return p && p.root === userRoot() && p.local && typeof p.local === 'object' ? p : null;
+      const key = _pendingKey(top), p = key && JSON.parse(localStorage.getItem(key) || 'null');
+      return p && p.root === userRoot() && (!p.section || p.section === top) && Object.prototype.hasOwnProperty.call(p, 'local') ? p : null;
     } catch (e) { return null; }
   }
-  function _rememberPendingTraining() {
+  function _pendingSections() {
+    const u = _auth.currentUser; if (!u || isCoachUser(u)) return [];
+    const tops = new Set(['training']), prefix = 'nik_section_pending_' + u.uid + '_';
+    try { for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i); if (k && k.startsWith(prefix)) tops.add(k.slice(prefix.length));
+    } } catch (e) {}
+    return [...tops].filter(t => /^[a-zA-Z][a-zA-Z0-9_]*$/.test(t) && t !== '_rev' && _readPendingSection(t));
+  }
+  function _rememberPendingSection(top, baseOverride) {
     try {
-      const key = _trainingPendingKey(); if (!key) return;
-      const previous = _readPendingTraining();
-      const base = previous ? previous.base : (_baseSec.training === undefined ? (_base && _base.training) : _baseSec.training);
-      localStorage.setItem(key, JSON.stringify({ root: userRoot(), id: Date.now() + ':' + Math.random(), base, local: Store.get().training }));
-    } catch (e) { console.warn('training journal failed', e); setStatus('Не удалось сохранить копию тренировок на устройстве', true); }
+      const key = _pendingKey(top); if (!key) return;
+      const previous = _readPendingSection(top);
+      const base = arguments.length > 1 ? baseOverride : previous ? previous.base : (_baseSec[top] === undefined ? (_base && _base[top]) : _baseSec[top]);
+      const local = Store.get()[top];
+      localStorage.setItem(key, JSON.stringify({ root: userRoot(), section: top, id: Date.now() + ':' + Math.random(), base, local: local === undefined ? null : local }));
+    } catch (e) { console.warn('sync journal failed', e); setStatus('Не удалось сохранить копию на устройстве. Проверь свободное место.', true); }
   }
-  function _ackPendingTraining(id) {
-    try { const p = _readPendingTraining(); if (p && p.id === id) localStorage.removeItem(_trainingPendingKey()); } catch (e) {}
+  function _ackPendingSection(top, id) {
+    try { const p = _readPendingSection(top); if (p && p.id === id) localStorage.removeItem(_pendingKey(top)); } catch (e) {}
   }
-  function _restorePendingTraining(remote) {
-    const pending = _readPendingTraining(); if (!pending) return;
-    const server = (remote || {}).training;
-    const merged = merge3(pending.base, pending.local, server);
-    /* При конфликте merge3 выбирает сервер. Исходную запись оставляем отдельно для восстановления. */
-    if (!_sameData(merged, pending.local)) {
-      try { localStorage.setItem(_trainingPendingKey() + '_recovery', JSON.stringify(pending)); } catch (e) {}
-    }
-    if (merged !== undefined && !_sameData(merged, server)) {
-      /* Следующая отправка уже сверяется со свежим сервером. */
-      Store.set('training', merged);
-      try {
-        const replay = _readPendingTraining();
-        if (replay) { replay.base = server; localStorage.setItem(_trainingPendingKey(), JSON.stringify(replay)); }
-      } catch (e) {} /* старый журнал остаётся даже при переполненном хранилище */
-      return true;
-    } else {
-      _ackPendingTraining(pending.id);
-    }
+  function _archiveConflict(top, pending, server, conflicts) {
+    if (!conflicts.length) return;
+    const key = 'nik_sync_conflict_' + _auth.currentUser.uid + '_' + pending.id + '_' + top;
+    localStorage.setItem(key, JSON.stringify({ ...pending, section: top, server, conflicts, savedAt: Date.now() }));
+    _conflictMessage = 'Есть разные версии записей. Обе копии сохранены, проверь восстановление данных.';
+    setStatus(_conflictMessage, true);
+  }
+  function _sectionValue(top, value) {
+    if (top !== 'training' || value == null || !Store.shape) return _clone(value);
+    /* Одинаковые индексы после нормализации дыр Firebase: сохраняем действующую схему Store. */
+    return Store.shape({ training: _clone(value) }).training;
+  }
+  function _restorePendingSections(remote) {
+    let restored = false;
+    _pendingSections().forEach(top => {
+      const pending = _readPendingSection(top), server = _sectionValue(top, (remote || {})[top]);
+      const conflicts = [], merged = merge3(_sectionValue(top, pending.base), _sectionValue(top, pending.local), server, conflicts);
+      _archiveConflict(top, pending, server, conflicts);
+      if (merged !== undefined && !_sameData(merged, server)) {
+        Store.set(top, merged);
+        try { const replay = _readPendingSection(top); if (replay) { replay.base = server; localStorage.setItem(_pendingKey(top), JSON.stringify(replay)); } } catch (e) {}
+        restored = true;
+      } else _ackPendingSection(top, pending.id);
+    });
+    return restored;
   }
   const _withT = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   async function _flushQueue() {
     const root = userRoot();
     if (!_loaded || _flushing || !root || _queue.size === 0) return;
-    const pendingTraining = _readPendingTraining();
-    const entries = [..._queue.entries()];
-    _queue.clear();
-    _flushing = true;
-    _lastWriteAt = Date.now();
+    const entries = [..._queue.entries()], sections = new Set(entries.map(([path]) => path.split('.')[0]));
+    const coach = isCoachUser(_auth.currentUser), trainerLinked = !!_myTrainer, captured = {};
+    if (coach) [...sections].forEach(t => { if (t !== 'training') sections.delete(t); });
+    sections.forEach(top => { captured[top] = { base: _sectionValue(top, _baseSec[top]), local: _sectionValue(top, Store.get()[top]), pending: _readPendingSection(top) }; });
+    /* У клиента тренера оставляем точечную семантику путей; при сжатии дыр нужен весь training. */
+    const compacted = sections.has('training') && Store.takeTrainingCompacted && Store.takeTrainingCompacted();
+    const tp = entries.map(([p]) => p).filter(p => p === 'training' || p.startsWith('training.'));
+    const keep = compacted ? ['training'] : tp.filter(p => !tp.some(q => q !== p && p.startsWith(q + '.')));
+    const at = (obj, keys) => keys.reduce((o, k) => o == null ? undefined : o[k], obj);
+    const put = (obj, keys, v) => { let o = obj; keys.slice(0, -1).forEach(k => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; });
+      if (v === undefined) { if (Array.isArray(o)) o[keys.at(-1)] = null; else delete o[keys.at(-1)]; } else o[keys.at(-1)] = v; };
+    _queue.clear(); _flushing = true; _lastWriteAt = Date.now();
     setStatus('Сохранение…');
     let failed = false;
     try {
-      const sections = new Set();
-      for (const [path] of entries) sections.add(path.split('.')[0]);
-      if (isCoachUser(_auth.currentUser)) [...sections].forEach(t => { if (t !== 'training') sections.delete(t); });
-      /* Клиента ведёт тренер: пишем только изменённые пути тренировок, а не раздел целиком.
-         Если тренер успел поменять план, берём его версию и накладываем сверху свои правки,
-         ничего своего не выбрасываем */
-      if (sections.has('training') && _myTrainer && !isCoachUser(_auth.currentUser)) {
-        const tp = [...new Set(entries.map(([p]) => p).filter(p => p === 'training' || p.startsWith('training.')))];
-        /* при загрузке из тренировок выкинули пустые элементы: индексы сдвинулись, пишем раздел целиком один раз */
-        const compacted = Store.takeTrainingCompacted ? Store.takeTrainingCompacted() : false;
-        const keep = compacted ? ['training'] : tp.filter(p => !tp.some(q => q !== p && p.startsWith(q + '.')));
-        const at = (obj, keys) => keys.reduce((o, k) => (o == null ? undefined : o[k]), obj);
-        const put = (obj, keys, v) => { let o = obj; keys.slice(0, -1).forEach(k => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }); o[keys[keys.length - 1]] = v; };
-        let srv = 0, loc = +((Store.get().training || {}).coachRev || 0);
-        try { const rs = await get(ref(_db, root + '/training/coachRev')); srv = rs.exists() ? +rs.val() : 0; } catch (e) {}
-        if (srv > loc && !keep.includes('training')) {
-          const ts = await get(ref(_db, root + '/training'));
-          const merged = ts.val() || {};
-          keep.forEach(p => put(merged, p.split('.').slice(1), at(Store.get(), p.split('.'))));
-          const cur = Store.get(); cur.training = merged; Store.replaceAll(cur);
-          window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: { conflict: true } }));
-        }
-        const up = {};
-        keep.forEach(p => { const v = at(Store.get(), p.split('.')); up[root + '/' + p.split('.').join('/')] = v === undefined ? null : sanitizeKeys(v); });
-        if (Object.keys(up).length) await update(ref(_db), up);
-        if (pendingTraining) _ackPendingTraining(pendingTraining.id);
-        sections.delete('training');
-      }
-      /* Каждый раздел пишем со сверкой: у раздела есть метка версии _rev/{раздел}. Если на сервере та же версия,
-         с которой мы начинали, пишем свои данные. Если её успело поменять другое устройство, сначала сливаем:
-         берём серверное и накладываем только свои правки (merge3), чтобы ничего с другого устройства не затереть */
-      let pulledIn = [];
+      const pulledIn = []; let coachUpdated = false;
       for (const top of sections) {
-        let data = Store.get()[top];
-        if (data === undefined) continue;
-        if (isCoachUser(_auth.currentUser)) { await set(ref(_db, root + '/' + top), sanitizeKeys(data)); continue; }
-        const rs = await _withT(get(ref(_db, root + '/_rev/' + top)), 6000);
-        const srvRev = rs.exists() ? rs.val() : null;
-        if (srvRev !== (_baseRev[top] === undefined ? null : _baseRev[top])) {
-          const ss = await _withT(get(ref(_db, root + '/' + top)), 8000);
-          const srv = ss.exists() ? ss.val() : undefined;
-          const merged = merge3(_baseSec[top], data, srv);
-          if (!_sameData(merged, data)) { const cur = Store.get(); cur[top] = merged; Store.replaceAll(cur); pulledIn.push(top); }
-          data = merged;
-        }
+        if (userRoot() !== root) break;
+        const batch = captured[top]; if (batch.local === undefined) continue;
+        if (coach) { await set(ref(_db, root + '/' + top), sanitizeKeys(batch.local)); continue; }
         const rev = Date.now() * 1000 + Math.floor(Math.random() * 1000);
-        await _withT(update(ref(_db, root), { [top]: sanitizeKeys(data), ['_rev/' + top]: rev }), 15000);
-        try { _baseSec[top] = JSON.parse(JSON.stringify(data)); } catch (e) {}
-        _baseRev[top] = rev;
-        if (top === 'training' && pendingTraining) _ackPendingTraining(pendingTraining.id);
+        let conflicts = [];
+        /* Не запускаем вторую отправку по таймауту первой: Firebase сам дождётся связи.
+           Новые правки остаются в журнале и очереди, экран продолжает работать.
+           Firebase повторяет функцию при конкурентной записи. Данные и _rev фиксируются вместе.
+           Остальные разделы всегда берутся из актуального server, а не из копии устройства. */
+        const result = await runTransaction(ref(_db, root), server => {
+          const current = server || {}, remote = _sectionValue(top, current[top]);
+          conflicts = [];
+          let merged;
+          if (top === 'training' && trainerLinked && !keep.includes('training')) {
+            merged = _clone(remote) || {};
+            keep.forEach(path => { const keys = path.split('.').slice(1);
+              put(merged, keys, merge3(at(batch.base, keys), at(batch.local, keys), at(remote, keys), conflicts, keys)); });
+          } else merged = merge3(batch.base, batch.local, remote, conflicts);
+          return Object.assign({}, current, { [top]: sanitizeKeys(merged), _rev: Object.assign({}, current._rev, { [top]: rev }) });
+        }, { applyLocally: false });
+        if (!result.committed) throw new Error('Сохранение не подтверждено');
+        if (userRoot() !== root) break;
+        const committedRoot = result.snapshot.val() || {}, committed = _sectionValue(top, committedRoot[top]);
+        if (top === 'training' && trainerLinked && +((committed || {}).coachRev || 0) > +((batch.local || {}).coachRev || 0)) coachUpdated = true;
+        /* Новая правка, сделанная во время ожидания подтверждения, остаётся поверх отправленного снимка. */
+        const latest = _sectionValue(top, Store.get()[top]), lateConflicts = [];
+        const next = merge3(batch.local, latest, committed, lateConflicts);
+        if (conflicts.length) _archiveConflict(top, batch.pending || { root, id: String(rev), base: batch.base, local: batch.local }, committed, conflicts);
+        if (lateConflicts.length) _archiveConflict(top, { ...(_readPendingSection(top) || { root, id: String(rev) + ':later' }), base: batch.local, local: latest }, committed, lateConflicts);
+        _baseSec[top] = _clone(committed); _baseRev[top] = (committedRoot._rev || {})[top] ?? null;
+        if (!_sameData(next, latest)) { const cur = Store.get(); cur[top] = next; Store.replaceAll(cur); pulledIn.push(top); }
+        if (_sameData(latest, batch.local)) {
+          if (batch.pending) _ackPendingSection(top, batch.pending.id);
+        } else _rememberPendingSection(top, committed);
       }
       if (pulledIn.length) window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: pulledIn } }));
-      _lastWriteAt = Date.now();
-      setStatus('Сохранено');
-    } catch(e) {
-      failed = true;
-      console.error('flush failed', e);
-      setStatus('Ошибка сохранения', true);
-      for (const [p,v] of entries) if (!_queue.has(p)) _queue.set(p,v);
+      if (coachUpdated) window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: {} }));
+      _lastWriteAt = Date.now(); setStatus('Сохранено');
+    } catch (e) {
+      failed = true; console.error('flush failed', e); setStatus('Ошибка сохранения', true);
+      if (userRoot() === root) for (const [p,v] of entries) if (!_queue.has(p)) _queue.set(p,v);
     } finally {
       _flushing = false;
       if (_queue.size) { clearTimeout(_flushTimer); _flushTimer = setTimeout(_flushQueue, failed ? 3000 : 600); }
@@ -214,8 +225,7 @@ const FirebaseSync = (() => {
   }
 
   function scheduleSave(path, value) {
-    if (path === 'training' || path.startsWith('training.')) _rememberPendingTraining();
-    /* запуск без связи: правки копим и отправим, как только данные с сервера подтянутся */
+    _rememberPendingSection(path.split('.')[0]);
     if (!_loaded) { if (_offline && userRoot() && !isCoachUser(_auth.currentUser)) _queue.set(path, value); return; }
     _queue.set(path, value);
     if (_flushTimer) clearTimeout(_flushTimer);
@@ -251,7 +261,7 @@ const FirebaseSync = (() => {
       const coach = isCoachUser(_auth.currentUser);
       const snap = await get(ref(_db, coach ? root + '/training' : root));
       if (!snap.exists()) return;
-      if (_queue.size > 0 || _flushing) return; /* пока ждали ответ — появились правки */
+      if (userRoot() !== root || _queue.size > 0 || _flushing) return; /* пока ждали ответ, могли появиться правки или смениться аккаунт */
       const next = coach ? { training: snap.val() } : snap.val();
       /* ничего не изменилось на сервере: экран не перерисовываем, иначе страница «прыгает» каждые 5 минут */
       /* сравниваем с данными в том же виде, в каком их держит Store (ensureShape чинит дыры, типы и т.п.), иначе экран «прыгает» каждые 5 минут */
@@ -289,7 +299,7 @@ const FirebaseSync = (() => {
       for (const k of old) { await set(ref(_db, base + '/' + k), null); await set(ref(_db, base + '/_list/' + k), null); }
     } catch (e) { console.warn('snapshot failed', e); }
   }
-  async function pullIntoStore() {
+  async function pullIntoStore(options = {}) {
     if (isCoachUser(_auth.currentUser)) {
       try {
         const root = await resolveCoachRoot();
@@ -313,27 +323,27 @@ const FirebaseSync = (() => {
       if (navigator.onLine === false) throw new Error('offline');
       const snap = await Promise.race([
         get(ref(_db, root)),
-        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 6000))
+        new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), options.timeoutMs || 6000))
       ]);
       const remote = snap.exists() ? snap.val() : null;
-      const hasData = remote && (
-        (remote?.training?.plans && remote.training.plans.length > 0) ||
-        remote?.finance?.years ||
-        remote?.goals?.directions ||
-        (remote?.habits?.list && remote.habits.list.length > 0)
-      );
-      if (remote) _setBase(remote);
+      if (userRoot() !== root) return 'error';
+      /* Неплотные массивы Firebase приходят объектами без length. Учитываем также задачи и другие разделы. */
+      const hasData = remote && Object.keys(remote).some(k => k !== 'meta' && k !== '_rev' && _norm(remote[k]) !== undefined);
+      _setBase(remote);
       if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); _snapshot(remote); }
       /* Если у пользователя нет данных но он владелец - данные уже в nik-data */
       _loaded = true;
-      const restoredTraining = _restorePendingTraining(remote);
+      const restoredSections = _restorePendingSections(remote);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000); /* 5 минут */
-      return hasData || restoredTraining ? true : false;
+      return hasData || restoredSections ? true : false;
     } catch(e) {
+      if (userRoot() !== root) return 'error';
       console.error('pullIntoStore failed', e);
       setStatus('Нет связи', true);
       _loaded = false;
       _offline = true; _startRetry();
+      /* Дадим app.js загрузить копию и отметить базу, затем продолжим сверку фоном. */
+      if (navigator.onLine !== false) setTimeout(_retryPull, 0);
       return 'error';
     }
   }
@@ -346,19 +356,32 @@ const FirebaseSync = (() => {
   const _isObj = (v) => v && typeof v === 'object';
   const _asArr = (v) => Array.isArray(v) ? v : (_isObj(v) && Object.keys(v).length && Object.keys(v).every(k => /^\d+$/.test(k)) ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : null);
   /* трёхстороннее слияние: берём твои правки поверх сервера только там, где ты реально что-то менял;
-     если одно и то же поле поменялось и тут, и на сервере, остаётся серверное (а твоя копия лежит в nik_local_backup_prev) */
-  function merge3(b, l, r) {
+     если одно и то же поле поменялось и тут, и на сервере, остаётся серверное, а конфликт отдельно архивируется */
+  function merge3(b, l, r, conflicts, path = []) {
     if (_sameData(l, b)) return r;
     if (_sameData(r, b) || _sameData(l, r)) return l;
     const la = _asArr(l), ra = _asArr(r), ba = _asArr(b) || [];
+    /* Стабильные id не дают сдвинутому индексу связать чужие записи или размножить одну запись.
+       Формат массива и порядок сервера остаются прежними; новые локальные id добавляются в конец. */
+    const ids = a => a && a.every(x => x && typeof x === 'object' && (typeof x.id === 'string' || typeof x.id === 'number')) && new Set(a.map(x => String(x.id))).size === a.length;
+    if (la && ra && ids(la) && ids(ra) && ids(ba)) {
+      const bm = new Map(ba.map(x => [String(x.id), x])), lm = new Map(la.map(x => [String(x.id), x])), rm = new Map(ra.map(x => [String(x.id), x]));
+      const out = [];
+      new Set([...rm.keys(), ...lm.keys(), ...bm.keys()]).forEach(id => {
+        const v = merge3(bm.get(id), lm.get(id), rm.get(id), conflicts, path.concat(id));
+        if (v != null) out.push(v);
+      });
+      return out;
+    }
     if (la && ra) { const n = ba.length, out = [];
-      for (let i = 0; i < Math.min(n, Math.max(la.length, ra.length)); i++) { const v = merge3(ba[i], la[i], ra[i]); if (v !== undefined) out.push(v); }
+      for (let i = 0; i < Math.min(n, Math.max(la.length, ra.length)); i++) { const v = merge3(ba[i], la[i], ra[i], conflicts, path.concat(String(i))); if (v !== undefined) out.push(v); }
       ra.slice(n).forEach(x => out.push(x));
       la.slice(n).forEach(x => { if (!ra.slice(n).some(y => _sameData(x, y))) out.push(x); });
       return out; }
     if (_isObj(l) && _isObj(r) && !la && !ra) { const out = {}; const bo = _isObj(b) ? b : {};
-      new Set(Object.keys(l).concat(Object.keys(r))).forEach(k => { const v = merge3(bo[k], l[k], r[k]); if (v !== undefined && v !== null) out[k] = v; });
+      new Set(Object.keys(l).concat(Object.keys(r))).forEach(k => { const v = merge3(bo[k], l[k], r[k], conflicts, path.concat(k)); if (v !== undefined && v !== null) out[k] = v; });
       return out; }
+    if (conflicts) conflicts.push({ path: path.join('.'), base: b, local: l, server: r });
     return r;
   }
   function _startRetry() {
@@ -368,10 +391,10 @@ const FirebaseSync = (() => {
   }
   async function _retryPull() {
     const root = userRoot();
-    if (_loaded || !_offline || !root || !_auth.currentUser || isCoachUser(_auth.currentUser)) return;
+    if (_loaded || !_offline || navigator.onLine === false || !root || !_auth.currentUser || isCoachUser(_auth.currentUser)) return;
     try {
       const snap = await Promise.race([get(ref(_db, root)), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
-      if (_loaded) return;
+      if (_loaded || userRoot() !== root) return;
       const remote = snap.exists() ? snap.val() : null;
       const tops = [...new Set([..._queue.keys()].map(p => String(p).split('.')[0]))]; _queue.clear();
       let mine = null; try { mine = JSON.parse(JSON.stringify(Store.get() || {})); } catch (e) {}
@@ -381,10 +404,10 @@ const FirebaseSync = (() => {
       clearInterval(_retryT); _retryT = null; window.removeEventListener('online', _retryPull);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);
       /* правки без связи накладываем аккуратно: только то, что поменял ты, не затирая свежее с сервера */
-      const pendingTraining = _readPendingTraining();
-      if (mine) tops.forEach(top => { if (top === 'training' && pendingTraining) return;
+      const pendingTops = new Set(_pendingSections());
+      if (mine) tops.forEach(top => { if (pendingTops.has(top)) return;
         try { const r = (remote || {})[top], m = merge3(base[top], mine[top], r); if (m !== undefined && !_sameData(m, r)) Store.set(top, m); } catch (e) {} });
-      _restorePendingTraining(remote);
+      _restorePendingSections(remote);
       setStatus('Данные загружены');
       window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: Object.keys(Store.get() || {}) } }));
     } catch (e) {}
@@ -507,12 +530,12 @@ const FirebaseSync = (() => {
     return a && a.active && a.text ? a : null;
   }
 
-  async function isBlocked(user) {
+  async function isBlocked(user, waitMs = 3000) {
     if (!user || isCoachUser(user)) return false;
     try {
       /* без сети не ждём: get() у Firebase офлайн может висеть бесконечно, а приложение должно открыться */
       if (navigator.onLine === false) return false;
-      const snap = await _withT(get(ref(_db, 'userIndex/' + user.uid + '/blocked')), 3000);
+      const snap = await _withT(get(ref(_db, 'userIndex/' + user.uid + '/blocked')), waitMs);
       return snap.exists() && snap.val() === true;
     } catch (e) { return false; }
   }
@@ -632,6 +655,7 @@ const FirebaseSync = (() => {
 
   async function logout() {
     _loaded = false; _offline = false; if (_retryT) { clearInterval(_retryT); _retryT = null; }
+    _queue.clear(); clearTimeout(_flushTimer); _flushTimer = null; _setBase(null); _base = null; _conflictMessage = null;
     _coachRoot = null;
     try { _myTrainer = null; stopWatch(); stopSlots(); _slots = null; localStorage.removeItem('you_slots'); localStorage.removeItem('nik_backup_uid'); if (_linkUnsub) { _linkUnsub(); _linkUnsub = null; } } catch (e) {}
     Store.replaceAll(Store.defaultData ? Store.defaultData() : {});
@@ -845,7 +869,7 @@ const FirebaseSync = (() => {
       if (!srv || srv <= loc || _queue.size > 0 || _flushing) return;
       try {
         const ts = await get(ref(_db, root + '/training'));
-        if (!ts.exists() || _queue.size > 0 || _flushing) return;
+        if (!ts.exists() || userRoot() !== root || _queue.size > 0 || _flushing) return;
         const cur = Store.get(); cur.training = ts.val(); Store.replaceAll(cur);
         window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: {} }));
       } catch (e) {}

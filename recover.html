@@ -51,6 +51,14 @@ function localCopies(u) { const out = [];
     try { const v = JSON.parse(localStorage.getItem(k) || 'null');
       if (v && v.root === rootOf(u) && v.local && typeof v.local === 'object') out.push({ k, d: { training: v.local }, savedAt: Number(String(v.id || '').split(':')[0]), label: 'Несохранённые тренировки' });
     } catch (e) {} });
+  if (u) for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k.startsWith('nik_section_pending_' + u.uid + '_') && !k.startsWith('nik_sync_conflict_' + u.uid + '_')) continue;
+    try { const v = JSON.parse(localStorage.getItem(k));
+      if (v && v.root === rootOf(u) && /^[a-zA-Z][a-zA-Z0-9_]*$/.test(v.section || '') && Object.prototype.hasOwnProperty.call(v, 'local'))
+        out.push({ k, d: { [v.section]: v.local }, downloadData: v.conflicts ? v : null, savedAt: v.savedAt || Number(String(v.id || '').split(':')[0]), label: k.startsWith('nik_sync_conflict_') ? 'Разные версии записей' : 'Несохранённые изменения' });
+    } catch (e) {}
+  }
   return out; }
 
 onAuthStateChanged(auth, async (u) => {
@@ -61,7 +69,7 @@ onAuthStateChanged(auth, async (u) => {
   $('local').innerHTML = copies.length ? copies.map((c, i) => `<div class="card"><h3>${c.label || 'Копия в этом браузере'}${c.savedAt ? ' от ' + fmt(c.savedAt) : ''}</h3>${summary(c.d)}
       <button class="b2" data-dl="${i}">Скачать</button>${u ? `<button class="b3" data-rs="${i}">Восстановить на сервер</button>` : ''}<div class="msg" id="m${i}"></div></div>`).join('')
     : '<div class="card">В этом браузере копий данных нет. Открой эту страницу на устройстве, где данные были свежими.</div>';
-  copies.forEach((c, i) => { const dl = document.querySelector(`[data-dl="${i}"]`); if (dl) dl.onclick = () => download('you-local-' + stamp() + '.json', c.d); });
+  copies.forEach((c, i) => { const dl = document.querySelector(`[data-dl="${i}"]`); if (dl) dl.onclick = () => download('you-local-' + stamp() + '.json', c.downloadData || c.d); });
   if (!u) return;
   const root = rootOf(u); let server = null;
   try { const s = await get(ref(db, root)); server = s.exists() ? s.val() : {}; } catch (e) { $('server').innerHTML = '<div class="card err">Не удалось прочитать сервер. Проверь интернет.</div>'; }

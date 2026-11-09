@@ -92,15 +92,61 @@ const FirebaseSync = (() => {
   const _baseSec = {}, _baseRev = {};
   function _setBase(remote) { if (!remote || typeof remote !== 'object') return; const rv = remote._rev || {};
     Object.keys(remote).forEach(k => { if (k === '_rev') return; try { _baseSec[k] = JSON.parse(JSON.stringify(remote[k])); } catch (e) {} _baseRev[k] = rv[k] === undefined ? null : rv[k]; }); }
+  /* Отдельный журнал несохранённых тренировок переживает закрытие страницы.
+     Обычный backup при входе заменяется серверной копией, поэтому очереди в памяти мало.
+     Журнал привязан к аккаунту и удаляется только после подтверждения его отправки. */
+  function _trainingPendingKey() {
+    const u = _auth.currentUser;
+    return u && !isCoachUser(u) ? 'nik_training_pending_' + u.uid : null;
+  }
+  function _readPendingTraining() {
+    try {
+      const key = _trainingPendingKey(), p = key && JSON.parse(localStorage.getItem(key) || 'null');
+      return p && p.root === userRoot() && p.local && typeof p.local === 'object' ? p : null;
+    } catch (e) { return null; }
+  }
+  function _rememberPendingTraining() {
+    try {
+      const key = _trainingPendingKey(); if (!key) return;
+      const previous = _readPendingTraining();
+      const base = previous ? previous.base : (_baseSec.training === undefined ? (_base && _base.training) : _baseSec.training);
+      localStorage.setItem(key, JSON.stringify({ root: userRoot(), id: Date.now() + ':' + Math.random(), base, local: Store.get().training }));
+    } catch (e) { console.warn('training journal failed', e); setStatus('Не удалось сохранить копию тренировок на устройстве', true); }
+  }
+  function _ackPendingTraining(id) {
+    try { const p = _readPendingTraining(); if (p && p.id === id) localStorage.removeItem(_trainingPendingKey()); } catch (e) {}
+  }
+  function _restorePendingTraining(remote) {
+    const pending = _readPendingTraining(); if (!pending) return;
+    const server = (remote || {}).training;
+    const merged = merge3(pending.base, pending.local, server);
+    /* При конфликте merge3 выбирает сервер. Исходную запись оставляем отдельно для восстановления. */
+    if (!_sameData(merged, pending.local)) {
+      try { localStorage.setItem(_trainingPendingKey() + '_recovery', JSON.stringify(pending)); } catch (e) {}
+    }
+    if (merged !== undefined && !_sameData(merged, server)) {
+      /* Следующая отправка уже сверяется со свежим сервером. */
+      Store.set('training', merged);
+      try {
+        const replay = _readPendingTraining();
+        if (replay) { replay.base = server; localStorage.setItem(_trainingPendingKey(), JSON.stringify(replay)); }
+      } catch (e) {} /* старый журнал остаётся даже при переполненном хранилище */
+      return true;
+    } else {
+      _ackPendingTraining(pending.id);
+    }
+  }
   const _withT = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   async function _flushQueue() {
     const root = userRoot();
-    if (!root || _queue.size === 0) return;
+    if (!_loaded || _flushing || !root || _queue.size === 0) return;
+    const pendingTraining = _readPendingTraining();
     const entries = [..._queue.entries()];
     _queue.clear();
     _flushing = true;
     _lastWriteAt = Date.now();
     setStatus('Сохранение…');
+    let failed = false;
     try {
       const sections = new Set();
       for (const [path] of entries) sections.add(path.split('.')[0]);
@@ -127,6 +173,7 @@ const FirebaseSync = (() => {
         const up = {};
         keep.forEach(p => { const v = at(Store.get(), p.split('.')); up[root + '/' + p.split('.').join('/')] = v === undefined ? null : sanitizeKeys(v); });
         if (Object.keys(up).length) await update(ref(_db), up);
+        if (pendingTraining) _ackPendingTraining(pendingTraining.id);
         sections.delete('training');
       }
       /* Каждый раздел пишем со сверкой: у раздела есть метка версии _rev/{раздел}. Если на сервере та же версия,
@@ -150,21 +197,24 @@ const FirebaseSync = (() => {
         await _withT(update(ref(_db, root), { [top]: sanitizeKeys(data), ['_rev/' + top]: rev }), 15000);
         try { _baseSec[top] = JSON.parse(JSON.stringify(data)); } catch (e) {}
         _baseRev[top] = rev;
+        if (top === 'training' && pendingTraining) _ackPendingTraining(pendingTraining.id);
       }
       if (pulledIn.length) window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: pulledIn } }));
-      _flushing = false;
       _lastWriteAt = Date.now();
       setStatus('Сохранено');
     } catch(e) {
-      _flushing = false;
+      failed = true;
       console.error('flush failed', e);
       setStatus('Ошибка сохранения', true);
-      for (const [p,v] of entries) _queue.set(p,v);
-      setTimeout(_flushQueue, 3000);
+      for (const [p,v] of entries) if (!_queue.has(p)) _queue.set(p,v);
+    } finally {
+      _flushing = false;
+      if (_queue.size) { clearTimeout(_flushTimer); _flushTimer = setTimeout(_flushQueue, failed ? 3000 : 600); }
     }
   }
 
   function scheduleSave(path, value) {
+    if (path === 'training' || path.startsWith('training.')) _rememberPendingTraining();
     /* запуск без связи: правки копим и отправим, как только данные с сервера подтянутся */
     if (!_loaded) { if (_offline && userRoot() && !isCoachUser(_auth.currentUser)) _queue.set(path, value); return; }
     _queue.set(path, value);
@@ -276,8 +326,9 @@ const FirebaseSync = (() => {
       if (hasData) { Store.replaceAll(remote); setStatus('Данные загружены'); _snapshot(remote); }
       /* Если у пользователя нет данных но он владелец - данные уже в nik-data */
       _loaded = true;
+      const restoredTraining = _restorePendingTraining(remote);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000); /* 5 минут */
-      return hasData ? true : false;
+      return hasData || restoredTraining ? true : false;
     } catch(e) {
       console.error('pullIntoStore failed', e);
       setStatus('Нет связи', true);
@@ -330,7 +381,10 @@ const FirebaseSync = (() => {
       clearInterval(_retryT); _retryT = null; window.removeEventListener('online', _retryPull);
       if (!_pollTimer) _pollTimer = setInterval(_silentPull, 300000);
       /* правки без связи накладываем аккуратно: только то, что поменял ты, не затирая свежее с сервера */
-      if (mine) tops.forEach(top => { try { const r = (remote || {})[top], m = merge3(base[top], mine[top], r); if (m !== undefined && !_sameData(m, r)) Store.set(top, m); } catch (e) {} });
+      const pendingTraining = _readPendingTraining();
+      if (mine) tops.forEach(top => { if (top === 'training' && pendingTraining) return;
+        try { const r = (remote || {})[top], m = merge3(base[top], mine[top], r); if (m !== undefined && !_sameData(m, r)) Store.set(top, m); } catch (e) {} });
+      _restorePendingTraining(remote);
       setStatus('Данные загружены');
       window.dispatchEvent(new CustomEvent('firebase-remote-update', { detail: { sections: Object.keys(Store.get() || {}) } }));
     } catch (e) {}
@@ -791,7 +845,7 @@ const FirebaseSync = (() => {
       if (!srv || srv <= loc || _queue.size > 0 || _flushing) return;
       try {
         const ts = await get(ref(_db, root + '/training'));
-        if (!ts.exists()) return;
+        if (!ts.exists() || _queue.size > 0 || _flushing) return;
         const cur = Store.get(); cur.training = ts.val(); Store.replaceAll(cur);
         window.dispatchEvent(new CustomEvent('coach-plan-update', { detail: {} }));
       } catch (e) {}

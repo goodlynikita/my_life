@@ -44,17 +44,21 @@ function summary(d) { const secs = ['training', 'habits', 'finance', 'goals', 't
 function download(name, data) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' })); a.download = name; a.click(); }
 const stamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
 
-function localCopies() { const out = [];
+function localCopies(u) { const out = [];
   for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!/^nik_local_backup/.test(k)) continue;
     try { const v = JSON.parse(localStorage.getItem(k)); const d = v && v.data && v.savedAt ? v.data : v; if (d && typeof d === 'object') out.push({ k, d, savedAt: v && v.savedAt }); } catch (e) {} }
+  if (u) ['nik_training_pending_' + u.uid, 'nik_training_pending_' + u.uid + '_recovery'].forEach(k => {
+    try { const v = JSON.parse(localStorage.getItem(k) || 'null');
+      if (v && v.root === rootOf(u) && v.local && typeof v.local === 'object') out.push({ k, d: { training: v.local }, savedAt: Number(String(v.id || '').split(':')[0]), label: 'Несохранённые тренировки' });
+    } catch (e) {} });
   return out; }
 
 onAuthStateChanged(auth, async (u) => {
   if (!u) { $('auth').innerHTML = `<div class="card"><h3>Войди в свой аккаунт</h3><input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Пароль"><button class="b1" id="go">Войти</button><div class="msg" id="am"></div></div>`;
     $('go').onclick = async () => { try { await signInWithEmailAndPassword(auth, $('em').value.trim(), $('pw').value); } catch (e) { $('am').innerHTML = '<span class="err">Не получилось войти</span>'; } }; }
   else $('auth').innerHTML = `<div class="sub">Аккаунт: ${esc(u.email)}</div>`;
-  const copies = localCopies();
-  $('local').innerHTML = copies.length ? copies.map((c, i) => `<div class="card"><h3>Копия в этом браузере${c.savedAt ? ' от ' + fmt(c.savedAt) : ''}</h3>${summary(c.d)}
+  const copies = localCopies(u);
+  $('local').innerHTML = copies.length ? copies.map((c, i) => `<div class="card"><h3>${c.label || 'Копия в этом браузере'}${c.savedAt ? ' от ' + fmt(c.savedAt) : ''}</h3>${summary(c.d)}
       <button class="b2" data-dl="${i}">Скачать</button>${u ? `<button class="b3" data-rs="${i}">Восстановить на сервер</button>` : ''}<div class="msg" id="m${i}"></div></div>`).join('')
     : '<div class="card">В этом браузере копий данных нет. Открой эту страницу на устройстве, где данные были свежими.</div>';
   copies.forEach((c, i) => { const dl = document.querySelector(`[data-dl="${i}"]`); if (dl) dl.onclick = () => download('you-local-' + stamp() + '.json', c.d); });

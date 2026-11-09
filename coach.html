@@ -2114,6 +2114,19 @@ function h() {
 }
 /* стабильная строка для сравнения: порядок ключей не важен */
 const stableStr = (v) => JSON.stringify(v, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, kk) => { o[kk] = x[kk]; return o; }, {}) : x);
+/* В существующем дне отправляем только изменённые поля, включая поля упражнений.
+   Заметка тренера не должна перезаписывать подходы, которые клиент успел записать. */
+function patchDayFields(up, path, before, after) {
+  if (stableStr(before) === stableStr(after)) return;
+  const objects = before && after && typeof before === 'object' && typeof after === 'object';
+  const sameKind = Array.isArray(before) === Array.isArray(after);
+  const replaced = objects && ['id', 'name', 'date'].some(k => before[k] !== undefined && after[k] !== undefined && before[k] !== after[k]);
+  if (objects && sameKind && !replaced) {
+    new Set(Object.keys(before).concat(Object.keys(after))).forEach(k => patchDayFields(up, path + '/' + k, before[k], after[k]));
+  } else {
+    up[path] = after === undefined ? null : after;
+  }
+}
 /* Сохранение плана клиента. Пишем ТОЛЬКО изменённые дни и поля, а не весь список планов:
    если клиент в это же время записал тренировку или комментарий в другой день, его запись не пропадёт */
 async function savePlans(c, plans) {
@@ -2147,7 +2160,7 @@ async function savePlans(c, plans) {
       if (!a || !b) { if (a || b) up['plans/' + K + '/weeks/' + w] = a || null; continue; }
       Object.keys(Object.assign({}, a, b)).forEach(k => { if (k !== 'days' && stableStr(a[k]) !== stableStr(b[k])) up['plans/' + K + '/weeks/' + w + '/' + k] = a[k] === undefined ? null : a[k]; });
       const ad = toArr(a.days), bd = toArr(b.days);
-      for (let d = 0; d < Math.max(ad.length, bd.length); d++) if (stableStr(ad[d] || null) !== stableStr(bd[d] || null)) up['plans/' + K + '/weeks/' + w + '/days/' + d] = ad[d] || null;
+      for (let d = 0; d < Math.max(ad.length, bd.length); d++) patchDayFields(up, 'plans/' + K + '/weeks/' + w + '/days/' + d, bd[d], ad[d]);
     }
   });
   if (!Object.keys(up).length) return;

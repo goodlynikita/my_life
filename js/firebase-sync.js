@@ -427,6 +427,7 @@ const FirebaseSync = (() => {
   let _hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
+      _touchActivity();
       /* Вернулись в приложение — подтягиваем свежие данные с других устройств */
       if (Date.now() - _hiddenAt > 15000) _silentPull();
     } else {
@@ -456,13 +457,50 @@ const FirebaseSync = (() => {
 
   /* ── Реестр пользователей для админки: userIndex/{uid} ──
      Пишем только свои поля (правила не дают трогать blocked) */
+  const ACTIVITY_WRITE_MS = 300000;
+  const _activity = new Map();
+  function _sendActivity(uid, state) {
+    if (state.pending || (state.sentAt !== null && state.seenAt - state.sentAt < ACTIVITY_WRITE_MS)) return state.pending;
+    const at = state.seenAt;
+    state.pending = (async () => {
+      try {
+        /* Старый офлайн-заход не должен затереть более свежий с другого устройства.
+           Это отдельная служебная метка, данные разделов здесь не читаются и не пишутся. */
+        await runTransaction(ref(_db, 'userIndex/' + uid + '/lastSeen'), current => {
+          if (_auth.currentUser?.uid !== uid) return;
+          if (new Date(current).getTime() >= at) return;
+          return new Date(at).toISOString();
+        }, { applyLocally: false });
+        if (_auth.currentUser?.uid === uid) state.sentAt = at;
+      } catch (e) { /* Ошибка аналитики не мешает работе; следующая активность повторит отправку. */ }
+    })().finally(() => {
+      state.pending = null;
+      /* Пока Firebase ждал сеть, пользователь мог ещё раз открыть приложение.
+         Отправляем последний реальный заход, даже если страница уже скрыта. */
+      if (_auth.currentUser?.uid === uid && state.seenAt - at >= ACTIVITY_WRITE_MS) _sendActivity(uid, state);
+    });
+    return state.pending;
+  }
+  function _touchActivity(user = _auth.currentUser) {
+    if (!user || user.uid !== _auth.currentUser?.uid || isCoachUser(user) || document.visibilityState === 'hidden') return;
+    let state = _activity.get(user.uid);
+    if (!state) { state = { seenAt: 0, sentAt: null, pending: null }; _activity.set(user.uid, state); }
+    state.seenAt = Date.now();
+    return _sendActivity(user.uid, state);
+  }
+  window.addEventListener('pageshow', () => _touchActivity());
+  window.addEventListener('focus', () => _touchActivity());
+  window.addEventListener('online', () => _touchActivity());
+  /* Таймер проверяет видимость каждую минуту; запись в базу не чаще раза в пять минут. */
+  setInterval(() => _touchActivity(), 60000);
+
   async function touchUserIndex(user) {
-    if (!user || isCoachUser(user)) return;
+    if (!user || user.uid !== _auth.currentUser?.uid || isCoachUser(user)) return;
+    _touchActivity(user);
     const base = 'userIndex/' + user.uid + '/';
     const upd = {};
     upd[base + 'email'] = user.email || '';
     if (user.displayName) upd[base + 'name'] = user.displayName;
-    upd[base + 'lastSeen'] = new Date().toISOString();
     upd[base + 'ua'] = (navigator.userAgent || '').slice(0, 180);
     const created = user.metadata && user.metadata.creationTime ? new Date(user.metadata.creationTime).toISOString() : new Date().toISOString();
     upd[base + 'createdAt'] = created;

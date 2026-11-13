@@ -405,3 +405,57 @@ html[data-design="wa"] .home2-tile .wa-frost-fern { --fo: .42; }
 html[data-design="wa"] .home2-tile .wa-frost-flake { --fz: 230px; --fo: .55; }
 @media (min-width: 601px) { html[data-design="wa"] .home2-tile-finance .wa-bars { right: 150px; } }
 @media (max-width: 600px) { html[data-design="wa"] .home2-tile .wa-frost-flake { --fz: 150px; --fo: .42; } html[data-design="wa"] .home2-tile .wa-frost-shard { --fo: .55; } }
+
+
+/* Winter Arc: спокойные 3D-иллюстрации и мобильный вид. */
+html[data-design="wa"] { --wa-props: url(../img/wa/props.webp); }
+ html[data-design="wa"] .home2-screen { isolation:isolate; }
+ html[data-design="wa"] .wa-aurora, html[data-design="wa"] .wa-fog, html[data-design="wa"] .wa-ball, html[data-design="wa"] .wa-arr { display:none!important; }
+ html[data-design="wa"] .wa-art *, html[data-design="wa"] .wa-arc-t i { animation:none!important; }
+ html[data-design="wa"] .hero-slide .wa-sbg { animation:none!important; }
+ html[data-design="wa"] .wa-bar i { transform:scaleY(1)!important; }
+ html[data-design="wa"] .home2-tile .wa-frost { --fo:.22!important; --fz:180px!important; --fa:75px!important; --fao:.09!important; }
+ html[data-design="wa"] .home2-tile-training .wa-frost { --fo:.25!important; }
+ html[data-design="wa"] .home2-tile-habits .wa-frost { --fo:.18!important; }
+ html[data-design="wa"] .home2-tile-tasks .wa-frost { --fo:.18!important; --fz:220px!important; }
+ html[data-design="wa"] .home2-tile-finance .wa-frost { --fo:.18!important; --fz:140px!important; }
+ html[data-design="wa"] .home2-tile-goals .wa-frost { --fo:.21!important; --fz:155px!important; }
+ html[data-design="wa"] .wa-prop { position:absolute;right:4px;top:50%;width:250px;aspect-ratio:2/1;transform:translateY(-50%);background-image:var(--wa-props);background-size:100% 300%;background-repeat:no-repeat;pointer-events:none;opacity:.94;transition:transform .22s ease; }
+ html[data-design="wa"] .wa-prop-training { background-position:center top; }
+ html[data-design="wa"] .wa-prop-tasks { background-position:center center; }
+ html[data-design="wa"] .wa-prop-goals { background-position:center bottom; }
+ html[data-design="wa"] .home2-tile:active .wa-prop { transform:translateY(-50%) scale(1.025); }
+ html[data-design="wa"] .home2-tile .wa-ecg { opacity:.36!important; }
+ html[data-design="wa"] .wa-ring { width:94px;height:94px;right:44px; }
+ html[data-design="wa"] .wa-ring::before { content:'';position:absolute;inset:8%;border:1px solid rgba(111,209,167,.16);border-radius:50%; }
+ html[data-design="wa"] .wa-ring i { width:11px;height:11px;margin:-5.5px;background:linear-gradient(145deg,#687d81,#253638 56%,#121b20);box-shadow:inset 0 1px 2px #b8d5d575;border:1px solid #aec5c32a; }
+ html[data-design="wa"] .wa-ring i.on { background:linear-gradient(145deg,#9beac6,#3d9a71);box-shadow:0 0 7px #3ddc8455,inset 0 1px 2px #fff9; }
+ html[data-design="wa"] .home2-tile-finance .wa-bars { right:48px;gap:10px; }
+ html[data-design="wa"] .wa-bar i, html[data-design="wa"] .wa-bar.cur i { background:linear-gradient(90deg,rgba(65,45,93,.6),rgba(151,117,205,.6) 45%,rgba(66,45,99,.55))!important;box-shadow:inset 1px 1px 1px #d3baff55,inset -1px 0 2px #21152b!important;border-top:1px solid #d9c8ef7a; }
+ html[data-design="wa"] .wa-bar.cur i { background:linear-gradient(90deg,#69528080,#bea2e19c,#72599480)!important; }
+ html[data-design="wa"] .wa-bar { position:relative;box-sizing:border-box;padding-bottom:14px;gap:0; }
+ html[data-design="wa"] .wa-bar i { flex:0 0 auto; }
+ html[data-design="wa"] .wa-bar em { position:absolute;bottom:0;line-height:10px;width:100%;text-align:center; }
+ html[data-design="wa"] .wa-prop-tasks::after { content:'';position:absolute;left:50%;top:54%;height:12%;width:1px;background:repeating-linear-gradient(180deg,#df9c8e88 0 2px,transparent 2px 4px);animation:waV2Sand 1.5s linear infinite;animation-play-state:paused; }
+ html[data-design="wa"] .home2-tile.wa-inview .wa-prop-tasks::after { animation-play-state:running; }
+ html[data-design="wa"] .wa-motion-paused .wa-prop-tasks::after { animation-play-state:paused!important; }
+@keyframes waV2Sand { from{transform:translateY(-2px);opacity:.35}to{transform:translateY(2px);opacity:.6} }
+@media(max-width:600px){
+ html[data-design="wa"] .home2-tile .wa-prop { width:140px;right:-10px;top:62%; }
+ html[data-design="wa"] .home2-tile-tasks .wa-prop { width:190px;right:2px;top:48%; }
+ html[data-design="wa"] .home2-tile-goals .wa-prop { top:54%; }
+ html[data-design="wa"] .home2-tile .wa-frost { --fz:105px!important;--fa:42px!important;--fo:.20!important;--fao:.06!important; }
+ html[data-design="wa"] .home2-tile-tasks .wa-frost { --fz:145px!important; }
+ html[data-design="wa"] .wa-ring { width:54px;height:54px;right:13px;top:62%;transform:translateY(-50%); }
+ html[data-design="wa"] .wa-ring i { width:7px;height:7px;margin:-3.5px; }
+ html[data-design="wa"] .home2-tile-finance .wa-bars { right:11px;bottom:44px;top:auto;height:44px;gap:4px; }
+ html[data-design="wa"] .wa-bar i { width:6px; }
+ html[data-design="wa"] .wa-bar { padding-bottom:10px; }
+ html[data-design="wa"] .wa-bar em { font-size:6.5px;line-height:8px; }
+ html[data-design="wa"] .home2-tile .wa-ecg { opacity:.14!important; }
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-design="wa"] .wa-prop-tasks::after {animation:none!important;opacity:.4}
+ html[data-design="wa"] .wa-prop {transition:none!important}
+ html[data-design="wa"] .home2-tile:active .wa-prop {transform:translateY(-50%)}
+}

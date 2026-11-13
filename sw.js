@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v310';
+const CACHE = 'nik-system-v311';
 
 const STATIC = [
   './',
@@ -69,6 +69,7 @@ const STATIC = [
   './js/game.js',
   './js/ai-kit.js',
   './img/wa/statue.webp',
+  './img/wa/props.webp',
   './img/wa/target.webp',
   './img/wa/focus.webp',
   './img/wa/peak1.webp',

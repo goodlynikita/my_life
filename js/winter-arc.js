@@ -176,11 +176,9 @@ window.WinterArc = (function () {
 
   /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
   const ART = {
-    /* статуя и пульс за ней: по линии бежит удар сердца */
-    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/><path class="hot" pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg><img class="wa-img wa-img-statue" src="img/wa/statue.webp" alt="">',
-    /* мишень: изредка вспыхивает попадание, по ней бежит небольшой разлом */
-    'home2-tile-goals': () => '<span class="wa-tg"><img src="img/wa/target.webp" alt=""><i class="wa-hit"></i><svg class="wa-crack" viewBox="0 0 100 100" aria-hidden="true">'
-      + '<path d="M47 50 L58 44 L64 46 L73 38"/><path d="M47 50 L40 41 L41 33 L35 26"/><path d="M47 50 L44 60 L49 68 L46 77"/><path d="M47 50 L37 53 L30 51"/><path d="M47 50 L57 57 L63 56"/></svg></span>',
+    /* Готовые 3D-иллюстрации, без расчёта сцены в браузере. */
+    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg><span class="wa-prop wa-prop-training" aria-hidden="true"></span>',
+    'home2-tile-goals': () => '<span class="wa-prop wa-prop-goals" aria-hidden="true"></span>',
     'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
       const dots = list.slice(0, 12).map(h => (marks[h.id] || {})[now.getDate()] === 'done');
@@ -188,23 +186,15 @@ window.WinterArc = (function () {
       const n = dots.length; if (!n) return '';
       return '<div class="wa-ring" style="--n:' + n + '">' + dots.map((d, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2;
         return '<i class="' + (d ? 'on' : '') + '" style="left:' + (50 + 42 * Math.cos(a)).toFixed(2) + '%;top:' + (50 + 42 * Math.sin(a)).toFixed(2) + '%;--i:' + i + '"></i>'; }).join('') + '</div>'; },
-    /* доход по месяцам: столбики, текущий месяц ярче, по нему изредка пробегает импульс */
+    /* Доход по месяцам, текущий месяц выделен. */
     'home2-tile-finance': () => { const now = new Date(), v = [], L = ['Я', 'Ф', 'М', 'А', 'М', 'И', 'И', 'А', 'С', 'О', 'Н', 'Д'];
       for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push({ x, l: L[d.getMonth()] }); }
       const mx = Math.max.apply(null, v.map(o => o.x)); if (!(mx > 0)) return '';
       return '<span class="wa-bars">' + v.map((o, i) => '<span class="wa-bar' + (i === 5 ? ' cur' : '') + '"><i style="--h:' + Math.max(4, Math.round(o.x / mx * 100)) + '%;--d:' + (i * 70) + 'ms"></i><em>' + o.l + '</em></span>').join('') + '</span>'; },
-    /* песочные часы: песок течёт, в конце часы переворачиваются */
-    'home2-tile-tasks': () => '<span class="wa-hg"><svg viewBox="0 0 100 150" aria-hidden="true"><defs>'
-      + '<clipPath id="wa-hg-t"><path d="M22 16 H78 C78 52 56 62 52 75 H48 C44 62 22 52 22 16Z"/></clipPath>'
-      + '<clipPath id="wa-hg-b"><path d="M48 75 H52 C56 88 78 98 78 134 H22 C22 98 44 88 48 75Z"/></clipPath>'
-      + '<linearGradient id="wa-hg-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD0C4"/><stop offset=".5" stop-color="#F0645A"/><stop offset="1" stop-color="#B4302A"/></linearGradient></defs>'
-      + '<g clip-path="url(#wa-hg-t)"><rect class="wa-hg-top" x="20" y="16" width="60" height="60" fill="url(#wa-hg-s)"/></g>'
-      + '<g clip-path="url(#wa-hg-b)"><path class="wa-hg-bot" d="M20 106 C35 104 42 92 50 88 C58 92 65 104 80 106 L80 160 H20Z" fill="url(#wa-hg-s)"/></g>'
-      + '<line class="wa-hg-str" x1="50" y1="74" x2="50" y2="133"/>'
-      + '<path class="wa-hg-glass" d="M22 16 H78 C78 52 56 62 52 75 C56 88 78 98 78 134 H22 C22 98 44 88 48 75 C44 62 22 52 22 16Z"/>'
-      + '<rect class="wa-hg-cap" x="14" y="8" width="72" height="8" rx="3"/><rect class="wa-hg-cap" x="14" y="134" width="72" height="8" rx="3"/></svg></span>',
+    'home2-tile-tasks': () => '<span class="wa-prop wa-prop-tasks" aria-hidden="true"></span>',
   };
   function decorate(mount, st) {
+    stopMotion();
     const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
     applyAttr(); keepDark(); /* владелец известен только после входа: пересчитываем доступность */
     scr.querySelectorAll('.wa-x').forEach(el => el.remove());
@@ -222,8 +212,8 @@ window.WinterArc = (function () {
       if (ds) ds.classList.toggle('wa-hide', !!m);
       if (m) ds.insertAdjacentHTML('afterend', '<div class="wa-x wa-met"><b>' + esc(m[0]) + '</b>' + (m[1] ? '<span>' + esc(m[1]) + '</span>' : '') + '</div>');
       const fr = { 'home2-tile-training': 'shard', 'home2-tile-habits': 'fern', 'home2-tile-finance': 'flake', 'home2-tile-goals': 'crack', 'home2-tile-tasks': 'feather' }[key] || 'fern';
-      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost wa-frost-' + fr + '" aria-hidden="true"></span><span class="wa-x wa-arr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
-      tap(t); if (key === 'home2-tile-finance') ball(t);
+      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost wa-frost-' + fr + '" aria-hidden="true"></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
+      tap(t);
     });
     /* у каждого слайда своя картинка: «Фокус дня» с FOCUS, цели с золотой вершиной, остальные горы по очереди */
     const hs = scr.querySelector('.hero-slider');
@@ -233,7 +223,7 @@ window.WinterArc = (function () {
         sl.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-sbg wa-sbg-' + img + '" style="background-image:url(img/wa/' + img + '.webp)" aria-hidden="true"></span>'); }); }
     /* полоса челленджа: день N из 92 (1 ноября – 31 января) */
     const grid = scr.querySelector('.home2-grid'); if (grid) grid.insertAdjacentHTML('beforebegin', arcHtml());
-    scr.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-rime" aria-hidden="true"></span><span class="wa-x wa-aurora" aria-hidden="true"><i></i><i></i></span><span class="wa-x wa-fog" aria-hidden="true"></span>');
+    scr.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-rime" aria-hidden="true"></span>');
     const ft = scr.querySelector('.home2-footer');
     if (ft) ft.insertAdjacentHTML('afterbegin', '<div class="wa-x wa-foot"><span class="wa-foot-l"><b>WINTER ARC</b><i></i>YOUR NEXT OPPONENT IS YOU.</span><span class="wa-foot-r">COMPETE WITH YOURSELF.</span></div>');
     snow(scr);
@@ -241,35 +231,6 @@ window.WinterArc = (function () {
   const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   function metric(txt) { const t = String(txt || '').trim(), m = t.match(/^(\d[\d\s\u00a0.,]*(?:\/\s?\d+)?\s?(?:%|₽)?)(.*)$/);
     if (!m) return null; return [m[1].trim(), m[2].replace(/^[\s\/·]+/, '').trim()]; }
-  /* финансы: шарик прыгает по верхушкам столбиков и приземляется на текущий месяц */
-  function ball(t) {
-    const wrap = t.querySelector('.wa-bars'); if (!wrap || !wrap.animate || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-    requestAnimationFrame(() => {
-      const cols = [...wrap.querySelectorAll('.wa-bar')]; if (cols.length < 2 || !wrap.offsetWidth) return;
-      const pts = cols.map(c => { const i = c.querySelector('i'); return [c.offsetLeft + i.offsetLeft + i.offsetWidth / 2, c.offsetTop + i.offsetTop]; });
-      const b = document.createElement('b'); b.className = 'wa-ball'; wrap.appendChild(b);
-      const T = 7600, hop = 430, drop = 520, t0 = 900, R = 4, kf = [], at = (ms) => Math.min(1, ms / T);
-      const pos = (x, y, o, extra) => Object.assign({ transform: 'translate(' + (x - R).toFixed(1) + 'px,' + (y - 2 * R).toFixed(1) + 'px)' + (extra || ''), opacity: o }, {});
-      kf.push(Object.assign(pos(pts[0][0], pts[0][1] - 60, 0), { offset: 0 }));
-      kf.push(Object.assign(pos(pts[0][0], pts[0][1] - 60, 0), { offset: at(t0) }));
-      kf.push(Object.assign(pos(pts[0][0], pts[0][1], 1, ' scale(1.25,.75)'), { offset: at(t0 + drop), easing: 'ease-out' }));
-      let tm = t0 + drop; const hits = [tm];
-      for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], apex = Math.min(y0, y1) - 22;
-        for (let k = 1; k <= 8; k++) { const u = k / 8, x = x0 + (x1 - x0) * u, y = (1 - u) * (1 - u) * y0 + 2 * (1 - u) * u * (2 * apex - (y0 + y1) / 2) + u * u * y1;
-          kf.push(Object.assign(pos(x, y, 1, k === 8 ? ' scale(1.25,.75)' : ''), { offset: at(tm + hop * u) })); }
-        tm += hop; hits.push(tm); }
-      const [lx, ly] = pts[pts.length - 1];
-      kf.push(Object.assign(pos(lx, ly, 1), { offset: at(tm + 160) }));
-      kf.push(Object.assign(pos(lx, ly, 1), { offset: at(tm + 1500) }));
-      kf.push(Object.assign(pos(lx, ly - 10, 0), { offset: at(tm + 1900) }));
-      kf.push(Object.assign(pos(lx, ly - 10, 0), { offset: 1 }));
-      b.animate(kf, { duration: T, iterations: Infinity });
-      /* столбик вспыхивает в момент касания, последний сильнее */
-      cols.forEach((c, i) => { const h = hits[i], last = i === cols.length - 1, k = [{ filter: 'brightness(1)', offset: 0 }];
-        k.push({ filter: 'brightness(1)', offset: at(h - 1) }, { filter: 'brightness(' + (last ? 2.1 : 1.6) + ')', offset: at(h + 40) }, { filter: 'brightness(1)', offset: at(h + (last ? 900 : 380)) }, { filter: 'brightness(1)', offset: 1 });
-        c.querySelector('i').animate(k, { duration: T, iterations: Infinity }); });
-    });
-  }
   /* отклик на нажатие: плитка проседает, от пальца расходится морозный свет */
   function tap(t) { if (t.dataset.waTap) return; t.dataset.waTap = '1';
     t.addEventListener('pointerdown', (e) => { if (!isOn()) return; const r = t.getBoundingClientRect(), s = document.createElement('span'); s.className = 'wa-x wa-ripple';
@@ -300,27 +261,76 @@ window.WinterArc = (function () {
     f.addEventListener('click', () => f.remove()); setTimeout(() => f.remove(), 2600); }
   setTimeout(watch, 0);
 
-  /* снег в глубину: дальний слой мелкий и медленный, ближний крупный; иногда порыв ветра; при «меньше движения» не идёт */
+  /* Один снеговой слой, ограниченная частота кадров и очистка при уходе с главной. */
+  let _motionCleanup = null;
+  function stopMotion() { if (_motionCleanup) _motionCleanup(); }
   function snow(scr) {
-    if (scr.querySelector('.wa-snow') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-    const c = document.createElement('canvas'); c.className = 'wa-x wa-snow'; scr.prepend(c);
-    const g = c.getContext('2d'); let W = 0, H = 0, P = [];
-    const flake = (near) => near ? { x: Math.random() * W, y: Math.random() * H, r: 1.5 + Math.random() * 1.3, v: 40 + Math.random() * 30, s: Math.random() * 6.28, a: .55 + Math.random() * .3, k: 1.4 }
-      : { x: Math.random() * W, y: Math.random() * H, r: .4 + Math.random() * .9, v: 9 + Math.random() * 14, s: Math.random() * 6.28, a: .15 + Math.random() * .3, k: .6 };
-    const size = () => { const dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const nf = Math.round(Math.min(80, W / 9)), nn = Math.round(Math.min(16, W / 50)); P = Array.from({ length: nf }, () => flake(false)).concat(Array.from({ length: nn }, () => flake(true))); };
-    size(); addEventListener('resize', size);
-    let last = performance.now(), wind = 0, gust = 0, nextGust = last + 7000 + Math.random() * 8000;
-    (function f(t) { if (!c.isConnected) { removeEventListener('resize', size); return; }
-      const dt = Math.min(.05, (t - last) / 1000); last = t; g.clearRect(0, 0, W, H);
-      /* порыв: за секунду разгоняется, держится и стихает */
-      if (t > nextGust) { gust = 70 + Math.random() * 60; nextGust = t + 9000 + Math.random() * 9000; setTimeout(() => { gust = 0; }, 1800); }
-      wind += (gust - wind) * Math.min(1, dt * (gust ? 1.6 : .8));
-      if (!document.hidden) P.forEach(p => { p.y += p.v * dt; p.s += dt; p.x += (Math.sin(p.s) * 8 + wind * p.k) * dt;
-        if (p.y > H + 4) { p.y = -4; p.x = Math.random() * W; } if (p.x > W + 6) p.x = -6; else if (p.x < -6) p.x = W + 6;
-        g.globalAlpha = p.a; g.fillStyle = '#EAF4FF'; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill(); });
-      requestAnimationFrame(f); })(last);
+    stopMotion();
+    const c = document.createElement('canvas'); c.className = 'wa-x wa-snow'; c.setAttribute('aria-hidden', 'true'); scr.prepend(c);
+    const g = c.getContext('2d', { alpha: true });
+    if (!g) { c.remove(); return; }
+    const reduced = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const cards = [...scr.querySelectorAll('.home2-tile')];
+    const visible = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entries => entries.forEach(e => e.target.classList.toggle('wa-inview', e.isIntersecting)), { threshold: .1 }) : null;
+    cards.forEach(card => { if (visible) visible.observe(card); else card.classList.add('wa-inview'); });
+    let W = 0, H = 0, P = [], raf = 0, last = 0, previous = 0, fps = 24, disposed = false, pageHidden = false;
+    const size = () => {
+      W = innerWidth; H = innerHeight;
+      const mobile = W <= 600, low = navigator.connection?.saveData || navigator.deviceMemory <= 4 || navigator.hardwareConcurrency <= 4;
+      const dpr = Math.min(devicePixelRatio || 1, mobile ? 1.25 : 1.5);
+      fps = mobile || low ? 24 : 30;
+      c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = mobile ? (low ? 14 : 20) : (low ? 26 : 44);
+      P = Array.from({ length: count }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, r: i % 7 === 0 ? 1.9 : .45 + Math.random() * .8,
+        v: i % 7 === 0 ? 19 + Math.random() * 9 : 6 + Math.random() * 12, a: i % 7 === 0 ? .38 : .13 + Math.random() * .19, phase: Math.random() * Math.PI * 2, crystal: i % 7 === 0 }));
+    };
+    const paused = () => document.hidden || pageHidden || !!reduced?.matches || !isOn();
+    const frame = t => {
+      raf = 0;
+      if (!scr.isConnected) { cleanup(); return; }
+      if (disposed || paused()) return;
+      if (t - last >= 1000 / fps - 1) {
+        const dt = Math.min(.08, (t - previous) / 1000 || 0); last = t; previous = t; g.clearRect(0, 0, W, H);
+        P.forEach(p => {
+          p.y += p.v * dt; p.phase += dt * .35; p.x += Math.sin(p.phase) * 3.5 * dt;
+          if (p.y > H + 4) { p.y = -4; p.x = Math.random() * W; }
+          g.globalAlpha = p.a; g.fillStyle = '#E0ECFA';
+          if (p.crystal) { g.strokeStyle = '#E0ECFA'; g.lineWidth = .65; g.beginPath();
+            for (let n = 0; n < 3; n++) { const a = n * Math.PI / 3, dx = Math.cos(a) * p.r, dy = Math.sin(a) * p.r; g.moveTo(p.x - dx, p.y - dy); g.lineTo(p.x + dx, p.y + dy); } g.stroke();
+          } else { g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill(); }
+        });
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    const reconcile = () => {
+      if (disposed) return;
+      if (!scr.isConnected) { cleanup(); return; }
+      if (raf) cancelAnimationFrame(raf); raf = 0;
+      const off = paused(); scr.classList.toggle('wa-motion-paused', off);
+      if (reduced?.matches) g.clearRect(0, 0, W, H);
+      if (!off) { last = 0; previous = performance.now(); raf = requestAnimationFrame(frame); }
+    };
+    const resize = () => { size(); reconcile(); };
+    const hide = () => { pageHidden = true; reconcile(); };
+    const show = () => { pageHidden = false; reconcile(); };
+    const removed = new MutationObserver(() => { if (!scr.isConnected) cleanup(); });
+    function cleanup() {
+      if (disposed) return; disposed = true;
+      if (raf) cancelAnimationFrame(raf); raf = 0;
+      removeEventListener('resize', resize); removeEventListener('pagehide', hide); removeEventListener('pageshow', show);
+      document.removeEventListener('visibilitychange', reconcile);
+      if (reduced?.removeEventListener) reduced.removeEventListener('change', reconcile); else reduced?.removeListener(reconcile);
+      visible?.disconnect(); removed.disconnect(); c.remove();
+      cards.forEach(card => card.classList.remove('wa-inview')); scr.classList.remove('wa-motion-paused');
+      if (_motionCleanup === cleanup) _motionCleanup = null;
+    }
+    _motionCleanup = cleanup;
+    addEventListener('resize', resize, { passive: true }); addEventListener('pagehide', hide); addEventListener('pageshow', show);
+    document.addEventListener('visibilitychange', reconcile);
+    if (reduced?.addEventListener) reduced.addEventListener('change', reconcile); else reduced?.addListener(reconcile);
+    removed.observe(document.getElementById('app') || document.body, { childList: true, subtree: true });
+    size(); reconcile();
   }
 
-  return { html, bind, decorate, refresh: () => { applyAttr(); keepDark(); }, isOn, available, set: setDesign, start: (sw) => start(sw || document.getElementById('ds-sw')) };
+  return { html, bind, decorate, refresh: () => { applyAttr(); keepDark(); if (!isOn()) stopMotion(); }, isOn, available, set: setDesign, start: (sw) => start(sw || document.getElementById('ds-sw')) };
 })();

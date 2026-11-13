@@ -15,6 +15,12 @@ const GOALS_SEASONS = (() => { const Y = new Date().getFullYear(), W = { key: 'w
     { key: 'autumn', label: 'Осень', color: '#E6C84F', bg: '#1A0E00', end: new Date(Y,11,0) }];
   return [{ key: 'all', label: 'Всё', color: '#F2A93B', bg: '#1A1200' }].concat(GOALS_CAL_WINTER ? [W].concat(rest) : rest.concat([W])); })();
 const GOALS_SEASON_OPTS = () => [['all','Без сезона']].concat(GOALS_SEASONS.filter(x => x.key !== 'all').map(x => [x.key, x.label]));
+const GOALS_MONTH_NAMES = ['', 'Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const GOALS_SEASON_MONTHS = {
+  all: [1,2,3,4,5,6,7,8,9,10,11,12],
+  spring: [3,4,5], summer: [6,7,8], autumn: [9,10,11],
+  winter: GOALS_CAL_WINTER ? [1,2,12] : [12,1,2]
+};
 
 /* Демо-цели для НОВЫХ пользователей — популярные желания по сезонам */
 const GOALS_DEMO = [
@@ -239,6 +245,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   const existingCats = [...new Set(goalsGet().map(g=>g.cat))].sort();
   const catOpts = existingCats.map(c=>`<option value="${goalsEsc(c)}"${existing?.cat===c?' selected':''}>${goalsEsc(c)}</option>`).join('');
   const isNewCat = (existing?.cat && !existingCats.includes(existing.cat)) || !!existing?.newCat;
+  const monthOptions = (season, month) => '<option value="">Не выбран</option>' + (GOALS_SEASON_MONTHS[season] || GOALS_SEASON_MONTHS.all).map(m => `<option value="${m}"${+month===m?' selected':''}>${GOALS_MONTH_NAMES[m]}</option>`).join('');
   overlay.innerHTML = `
     <div class="goals-modal">
       <div class="goals-modal-header">
@@ -265,7 +272,7 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
         </div>
         <div class="goals-modal-field">
           <div class="goals-modal-label">Месяц</div>
-          <select class="goals-modal-input gm-sel" id="g-month-sel"><option value="">Не выбран</option>${['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'].map((l,i)=>`<option value="${i+1}"${existing?.month===i+1?' selected':''}>${l}</option>`).join('')}</select>
+          <select class="goals-modal-input gm-sel" id="g-month-sel">${monthOptions(existing?.season || 'all', existing?.month)}</select>
         </div>
       </div>
       <div class="goals-modal-field">
@@ -295,6 +302,13 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
   /* категория: «+ Новая» показывает поле для названия */
   const catSel = overlay.querySelector('#g-cat-sel');
   catSel.addEventListener('change', () => { const inp = overlay.querySelector('#g-cat'); inp.style.display = catSel.value === '_new' ? 'block' : 'none'; if (catSel.value === '_new') inp.focus(); });
+  const seasonSel = overlay.querySelector('#g-season-sel'), monthSel = overlay.querySelector('#g-month-sel');
+  let monthChanged = false;
+  seasonSel.addEventListener('change', () => {
+    monthChanged = true;
+    monthSel.innerHTML = monthOptions(seasonSel.value, monthSel.value);
+  });
+  monthSel.addEventListener('change', () => { monthChanged = true; });
   const selOf = (id) => { const el = overlay.querySelector('#' + id + '-sel'); return el ? el.value : ''; };
   const readForm = () => {
     const name = overlay.querySelector('#g-name').value.trim();
@@ -304,7 +318,9 @@ function goalsOpenModal(existing, onSave, _activeSeasonOverride) {
     const out = Object.assign({}, existing || {}, {
       id: existing?.id || 'g_' + Date.now(), name,
       amount: Math.min(1e10, Math.max(0, parseFloat(String(overlay.querySelector('#g-amount').value).replace(/\s/g, '').replace(',', '.')) || 0)),
-      cat, season: selOf('g-season') || 'all', month: parseInt(selOf('g-month')) || null,
+      cat, season: selOf('g-season') || 'all',
+      /* Старый месяц не теряем при правке названия/статуса, даже если раньше он не совпадал с сезоном. */
+      month: isEdit && !monthChanged ? (existing.month || null) : (parseInt(selOf('g-month')) || null),
       done: selStatus === 'done', maybe: selStatus === 'maybe', note: note || null });
     delete out.newCat; return out;
   };
@@ -412,12 +428,11 @@ window.Screens.goals = function(mount) {
     if (activeSeason === 'all') { bar.style.display = 'none'; return; }
     const all = goalsGet();
     const seasonItems = all.filter(g => g.season === activeSeason);
-    const months = [...new Set(seasonItems.filter(g => g.month).map(g => g.month))].sort((a,b)=>a-b);
+    const months = GOALS_SEASON_MONTHS[activeSeason].filter(m => seasonItems.some(g => g.month === m));
     if (!months.length) { bar.style.display = 'none'; return; }
     bar.style.display = 'block';
     /* Берём цвет текущего сезона */
     const _seasonColor = (GOALS_SEASONS.find(s=>s.key===activeSeason)||{color:'#F2A93B'}).color;
-    const MNAMES = ['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
     const btns = [0, ...months].map(m => {
       const active = activeMonth === m;
       return '<button class="goals-mbar-btn' + (active?' active':'') + '" data-m="'+m+'" style="'
@@ -426,7 +441,7 @@ window.Screens.goals = function(mount) {
         + 'background:'+(active?_seasonColor+'33':'none')+';'
         + 'color:'+(active?_seasonColor:'rgba(255,255,255,0.45)')+';'
         + 'font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;">'
-        + (m===0?'Все':MNAMES[m])+'</button>';
+        + (m===0?'Все':GOALS_MONTH_NAMES[m])+'</button>';
     }).join('');
     bar.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:2px;">'+btns+'</div>';
     bar.querySelectorAll('.goals-mbar-btn').forEach(btn => {
@@ -551,7 +566,8 @@ window.Screens.goals = function(mount) {
 
     /* ── Категории ── */
     const catsHtml = cats.map(cat=>{
-      const catItems = catSource.filter(g=>g.cat===cat);
+      /* Сортируем только отображение: внутри статуса сохраняется ручной порядок. */
+      const catItems = catSource.filter(g=>g.cat===cat).sort((a,b) => (a.done ? 0 : a.maybe ? 2 : 1) - (b.done ? 0 : b.maybe ? 2 : 1));
       /* Итог = только активные (не закрытые и не под вопросом) */
       const catTotal = catItems.filter(g=>!g.done&&!g.maybe).reduce((s,g)=>s+g.amount,0);
       const isGoal = cat==='Цель';
@@ -655,7 +671,7 @@ window.Screens.goals = function(mount) {
       box.querySelectorAll('.goals-item-v3').forEach(row => {
         let timer = null, start = null, drag = false, rows = [], h = 0, from = 0, to = 0, pid = null;
         const down = (e) => { if (e.button > 0 || e.target.closest('.goals-check-v3,.goals-note-link')) return; start = { x: e.clientX, y: e.clientY }; pid = e.pointerId;
-          timer = setTimeout(() => { drag = true; row.classList.add('dragging'); rows = [...box.querySelectorAll('.goals-item-v3')]; from = rows.indexOf(row); to = from; h = row.getBoundingClientRect().height || 40;
+          timer = setTimeout(() => { drag = true; row.classList.add('dragging'); rows = [...box.querySelectorAll('.goals-item-v3.' + (row.classList.contains('done') ? 'done' : row.classList.contains('maybe') ? 'maybe' : 'active'))]; from = rows.indexOf(row); to = from; h = row.getBoundingClientRect().height || 40;
             try { row.setPointerCapture(pid); } catch (_) {} try { navigator.vibrate && navigator.vibrate(10); } catch (_) {} }, 320); };
         const move = (e) => { if (!start) return; const dy = e.clientY - start.y;
           if (!drag) { if (Math.abs(dy) > 8 || Math.abs(e.clientX - start.x) > 8) { clearTimeout(timer); start = null; } return; }

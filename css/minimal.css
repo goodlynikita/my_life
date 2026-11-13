@@ -266,6 +266,8 @@ html:has(.ch-list), html:has(.ch-list) body { overflow: hidden !important; overs
 .tr-tabs, .hab-screen .hab-tabs, .goals-season-tabs, .tochka-tabs, .fin-dark .tochka-tabs { overflow-x: auto !important; overflow-y: hidden !important; flex-wrap: nowrap !important; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .tr-tabs::-webkit-scrollbar, .hab-tabs::-webkit-scrollbar, .goals-season-tabs::-webkit-scrollbar, .tochka-tabs::-webkit-scrollbar { display: none; }
 .tr-tabs .tr-tab, .hab-screen .hab-tabs .hab-tab, .goals-season-tabs .goals-season-tab, .tochka-tab, .fin-dark .tochka-tab { font-size: 13.5px !important; flex: 1 0 auto !important; min-width: max-content !important; white-space: nowrap !important; padding: 13px 14px !important; }
+/* Финансы: высота вкладок как в остальных разделах. */
+.tochka-tabs .tochka-tab { min-height: 48px; }
 .tr-tabs .tc-edit, .hab-tabs .tc-edit, .goals-season-tabs .tc-edit, .tochka-tabs .tc-edit { flex: 0 0 auto !important; }
 /* Аккаунт */
 .acc { max-width: 420px !important; max-height: 88vh; overflow-y: auto; }

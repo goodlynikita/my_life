@@ -177,7 +177,7 @@ window.WinterArc = (function () {
   /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
   const ART = {
     /* Готовые 3D-иллюстрации, без расчёта сцены в браузере. */
-    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg><span class="wa-prop wa-prop-training" aria-hidden="true"></span>',
+    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/><path class="wa-ecg-flow" pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg><span class="wa-prop wa-prop-training" aria-hidden="true"></span>',
     'home2-tile-goals': () => '<span class="wa-prop wa-prop-goals" aria-hidden="true"></span>',
     'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
@@ -186,11 +186,22 @@ window.WinterArc = (function () {
       const n = dots.length; if (!n) return '';
       return '<div class="wa-ring" style="--n:' + n + '">' + dots.map((d, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2;
         return '<i class="' + (d ? 'on' : '') + '" style="left:' + (50 + 42 * Math.cos(a)).toFixed(2) + '%;top:' + (50 + 42 * Math.sin(a)).toFixed(2) + '%;--i:' + i + '"></i>'; }).join('') + '</div>'; },
-    /* Доход по месяцам, текущий месяц выделен. */
-    'home2-tile-finance': () => { const now = new Date(), v = [], L = ['Я', 'Ф', 'М', 'А', 'М', 'И', 'И', 'А', 'С', 'О', 'Н', 'Д'];
-      for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0; try { x = finSum(finEntries(d.getFullYear(), d.getMonth())) || 0; } catch (e) {} v.push({ x, l: L[d.getMonth()] }); }
-      const mx = Math.max.apply(null, v.map(o => o.x)); if (!(mx > 0)) return '';
-      return '<span class="wa-bars">' + v.map((o, i) => '<span class="wa-bar' + (i === 5 ? ' cur' : '') + '"><i style="--h:' + Math.max(4, Math.round(o.x / mx * 100)) + '%;--d:' + (i * 70) + 'ms"></i><em>' + o.l + '</em></span>').join('') + '</span>'; },
+    /* Линия повторяет реальные доходы за шесть месяцев. */
+    'home2-tile-finance': () => {
+      const now = new Date(), values = [], labels = [], names = ['Я','Ф','М','А','М','И','И','А','С','О','Н','Д'];
+      for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0;
+        try { x = Number(finSum(finEntries(d.getFullYear(), d.getMonth()))) || 0; } catch (e) {}
+        values.push(Number.isFinite(x) ? x : 0); labels.push(names[d.getMonth()]); }
+      const max = Math.max(...values), min = Math.min(0, ...values); if (!(max > 0)) return '';
+      const pts = values.map((x, i) => [18 + i * 56.8, 94 - (x - min) / (max - min || 1) * 68]);
+      let path = 'M' + pts[0].join(' ');
+      for (let i = 1; i < pts.length; i++) { const mid = (pts[i - 1][0] + pts[i][0]) / 2; path += ' C' + mid + ' ' + pts[i - 1][1] + ' ' + mid + ' ' + pts[i][1] + ' ' + pts[i].join(' '); }
+      return '<span class="wa-fin-line"><svg viewBox="0 0 320 112" aria-hidden="true"><defs><linearGradient id="wa-income-fill" x2="0" y2="1"><stop stop-color="#A582ED" stop-opacity=".18"/><stop offset="1" stop-color="#A582ED" stop-opacity="0"/></linearGradient></defs>'
+        + '<path class="wa-fin-area" d="' + path + ' L302 112 H18 Z" fill="url(#wa-income-fill)"/>'
+        + '<path class="wa-fin-base" d="' + path + '"/><path class="wa-fin-flow" pathLength="1000" d="' + path + '"/>'
+        + pts.map(([x,y]) => '<circle class="wa-fin-point" cx="' + x + '" cy="' + y + '" r="2"/>').join('')
+        + '</svg><span class="wa-fin-months">' + labels.map(l => '<i>' + l + '</i>').join('') + '</span></span>';
+    },
     'home2-tile-tasks': () => '<span class="wa-prop wa-prop-tasks" aria-hidden="true"></span>',
   };
   function decorate(mount, st) {
@@ -211,8 +222,8 @@ window.WinterArc = (function () {
       const ds = c.querySelector('.home2-tile-desc'), m = ds && metric(ds.textContent);
       if (ds) ds.classList.toggle('wa-hide', !!m);
       if (m) ds.insertAdjacentHTML('afterend', '<div class="wa-x wa-met"><b>' + esc(m[0]) + '</b>' + (m[1] ? '<span>' + esc(m[1]) + '</span>' : '') + '</div>');
-      const fr = { 'home2-tile-training': 'shard', 'home2-tile-habits': 'fern', 'home2-tile-finance': 'flake', 'home2-tile-goals': 'crack', 'home2-tile-tasks': 'feather' }[key] || 'fern';
-      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-frost wa-frost-' + fr + '" aria-hidden="true"></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
+      const row = (n - 1) % 4;
+      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-snowcaps" aria-hidden="true"><i class="wa-snowcap wa-cap-top" style="--snow-row:' + (row * 100 / 3) + '%"></i><i class="wa-snowcap wa-cap-base" style="--snow-row:' + (((row + 1) % 4) * 100 / 3) + '%"></i></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
       tap(t);
     });
     /* у каждого слайда своя картинка: «Фокус дня» с FOCUS, цели с золотой вершиной, остальные горы по очереди */
@@ -224,17 +235,27 @@ window.WinterArc = (function () {
     /* полоса челленджа: день N из 92 (1 ноября – 31 января) */
     const grid = scr.querySelector('.home2-grid'); if (grid) grid.insertAdjacentHTML('beforebegin', arcHtml());
     scr.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-rime" aria-hidden="true"></span>');
-    const ft = scr.querySelector('.home2-footer');
-    if (ft) ft.insertAdjacentHTML('afterbegin', '<div class="wa-x wa-foot"><span class="wa-foot-l"><b>WINTER ARC</b><i></i>YOUR NEXT OPPONENT IS YOU.</span><span class="wa-foot-r">COMPETE WITH YOURSELF.</span></div>');
     snow(scr);
   }
   const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   function metric(txt) { const t = String(txt || '').trim(), m = t.match(/^(\d[\d\s\u00a0.,]*(?:\/\s?\d+)?\s?(?:%|₽)?)(.*)$/);
     if (!m) return null; return [m[1].trim(), m[2].replace(/^[\s\/·]+/, '').trim()]; }
-  /* отклик на нажатие: плитка проседает, от пальца расходится морозный свет */
-  function tap(t) { if (t.dataset.waTap) return; t.dataset.waTap = '1';
-    t.addEventListener('pointerdown', (e) => { if (!isOn()) return; const r = t.getBoundingClientRect(), s = document.createElement('span'); s.className = 'wa-x wa-ripple';
-      s.style.left = (e.clientX - r.left) + 'px'; s.style.top = (e.clientY - r.top) + 'px'; t.appendChild(s); setTimeout(() => s.remove(), 700); }); }
+  /* Снег осыпается без задержки перехода в раздел. */
+  function tap(t) {
+    if (t.dataset.waTap) return; t.dataset.waTap = '1';
+    let last = -Infinity;
+    const shake = e => {
+      if (!isOn() || (e.type === 'pointerenter' && e.pointerType === 'touch') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      const now = performance.now(); if (now - last < 1200) return; last = now;
+      t.classList.remove('wa-snowfall'); void t.offsetWidth; t.classList.add('wa-snowfall');
+      t.querySelectorAll('.wa-snowcrumb').forEach(el => el.remove());
+      const caps = t.querySelector('.wa-snowcaps'); if (!caps) return;
+      for (let i = 0; i < 8; i++) { const flake = document.createElement('b'); flake.className = 'wa-snowcrumb';
+        flake.style.cssText = 'left:' + (62 + Math.random() * 30) + '%;--sx:' + (-24 + Math.random() * 48) + 'px;--sy:' + (32 + Math.random() * 62) + 'px;--sd:' + (i * 16) + 'ms;--ss:' + (2 + Math.random() * 2) + 'px;';
+        flake.addEventListener('animationend', () => flake.remove(), { once: true }); caps.appendChild(flake); }
+    };
+    t.addEventListener('pointerenter', shake); t.addEventListener('pointerdown', shake);
+  }
   const DAY = 864e5, dOnly = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
   function plural(n, a, b, c) { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c; }
   function arcHtml() { const now = dOnly(new Date()), y = now.getMonth() >= 10 ? now.getFullYear() : now.getFullYear() - 1;
@@ -280,9 +301,9 @@ window.WinterArc = (function () {
       const dpr = Math.min(devicePixelRatio || 1, mobile ? 1.25 : 1.5);
       fps = mobile || low ? 24 : 30;
       c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = mobile ? (low ? 14 : 20) : (low ? 26 : 44);
-      P = Array.from({ length: count }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, r: i % 7 === 0 ? 1.9 : .45 + Math.random() * .8,
-        v: i % 7 === 0 ? 19 + Math.random() * 9 : 6 + Math.random() * 12, a: i % 7 === 0 ? .38 : .13 + Math.random() * .19, phase: Math.random() * Math.PI * 2, crystal: i % 7 === 0 }));
+      const count = mobile ? (low ? 24 : 32) : (low ? 44 : 64);
+      P = Array.from({ length: count }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, r: i % 6 === 0 ? 2.5 : .7 + Math.random() * .9,
+        v: i % 6 === 0 ? 20 + Math.random() * 10 : 8 + Math.random() * 14, a: i % 6 === 0 ? .65 : .28 + Math.random() * .22, phase: Math.random() * Math.PI * 2, crystal: i % 6 === 0 }));
     };
     const paused = () => document.hidden || pageHidden || !!reduced?.matches || !isOn();
     const frame = t => {

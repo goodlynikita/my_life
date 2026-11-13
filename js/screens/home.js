@@ -2,6 +2,7 @@ window.Screens = window.Screens || {};
 
 window.Screens.home = function(mount) {
   var store = Store.get();
+  var winterBlend = !!(window.WinterArc && WinterArc.isOn());
   var goals = ((store.goals && store.goals.directions) || []).filter(Boolean);
   var yearAmt = goals.filter(function(g){return g.season!=='all';}).reduce(function(s,g){return s+(g.amount||0);},0);
   var doneCnt = goals.filter(function(g){return g.done;}).length;
@@ -49,7 +50,7 @@ window.Screens.home = function(mount) {
   /* Слайды всегда из Slides (порядок/вкл-выкл настраиваются) */
   var visSlides = window.Slides
     ? window.Slides.getSlides().filter(function(s){ return s && s.enabled !== false; })
-        .map(function(s){ return window.Slides.renderSlide(s, store); })
+        .map(function(s){ var view = winterBlend ? Object.assign({}, s, { motto: '', blocks: (s.blocks || []).filter(function(id){return id !== 'motivational_quote';}) }) : s; return window.Slides.renderSlide(view, store); })
     : [];
   if (!visSlides.length) sliderHidden = true;
   var n = visSlides.length || 1;
@@ -559,8 +560,15 @@ window.Screens.home = function(mount) {
     var interval = (sliderCfg.interval)||4500;
     var slideEls = slidesEl.querySelectorAll('.hero-slide'), sliderEl = document.getElementById('hero-slider');
     /* is-cur: текущий слайд (Winter Arc анимирует картинку и текст), wa-moved: анимацию играем только при реальном переходе */
-    function goTo(idx, quiet){ cur=((idx%n)+n)%n; window.__ui = Object.assign(window.__ui || {}, { slide: cur }); slidesEl.style.transform='translateX(-'+(cur*(100/n))+'%)'; dotsEls.forEach(function(d,i){d.classList.toggle('active',i===cur);}); slideEls.forEach(function(s,i){s.classList.toggle('is-cur',i===cur);}); if (!quiet && sliderEl) sliderEl.classList.add('wa-moved'); }
-    slideEls.forEach(function(s,i){s.classList.toggle('is-cur',i===0);});
+    function goTo(idx, quiet){
+      cur=((idx%n)+n)%n; window.__ui = Object.assign(window.__ui || {}, { slide: cur });
+      slidesEl.style.transform = winterBlend ? 'none' : 'translateX(-'+(cur*(100/n))+'%)';
+      dotsEls.forEach(function(d,i){d.classList.toggle('active',i===cur);});
+      slideEls.forEach(function(s,i){s.classList.toggle('is-cur',i===cur);if(winterBlend){s.inert=i!==cur;s.setAttribute('aria-hidden',i===cur?'false':'true');}});
+      if(winterBlend && sliderEl)sliderEl.classList.toggle('wa-quiet',!!quiet);
+      if (!quiet && sliderEl) sliderEl.classList.add('wa-moved');
+    }
+    if(winterBlend && sliderEl){sliderEl.classList.add('wa-crossfade');goTo(keepSlide < n ? keepSlide : 0,true);}else slideEls.forEach(function(s,i){s.classList.toggle('is-cur',i===0);});
     if (sliderEl && !window._homeSliderShown) { sliderEl.classList.add('wa-moved'); window._homeSliderShown = true; }
     if (sliderEl) { sliderEl.style.setProperty('--wa-int', Math.max(2000, interval) + 'ms'); sliderEl.classList.toggle('wa-auto', n > 1 && sliderCfg.autoplay !== false); }
     /* Таймер один на всё приложение: при каждой перерисовке главной старый
@@ -570,6 +578,7 @@ window.Screens.home = function(mount) {
       window._homeSliderTimer = null;
       if (n>1 && sliderCfg.autoplay!==false) window._homeSliderTimer = setInterval(function(){
         if (!document.body.contains(slidesEl)) { clearInterval(window._homeSliderTimer); window._homeSliderTimer = null; return; }
+        if(winterBlend && document.hidden)return;
         goTo(cur+1);
       }, Math.max(2000, interval));
     }

@@ -459,3 +459,98 @@ html[data-design="wa"] { --wa-props: url(../img/wa/props.webp); }
  html[data-design="wa"] .wa-prop {transition:none!important}
  html[data-design="wa"] .home2-tile:active .wa-prop {transform:translateY(-50%)}
 }
+
+/* v312: спокойная типографика, снег на кромках и оформление разделов. */
+html[data-design="wa"] { --wa-snowdrifts:url(../img/wa/snowdrifts.webp); }
+html[data-design="wa"] .home2-grid .home2-tile-name { font-size:min(20px,7.6cqw)!important;font-weight:500!important;letter-spacing:.015em!important;line-height:1.2!important; }
+html[data-design="wa"] .wa-met b { font-family:Montserrat,sans-serif;font-size:min(25px,9cqw);font-weight:600;text-shadow:none; }
+html[data-design="wa"] .wa-met span { font-size:9px;font-weight:500;letter-spacing:.09em; }
+html[data-design="wa"] .home2-screen .hero-big-text { font-size:27px!important;font-weight:500!important;line-height:1.15!important; }
+html[data-design="wa"] .home2-screen .hero-stat-num { font-size:15px!important;font-weight:500!important; }
+html[data-design="wa"] .wa-arc-d b { font-size:13px;font-weight:500; }
+html[data-design="wa"] .wa-foot { display:none!important; }
+/* Объекты уходят за кромку и растворяются в поверхности, вместо отдельных значков. */
+html[data-design="wa"] .home2-tile .wa-prop { width:370px;right:-72px;top:auto;bottom:-47px;transform:none;opacity:.76;-webkit-mask-image:linear-gradient(90deg,transparent,#000 48%);mask-image:linear-gradient(90deg,transparent,#000 48%); }
+html[data-design="wa"] .home2-tile-training .wa-prop { bottom:-46px; }
+html[data-design="wa"] .home2-tile-goals .wa-prop { right:-90px;bottom:-60px; }
+html[data-design="wa"] .home2-tile-tasks .wa-prop { right:-86px;bottom:-48px;width:390px; }
+html[data-design="wa"] .home2-tile:active .wa-prop { transform:translateY(2px); }
+/* Кучки снега: разные формы, без полноразмерных размытых слоёв. */
+html[data-design="wa"] .wa-snowcaps { position:absolute;inset:0;z-index:3;pointer-events:none;--wa-play:paused; }
+html[data-design="wa"] .home2-grid .home2-tile { overflow:visible!important; }
+html[data-design="wa"] .home2-tile .wa-art { overflow:hidden;border-radius:inherit; }
+html[data-design="wa"] .home2-tile { --wa-play:paused; }
+html[data-design="wa"] .home2-tile.wa-inview { --wa-play:running; }
+html[data-design="wa"] .home2-tile.wa-inview .wa-snowcaps { --wa-play:running; }
+html[data-design="wa"] .wa-motion-paused .home2-tile,html[data-design="wa"] .wa-motion-paused .wa-snowcaps { --wa-play:paused; }
+html[data-design="wa"] .wa-snowcap { display:block;position:absolute;width:155px;margin:0!important;aspect-ratio:4/1;background-image:var(--wa-snowdrifts);background-size:100% 400%;background-position:center var(--snow-row,0%);background-repeat:no-repeat;transform-origin:center bottom;opacity:.95;animation:waSnowBuild 3.6s ease-out both;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-cap-top { bottom:calc(100% - 8px);right:9%; }
+html[data-design="wa"] .wa-cap-base { bottom:-17px;right:8px;width:170px;opacity:.8;clip-path:inset(0 0 17px); }
+html[data-design="wa"] .home2-tile-finance .wa-cap-base,html[data-design="wa"] .home2-tile-habits .wa-cap-base { display:none; }
+html[data-design="wa"] .wa-snowfall .wa-snowcap { animation:waSnowRenew 6.5s ease-out both;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-snowcrumb { position:absolute;top:8px;width:var(--ss,3px);height:var(--ss,3px);border-radius:40%;background:#E9F2FF;box-shadow:0 0 2px #b9d4f933;animation:waSnowCrumb .8s var(--sd,0ms) ease-out both;animation-play-state:var(--wa-play); }
+@keyframes waSnowBuild { from{transform:scaleY(.15);opacity:0}to{transform:scaleY(1);opacity:.95} }
+@keyframes waSnowRenew { 0%{transform:translate(0,0);opacity:.95}1%{transform:translate(-2px,1px)}2%{transform:translate(2px,2px);opacity:.8}4%{transform:translateY(16px);opacity:0}7%{transform:scaleY(.1);opacity:0}22%{transform:scaleY(.35);opacity:.4}100%{transform:scaleY(1);opacity:.95} }
+@keyframes waSnowCrumb { from{transform:translate(0,0) rotate(0);opacity:.9}to{transform:translate(var(--sx),var(--sy)) rotate(95deg);opacity:0} }
+/* Свет проходит по линии и кольцу, данные при этом остаются неподвижны. */
+html[data-design="wa"] .home2-tile .wa-ecg { opacity:.55!important; }
+html[data-design="wa"] .wa-ecg path:not(.wa-ecg-flow) { opacity:.24; }
+html[data-design="wa"] .home2-tile .wa-ecg-flow { stroke:#9DBEFF;stroke-width:2;stroke-dasharray:95 1000;animation:waSignal 5.5s linear infinite!important;animation-play-state:var(--wa-play)!important; }
+html[data-design="wa"] .wa-ring::after { content:'';position:absolute;inset:8%;border:1px solid transparent;border-top-color:rgba(195,245,220,.6);border-radius:50%;animation:waRingSweep 9s linear infinite;animation-play-state:var(--wa-play); }
+@keyframes waSignal { from{stroke-dashoffset:1095}to{stroke-dashoffset:0} }
+@keyframes waRingSweep { to{transform:rotate(360deg)} }
+html[data-design="wa"] .wa-fin-line { position:absolute;right:20px;bottom:28px;width:46%;height:104px;opacity:.9; }
+html[data-design="wa"] .wa-fin-line svg { width:100%;height:calc(100% - 12px);overflow:visible; }
+html[data-design="wa"] .wa-fin-base { fill:none;stroke:#9F79E7;stroke-width:1.7;opacity:.75; }
+html[data-design="wa"] .home2-tile .wa-fin-flow { fill:none;stroke:#D9C6FF;stroke-width:2;stroke-dasharray:95 1000;filter:drop-shadow(0 0 4px #A775FF);animation:waSignal 9s linear infinite!important;animation-play-state:var(--wa-play)!important; }
+html[data-design="wa"] .wa-fin-point { fill:#B491EA;opacity:.55; }
+html[data-design="wa"] .wa-fin-months { position:absolute;bottom:0;left:5%;right:5%;display:flex;justify-content:space-between; }
+html[data-design="wa"] .wa-fin-months i { font:9px Montserrat,sans-serif;color:#8390aa;font-style:normal; }
+/* Перелив между слоями. Текст не размывается и не прыгает. */
+html[data-design="wa"] .hero-slider.wa-crossfade .hero-slides { display:block!important;position:relative;width:100%!important;height:236px;transform:none!important;transition:none!important; }
+html[data-design="wa"] .hero-slider.wa-crossfade .hero-slide { position:absolute;inset:0;width:100%!important;min-width:100%!important;opacity:0;pointer-events:none;z-index:0;transition:opacity .95s cubic-bezier(.4,0,.2,1)!important; }
+html[data-design="wa"] .hero-slider.wa-crossfade .hero-slide.is-cur { opacity:1;pointer-events:auto;z-index:1; }
+html[data-design="wa"] .hero-slider.wa-quiet .hero-slide { transition:none!important; }
+html[data-design="wa"] .hero-slide :is(.hero-slide-label,.hero-slide-main,.hero-slide-sub) { animation:none!important;filter:none!important;transform:none!important; }
+html[data-design="wa"] .hero-slide .wa-sbg { opacity:.92!important;transition:none!important;-webkit-mask-image:linear-gradient(90deg,transparent,rgba(0,0,0,.12) 14%,rgba(0,0,0,.42) 34%,rgba(0,0,0,.8) 62%,#000 92%);mask-image:linear-gradient(90deg,transparent,rgba(0,0,0,.12) 14%,rgba(0,0,0,.42) 34%,rgba(0,0,0,.8) 62%,#000 92%); }
+/* Внутри разделов: тот же ночной материал, холодные грани и акцент модуля. */
+html[data-design="wa"] :is(.theme-dark,.hab-screen,.tochka-screen,.goals-screen,.tk-app) { --wa-room:91,141,255;background:radial-gradient(ellipse at 100% 0%,rgba(var(--wa-room),.09),transparent 42%),linear-gradient(165deg,#0A1220,#060C15 70%)!important; }
+html[data-design="wa"] .theme-dark { --tr-void:#080F1B;--tr-void-card:#0F1A2A;--tr-void-raised:#17243A;--tr-steel:#17243A;--tr-steel-line:rgba(130,170,220,.14); }
+html[data-design="wa"] .hab-screen { --wa-room:61,220,132; }
+html[data-design="wa"] .tochka-screen { --wa-room:150,110,255;--tk-bg:#090F1C;--tk-card:#111A2B;--tk-raised:#1A243A;--tk-input:#1B293E;--tk-line:rgba(173,188,228,.13); }
+html[data-design="wa"] .goals-screen { --wa-room:245,158,60; }
+html[data-design="wa"] :is(.tk-app,.tk-ov,.tk-toast) { --wa-room:240,100,90;--t-bg:#080F1B;--t-side:#101A2A;--t-card:#101B2B;--t-line:rgba(150,180,220,.18);--t-line2:rgba(150,180,220,.1);--t-text:#E5EDF8;--t-text2:#A8B7CB;--t-muted:#8898AE;--t-faint:#5E708A;--t-hover:#172337;--t-scheme:dark; }
+html[data-design="wa"].tk-on body { background:#080F1B!important; }
+html[data-design="wa"] #tk-theme { display:none; }
+html[data-design="wa"] :is(.tr-header,.hab-header,.tochka-header,.goals-header,.tk-hdr) { position:sticky;background:linear-gradient(115deg,#0D1728,rgba(var(--wa-room,91,141,255),.18))!important;border-bottom:1px solid rgba(171,204,238,.16)!important; }
+html[data-design="wa"] :is(.tr-header,.hab-header,.tochka-header,.goals-header,.tk-hdr)::after { animation:none!important;height:1px;background:linear-gradient(90deg,rgba(var(--wa-room,91,141,255),.8),rgba(223,240,255,.35),transparent); }
+html[data-design="wa"] :is(.tr-title,.hab-screen-title,.tochka-screen-title,.goals-screen-title,.tk-hdr p) { font-family:Montserrat,sans-serif!important;font-size:17px!important;font-weight:600!important;letter-spacing:.01em!important;text-transform:none; }
+html[data-design="wa"] :is(.tr-tabs,.hab-tabs,.tochka-tabs,.goals-season-tabs,.tk-side) { background:rgba(10,18,31,.96)!important;border-bottom-color:rgba(159,192,229,.13)!important; }
+html[data-design="wa"] :is(.hab-body,.goals-body,.tochka-body) { background:transparent!important; }
+html[data-design="wa"] :is(.hab-body .sec-card,.goals-cat-v3,.fin2-card,.fin2-hero,.tochka-list,.bal-hero,.bal-reserve-card) { background:linear-gradient(145deg,rgba(var(--wa-room,91,141,255),.06),transparent 55%),#0F1928!important;border-color:rgba(154,190,228,.15)!important;box-shadow:inset 0 1px rgba(228,242,255,.05),0 9px 24px rgba(0,0,0,.12)!important; }
+html[data-design="wa"] .goals-cat-v3 { border-top-color:var(--cat-color)!important; }
+html[data-design="wa"] .goals-item-v3 { border-bottom-color:rgba(157,185,222,.09)!important; }
+html[data-design="wa"] :is(.fin-inv > .tochka-tabs,.fin-inv > .tochka-body) { filter:none!important; }
+@media(max-width:600px){
+ html[data-design="wa"] .home2-grid .home2-tile-name { font-size:min(14px,7.8cqw)!important; }
+ html[data-design="wa"] .home2-screen .hero-big-text { font-size:22px!important; }
+ html[data-design="wa"] .home2-screen .hero-stat-num { font-size:14px!important; }
+ html[data-design="wa"] .wa-met b { font-size:min(22px,10cqw); }
+ html[data-design="wa"] .wa-met span { font-size:8px;letter-spacing:.07em; }
+ html[data-design="wa"] .home2-tile .wa-prop { width:215px;right:-61px;bottom:-26px;top:auto;opacity:.64; }
+ html[data-design="wa"] .home2-tile-goals .wa-prop { width:225px;right:-73px;bottom:-33px; }
+ html[data-design="wa"] .home2-tile-tasks .wa-prop { width:240px;right:-55px;bottom:-30px; }
+ html[data-design="wa"] .wa-fin-line { right:9px;bottom:38px;width:64%;height:56px; }
+ html[data-design="wa"] .wa-fin-months i { font-size:6px; }
+ html[data-design="wa"] .wa-cap-top { width:86px;bottom:calc(100% - 4px);right:3px; }
+ html[data-design="wa"] .wa-cap-base { width:77px;bottom:-9px;right:-3px;clip-path:inset(0 0 9px); }
+ html[data-design="wa"] .wa-snowcrumb { top:5px; }
+ html[data-design="wa"] .hero-slider.wa-crossfade .hero-slides { height:212px; }
+ html[data-design="wa"] :is(.tr-title,.hab-screen-title,.tochka-screen-title,.goals-screen-title,.tk-hdr p) { font-size:16px!important; }
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-design="wa"] .home2-grid .home2-tile :is(.wa-snowcap,.wa-snowcrumb,.wa-fin-flow,.wa-ecg-flow),html[data-design="wa"] .wa-ring::after { animation:none!important; }
+ html[data-design="wa"] .wa-snowcrumb { display:none; }
+ html[data-design="wa"] .wa-snowcap { transform:none;opacity:.95; }
+ html[data-design="wa"] .hero-slider.wa-crossfade .hero-slide { transition:none!important; }
+}

@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v312';
+const CACHE = 'nik-system-v313';
 
 const STATIC = [
   './',
@@ -84,6 +84,9 @@ const STATIC = [
   './img/wa/frost.webp',
 ];
 
+/* Сборка подставляет SHA-256 готовых файлов после сжатия кода, до gzip. */
+const STATIC_HASHES = null;
+
 /* Библиотеки с CDN: без них приложение не стартует, поэтому тоже кешируем заранее (версии зафиксированы) */
 /* библиотеки и шрифты с чужих адресов живут в отдельном кеше, который не сбрасывается при каждом обновлении (версии в адресах зафиксированы) */
 const CDN_CACHE = 'nik-cdn-v1';
@@ -94,10 +97,42 @@ const CDN = [
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.48.0/dist/tabler-icons.min.css',
 ];
 
-/* Установка: кешируем всё. CDN по одному, чтобы сбой одного не ломал установку */
+async function matchesHash(response, expected) {
+  if (!response || !response.ok || !expected) return false;
+  const digest = await crypto.subtle.digest('SHA-256', await response.clone().arrayBuffer());
+  return Array.from(new Uint8Array(digest), n => n.toString(16).padStart(2, '0')).join('') === expected;
+}
+
+/* Неизменившийся файл переносим из установленной версии после проверки содержимого.
+   Новая версия активируется только целиком; при ошибке прежняя продолжает работать. */
+async function installStatic() {
+  const cache = await caches.open(CACHE);
+  const keys = (await caches.keys()).filter(k => /^nik-system-v\d+$/.test(k) && k !== CACHE).sort((a, b) => Number(b.split('-v').pop()) - Number(a.split('-v').pop()));
+  const previous = await Promise.all(keys.map(k => caches.open(k)));
+  let next = 0;
+  async function fill() {
+    while (next < STATIC.length) {
+      const path = STATIC[next++], request = new Request(new URL(path, self.location.href), { cache: 'no-cache' });
+      const expected = STATIC_HASHES && STATIC_HASHES[path];
+      let response = null;
+      if (expected) for (const source of [cache, ...previous]) {
+        const candidate = await source.match(request);
+        if (await matchesHash(candidate, expected)) { response = candidate; break; }
+      }
+      if (!response) {
+        response = await fetch(request);
+        if (!response.ok || (expected && !await matchesHash(response, expected))) throw new Error('Incomplete app update: ' + path);
+      }
+      await cache.put(request, response);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(4, STATIC.length) }, fill));
+}
+
+/* CDN уже живёт в отдельном кеше; его сбой не ломает установку приложения. */
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(STATIC)).then(() => caches.open(CDN_CACHE)).then(c => Promise.all(CDN.map(u => c.match(u).then(h => h || c.add(new Request(u, { mode: 'cors' }))).catch(() => {}))))
+    installStatic().then(() => caches.open(CDN_CACHE)).then(c => Promise.all(CDN.map(u => c.match(u).then(h => h || c.add(new Request(u, { mode: 'cors' }))).catch(() => {}))))
       .then(() => self.skipWaiting())
   );
 });

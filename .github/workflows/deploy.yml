@@ -21,8 +21,10 @@ jobs:
           rsync -a --exclude '.git' --exclude '.github' --exclude 'server' --exclude '*.md' --exclude '*.zip' --exclude 'FIREBASE_RULES*' --exclude '*.bak' --exclude 'generate-hash.html' --exclude 'clean-goals.html' ./ dist/
           npm i -g esbuild@0.23.1 >/dev/null
           cd dist
-          find . -name '*.js' -not -path './js/vendor/*' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
+          find . -name '*.js' -not -path './js/vendor/*' -not -path './sw.js' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
           find . -name '*.css' -print0 | while IFS= read -r -d '' f; do esbuild "$f" --minify --charset=utf8 --log-level=error --outfile="$f.min" && mv "$f.min" "$f"; done
+          node ../server/build-precache.mjs .
+          esbuild sw.js --minify --charset=utf8 --log-level=error --outfile=sw.js.min && mv sw.js.min sw.js
           # сжатие gzip: код и страницы весят в 3-4 раза меньше, браузер распаковывает сам (на сайте отдаются с Content-Encoding: gzip)
           find . \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.json' -o -name '*.webmanifest' \) -not -path './dl/*' -print0 | while IFS= read -r -d '' f; do gzip -9 -n -c "$f" > "$f.gz" && mv "$f.gz" "$f"; done
 

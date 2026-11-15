@@ -25,13 +25,13 @@ window.Game = (function () {
   };
   const SKO = ['str', 'dis', 'cap', 'foc', 'wil'];
   const DOW = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-  const GLOW = ['#64748B', '#4A7CFF', '#8B5CF6', '#F59E0B', '#FACC15'];
+  const GLOW = ['#64748B', '#4A7CFF', '#8B5CF6', '#F59E0B', '#FACC15', '#2DD4BF'];
   const TITLES = [[1, 'Новичок'], [10, 'Боец'], [20, 'Воин'], [35, 'Чемпион'], [50, 'Легенда']];
 
   function cfg() { const g = (Store.get() || {}).game || {}; return { on: g.on !== false, sex: g.sex === 'f' ? 'f' : 'm', qn: [2, 3, 5].includes(+g.qn) ? +g.qn : 3, rest: toArr(g.rest).map(Number).filter(n => n >= 0 && n <= 6), vacs: toArr(g.vacs).filter(v => v && v.from), quests: (g.quests && typeof g.quests === 'object') ? g.quests : {}, seenLvl: +g.seenLvl || 0,
     repairs: toArr(g.repairs).map(String), seenSt: g.seenSt == null ? null : +g.seenSt || 0, seenWeek: g.seenWeek || null,
     rewards: toArr(g.rewards).filter(r => r && r.id && r.name), bought: toArr(g.bought).filter(b => b && b.at), shopFrom: g.shopFrom || null,
-    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String), needsOff: toArr(g.needsOff).map(String), seenNeed: (g.seenNeed && typeof g.seenNeed === 'object') ? g.seenNeed : {}, seenTraits: g.seenTraits == null ? null : toArr(g.seenTraits).map(String) }; }
+    look: g.look == null || g.look === '' ? null : +g.look, bg: g.bg || 'base', frame: g.frame || 'none', seenItems: toArr(g.seenItems).map(String), mode: g.mode === 'min' ? 'min' : 'hero', news: toArr(g.news).filter(n => n && n.kind), gotItems: g.gotItems == null ? null : toArr(g.gotItems).map(String), needsOff: toArr(g.needsOff).map(String), seenNeed: (g.seenNeed && typeof g.seenNeed === 'object') ? g.seenNeed : {}, seenTraits: g.seenTraits == null ? null : toArr(g.seenTraits).map(String), showcase: toArr(g.showcase).map(String).slice(0,3), achievementBook: g.achievementBook && typeof g.achievementBook === 'object' ? g.achievementBook : {} }; }
   /* открыт всем, кто вошёл; скрыть с главной: меню «···» → Персонаж */
   const avail = () => { try { return !!(window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser()); } catch (e) { return false; } };
   const on = () => avail() && cfg().on;
@@ -175,13 +175,8 @@ window.Game = (function () {
   const moodVars = (N) => `--ms:${[0.5, 0.72, 0.9, 1, 1.12][N.m]};--mb:${[0.8, 0.9, 0.97, 1, 1.04][N.m]};--mt:${[7, 6, 5, 4.6, 3.4][N.m]}s;--mk:${[0.35, 0.6, 0.85, 1, 1.25][N.m]}${N.m < 2 ? ';--rim:rgba(120,130,150,.25)' : ''}`;
   /* эффекты над головой: мысль о самой просевшей потребности, сонные «z», туман, тучка */
   function moodFx(N) {
-    const w = N.worst, low = w && N.n[w].v < 45, o = [];
-    if (low) o.push(`<span class="gm-think" style="--c:${SK[w].color}"><i class="ti ${SK[w].ico}"></i></span>`);
-    else if (N.m === 4) o.push(`<span class="gm-think happy" style="--c:#4ADE80"><i class="ti ti-bolt"></i></span>`);
-    if (N.n.str.on && N.n.str.v < 30) o.push('<span class="gm-zz"><b>z</b><b>z</b><b>z</b></span>');
-    if (N.n.foc.on && N.n.foc.v < 30) o.push('<span class="gm-fog"><i></i><i></i></span>');
-    if (N.m === 0) o.push('<span class="gm-rain"><i class="ti ti-cloud-filled"></i><u></u><u></u><u></u><u></u></span>');
-    return o.length ? `<div class="gm-mfx">${o.join('')}</div>` : '';
+    const k = N.worst, low = k && N.n[k].on && N.n[k].v < 45;
+    return `<div class="gm-mfx gm-mfx-v2"><span class="gm-state-orb" style="--orb:${low ? SK[k].color : N.mood[1]}"><i class="ti ${low ? SK[k].ico : N.mood[2]}"></i><span>${low ? SK[k].name : N.mood[0]}</span></span></div>`;
   }
   /* ── Реплики: персонаж говорит по состоянию. Сам всплывает только когда поменялся повод, раз в день на повод ── */
   const SAY = {
@@ -227,7 +222,7 @@ window.Game = (function () {
   }
   /* ── Вещи у ног: появляются, пока сфера выше 80 ── */
   /* 3D-рендеры (three.js, свет как у персонажа), img/hero/props/{сфера}.webp */
-  const PROPS = Object.fromEntries(SKO.map(k => [k, `<img src="img/hero/props/${k}.webp" alt="" draggable="false">`]));
+  const PROPS = Object.fromEntries(SKO.map((k,i) => [k, `<img class="gm-prop-fallback" src="img/hero/props/${k}.webp" alt="" draggable="false" onerror="this.remove()"><span class="gm-prop-sprite" style="--px:${i%3*50}%;--py:${i<3?0:100}%"></span>`]));
   const propsOf = (N) => SKO.filter(k => N.n[k].on && N.n[k].v >= 80);
   function propsHtml(N, fresh) {
     const ps = propsOf(N); if (!ps.length || isMin()) return '';
@@ -260,17 +255,17 @@ window.Game = (function () {
     got.forEach(k => traitFlash(k));
     lost.forEach(k => addNews({ kind: 'trlost', key: 'trlost:' + k, k }));
   }
-  function needsHtml(S, N) {
-    const rows = SKO.map(k => { const x = N.n[k], sk = SK[k];
-      const st = x.on ? needSt(k, x.v) : x.why === 'off' ? 'не учитывается' : 'ещё нет записей';
-      return `<button class="gm-nd${x.on ? '' : ' off'}${x.on && x.v < 30 ? ' low' : ''}" data-go="${sk.route}" style="--c:${sk.color};--v:${x.on ? x.v : 0}%">
-        <span class="gm-ndi"><i class="ti ${sk.ico}"></i></span>
-        <span class="gm-ndm"><span class="gm-ndt"><b>${sk.name}${x.tr ? `<i class="ti ${TRT[k][2]} gm-ndtr" title="${trName(k)}"></i>` : ''}</b><small>${st}</small></span><span class="gm-ndb"><i></i></span>${x.on && x.v < 45 ? `<small class="gm-ndf">${NEED[k].fix}</small>` : x.on && !x.tr && x.hi >= 3 && x.v >= 80 ? `<small class="gm-ndf p">черта «${trName(k)}»: ${x.hi} из ${TR_DAYS} дней</small>` : ''}</span>
-        <em>${x.on && x.d > 0 ? '+' + x.d : ''}</em></button>`; }).join('');
-    const trs = SKO.filter(k => N.n[k].tr).map(k => ({ t: trName(k), ico: TRT[k][2], c: SK[k].color, p: 1, tr: 1 }));
-    N = Object.assign({}, N, { ml: trs.concat(N.ml) });
-    const ml = N.ml.length ? `<div class="gm-ml">${N.ml.map(m => `<span style="--c:${m.c}"${m.tr ? ' class="tr"' : ''}><i class="ti ${m.ico}"></i>${esc(m.t)}</span>`).join('')}</div>` : '';
-    return `<div class="gm-card gm-needs"><div class="gm-h"><b>Состояние</b><span class="gm-mood" style="--c:${N.mood[1]}"><i class="ti ${N.mood[2]}"></i>${N.mood[0]}</span></div>${ml}<div class="gm-ndl">${rows}</div></div>`;
+  function needsHtml(S,N) {
+    const rows=SKO.map(k=>{const x=N.n[k],sk=SK[k],xp=S.sk[k]||0,l=skillLvl(xp),left=40*l*l-xp;
+      const status=x.on?needSt(k,x.v):x.why==='off'?'не учитывается':'ещё нет записей';
+      return `<button class="gm-nd gm-dev-row${x.on?'':' off'}${x.on&&x.v<30?' low':''}" data-go="${sk.route}" style="--c:${sk.color};--v:${x.on?x.v:0}%">
+        <span class="gm-dev-meter" title="Состояние: ${x.on?Math.round(x.v)+' из 100':status}"><i class="ti ${sk.ico}"></i><small>${x.on?Math.round(x.v):'·'}</small></span>
+        <span class="gm-dev-main"><span class="gm-dev-title"><b>${sk.name}${x.tr?`<i class="ti ${TRT[k][2]} gm-ndtr" title="${trName(k)}"></i>`:''}</b><em>ур. ${l}</em></span><span class="gm-dev-xp"><i style="width:${Math.round(skillInto(xp)*100)}%"></i></span>
+        <span class="gm-dev-meta"><span>${status}</span><small>до ${l+1} ур. ${num(left)} XP</small></span>${x.on&&x.v<45?`<small class="gm-ndf">${NEED[k].fix}</small>`:''}</span><strong class="gm-dev-gain">${x.on&&x.d>0?'+'+x.d:''}</strong></button>`;
+    }).join('');
+    const traits=SKO.filter(k=>N.n[k].tr).map(k=>({t:trName(k),ico:TRT[k][2],c:SK[k].color,tr:1}));
+    const chips=traits.concat(N.ml);const labels=chips.length?`<div class="gm-ml">${chips.map(m=>`<span style="--c:${m.c}"${m.tr?' class="tr"':''}><i class="ti ${m.ico}"></i>${esc(m.t)}</span>`).join('')}</div>`:'';
+    return `<div class="gm-card gm-needs gm-development"><div class="gm-h"><b>Развитие</b><span class="gm-mood" style="--c:${N.mood[1]}"><i class="ti ${N.mood[2]}"></i>${N.mood[0]}</span></div>${labels}<div class="gm-ndl">${rows}</div><details class="gm-dev-profile"><summary>Профиль навыков<i class="ti ti-chevron-down"></i></summary>${radar(SKO.map(k=>skillLvl(S.sk[k]||0)))}</details></div>`;
   }
   /* просела потребность: тихая строка в «Новом», не чаще раза в 3 дня на сферу */
   function checkNeeds(S, N) {
@@ -379,6 +374,7 @@ window.Game = (function () {
   const isMin = () => cfg().mode === 'min';
   function heroImg(sex, stage, cls) {
     if (isMin()) return `<div class="gm-hero gm-emb ${cls || ''}" data-stage="${stage}" style="--ec:${GLOW[Math.min(4, stage)]}"><i class="ti ${EMB[Math.min(4, stage)]}"></i></div>`;
+    if (stage === 5) { loadHeroMedia('looks'); return `<div class="gm-hero gm-hero-alt ${cls || ''}" data-stage="5" data-sex="${sex}"><img class="gm-look-fallback" src="img/hero/${sex}3.webp" alt="Персонаж"><span class="gm-alt-figure" role="img" aria-label="Облик Ритм"></span></div>`; }
     const src = 'img/hero/' + sex + (Math.min(4, stage) + 1) + '.webp';
     return `<div class="gm-hero ${cls || ''}" data-stage="${stage}">${HAS_IMG ? `<img src="${src}" alt="Персонаж" onerror="this.remove()">` : ''}<div class="gm-hero-ph"><i class="ti ti-user"></i></div></div>`;
   }
@@ -386,9 +382,9 @@ window.Game = (function () {
   /* ── Полоска на главной ── */
   function homeHtml() {
     if (!on()) return '';
-    const S = state(), tq = todayQuests(), qd = tq.picked ? tq.list.filter(x => x.done).length : 0, qn = tq.picked ? tq.list.length : 0;
+    const S = state(); captureAchievements(S); const tq = todayQuests(), qd = tq.picked ? tq.list.filter(x => x.done).length : 0, qn = tq.picked ? tq.list.length : 0;
     const pct = Math.round(S.L.into / S.L.need * 100), N = needs(S);
-    return `<button class="gm-bar" id="gm-bar" aria-label="Персонаж">
+    return `<button class="gm-bar" id="gm-bar" aria-label="Персонаж" style="--hero-accent:${GLOW[lookOf(S)]}">
       <span class="gm-bar-av" style="${moodVars(N)}">${frameWrap(S.c.mode === 'min' ? `<div class="gm-hero sm gm-mini" style="--ec:${GLOW[lookOf(S)]};--p:${pct}"><b>${S.L.lvl}</b></div>` : heroImg(S.c.sex, lookOf(S), 'sm'), frOf(S))}${S.c.news.length ? '<span class="gm-bar-dot"></span>' : ''}</span>
       <span class="gm-bar-m"><span class="gm-bar-t"><b>${esc(S.title)}</b><span>${S.L.lvl} уровень</span><span class="gm-bar-md" style="--c:${N.mood[1]}">${N.mood[0]}</span></span>
         <span class="gm-bar-s">${tq.picked ? 'Квесты ' + qd + ' из ' + qn + (qd === qn ? ', все закрыты' : '') : 'Выбери квесты на сегодня'}${S.todayXp ? ' · <b>+' + num(S.todayXp) + ' XP</b>' : ''}</span></span>
@@ -411,7 +407,7 @@ window.Game = (function () {
     const ov = document.createElement('div'); ov.className = 'gm-flash' + (opts.cls ? ' ' + opts.cls : '');
     ov.innerHTML = `<div class="gm-flash-box">${html}</div>`;
     document.body.appendChild(ov);
-    requestAnimationFrame(() => ov.classList.add('in'));
+    bindHeroMotion(); requestAnimationFrame(() => ov.classList.add('in'));
     try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate([20, 40, 30]); } catch (e) {}
     const close = () => { ov.classList.remove('in'); setTimeout(() => { ov.remove(); if (opts.onClose) opts.onClose(); const n = _q.shift(); if (n) overlay(n[0], n[1]); }, 250); };
     ov.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
@@ -516,20 +512,133 @@ window.Game = (function () {
   }
 
   /* ── Шкафчик: облик, фон, рамка. Открываются за достижения и уровни ── */
-  const BGS = [{ id: 'base', n: 'Классика' }, { id: 'dawn', n: 'Рассвет', a: 'hab30' }, { id: 'ice', n: 'Лёд', l: 20 }, { id: 'night', n: 'Звёзды', a: 'tr50' }, { id: 'aurora', n: 'Сияние', a: 'st30' }, { id: 'gold', n: 'Золото', a: 'goal1' }];
-  const FRS = [{ id: 'none', n: 'Без рамки' }, { id: 'blue', n: 'Сапфир' }, { id: 'fire', n: 'Огонь', a: 'st7' }, { id: 'neon', n: 'Неон', a: 'pr10' }, { id: 'gold', n: 'Золото', a: 'pw1' }, { id: 'diamond', n: 'Алмаз', a: 'st100' }, { id: 'rainbow', n: 'Радуга', l: 35 }];
-  const lookOf = (S) => (S.c.look != null && S.c.look >= 0 && S.c.look <= S.stage) ? S.c.look : S.stage;
-  const bgOf = (S) => { const b = BGS.find(x => x.id === S.c.bg); return b && unlockOk(S, b) ? b.id : 'base'; };
-  const frOf = (S) => { const f = FRS.find(x => x.id === S.c.frame); return f && unlockOk(S, f) ? f.id : 'none'; };
+  /* Коллекция не меняет опыт, уровни, серию или расчёт состояния. */
+  const HERO_MEDIA = { scenes: 'img/hero/scenes-v2.webp', props: 'img/hero/props-v2.webp', looks: 'img/hero/looks-v2.webp' };
+  const mediaLoads = new Set(), mediaImages = new Map();
+  function loadHeroMedia(only) {
+    Object.entries(HERO_MEDIA).forEach(([key, src]) => {
+      if ((only && only !== key) || mediaLoads.has(key)) return; mediaLoads.add(key);
+      const image = new Image(); image.onload = () => { mediaImages.set(key,image); document.documentElement.classList.add('hero-' + key + '-ready'); };
+      image.onerror = () => mediaLoads.delete(key); image.src = src;
+    });
+  }
+  const motionNodes = new Map(); let motionObserver=null, motionRemoved=null;
+  function updateHeroMotion() { motionNodes.forEach((visible,node)=>node.style.setProperty('--gm-play',visible&&!document.hidden?'running':'paused')); }
+  function bindHeroMotion() {
+    const nodes=[...document.querySelectorAll('.gm-top,.gm-prev')]; if(!nodes.length)return;
+    if(typeof IntersectionObserver!=='function'){nodes.forEach(node=>node.style.setProperty('--gm-play',document.hidden?'paused':'running'));return;}
+    if(!motionObserver && typeof IntersectionObserver==='function') {
+      motionObserver=new IntersectionObserver(entries=>{entries.forEach(e=>{if(motionNodes.has(e.target)&&e.target.isConnected)motionNodes.set(e.target,e.isIntersecting);});updateHeroMotion();},{threshold:.05});
+      motionRemoved=new MutationObserver(()=>{motionNodes.forEach((_,node)=>{if(!node.isConnected){motionObserver.unobserve(node);motionNodes.delete(node);}});if(!motionNodes.size){motionObserver.disconnect();motionRemoved.disconnect();document.removeEventListener('visibilitychange',updateHeroMotion);motionObserver=null;motionRemoved=null;}});
+      motionRemoved.observe(document.body,{childList:true,subtree:true});document.addEventListener('visibilitychange',updateHeroMotion);
+    }
+    nodes.forEach(node=>{if(!motionNodes.has(node)){motionNodes.set(node,true);motionObserver?.observe(node);}});updateHeroMotion();
+  }
+  const LOOK_SPECIAL = { id: 5, n: 'Ритм', a: 'st100' };
+  const lookName = (id) => TITLES[id] ? TITLES[id][1] : id === 5 ? LOOK_SPECIAL.n : TITLES[0][1];
+  function extraAchievements(S, q) {
+    const { tr, cnt, days, pw } = q;
+    const a = (id, t, v, n, sk, ico) => ({ id, t, v, n, c: SK[sk].color, ico: ico || SK[sk].ico });
+    const taskCount = achievementTasks(S).size;
+    const balance = SKO.filter(k => skillLvl(S.sk[k] || 0) >= 5).length;
+    return [
+      a('tr5','5 тренировок',tr,5,'str'),a('tr10','10 тренировок',tr,10,'str'),a('tr25','25 тренировок',tr,25,'str'),a('tr250','250 тренировок',tr,250,'str','ti-trophy'),
+      a('pr1','Личный рекорд',cnt('pr'),1,'str','ti-arrow-big-up-lines'),a('pr25','25 рекордов',cnt('pr'),25,'str','ti-arrow-big-up-lines'),
+      a('st14','Две недели в ритме',S.s.best,14,'wil','ti-flame'),a('st60','60 дней подряд',S.s.best,60,'wil','ti-flame'),a('st180','Полгода в деле',S.s.best,180,'wil','ti-crown'),
+      a('meas15','15 замеров тела',cnt('meas'),15,'str','ti-ruler-measure'),a('pw12','12 идеальных недель',pw,12,'wil','ti-crown'),a('chest30','30 сундуков',cnt('chest') + Object.values(S.c.quests).filter(x=>x&&x.chest&&x.chest.kind==='shield').length,30,'wil','ti-gift'),
+      a('hab7','Неделя привычек',cnt('habday'),7,'dis'),a('hab90','90 дней привычек',cnt('habday'),90,'dis'),a('hab180','180 дней привычек',cnt('habday'),180,'dis'),a('hab365','Год привычек',cnt('habday'),365,'dis'),
+      a('money7','Неделя учёта денег',days('spend','pay'),7,'cap','ti-wallet'),a('money90','90 дней учёта',days('spend','pay'),90,'cap','ti-wallet'),a('money180','180 дней учёта',days('spend','pay'),180,'cap','ti-wallet'),a('piggy25','25 пополнений копилки',cnt('piggy'),25,'cap','ti-pig-money'),
+      a('task10','10 закрытых задач',taskCount,10,'foc'),a('task50','50 закрытых задач',taskCount,50,'foc'),a('task300','300 закрытых задач',taskCount,300,'foc'),
+      a('goal3','Три цели достигнуты',cnt('goal'),3,'wil'),a('goal10','10 целей достигнуты',cnt('goal'),10,'wil'),a('qall30','30 дней всех квестов',cnt('qall'),30,'wil','ti-swords'),a('qall100','100 дней всех квестов',cnt('qall'),100,'wil','ti-swords'),
+      a('balance5','Баланс пяти сфер',balance,5,'dis','ti-hexagon'),a('balance10','Пять навыков уровня 10',SKO.filter(k=>skillLvl(S.sk[k]||0)>=10).length,5,'dis','ti-hexagon')
+    ];
+  }
+  const achievementMetric=id=>{const m=/^(tr|pr|st|meas|pw|chest|hab|money|piggy|task|goal|qall)\d/.exec(id);return m?m[1]:id;};
+  const archiveTaskKey=id=>'t'+String(id).split('').map(c=>c.charCodeAt(0).toString(16).padStart(4,'0')).join('');
+  function achievementTasks(S) {
+    const book=S.c.achievementBook||{};
+    return new Set(Object.keys(book.tasksById||{}).map(k=>k.startsWith('t')?k:'t'+k).concat(toArr(book.tasks).map(archiveTaskKey),toArr((Store.get().tasks||{}).list).filter(t=>t&&t.id&&t.done).map(t=>archiveTaskKey(t.id))));
+  }
+  function normalizedAchievements(S,list) {
+    const book=S.c.achievementBook,progress=book.progress||{},owned=new Set(toArr(S.c.gotItems).concat(S.c.seenItems)),max={};
+    list.forEach(a=>{const group=achievementMetric(a.id),observed=Object.keys((book.observations||{})[group]||{}).map(k=>/^p\d+$/.test(k)?+k.slice(1):0).filter(Number.isFinite);
+      const legacy=BGS.some(x=>x.a===a.id&&owned.has('bg:'+x.id))||FRS.some(x=>x.a===a.id&&owned.has('fr:'+x.id));
+      a.v=Math.max(0,Number.isFinite(+a.v)?+a.v:0,Number.isFinite(+progress[a.id])?+progress[a.id]:0,...observed,legacy||(book.earned||{})[a.id]?a.n:0);max[group]=Math.max(max[group]||0,a.v);});
+    return list.map(a=>Object.assign(a,{v:max[achievementMetric(a.id)],ok:max[achievementMetric(a.id)]>=a.n}));
+  }
+  function captureAchievements(S) {
+    const old=S.c.achievementBook||{},observations=Object.assign({},old.observations||{}),earned=Object.assign({},old.earned||{}),tasksById=Object.assign({},old.tasksById||{}),caps={};
+    const list=achievements(S);list.forEach(a=>{const group=achievementMetric(a.id);caps[group]=Math.max(caps[group]||0,a.n);});
+    list.forEach(a=>{const group=achievementMetric(a.id),value=Math.min(caps[group],Math.floor(a.v));if(value>0)observations[group]=Object.assign({},observations[group]||{},{['p'+value]:true});if(a.ok)earned[a.id]=true;});
+    achievementTasks(S).forEach(key=>{tasksById[key]=true;});
+    const next=Object.assign({},old,{observations,earned,tasksById});
+    if(JSON.stringify(next)!==JSON.stringify(old))Store.set('game.achievementBook',next);
+    S.c.achievementBook=next;
+  }
+  function badgeHtml(a, size) {
+    if(size==='lg')return `<span class="gm-ach-trophy"><span class="gm-trophy-art"></span>${badgeHtml(a,'sm')}</span>`;
+    return `<span class="gm-collect-badge ${size || ''}" style="--bc:${a.c}"><span class="gm-collect-metal"><i class="ti ${a.ico}"></i></span><small>${a.n}</small></span>`;
+  }
+  function displayedBadges(S) { const map = achMap(S); return S.c.showcase.filter(id=>map[id]&&map[id].ok).map(id=>map[id]); }
+  function showcaseHtml(S) {
+    const list = displayedBadges(S); if (!list.length) return '';
+    return `<div class="gm-showcase" aria-label="Витрина наград">${list.map(a=>`<button data-ach="${a.id}" title="${esc(a.t)}">${badgeHtml(a,'sm')}<span>${esc(a.t)}</span></button>`).join('')}</div>`;
+  }
+  function equipBadge(id) {
+    const S = state(), a = achMap(S)[id]; if (!a || !a.ok) return false;
+    const list = S.c.showcase;
+    if (!list.includes(id) && list.length >= 3) return false;
+    Store.set('game.showcase', list.includes(id) ? list.filter(x=>x!==id) : list.concat(id)); return true;
+  }
+  function achievementDetail(id) {
+    loadHeroMedia('props'); const S = state(), a = achMap(S)[id]; if (!a) return;
+    const worn = S.c.showcase.includes(id), full = S.c.showcase.length >= 3 && !worn;
+    overlay(`<div class="gm-flash-k">${a.ok ? 'Достижение получено' : 'Следующая победа'}</div>${badgeHtml(a,'lg')}
+      <div class="gm-flash-l sm">${esc(a.t)}</div><p>${a.ok ? 'Коллекционный знак для твоей витрины' : num(Math.min(a.v,a.n))+' из '+num(a.n)}</p>
+      ${a.ok ? `<button class="gm-btn" data-pin${full?' disabled':''}>${worn?'Снять с витрины':full?'На витрине уже 3 знака':'На витрину'}</button><button class="gm-btn ghost" data-share>Сохранить или поделиться</button>` : ''}<button class="gm-btn ghost" data-close>Закрыть</button><p class="gm-share-status" role="status"></p>`, {
+      cls: 'gm-ach-detail', confetti: false, onOpen: (ov,close) => {
+        const pin = ov.querySelector('[data-pin]'); if (pin) pin.onclick = () => { if (equipBadge(id)) { close(); if (_mount && _mount.isConnected) render(_mount,true); } };
+        const share = ov.querySelector('[data-share]'); if (share) share.onclick = async () => { share.disabled=true;try { await shareAchievement(a); } catch(e) { if(e.name!=='AbortError')ov.querySelector('.gm-share-status').textContent='Не удалось сохранить. Попробуй ещё раз'; } finally { share.disabled=false; } };
+      }
+    });
+  }
+  async function shareAchievement(a) {
+    const canvas = document.createElement('canvas');canvas.width=1080;canvas.height=1350;const g=canvas.getContext('2d');
+    const bg=g.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,'#14223c');bg.addColorStop(1,'#090e1b');g.fillStyle=bg;g.fillRect(0,0,1080,1350);
+    const halo=g.createRadialGradient(540,480,20,540,480,460);halo.addColorStop(0,a.c+'66');halo.addColorStop(1,a.c+'00');g.fillStyle=halo;g.fillRect(0,0,1080,1050);
+    g.textAlign='center';g.fillStyle='#e7efff';g.font='700 42px Montserrat, sans-serif';g.fillText('YOU',540,128);
+    g.strokeStyle=a.c;g.lineWidth=10;g.fillStyle='#192a43';g.beginPath();g.arc(540,460,170,0,Math.PI*2);g.fill();g.stroke();
+    g.fillStyle=a.c;g.font='800 110px Montserrat, sans-serif';g.fillText(String(a.n),540,495);
+    const trophy=mediaImages.get('props');if(trophy){g.fillStyle='#101d30';g.beginPath();g.arc(540,460,166,0,Math.PI*2);g.fill();g.drawImage(trophy,trophy.width*2/3,trophy.height/2,trophy.width/3,trophy.height/2,285,205,510,510);g.fillStyle=a.c;g.font='800 38px Montserrat, sans-serif';g.fillText(String(a.n),540,680);}
+    g.fillStyle='#fff';g.font='700 62px Montserrat, sans-serif';const words=a.t.split(' ');let line='',y=770;for(const word of words){const next=(line+' '+word).trim();if(g.measureText(next).width>890&&line){g.fillText(line,540,y);y+=82;line=word;}else line=next;}g.fillText(line,540,y);
+    g.fillStyle='#aebed7';g.font='400 32px Montserrat, sans-serif';g.fillText('Достижение получено',540,y+100);g.fillText(new Date().toLocaleDateString('ru-RU'),540,1160);g.fillText('you-app.ru',540,1235);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw new Error('export');
+    const file=new File([blob],'YOU-'+a.id+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:a.t});return;}
+    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=file.name;link.style.display='none';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+  }
+
+  const BGS = [
+    { id:'base',n:'Студия',scene:0 },{ id:'dawn',n:'Рассвет',a:'hab30',scene:1 },{ id:'ice',n:'Горный воздух',l:20,scene:2 },{ id:'night',n:'Ночной город',a:'tr50',scene:3 },{ id:'aurora',n:'Сияние',a:'st30',scene:4 },{ id:'gold',n:'Золотой час',a:'goal1',scene:5 },
+    { id:'gym',n:'Тренировочная база',a:'tr10',scene:6 },{ id:'library',n:'Библиотека',a:'task10',scene:7 },{ id:'workshop',n:'Мастерская',a:'money7',scene:8 },{ id:'harbor',n:'Тихая гавань',scene:9 },{ id:'garden',n:'Оранжерея',a:'hab7',scene:10 },{ id:'summit',n:'Вершина',a:'goal3',scene:11 }
+  ];
+  const FRS = [
+    {id:'none',n:'Без рамки'},{id:'blue',n:'Сапфир'},{id:'fire',n:'Огонь',a:'st7'},{id:'neon',n:'Неон',a:'pr10'},{id:'gold',n:'Золото',a:'pw1'},{id:'diamond',n:'Алмаз',a:'st100'},{id:'rainbow',n:'Радуга',l:35},
+    {id:'steel',n:'Сталь',a:'tr10'},{id:'pulse',n:'Ритм',a:'hab7'},{id:'obsidian',n:'Обсидиан',a:'money7'},{id:'iris',n:'Ясность',a:'task10'},{id:'compass',n:'Курс',a:'goal3'},{id:'aurora',n:'Север',a:'st60'},{id:'prism',n:'Призма',a:'balance5'},{id:'laurel',n:'Лавр',a:'pw4'}
+  ];
+  const lookOf = S => S.c.look === 5 && unlockOk(S,LOOK_SPECIAL,'look:5') ? 5 : S.c.look != null && S.c.look >= 0 && S.c.look < 5 && TITLES[S.c.look][0] <= Math.max(S.L.lvl,S.c.seenLvl) ? S.c.look : S.stage;
+  const bgOf = S => { const b=BGS.find(x=>x.id===S.c.bg);return b&&unlockOk(S,b,'bg:'+b.id)?b.id:'base'; };
+  const frOf = S => { const f=FRS.find(x=>x.id===S.c.frame);return f&&unlockOk(S,f,'fr:'+f.id)?f.id:'none'; };
   let _ach = null, _achS = null;
   function achMap(S) { if (_achS !== S) { _achS = S; _ach = {}; achievements(S).forEach(a => { _ach[a.id] = a; }); } return _ach; }
-  function unlockOk(S, it) { if (it.l) return S.L.lvl >= it.l; if (it.a) { const a = achMap(S)[it.a]; return !!(a && a.ok); } return true; }
+  function unlockOk(S,it,key) { if(key && (toArr(S.c.gotItems).includes(key)||S.c.seenItems.includes(key)))return true; if(it.l)return Math.max(S.L.lvl,S.c.seenLvl)>=it.l;if(it.a){const a=achMap(S)[it.a];return !!(a&&a.ok);}return true; }
   function wrItems(S) {
-    const out = [], A = achMap(S);
-    const cond = (it) => it.l ? { t: 'уровень ' + it.l, v: S.L.lvl, n: it.l } : it.a ? { t: A[it.a].t, v: Math.min(A[it.a].v, A[it.a].n), n: A[it.a].n } : null;
-    TITLES.forEach((t, i) => out.push({ key: 'look:' + i, kind: 'look', id: i, name: t[1], ok: i <= S.stage, base: i === 0, cond: { t: 'уровень ' + t[0], v: S.L.lvl, n: t[0] } }));
-    BGS.forEach(b => out.push({ key: 'bg:' + b.id, kind: 'bg', id: b.id, name: b.n, ok: unlockOk(S, b), base: b.id === 'base', cond: cond(b) }));
-    FRS.forEach(f => out.push({ key: 'fr:' + f.id, kind: 'frame', id: f.id, name: f.n, ok: unlockOk(S, f), base: !f.a && !f.l, cond: cond(f) }));
+    const out=[],A=achMap(S),cond=it=>it.l?{t:'уровень '+it.l,v:Math.max(S.L.lvl,S.c.seenLvl),n:it.l}:it.a&&A[it.a]?{t:A[it.a].t,v:Math.min(A[it.a].v,A[it.a].n),n:A[it.a].n}:null;
+    TITLES.forEach((t,i)=>out.push({key:'look:'+i,kind:'look',id:i,name:t[1],ok:t[0]<=Math.max(S.L.lvl,S.c.seenLvl),base:i===0,cond:{t:'уровень '+t[0],v:Math.max(S.L.lvl,S.c.seenLvl),n:t[0]}}));
+    out.push({key:'look:5',kind:'look',id:5,name:LOOK_SPECIAL.n,ok:unlockOk(S,LOOK_SPECIAL,'look:5'),base:false,cond:cond(LOOK_SPECIAL)});
+    BGS.forEach(b=>out.push({key:'bg:'+b.id,kind:'bg',id:b.id,name:b.n,ok:unlockOk(S,b,'bg:'+b.id),base:!b.a&&!b.l,cond:cond(b)}));
+    FRS.forEach(f=>out.push({key:'fr:'+f.id,kind:'frame',id:f.id,name:f.n,ok:unlockOk(S,f,'fr:'+f.id),base:!f.a&&!f.l,cond:cond(f)}));
+    achievements(S).forEach(a=>out.push({key:'badge:'+a.id,kind:'badge',id:a.id,name:a.t,ok:a.ok,base:false,cond:{t:a.t,v:Math.min(a.v,a.n),n:a.n},a}));
     return out;
   }
   /* постамент: векторный овал с обводкой, толщина одинаковая по всему кругу в любом браузере */
@@ -538,48 +647,45 @@ window.Game = (function () {
   function podHtml(fr) { return ''; /* постамент убран по просьбе Ника, рамка остаётся на аватарке */ const c = POD[fr]; if (!c) return ''; const id = 'gpod' + (++_pid);
     return `<svg class="gm-pod2" viewBox="0 0 160 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></linearGradient></defs><ellipse cx="80" cy="16" rx="76" ry="12" fill="none" stroke="url(#${id})" stroke-width="3"/></svg>`; }
   const frameWrap = (html, fr) => `<span class="gm-fr fr-${fr}">${html}</span>`;
-  function fxHtml(bg) {
-    if (bg === 'night') return '<div class="gm-fx fx-night"><i></i><i></i></div>';
-    if (bg === 'aurora') return '<div class="gm-fx fx-aurora"><i></i><i></i><i></i></div>';
-    if (bg === 'gold') return '<div class="gm-fx fx-gold"><i></i><i></i></div>';
-    if (bg === 'dawn') return '<div class="gm-fx fx-dawn"><i></i></div>';
-    if (bg === 'ice') return '<div class="gm-fx fx-ice">' + Array.from({ length: 26 }, (_, i) => `<i style="--l:${(i * 37) % 100}%;--d:${((i * 0.61) % 7).toFixed(2)}s;--t:${6 + (i % 5)}s;--s:${2 + (i % 3)}px;--x:${(i % 2 ? 1 : -1) * (10 + i % 20)}px"></i>`).join('') + '</div>';
-    return '';
+  function fxHtml(bg,thumb) {
+    const scene=(BGS.find(b=>b.id===bg)||BGS[0]).scene;
+    return `<span class="gm-scene" style="--scene-x:${scene%3*50}%;--scene-y:${Math.floor(scene/3)*100/3}%"></span>${thumb?'':`<div class="gm-fx gm-atmosphere" data-atmo="${bg}"><i></i><i></i><i></i></div>`}`;
   }
-  function wrPreview(S, lk, bg, fr) {
-    return `<div class="gm-prev gm-bgv" data-bg="${bg}" style="--gc:${GLOW[lk]}">${fxHtml(bg)}<div class="gm-stage sm">${heroImg(S.c.sex, lk, 'lg')}${podHtml(fr)}</div></div>`;
+  function wrPreview(S,lk,bg,fr) {
+    loadHeroMedia(); return `<div class="gm-prev gm-bgv" data-bg="${bg}" style="--gc:${GLOW[lk]}">${fxHtml(bg)}<span class="gm-prev-avatar">${frameWrap(heroImg(S.c.sex,lk,'sm'),fr)}</span><div class="gm-stage sm">${heroImg(S.c.sex,lk,'lg')}</div>${showcaseHtml(S)}</div>`;
   }
   /* окно шкафчика: снизу на телефоне, по центру на компьютере */
   function wardrobe(onDone, tab) {
-    const S = state(), items = wrItems(S); let cur = tab || 'look';
+    loadHeroMedia(); const S = state(), items = wrItems(S); let cur = tab || 'look';
     const ov = document.createElement('div'); ov.className = 'gm-sheet';
     const seen = new Set(S.c.seenItems);
     const draw = () => {
-      const c = cfg(), sel = { look: lookOf(Object.assign({}, S, { c })), bg: bgOf(Object.assign({}, S, { c })), frame: frOf(Object.assign({}, S, { c })) };
-      const tile = (it) => { const on = String(sel[it.kind]) === String(it.id), isNew = it.ok && !it.base && !seen.has(it.key);
-        const pv = it.kind === 'look' ? heroImg(c.sex, it.id, 'tn') : it.kind === 'bg' ? `<span class="gm-bgsw gm-bgv" data-bg="${it.id}" style="--gc:${GLOW[sel.look]}">${fxHtml(it.id)}</span>` : frameWrap(heroImg(c.sex, sel.look, 'sm'), it.id);
+      const c = cfg(), sel = { look: lookOf(Object.assign({}, S, { c })), bg: bgOf(Object.assign({}, S, { c })), frame: frOf(Object.assign({}, S, { c })), badge: c.showcase };
+      const tile = (it) => { const on = it.kind === 'badge' ? sel.badge.includes(it.id) : String(sel[it.kind]) === String(it.id), isNew = it.ok && !it.base && !seen.has(it.key);
+        const pv = it.kind === 'look' ? heroImg(c.sex, it.id, 'tn') : it.kind === 'bg' ? `<span class="gm-bgsw gm-bgv" data-bg="${it.id}" style="--gc:${GLOW[sel.look]}">${fxHtml(it.id,true)}</span>` : it.kind === 'badge' ? badgeHtml(it.a) : frameWrap(heroImg(c.sex, sel.look, 'sm'), it.id);
         return `<button class="gm-it${on ? ' sel' : ''}${it.ok ? '' : ' lock'}" data-k="${it.kind}" data-v="${it.id}"${it.ok ? '' : ' aria-disabled="true"'}>
           <span class="gm-itp" style="--gc:${GLOW[it.kind === 'look' ? it.id : sel.look]}">${pv}${it.ok ? '' : '<span class="gm-itl"><i class="ti ti-lock"></i></span>'}${on ? '<span class="gm-itc"><i class="ti ti-check"></i></span>' : ''}</span>
-          <b>${esc(it.name)}</b>${it.ok ? `<small>${on ? 'надето' : isNew ? '<em>новое</em>' : 'открыто'}</small>` : `<small>${esc(it.cond.t)} · ${num(it.cond.v)}/${num(it.cond.n)}</small><span class="gm-ap"><i style="width:${Math.round(it.cond.v / it.cond.n * 100)}%"></i></span>`}</button>`; };
+          <b>${esc(it.name)}</b>${it.ok ? `<small>${on ? it.kind==='badge'?'на витрине':'надето' : isNew ? '<em>новое</em>' : 'открыто'}</small>` : `<small>${esc(it.cond.t)} · ${num(it.cond.v)}/${num(it.cond.n)}</small><span class="gm-ap"><i style="width:${Math.round(it.cond.v / it.cond.n * 100)}%"></i></span>`}</button>`; };
       const cnt = (k) => { const l = items.filter(i => i.kind === k); return l.filter(i => i.ok).length + '/' + l.length; };
       const nw = (k) => items.some(i => i.kind === k && i.ok && !i.base && !seen.has(i.key));
       ov.innerHTML = `<div class="gm-sheet-p">
         <div class="gm-sheet-h"><b>Шкафчик</b><button class="gm-back" data-x aria-label="Закрыть"><i class="ti ti-x"></i></button></div>
-        ${wrPreview(S, sel.look, sel.bg, sel.frame)}
-        <div class="gm-tabs">${[['look', 'Облик'], ['bg', 'Фон'], ['frame', 'Рамка']].map(([k, n]) => `<button data-t="${k}" class="${cur === k ? 'on' : ''}">${n}<small>${cnt(k)}</small>${nw(k) ? '<i class="gm-dot"></i>' : ''}</button>`).join('')}</div>
-        <div class="gm-grid">${items.filter(i => i.kind === cur).map(tile).join('')}</div></div>`;
-      ov.querySelector('[data-x]').onclick = close;
+        ${wrPreview(Object.assign({},S,{c}), sel.look, sel.bg, sel.frame)}
+        <div class="gm-tabs">${[['look', 'Облик'], ['bg', 'Фон'], ['frame', 'Рамка'], ['badge', 'Награды']].map(([k, n]) => `<button data-t="${k}" class="${cur === k ? 'on' : ''}">${n}<small>${cnt(k)}</small>${nw(k) ? '<i class="gm-dot"></i>' : ''}</button>`).join('')}</div>
+        <p class="gm-collection-note" role="status">${cur==='badge'?'На витрине '+c.showcase.length+' из 3':''}</p><div class="gm-grid">${items.filter(i => i.kind === cur).sort((a,b)=>Number(b.ok)-Number(a.ok)).map(tile).join('')}</div></div>`;
+      bindHeroMotion(); ov.querySelector('[data-x]').onclick = close;
       ov.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { items.filter(i => i.kind === cur && i.ok).forEach(i => seen.add(i.key)); cur = b.dataset.t; draw(); });
+      ov.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>achievementDetail(b.dataset.ach));
       ov.querySelectorAll('.gm-it').forEach(b => b.onclick = () => { if (b.classList.contains('lock')) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); return; }
-        Store.set('game.' + b.dataset.k, b.dataset.k === 'look' ? +b.dataset.v : b.dataset.v); seen.add(b.dataset.k === 'frame' ? 'fr:' + b.dataset.v : b.dataset.k + ':' + b.dataset.v); draw(); });
+        if(b.dataset.k==='badge'){if(!equipBadge(b.dataset.v)){ov.querySelector('.gm-collection-note').textContent='Сними один знак, чтобы освободить место';return;}}else Store.set('game.' + b.dataset.k, b.dataset.k === 'look' ? +b.dataset.v : b.dataset.v); seen.add(b.dataset.k === 'frame' ? 'fr:' + b.dataset.v : b.dataset.k + ':' + b.dataset.v); draw(); });
     };
     const close = () => { items.filter(i => i.kind === cur && i.ok).forEach(i => seen.add(i.key)); Store.set('game.seenItems', [...seen]); ov.classList.remove('in'); setTimeout(() => { ov.remove(); onDone && onDone(); }, 220); };
-    draw(); document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add('in'));
+    draw(); document.body.appendChild(ov); bindHeroMotion(); requestAnimationFrame(() => ov.classList.add('in'));
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
   }
   /* новое в шкафчике: вспышка с кнопкой «Надеть» */
   function checkItems(S) {
-    const keys = wrItems(S).filter(i => i.ok && !i.base && i.kind !== 'look').map(i => i.key);
+    const keys = wrItems(S).filter(i => i.ok && !i.base && (i.kind !== 'look' || i.id===5)).map(i => i.key);
     const got = S.c.gotItems;
     if (got == null) { Store.set('game.gotItems', keys); return; }
     const fresh = keys.filter(k => !got.includes(k)); if (!fresh.length) return;
@@ -589,12 +695,12 @@ window.Game = (function () {
   function itemFlash(S, k, manual) {
     { const it = wrItems(S).find(i => i.key === k), lk = lookOf(S); if (!it) return;
       overlay(`<div class="gm-rays gold"></div><div class="gm-flash-k">Новое в шкафчике</div>
-        ${wrPreview(S, lk, it.kind === 'bg' ? it.id : bgOf(S), it.kind === 'frame' ? it.id : frOf(S))}
-        <div class="gm-flash-l sm">${it.kind === 'bg' ? 'Фон' : 'Рамка'} «${esc(it.name)}»</div>
+        ${wrPreview(S, it.kind === 'look' ? it.id : lk, it.kind === 'bg' ? it.id : bgOf(S), it.kind === 'frame' ? it.id : frOf(S))}
+        <div class="gm-flash-l sm">${({bg:'Фон',frame:'Рамка',badge:'Знак',look:'Облик'})[it.kind]} «${esc(it.name)}»</div>
         <p>За «${esc(it.cond.t)}»</p>
-        <button class="gm-btn" data-wear>Надеть</button><button class="gm-btn ghost" data-close>Позже</button>`, { cls: 'gm-newit',
+        <button class="gm-btn" data-wear>${it.kind==='badge'?'В шкафчик':'Надеть'}</button><button class="gm-btn ghost" data-close>Позже</button>`, { cls: 'gm-newit',
         news: manual ? null : { kind: 'item', key: 'it' + k, item: k },
-        onOpen: (ov, close) => { ov.querySelector('[data-wear]').onclick = () => { Store.set('game.' + it.kind, it.id); close(); if (_mount && _mount.isConnected) render(_mount, true); }; } }); }
+        onOpen: (ov, close) => { ov.querySelector('[data-wear]').onclick = () => { if(it.kind==='badge'){close();wardrobe(()=>{if(_mount&&_mount.isConnected)render(_mount,true);},'badge');return;} Store.set('game.' + it.kind, it.id); close(); if (_mount && _mount.isConnected) render(_mount, true); }; } }); }
   }
   let _mount = null;
 
@@ -642,7 +748,7 @@ window.Game = (function () {
     /* идеальные недели: пн..вс, все 7 дней с делом */
     let pw = 0; const m0 = monday(new Date()), st = S.s.st, ks = Object.keys(st).sort();
     if (ks.length) for (let w = monday(fromYmd(ks[0])); w < m0; w.setDate(w.getDate() + 7)) { let ok = true; for (let i = 0; i < 7; i++) { const d = new Date(w); d.setDate(d.getDate() + i); if (st[ymd(d)] !== 'ok') { ok = false; break; } } if (ok) pw++; }
-    return [
+    return normalizedAchievements(S,[
       { ico: 'ti-barbell', c: SK.str.color, id: 'tr1', t: 'Первая тренировка', v: tr, n: 1 },
       { ico: 'ti-barbell', c: SK.str.color, id: 'tr50', t: '50 тренировок', v: tr, n: 50 },
       { ico: 'ti-trophy', c: SK.str.color, id: 'tr100', t: '100 тренировок', v: tr, n: 100 },
@@ -658,10 +764,10 @@ window.Game = (function () {
       { ico: 'ti-checks', c: SK.dis.color, id: 'hab30', t: '30 дней привычек', v: cnt('habday'), n: 30 },
       { ico: 'ti-wallet', c: SK.cap.color, id: 'money30', t: '30 дней учёта денег', v: days('spend', 'pay'), n: 30 },
       { ico: 'ti-pig-money', c: SK.cap.color, id: 'piggy10', t: '10 раз в копилку', v: cnt('piggy'), n: 10 },
-      { ico: 'ti-target-arrow', c: SK.foc.color, id: 'task100', t: '100 задач', v: cnt('task'), n: 100 },
+      { ico: 'ti-target-arrow', c: SK.foc.color, id: 'task100', t: '100 задач', v: achievementTasks(S).size, n: 100 },
       { ico: 'ti-flag-3', c: SK.wil.color, id: 'goal1', t: 'Цель достигнута', v: cnt('goal'), n: 1 },
       { ico: 'ti-swords', c: SK.wil.color, id: 'qall10', t: '10 дней все квесты', v: cnt('qall'), n: 10 },
-    ].map(a => Object.assign(a, { ok: a.v >= a.n }));
+    ].concat(extraAchievements(S,{tr,cnt,days,pw})));
   }
 
   /* радар навыков (SVG) */
@@ -682,7 +788,7 @@ window.Game = (function () {
   function render(mount, quiet) {
     if (!avail()) { Router.go('/home'); return; }
     _mount = mount;
-    let S = state(); const c = S.c, tq = todayQuests(), now = new Date(), today = ymd(now);
+    loadHeroMedia(); let S = state(); captureAchievements(S); const c = S.c, tq = todayQuests(), now = new Date(), today = ymd(now);
     /* вернуть серию: вчера пропуск без щита, серия была от 3 дней, сегодня закрыты все квесты */
     const yd = new Date(now); yd.setDate(yd.getDate() - 1); const yk = ymd(yd);
     let repair = null, repairedNow = false;
@@ -710,17 +816,13 @@ window.Game = (function () {
     const weekHtml = wk.map(d => { const k = ymd(d), t = dayXp[k] || 0, sk = daySk[k] || {};
       const seg = SKO.filter(x => sk[x]).map(x => `<i style="height:${(sk[x] / wMax * 100).toFixed(1)}%;background:${SK[x].color}"></i>`).join('');
       return `<div class="gm-wd${k === today ? ' td' : ''}"><b>${t ? num(t) : ''}</b><div class="gm-wb">${seg}</div><span>${DOW[d.getDay()]}</span></div>`; }).join('');
-    /* навыки */
-    const lv = SKO.map(k => skillLvl(S.sk[k] || 0)), weak = SKO[lv.indexOf(Math.min(...lv))];
-    const skHtml = SKO.map((k, i) => { const x = S.sk[k] || 0, l = lv[i], toN = 40 * l * l - x;
-      return `<button class="gm-sk" data-go="${SK[k].route}"><span class="gm-ski" style="--c:${SK[k].color}"><i class="ti ${SK[k].ico}"></i></span><span class="gm-skm"><span class="gm-skt"><b>${SK[k].name}</b>${k === weak && Math.max(...lv) > l ? '<u>подтянуть</u>' : ''}<em>ур. ${l}</em></span><span class="gm-skb"><i style="width:${Math.round(skillInto(x) * 100)}%;background:${SK[k].color}"></i></span><small>${SK[k].src} · до ${l + 1} ур. ${num(toN)} XP</small></span></button>`; }).join('');
     /* путь обликов */
     const pathHtml = TITLES.map((t, i) => { const st = i < S.stage ? 'past' : i === S.stage ? 'cur' : 'lock';
       return `<div class="gm-pst ${st}${i === lookOf(S) ? ' worn' : ''}" style="--gc:${GLOW[i]}"${st === 'lock' ? '' : ` data-look="${i}"`}>${heroImg(c.sex, i, 'tn')}${st === 'lock' ? '<span class="gm-lk"><i class="ti ti-lock"></i></span>' : ''}<b>${t[1]}</b><small>${st === 'lock' ? 'с ' + t[0] + ' ур.' : st === 'cur' ? 'сейчас' : 'пройден'}</small></div>`; }).join('');
     const pathPct = (() => { const a = TITLES[S.stage][0], b = S.next ? S.next[0] : a; const f = S.next ? Math.min(1, (S.L.lvl - a + S.L.into / S.L.need) / (b - a)) : 0; return ((S.stage + f) / 4 * 100).toFixed(1); })();
     /* достижения */
-    const ach = achievements(S), achN = ach.filter(a => a.ok).length;
-    const achHtml = ach.map(a => `<div class="gm-a${a.ok ? ' ok' : ''}" style="--c:${a.c}"><span class="gm-am"><i class="ti ${a.ico}"></i></span><b>${a.t}</b>${a.ok ? '<small>получено</small>' : `<span class="gm-ap"><i style="width:${Math.round(Math.min(1, a.v / a.n) * 100)}%"></i></span><small>${num(Math.min(a.v, a.n))} из ${num(a.n)}</small>`}</div>`).join('');
+    const ach = achievements(S).sort((a,b)=>Number(b.ok)-Number(a.ok)||Math.min(1,b.v/b.n)-Math.min(1,a.v/a.n)), achN = ach.filter(a => a.ok).length;
+    const achHtml = ach.map(a => `<button data-ach="${a.id}" class="gm-a${a.ok ? ' ok' : ''}" style="--c:${a.c}">${badgeHtml(a)}<b>${esc(a.t)}</b>${a.ok ? '<small>получено</small>' : `<span class="gm-ap"><i style="width:${Math.round(Math.min(1, a.v / a.n) * 100)}%"></i></span><small>${num(Math.min(a.v, a.n))} из ${num(a.n)}</small>`}</button>`).join('');
     /* квесты */
     const qDone = tq.picked ? tq.list.filter(x => x.done).length : 0, qAll = tq.picked && tq.list.length && qDone === tq.list.length;
     const ring = (d, n) => { const f = n ? d / n : 0, C = 2 * Math.PI * 15; return `<svg class="gm-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="b"/><circle cx="18" cy="18" r="15" class="f" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}"/><text x="18" y="22" text-anchor="middle">${d}/${n}</text></svg>`; };
@@ -754,9 +856,9 @@ window.Game = (function () {
     const lk = lookOf(S), bg = bgOf(S), fr = frOf(S), wi = wrItems(S), wNew = wi.filter(i => i.ok && !i.base && !c.seenItems.includes(i.key)).length;
     const wrHtml = `<button class="gm-card gm-wr" id="gm-wr"><div class="gm-h"><b>Шкафчик${wNew ? ` <u class="gm-newn">${wNew} ${pl(wNew, 'новое', 'новых', 'новых')}</u>` : ''}</b><span>${wi.filter(i => i.ok).length} из ${wi.length}</span></div>
       <div class="gm-wr-row"><span class="gm-wr-av">${frameWrap(heroImg(c.sex, lk, 'sm'), fr)}</span>
-        <span class="gm-wr-c"><small>Облик</small><b>${TITLES[lk][1]}</b></span><span class="gm-wr-c"><small>Фон</small><b>${BGS.find(x => x.id === bg).n}</b></span><span class="gm-wr-c"><small>Рамка</small><b>${FRS.find(x => x.id === fr).n}</b></span><i class="ti ti-chevron-right"></i></div></button>`;
-    mount.innerHTML = `<div class="gm-screen" style="--gc:${GLOW[lk]}">
-      <div class="gm-top gm-bgv" data-bg="${bg}">${fxHtml(bg)}
+        <span class="gm-wr-c"><small>Облик</small><b>${lookName(lk)}</b></span><span class="gm-wr-c"><small>Фон</small><b>${BGS.find(x => x.id === bg).n}</b></span><span class="gm-wr-c"><small>Рамка</small><b>${FRS.find(x => x.id === fr).n}</b></span><i class="ti ti-chevron-right"></i></div></button>`;
+    mount.innerHTML = `<div class="gm-screen${quiet?' gm-quiet':''}" style="--gc:${GLOW[lk]}">
+      <div class="gm-top gm-bgv" data-bg="${bg}" data-mood="${N.m}">${fxHtml(bg)}
         <div class="gm-nav"><button class="gm-back" id="gm-back" aria-label="Назад"><i class="ti ti-arrow-left"></i></button><b>Персонаж</b><span style="display:flex;gap:8px"><button class="gm-back" id="gm-help" aria-label="Подсказки"><i class="ti ti-help"></i></button><button class="gm-back" id="gm-set" aria-label="Настройки"><i class="ti ti-settings"></i></button></span></div>
         <div class="gm-hero-row">
           <div class="gm-stage" data-mood="${N.m}" style="${growVars(S.L.lvl, ak)};${moodVars(N)}">${moodFx(N)}<div class="gm-say" id="gm-say"></div>${propsHtml(N, old0 ? propsOf(N).filter(k => !toArr(old0.p).includes(k)) : [])}<div class="gm-sparks">${Array.from({ length: Math.min(20, 3 + Math.round(13 * grow(S.L.lvl).g) + (N.m === 4 ? 4 : 0) - (N.m < 2 ? 3 : 0)) }, (_, i) => `<i style="--l:${(8 + (i * 53) % 84)}%;--d:${(i * 0.37) % 5}s;--t:${4 + (i % 4)}s;--s:${3 + (i % 3)}px"></i>`).join('')}</div>${c.mode === 'min' ? bigRing(S, lk, pct) : heroImg(c.sex, lk, 'xl') + `${podHtml(fr)}`}</div>
@@ -771,29 +873,29 @@ window.Game = (function () {
             </div>
           </div>
         </div>
+        ${showcaseHtml(S)}
       </div>
       <div class="gm-body">
         <div class="gm-col">
           ${newsHtml}${repairHtml}${needsHtml(S, N)}${qHtml}
-          <div class="gm-card"><div class="gm-h"><b>Навыки</b><span>лучший: ${SK[SKO[lv.indexOf(Math.max(...lv))]].name}</span></div>
-            <div class="gm-skw">${radar(lv)}<div class="gm-skl">${skHtml}</div></div></div>
           ${shopHtml}
         </div>
         <div class="gm-col">
           <div class="gm-card"><div class="gm-h"><b>Путь</b><span>${S.stage + 1} из 5</span></div>
             <div class="gm-path"><div class="gm-pline"><i style="width:${pathPct}%"></i></div>${pathHtml}</div></div>
           ${wrHtml}
-          <div class="gm-card"><div class="gm-h"><b>Неделя${perfectWk ? ' <u class="gm-pw"><i class="ti ti-crown"></i>идеальная</u>' : ''}</b><span>+${num(wSum)} XP${pSum ? ` · <em class="${wDiff >= 0 ? 'up' : 'dn'}">${wDiff >= 0 ? '+' : ''}${wDiff}%</em>` : ''}</span></div>
-            <div class="gm-week">${weekHtml}</div></div>
-          <div class="gm-card"><div class="gm-h"><b>Серия · ${MON[m]}</b><span>${okN} ${pl(okN, 'день', 'дня', 'дней')} · рекорд ${S.s.best}</span></div>
+          <div class="gm-card gm-rhythm"><div class="gm-h"><b>Ритм${perfectWk ? ' <u class="gm-pw"><i class="ti ti-crown"></i>идеальная</u>' : ''}</b><span>+${num(wSum)} XP${pSum ? ` · <em class="${wDiff >= 0 ? 'up' : 'dn'}">${wDiff >= 0 ? '+' : ''}${wDiff}%</em>` : ''}</span></div>
+            <div class="gm-week">${weekHtml}</div><details class="gm-rhythm-month"><summary>Серия · ${MON[m]}<i class="ti ti-chevron-down"></i></summary><div class="gm-h"><b>${S.s.cur} ${pl(S.s.cur,'день','дня','дней')} подряд</b><span>${okN} ${pl(okN, 'день', 'дня', 'дней')} · рекорд ${S.s.best}</span></div>
             <div class="gm-cal">${cal}</div>
-            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span>${Object.values(S.s.st).includes('rep') ? '<span><i class="rep"></i>вернул</span>' : ''}</div></div>
+            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span>${Object.values(S.s.st).includes('rep') ? '<span><i class="rep"></i>вернул</span>' : ''}</div></details></div>
           ${S.todayEv.length ? `<div class="gm-card"><div class="gm-h"><b>Сегодня</b><span>+${num(S.todayXp)} XP</span></div>${S.todayEv.slice(-8).reverse().map(e => `<div class="gm-ev" style="--c:${SK[e.sk].color}"><span class="gm-evi"><i class="ti ${SK[e.sk].ico}"></i></span><span>${esc(e.t)}</span><b>+${e.xp}</b></div>`).join('')}</div>` : ''}
         </div>
         <div class="gm-card gm-wide"><div class="gm-h"><b>Достижения</b><span>${achN} из ${ach.length}</span></div>
-          <div class="gm-ach">${achHtml}</div></div>
+          <div class="gm-ach-filter"><button data-ach-view="all" class="on">Все</button><button data-ach-view="ok">Получено</button><button data-ach-view="next">Впереди</button></div><div class="gm-ach">${achHtml}</div></div>
       </div></div>`;
     const $ = (q) => mount.querySelector(q);
+    mount.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>achievementDetail(b.dataset.ach));
+    mount.querySelectorAll('[data-ach-view]').forEach(b=>b.onclick=()=>{mount.querySelectorAll('[data-ach-view]').forEach(x=>x.classList.toggle('on',x===b));mount.querySelectorAll('.gm-ach .gm-a').forEach(x=>{x.hidden=b.dataset.achView==='ok'?!x.classList.contains('ok'):b.dataset.achView==='next'?x.classList.contains('ok'):false;});});
     $('#gm-back').onclick = () => Router.go('/home');
     $('#gm-set').onclick = () => settings(() => render(mount));
     $('#gm-help').onclick = () => { if (window.Tour && Tour.play) Tour.play(TIPS.filter(x => document.querySelector(x.sel)), 'screen:/hero'); };
@@ -801,7 +903,7 @@ window.Game = (function () {
     const mc = mount.querySelector('#gm-moodc'); if (mc) mc.onclick = () => { const t = mount.querySelector('.gm-needs'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
     mount.querySelectorAll('.gm-q.pick').forEach(b => b.onclick = () => { const onN = mount.querySelectorAll('.gm-q.pick.on').length; if (!b.classList.contains('on') && onN >= c.qn) return; b.classList.toggle('on'); });
     const tk = $('#gm-take'); if (tk) tk.onclick = () => { const ids = [...mount.querySelectorAll('.gm-q.pick.on')].map(b => b.dataset.id); if (!ids.length) return; pick(ids); render(mount); };
-    $('#gm-wr').onclick = () => wardrobe(() => render(mount));
+    $('#gm-wr').onclick = () => wardrobe(() => render(mount,true));
     mount.querySelectorAll('[data-look]').forEach(b => b.onclick = () => { Store.set('game.look', +b.dataset.look); render(mount); });
     const ch = $('#gm-chest'); if (ch) ch.onclick = () => openChest(() => render(mount));
     const ra = $('#gm-radd'); if (ra) ra.onclick = () => rewardModal(() => render(mount));
@@ -818,6 +920,7 @@ window.Game = (function () {
     mount.querySelectorAll('[data-news]').forEach(b => b.onclick = () => { const n = cfg().news.find(x => x.key === b.dataset.news); if (n) openNews(n); });
     const ni = $('#gm-nitems'); if (ni) ni.onclick = () => { Store.set('game.news', cfg().news.filter(x => x.kind !== 'item')); wardrobe(() => render(mount, true)); };
     const nc = $('#gm-nclr'); if (nc) nc.onclick = () => { Store.set('game.news', []); render(mount, true); };
+    bindHeroMotion(); if (window.Theme && Theme.mountControls) Theme.mountControls(mount);
     if (!quiet) checkLevelUp();
   }
   function bigRing(S, lk, pct) {

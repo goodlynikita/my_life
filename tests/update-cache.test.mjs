@@ -9,6 +9,8 @@ import { buildPrecache } from '../server/build-precache.mjs';
 
 const source = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const scope = 'https://you.test/app/';
+const CURRENT = /const CACHE = '([^']+)'/.exec(source)[1];
+const PREVIOUS = CURRENT.replace(/\d+$/, value => String(+value - 1));
 const sum = body => createHash('sha256').update(body).digest('hex');
 const absolute = value => new URL(typeof value === 'string' ? value : value.url, scope).href;
 const cdn = ['https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js', 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js', 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js', 'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.48.0/dist/tabler-icons.min.css'];
@@ -25,7 +27,7 @@ function install({ old = {}, current = {}, network = {}, expected = {}, reject =
       async add(request) { await this.put(request, await context.fetch(request)); },
     };
   }
-  for (const [name, data] of [['nik-system-v312', old], ['nik-system-v313', current], ['nik-cdn-v1', Object.fromEntries(cdn.map(path => [path, 'cdn']))]]) {
+  for (const [name, data] of [[PREVIOUS, old], [CURRENT, current], ['nik-cdn-v1', Object.fromEntries(cdn.map(path => [path, 'cdn']))]]) {
     cache(name); for (const [path, body] of Object.entries(data)) db.get(name).set(absolute(path), new Response(body));
   }
   const paths = Object.keys(expected);
@@ -51,8 +53,8 @@ test('an update reuses every unchanged file, including images and the cached SDK
   const files = { './index.html': '<html>app</html>', './app.js': 'boot()', './picture.webp': new Uint8Array(512 * 1024).fill(73) };
   const sw = install({ old: files, expected: files });
   await sw.run(); assert.equal(sw.activated, true); assert.equal(sw.claimed, false); assert.deepEqual(sw.requests, []);
-  assert.equal(sw.db.get('nik-system-v313').size, 3); assert.equal(sw.db.has('nik-system-v312'), true);
-  await sw.activate(); assert.equal(sw.claimed, true); assert.equal(sw.db.has('nik-system-v312'), false); assert.equal(sw.db.has('nik-cdn-v1'), true);
+  assert.equal(sw.db.get(CURRENT).size, 3); assert.equal(sw.db.has(PREVIOUS), true);
+  await sw.activate(); assert.equal(sw.claimed, true); assert.equal(sw.db.has(PREVIOUS), false); assert.equal(sw.db.has('nik-cdn-v1'), true);
 });
 
 test('only changed or missing files are fetched, so current HTML and scripts stay in one complete cache', async () => {
@@ -60,7 +62,7 @@ test('only changed or missing files are fetched, so current HTML and scripts sta
   const network = Object.fromEntries(Object.entries(expected).map(([key, value]) => [absolute(key), value]));
   const sw = install({ old: { './index.html': 'old html', './app.js': 'old code', './picture.webp': 'same image' }, network, expected });
   await sw.run(); assert.equal(sw.activated, true); assert.equal(sw.requests.length, 3); assert.equal(sw.requests.includes(absolute('./picture.webp')), false);
-  for (const [path, body] of Object.entries(expected)) assert.equal(await sw.db.get('nik-system-v313').get(absolute(path)).text(), body);
+  for (const [path, body] of Object.entries(expected)) assert.equal(await sw.db.get(CURRENT).get(absolute(path)).text(), body);
 });
 
 test('a wrong cached body is replaced even when it has the same URL', async () => {
@@ -71,12 +73,12 @@ test('a wrong cached body is replaced even when it has the same URL', async () =
 test('a failed update leaves the installed version intact and never activates an incomplete cache', async () => {
   const sw = install({ old: { './index.html': 'installed' }, expected: { './index.html': 'new html', './app.js': 'new code' }, reject: ['./index.html', './app.js'] });
   await assert.rejects(sw.run(), /offline/); assert.equal(sw.activated, false); assert.equal(sw.claimed, false);
-  assert.equal(await sw.db.get('nik-system-v312').get(absolute('./index.html')).text(), 'installed');
+  assert.equal(await sw.db.get(PREVIOUS).get(absolute('./index.html')).text(), 'installed');
 });
 
 test('a response from a different deployment is rejected until all new files match their build hashes', async () => {
   const sw = install({ old: { './app.js': 'installed' }, expected: { './app.js': 'expected build' }, network: { [absolute('./app.js')]: 'other build' } });
-  await assert.rejects(sw.run(), /Incomplete app update/); assert.equal(sw.activated, false); assert.equal(sw.db.get('nik-system-v313').size, 0);
+  await assert.rejects(sw.run(), /Incomplete app update/); assert.equal(sw.activated, false); assert.equal(sw.db.get(CURRENT).size, 0);
 });
 
 test('a retry reuses verified files from its partial cache and downloads only the remainder', async () => {

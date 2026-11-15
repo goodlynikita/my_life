@@ -1,0 +1,26 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const source=readFileSync(new URL('../js/winter-arc.js',import.meta.url),'utf8');
+const start=source.indexOf('  const ICE_DATA = '),end=source.indexOf('  const iceMemory',start);
+const context=vm.createContext({Date,Map});
+vm.runInContext(source.slice(start,end)+';globalThis.IceModel=ICE_DATA;',context);
+const IceModel={...context.IceModel,habits:(...args)=>JSON.parse(JSON.stringify(context.IceModel.habits(...args)))};
+const now=new Date(2026,10,15,12), stamp='2026-11';
+const store=(current=106000,previous=78000)=>({finance:{years:{2026:{11:{entries:[{amount:current}]}},2025:{11:{entries:[{amount:previous}]}}}}});
+for(const count of [0,1,3,7,24,65])test('each of '+count+' attached habits gets exactly one sphere',()=>{const data={habits:{list:Array.from({length:count},(_,index)=>({id:'h'+index,name:'Habit'}))}};assert.equal(IceModel.habits(data,now).length,count);});
+test('sphere light follows habit ID, date and exact done mark, not array position',()=>{
+ const data={habits:{list:[{id:'b'},{id:'a'},{id:'c'}],months:{[stamp]:{a:{15:'done'},b:{14:'done'},c:{15:'missed'}}}}};
+ assert.deepEqual(IceModel.habits(data,now).map(item=>item.done),[false,true,false]);assert.equal(IceModel.habits(data,new Date(2026,11,15)).some(item=>item.done),false);
+});
+test('sparse Firebase habit objects work without inventing or losing spheres',()=>{const data={habits:{list:{0:{id:'a'},2:null,5:{id:'b'}},months:{[stamp]:{b:{15:'done'}}}}};assert.deepEqual(IceModel.habits(data,now).map(item=>[item.id,item.done]),[['a',false],['b',true]]);});
+test('finance percentages match the existing app calculation',()=>{assert.equal(IceModel.finance(store(),now).percent,36);assert.equal(IceModel.finance(store(44500,247222),now).percent,-82);assert.equal(IceModel.finance(store(100,100),now).percent,0);});
+for(const previous of [undefined,0,-10])test('no fabricated year comparison when previous income is '+previous,()=>{const data=store(100,previous);if(previous===undefined)delete data.finance.years[2025];assert.equal(IceModel.finance(data,now).percent,null);});
+test('all bar heights use the same scale across both years',()=>{const data=store(50,100);const model=IceModel.finance(data,now);assert.equal(model.bars.at(-1).currentLevel,.5);assert.equal(model.bars.at(-1).previousLevel,1);assert.equal(model.bars[0].currentLevel,0);});
+test('month and year boundaries compare the same six months one year earlier',()=>{const model=IceModel.finance({},new Date(2026,0,15));assert.equal(model.bars[0].year,2025);assert.equal(model.bars[0].month,7);assert.equal(model.bars.at(-1).year,2026);assert.equal(model.bars.at(-1).month,0);assert.equal(model.label+' '+model.previousYear,'Янв 2025');});
+test('sparse income entries and numeric strings match finance totals; bad amounts are ignored',()=>{const data={finance:{years:{2026:{11:{entries:{0:{amount:'50'},3:{amount:15},4:{amount:'bad'},5:null}}}}}};assert.equal(IceModel.finance(data,now).current,65);});
+test('completed overdue tasks never make the check red',()=>{const data={tasks:{list:[{id:'a',title:'A',date:'2026-11-01',done:true},{id:'b',title:'B',date:'2026-11-15'}]}};assert.equal(IceModel.tasks(data,now).state,'current');});
+test('overdue dates and missed times turn the check red; more overdue increases severity',()=>{const list=Array.from({length:4},(_,index)=>({id:'t'+index,title:'Task',date:'2026-11-14'}));assert.equal(IceModel.tasks({tasks:{list}},now).state,'overdue');assert.equal(IceModel.tasks({tasks:{list}},now).overdue,4);assert.equal(IceModel.tasks({tasks:{list:list.slice(0,1)}},now).overdue,1);assert.equal(IceModel.tasks({tasks:{list:[{id:'a',title:'A',date:'2026-11-15',time:'11:00'}]}},now).overdue,1);});
+test('empty or fully completed task lists turn green; future and inbox tasks remain neutral',()=>{assert.equal(IceModel.tasks({},now).state,'clear');assert.equal(IceModel.tasks({tasks:{list:[{id:'a',title:'A',done:true}]}},now).state,'clear');for(const date of ['2026-11-16',null])assert.equal(IceModel.tasks({tasks:{list:[{id:'a',title:'A',date}]}},now).state,'current');});
+test('reading icon state never writes to the supplied application data',()=>{const data={...store(),habits:{list:[{id:'a'}],months:{}},tasks:{list:[{id:'a',title:'A'}]}};const before=JSON.stringify(data);IceModel.habits(data,now);IceModel.finance(data,now);IceModel.tasks(data,now);assert.equal(JSON.stringify(data),before);});

@@ -174,36 +174,91 @@ window.WinterArc = (function () {
     }
   }
 
-  /* ── Оформление главной в Winter Arc: номера 01-05, стрелка, иллюстрации и живые данные на плитках, снег, подпись внизу ── */
+  /* Состояния иконок только читают данные приложения. */
+  const ICE_DATA = (() => {
+    const values = raw => Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? Object.values(raw) : [];
+    const iso = date => date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+    function habits(store, now) {
+      const section = store.habits || {}, marks = (section.months || {})[iso(now).slice(0, 7)] || {};
+      return values(section.list).filter(item => item && item.id != null).map(item => ({ id: String(item.id), done: (marks[item.id] || {})[now.getDate()] === 'done' }));
+    }
+    function income(store, year, month) {
+      const bucket = ((((store.finance || {}).years || {})[year] || {})[String(month + 1).padStart(2, '0')] || {});
+      return values(bucket.entries).reduce((total, entry) => total + (entry && Number.isFinite(+entry.amount) ? +entry.amount : 0), 0);
+    }
+    function finance(store, now) {
+      const bars = Array.from({ length: 6 }, (_, index) => {
+        const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1), year = date.getFullYear(), month = date.getMonth();
+        return { year, month, label: months[month], current: income(store, year, month), previous: income(store, year - 1, month) };
+      });
+      const max = Math.max(0, ...bars.flatMap(bar => [bar.current, bar.previous])), current = bars[5].current, previous = bars[5].previous;
+      const rounded = previous > 0 ? Math.round((current - previous) / previous * 100) : null;
+      return { bars: bars.map(bar => ({ ...bar, currentLevel: max ? Math.max(0, bar.current) / max : 0, previousLevel: max ? Math.max(0, bar.previous) / max : 0 })), current, previous,
+        percent: Object.is(rounded, -0) ? 0 : rounded, label: months[now.getMonth()], year: now.getFullYear(), previousYear: now.getFullYear() - 1 };
+    }
+    function validDate(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
+      const [year, month, day] = value.split('-').map(Number); return iso(new Date(year, month - 1, day)) === value;
+    }
+    function tasks(store, now) {
+      const all = values((store.tasks || {}).list).filter(item => item && item.id && item.title), open = all.filter(item => !item.done), day = iso(now);
+      const time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      const overdue = open.filter(item => validDate(item.date) && (item.date < day || item.date === day && /^\d{2}:\d{2}$/.test(item.time || '') && item.time < time)).length;
+      return { open: open.length, overdue, state: overdue ? 'overdue' : open.length ? 'current' : 'clear', hue: overdue ? 178 : open.length ? 0 : -43,
+        label: overdue ? 'Просрочено: ' + overdue : open.length ? 'Открыто: ' + open.length : 'Все задачи закрыты' };
+    }
+    return { habits, finance, tasks, iso };
+  })();
+  const iceMemory = { day: '', habits: new Map(), bars: new Map() };
+  function iceDay() {
+    const day = today(); if (iceMemory.day === day) return;
+    iceMemory.day = day; iceMemory.habits.clear(); iceMemory.bars.clear();
+  }
+  const iceStatic = key => '<span class="wa-ice-static wa-ice-' + key + '"><span class="wa-ice-base"></span><span class="wa-ice-gleam"></span></span>';
+  function taskArt(st) {
+    const state = ICE_DATA.tasks(st, new Date());
+    return '<span class="wa-ice-static wa-ice-tasks" data-task-state="' + state.state + '" data-overdue="' + state.overdue + '" style="--task-hue:' + state.hue + 'deg" aria-label="' + state.label + '"><span class="wa-ice-base"></span><span class="wa-ice-task-tint"></span><span class="wa-ice-gleam"></span></span>';
+  }
   const ART = {
-    /* Готовые 3D-иллюстрации, без расчёта сцены в браузере. */
-    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/><path class="wa-ecg-flow" pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg><span class="wa-prop wa-prop-training" aria-hidden="true"></span>',
-    'home2-tile-goals': () => '<span class="wa-prop wa-prop-goals" aria-hidden="true"></span>',
-    'home2-tile-habits': (st) => { const now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-      const list = ((st.habits || {}).list || []).filter(Boolean), marks = ((st.habits || {}).months || {})[ym] || {};
-      const dots = list.slice(0, 12).map(h => (marks[h.id] || {})[now.getDate()] === 'done');
-      /* точки по кругу, как в загрузке: сделанные светятся */
-      const n = dots.length; if (!n) return '';
-      return '<div class="wa-ring" style="--n:' + n + '">' + dots.map((d, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2;
-        return '<i class="' + (d ? 'on' : '') + '" style="left:' + (50 + 42 * Math.cos(a)).toFixed(2) + '%;top:' + (50 + 42 * Math.sin(a)).toFixed(2) + '%;--i:' + i + '"></i>'; }).join('') + '</div>'; },
-    /* Линия повторяет реальные доходы за шесть месяцев. */
-    'home2-tile-finance': () => {
-      const now = new Date(), values = [], labels = [], names = ['Я','Ф','М','А','М','И','И','А','С','О','Н','Д'];
-      for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); let x = 0;
-        try { x = Number(finSum(finEntries(d.getFullYear(), d.getMonth()))) || 0; } catch (e) {}
-        values.push(Number.isFinite(x) ? x : 0); labels.push(names[d.getMonth()]); }
-      const max = Math.max(...values), min = Math.min(0, ...values); if (!(max > 0)) return '';
-      const pts = values.map((x, i) => [18 + i * 56.8, 94 - (x - min) / (max - min || 1) * 68]);
-      let path = 'M' + pts[0].join(' ');
-      for (let i = 1; i < pts.length; i++) { const mid = (pts[i - 1][0] + pts[i][0]) / 2; path += ' C' + mid + ' ' + pts[i - 1][1] + ' ' + mid + ' ' + pts[i][1] + ' ' + pts[i].join(' '); }
-      return '<span class="wa-fin-line"><svg viewBox="0 0 320 112" aria-hidden="true"><defs><linearGradient id="wa-income-fill" x2="0" y2="1"><stop stop-color="#A582ED" stop-opacity=".18"/><stop offset="1" stop-color="#A582ED" stop-opacity="0"/></linearGradient></defs>'
-        + '<path class="wa-fin-area" d="' + path + ' L302 112 H18 Z" fill="url(#wa-income-fill)"/>'
-        + '<path class="wa-fin-base" d="' + path + '"/><path class="wa-fin-flow" pathLength="1000" d="' + path + '"/>'
-        + pts.map(([x,y]) => '<circle class="wa-fin-point" cx="' + x + '" cy="' + y + '" r="2"/>').join('')
-        + '</svg><span class="wa-fin-months">' + labels.map(l => '<i>' + l + '</i>').join('') + '</span></span>';
+    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/><path class="wa-ecg-flow" pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg>' + iceStatic('training'),
+    'home2-tile-goals': () => iceStatic('goals'),
+    'home2-tile-habits': st => {
+      const list = ICE_DATA.habits(st, new Date());
+      return '<span class="wa-ice-habits" data-count="' + list.length + '">' + list.map(item => {
+        const previous = iceMemory.habits.get(item.id) || 0, target = item.done ? 1 : 0; iceMemory.habits.set(item.id, target);
+        return '<span class="wa-habit-sphere' + (item.done ? ' on' : '') + '" data-habit-id="' + esc(item.id) + '" style="--from-lit:' + previous + ';--to-lit:' + target + '"><span class="wa-sphere-dim"></span><span class="wa-sphere-lit"></span></span>';
+      }).join('') + '</span>';
     },
-    'home2-tile-tasks': () => '<span class="wa-prop wa-prop-tasks" aria-hidden="true"></span>',
+    'home2-tile-finance': st => {
+      const fin = ICE_DATA.finance(st, new Date());
+      const currentMax = Math.max(0, ...fin.bars.map(bar => bar.current));
+      const bars = fin.bars.map(bar => {
+        const paint = (layer, level) => { const key = bar.year + '-' + bar.month + ':' + layer, previous = iceMemory.bars.get(key) || 0; iceMemory.bars.set(key, level);
+          return '<span class="wa-fin-prism wa-fin-' + layer + '" style="--from-level:' + previous + ';--to-level:' + level + ';--bar-opacity:' + (level > 0 ? 1 : 0) + '"><span></span></span>'; };
+        return '<span class="wa-fin-slot" data-current="' + bar.current + '" data-previous="' + bar.previous + '">' + paint('current', currentMax ? Math.max(0, bar.current) / currentMax : 0) + '<span class="wa-fin-month">' + bar.label + '</span></span>';
+      }).join('');
+      const badge = fin.percent === null ? '' : '<span class="wa-fin-comparison' + (fin.percent < 0 ? ' negative' : fin.percent === 0 ? ' neutral' : '') + '">' + (fin.percent > 0 ? '+' : '') + fin.percent + '% ' + (fin.percent > 0 ? '▲' : fin.percent < 0 ? '▼' : '·') + ' к <span class="wa-fin-comp-month">' + fin.label + ' </span>' + fin.previousYear + '</span>';
+      return '<span class="wa-fin-ice"><span class="wa-fin-columns">' + bars + '</span>' + badge + '</span>';
+    },
+    'home2-tile-tasks': taskArt,
   };
+  function layoutIce(scr) {
+    scr.querySelectorAll('.wa-ice-habits').forEach(host => {
+      const count = +host.dataset.count; if (!count) return;
+      const width = host.clientWidth, height = host.clientHeight, ratio = 136 / 108;
+      let columns = count, unit = Math.min(width / count, height / ratio);
+      if (unit < 22) for (let cols = 1; cols <= count; cols++) { const size = Math.min(width / cols, height / (Math.ceil(count / cols) * ratio)); if (size > unit) { unit = size; columns = cols; } }
+      host.style.setProperty('--sphere-cols', columns); host.style.setProperty('--sphere-size', Math.max(1, Math.floor(unit)) + 'px');
+    });
+  }
+  function refreshIceClock(scr) {
+    if (iceMemory.day !== today() && typeof Router !== 'undefined') { window.__keepUi = true; try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; } return false; }
+    const host = scr.querySelector('.wa-ice-tasks');
+    if (host && typeof Store !== 'undefined') { const state = ICE_DATA.tasks(Store.get(), new Date()); host.dataset.taskState = state.state; host.dataset.overdue = state.overdue; host.style.setProperty('--task-hue', state.hue + 'deg'); host.setAttribute('aria-label', state.label); }
+    return true;
+  }
+
   function decorate(mount, st) {
     stopMotion();
     const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
@@ -211,6 +266,7 @@ window.WinterArc = (function () {
     scr.querySelectorAll('.wa-x').forEach(el => el.remove());
     if (!isOn()) return;
     st = st || (typeof Store !== 'undefined' ? Store.get() : {});
+    iceDay();
     let n = 0;
     scr.querySelectorAll('.home2-grid .home2-tile').forEach(t => {
       if (t.classList.contains('tile-hidden')) return; n++;
@@ -235,6 +291,7 @@ window.WinterArc = (function () {
     /* полоса челленджа: день N из 92 (1 ноября – 31 января) */
     const grid = scr.querySelector('.home2-grid'); if (grid) grid.insertAdjacentHTML('beforebegin', arcHtml());
     scr.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-rime" aria-hidden="true"></span>');
+    layoutIce(scr);
     snow(scr);
   }
   const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -296,6 +353,7 @@ window.WinterArc = (function () {
     cards.forEach(card => { if (visible) visible.observe(card); else card.classList.add('wa-inview'); });
     let W = 0, H = 0, P = [], raf = 0, last = 0, previous = 0, fps = 24, disposed = false, pageHidden = false;
     const size = () => {
+      layoutIce(scr);
       W = innerWidth; H = innerHeight;
       const mobile = W <= 600, low = navigator.connection?.saveData || navigator.deviceMemory <= 4 || navigator.hardwareConcurrency <= 4;
       const dpr = Math.min(devicePixelRatio || 1, mobile ? 1.25 : 1.5);
@@ -327,7 +385,7 @@ window.WinterArc = (function () {
       if (disposed) return;
       if (!scr.isConnected) { cleanup(); return; }
       if (raf) cancelAnimationFrame(raf); raf = 0;
-      const off = paused(); scr.classList.toggle('wa-motion-paused', off);
+      const off = paused(); if (!document.hidden && !pageHidden && isOn() && !refreshIceClock(scr)) return; scr.classList.toggle('wa-motion-paused', off);
       if (reduced?.matches) g.clearRect(0, 0, W, H);
       if (!off) { last = 0; previous = performance.now(); raf = requestAnimationFrame(frame); }
     };
@@ -341,10 +399,12 @@ window.WinterArc = (function () {
       removeEventListener('resize', resize); removeEventListener('pagehide', hide); removeEventListener('pageshow', show);
       document.removeEventListener('visibilitychange', reconcile);
       if (reduced?.removeEventListener) reduced.removeEventListener('change', reconcile); else reduced?.removeListener(reconcile);
+      clearInterval(iceClock);
       visible?.disconnect(); removed.disconnect(); c.remove();
       cards.forEach(card => card.classList.remove('wa-inview')); scr.classList.remove('wa-motion-paused');
       if (_motionCleanup === cleanup) _motionCleanup = null;
     }
+    const iceClock = setInterval(() => { if (!document.hidden && !pageHidden && isOn() && scr.isConnected) refreshIceClock(scr); }, 30000);
     _motionCleanup = cleanup;
     addEventListener('resize', resize, { passive: true }); addEventListener('pagehide', hide); addEventListener('pageshow', show);
     document.addEventListener('visibilitychange', reconcile);

@@ -554,3 +554,52 @@ html[data-design="wa"] :is(.fin-inv > .tochka-tabs,.fin-inv > .tochka-body) { fi
  html[data-design="wa"] .wa-snowcap { transform:none;opacity:.95; }
  html[data-design="wa"] .hero-slider.wa-crossfade .hero-slide { transition:none!important; }
 }
+
+/* v314: только готовые ледяные иллюстрации и состояния внутри .wa-art. */
+html[data-design="wa"] { --wa-ice-icons:url(../img/wa/ice-icons.webp); }
+html[data-design="wa"] .wa-ice-static { position:absolute;right:2px;bottom:-8px;width:196px;aspect-ratio:1;pointer-events:none;--ice-x:0%;--ice-y:0%; }
+html[data-design="wa"] .wa-ice-goals { --ice-y:100%;width:190px;right:0;bottom:-5px; }
+html[data-design="wa"] .wa-ice-tasks { --ice-x:50%;--ice-y:100%;width:212px;right:4px;bottom:-18px; }
+html[data-design="wa"] :is(.wa-ice-base,.wa-ice-gleam,.wa-ice-task-tint) { position:absolute;inset:0;background:var(--wa-ice-icons) var(--ice-x) var(--ice-y)/300% 200% no-repeat;pointer-events:none; }
+html[data-design="wa"] .wa-ice-gleam { filter:brightness(1.4);opacity:.35;-webkit-mask-image:linear-gradient(110deg,transparent 40%,#000 49%,transparent 57%);mask-image:linear-gradient(110deg,transparent 40%,#000 49%,transparent 57%);-webkit-mask-size:300% 100%;mask-size:300% 100%;animation:waIceGleam 10s ease-in-out infinite;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-ice-goals .wa-ice-gleam { animation-delay:-4s; }
+/* Цвет меняет копия исходной нарисованной галочки, её контур не перерисовывается. */
+html[data-design="wa"] .wa-ice-task-tint { filter:hue-rotate(var(--task-hue,0deg)) saturate(1.15);-webkit-mask-image:radial-gradient(ellipse 18% 16% at 36% 55%,#000 75%,transparent);mask-image:radial-gradient(ellipse 18% 16% at 36% 55%,#000 75%,transparent);transition:filter .7s ease; }
+html[data-design="wa"] .wa-ice-tasks .wa-ice-gleam { animation-delay:-2s; }
+html[data-design="wa"] .wa-ice-habits { position:absolute;right:8px;bottom:13px;width:46%;height:112px;display:grid;grid-template-columns:repeat(var(--sphere-cols,7),var(--sphere-size,28px));justify-content:center;align-content:center;pointer-events:none; }
+html[data-design="wa"] .wa-habit-sphere { position:relative;display:block;width:var(--sphere-size,28px);height:calc(var(--sphere-size,28px) * 1.259259); }
+html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit) { position:absolute;inset:0;background:var(--wa-ice-icons) 37.394958% 28.828829%/1422.222222% 752.941176% no-repeat;-webkit-mask-image:radial-gradient(ellipse 43% 33% at 48% 36%,#000 92%,transparent),radial-gradient(ellipse 35% 22% at 48% 75%,#000 45%,transparent);mask-image:radial-gradient(ellipse 43% 33% at 48% 36%,#000 92%,transparent),radial-gradient(ellipse 35% 22% at 48% 75%,#000 45%,transparent); }
+html[data-design="wa"] .wa-sphere-dim { opacity:.48;filter:brightness(.55) saturate(.7); }
+html[data-design="wa"] .wa-sphere-lit { opacity:var(--to-lit);animation:waSphereLight .7s ease-out both;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-fin-ice { position:absolute;right:13px;bottom:15px;width:45%;height:129px;pointer-events:none; }
+html[data-design="wa"] .wa-fin-columns { position:absolute;left:0;right:0;bottom:25px;top:0;display:flex;align-items:flex-end; }
+html[data-design="wa"] .wa-fin-slot { position:relative;flex:1;height:100%;min-width:0; }
+html[data-design="wa"] .wa-fin-prism { position:absolute;left:-1px;right:-1px;bottom:2px;height:100%;opacity:var(--bar-opacity);transform:scaleY(var(--to-level));transform-origin:50% 90%;animation:waIceBar 1.1s cubic-bezier(.2,.65,.25,1) both;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-fin-prism>span { position:absolute;inset:0;background:var(--wa-ice-icons) 97.585227% 14.772727%/1200% 320% no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 90%,transparent); }
+html[data-design="wa"] .wa-fin-prism>span::after { content:'';position:absolute;inset:0;background:inherit;filter:brightness(1.45);opacity:.5;-webkit-mask-image:linear-gradient(110deg,transparent 40%,#000 49%,transparent 57%);mask-image:linear-gradient(110deg,transparent 40%,#000 49%,transparent 57%);-webkit-mask-size:300% 100%;mask-size:300% 100%;animation:waIceGleam 8s ease-in-out infinite;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-fin-previous { left:4px;right:-6px;opacity:calc(var(--bar-opacity) * .2);filter:grayscale(.55); }
+html[data-design="wa"] .wa-fin-month { position:absolute;left:0;right:0;bottom:-4px;text-align:center;color:#8292a6;font:8px Montserrat,sans-serif; }
+html[data-design="wa"] .wa-fin-comparison { position:absolute;bottom:0;right:0;max-width:100%;white-space:nowrap;padding:3px 7px;border-radius:12px;background:#193236;color:#b0e3db;font:9px Montserrat,sans-serif; }
+html[data-design="wa"] .wa-fin-comparison.negative { background:#32212b;color:#ed9290; }
+html[data-design="wa"] .wa-fin-comparison.neutral { background:#1c2732;color:#aebccc; }
+@keyframes waIceGleam { 0%,18%{-webkit-mask-position:135% 0;mask-position:135% 0}65%,100%{-webkit-mask-position:-40% 0;mask-position:-40% 0} }
+@keyframes waSphereLight { from{opacity:var(--from-lit)}to{opacity:var(--to-lit)} }
+@keyframes waIceBar { from{transform:scaleY(var(--from-level))}to{transform:scaleY(var(--to-level))} }
+@media(max-width:600px){
+ html[data-design="wa"] .wa-ice-static { width:128px;right:-6px;bottom:0; }
+ html[data-design="wa"] .wa-ice-training { width:120px;right:-13px;bottom:-6px; }
+ html[data-design="wa"] .wa-ice-goals { width:128px;right:-9px;bottom:-3px; }
+ html[data-design="wa"] .wa-ice-tasks { width:145px;right:5px;bottom:-5px; }
+ html[data-design="wa"] .wa-ice-habits { right:4px;bottom:14px;width:56%;height:73px; }
+ html[data-design="wa"] .wa-fin-ice { right:6px;bottom:31px;width:62%;height:79px; }
+ html[data-design="wa"] .wa-fin-columns { bottom:21px; }
+ html[data-design="wa"] .wa-fin-month { font-size:6px; }
+ html[data-design="wa"] .wa-fin-comparison { font-size:8px;padding:2px 5px; }
+ html[data-design="wa"] .wa-fin-comp-month { display:none; }
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-design="wa"] .home2-tile :is(.wa-ice-gleam,.wa-sphere-lit,.wa-fin-prism) { animation:none!important; }
+ html[data-design="wa"] .wa-ice-gleam { display:none; }
+ html[data-design="wa"] .wa-ice-task-tint { transition:none; }
+ html[data-design="wa"] .wa-fin-prism>span::after { animation:none;display:none; }
+}

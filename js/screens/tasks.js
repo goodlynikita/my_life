@@ -45,7 +45,7 @@ window.Tasks = (function () {
   function todayCount() { const t = iso(today()); return list().filter(x => !x.done && x.date === t).length; }
 
   /* своя тема раздела, как светлые финансы */
-  const isLight = () => ((Store.get().tasks || {}).theme || 'light') === 'light';
+  const isLight = () => window.WinterArc && WinterArc.isOn() && window.Theme ? Theme.get() === 'light' : ((Store.get().tasks || {}).theme || 'light') === 'light';
   const themeCls = () => isLight() ? 'tkl' : 'tkd';
 
   function dayLabel(ds) {

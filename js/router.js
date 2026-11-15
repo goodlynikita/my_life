@@ -94,6 +94,7 @@ const Router = (() => {
     document.documentElement.setAttribute('data-sec', String(path || '').replace(/^\//, '').split('/')[0] || 'home');
     try {
       handler();
+      if (window.Theme && Theme.mountControls) Theme.mountControls(mount());
       pinTabs(); setTimeout(pinTabs, 300); setTimeout(pinTabs, 1200);
       let tplPend = null; try { tplPend = localStorage.getItem('you_tpl'); } catch (e) {}
       if (window.Tour && !keepScroll && !tplPend) Tour.onScreen(path); /* по ссылке на план сначала превью, без тура поверх */

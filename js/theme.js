@@ -42,7 +42,7 @@
   }
   function mountControls(root) {
     var winter = window.WinterArc && WinterArc.isOn();
-    var header = root.querySelector('.tr-header,.hab-header,.tochka-header,.goals-header,.tk-hdr');
+    var header = root.querySelector('.tr-header,.hab-header,.tochka-header,.goals-header,.tk-hdr,.gm-nav');
     if (header && !header.querySelector('.section-theme-toggle')) {
       var nativeButton = header.querySelector('#fin-theme,#tk-theme');
       if (!nativeButton || winter) {
@@ -53,7 +53,7 @@
         if (nativeButton) nativeButton.replaceWith(button);
         else {
           var last = header.lastElementChild;
-          if (last && last.tagName === 'DIV') last.prepend(button);
+          if (last && (last.tagName === 'DIV' || last.tagName === 'SPAN')) last.prepend(button);
           else {
             var actions = document.createElement('div'); actions.className = 'section-header-actions';
             header.appendChild(actions); actions.appendChild(button);

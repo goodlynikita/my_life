@@ -210,19 +210,20 @@ window.WinterArc = (function () {
     }
     return { habits, finance, tasks, iso };
   })();
-  const iceMemory = { day: '', habits: new Map(), bars: new Map() };
+  const iceMemory = { day: '', habits: new Map() };
   function iceDay() {
     const day = today(); if (iceMemory.day === day) return;
-    iceMemory.day = day; iceMemory.habits.clear(); iceMemory.bars.clear();
+    iceMemory.day = day; iceMemory.habits.clear();
   }
-  const iceStatic = key => '<span class="wa-ice-static wa-ice-' + key + '"><span class="wa-ice-base"></span><span class="wa-ice-gleam"></span></span>';
+  const iceLayers = '<span class="wa-ice-base"></span><span class="wa-ice-reflection"></span>';
+  const iceStatic = (key, extra = '') => '<span class="wa-ice-static wa-ice-' + key + '">' + iceLayers + extra + '</span>';
   function taskArt(st) {
     const state = ICE_DATA.tasks(st, new Date());
-    return '<span class="wa-ice-static wa-ice-tasks" data-task-state="' + state.state + '" data-overdue="' + state.overdue + '" style="--task-hue:' + state.hue + 'deg" aria-label="' + state.label + '"><span class="wa-ice-base"></span><span class="wa-ice-task-tint"></span><span class="wa-ice-gleam"></span></span>';
+    return '<span class="wa-ice-static wa-ice-tasks" data-task-state="' + state.state + '" data-overdue="' + state.overdue + '" style="--task-hue:' + state.hue + 'deg" aria-label="' + state.label + '">' + iceLayers + '<span class="wa-ice-task-tint"></span><span class="wa-ice-task-tint wa-ice-reflection"></span></span>';
   }
   const ART = {
-    'home2-tile-training': () => '<svg class="wa-ecg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/><path class="wa-ecg-flow" pathLength="1000" d="M0 34 H120 L132 34 L140 22 L148 34 L160 34 L168 6 L178 56 L188 30 L196 34 H262 L270 28 L278 34 H400"/></svg>' + iceStatic('training'),
-    'home2-tile-goals': () => iceStatic('goals'),
+    'home2-tile-training': () => iceStatic('training'),
+    'home2-tile-goals': () => iceStatic('goals', '<span class="wa-goal-hit"><span></span></span>'),
     'home2-tile-habits': st => {
       const list = ICE_DATA.habits(st, new Date());
       return '<span class="wa-ice-habits" data-count="' + list.length + '">' + list.map(item => {
@@ -232,24 +233,22 @@ window.WinterArc = (function () {
     },
     'home2-tile-finance': st => {
       const fin = ICE_DATA.finance(st, new Date());
-      const currentMax = Math.max(0, ...fin.bars.map(bar => bar.current));
-      const bars = fin.bars.map(bar => {
-        const paint = (layer, level) => { const key = bar.year + '-' + bar.month + ':' + layer, previous = iceMemory.bars.get(key) || 0; iceMemory.bars.set(key, level);
-          return '<span class="wa-fin-prism wa-fin-' + layer + '" style="--from-level:' + previous + ';--to-level:' + level + ';--bar-opacity:' + (level > 0 ? 1 : 0) + '"><span></span></span>'; };
-        return '<span class="wa-fin-slot" data-current="' + bar.current + '" data-previous="' + bar.previous + '">' + paint('current', currentMax ? Math.max(0, bar.current) / currentMax : 0) + '<span class="wa-fin-month">' + bar.label + '</span></span>';
-      }).join('');
-      const badge = fin.percent === null ? '' : '<span class="wa-fin-comparison' + (fin.percent < 0 ? ' negative' : fin.percent === 0 ? ' neutral' : '') + '">' + (fin.percent > 0 ? '+' : '') + fin.percent + '% ' + (fin.percent > 0 ? '▲' : fin.percent < 0 ? '▼' : '·') + ' к <span class="wa-fin-comp-month">' + fin.label + ' </span>' + fin.previousYear + '</span>';
-      return '<span class="wa-fin-ice"><span class="wa-fin-columns">' + bars + '</span>' + badge + '</span>';
+      const state = fin.percent === null ? 'unknown' : fin.percent < 0 ? 'negative' : fin.percent > 0 ? 'positive' : 'neutral';
+      const hue = state === 'negative' ? 310 : state === 'positive' ? 70 : 0;
+      const energy = fin.percent === null || fin.percent === 0 ? 0 : Math.min(.68, .35 + Math.abs(fin.percent) / 250);
+      return '<span class="wa-ice-static wa-ice-finance" data-finance-state="' + state + '" data-finance-percent="' + (fin.percent === null ? '' : fin.percent) + '" style="--finance-hue:' + hue + 'deg;--finance-energy:' + energy + '">' + iceLayers + '<span class="wa-finance-signal"></span></span>';
     },
     'home2-tile-tasks': taskArt,
   };
   function layoutIce(scr) {
+    layoutSnow(scr);
     scr.querySelectorAll('.wa-ice-habits').forEach(host => {
       const count = +host.dataset.count; if (!count) return;
-      const width = host.clientWidth, height = host.clientHeight, ratio = 136 / 108;
+      const width = host.clientWidth, height = host.clientHeight, ratio = 152 / 108;
       let columns = count, unit = Math.min(width / count, height / ratio);
       if (unit < 22) for (let cols = 1; cols <= count; cols++) { const size = Math.min(width / cols, height / (Math.ceil(count / cols) * ratio)); if (size > unit) { unit = size; columns = cols; } }
       host.style.setProperty('--sphere-cols', columns); host.style.setProperty('--sphere-size', Math.max(1, Math.floor(unit)) + 'px');
+      host.querySelectorAll('.wa-habit-sphere').forEach((sphere, i) => { const col = i % columns, depth = columns > 1 ? col / (columns - 1) : 0; sphere.style.setProperty('--sphere-depth', 1 - depth * .19); sphere.style.setProperty('--sphere-rise', (-depth * Math.min(9, unit * .24)) + 'px'); });
     });
   }
   function refreshIceClock(scr) {
@@ -263,8 +262,8 @@ window.WinterArc = (function () {
     stopMotion();
     const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
     applyAttr(); keepDark(); /* владелец известен только после входа: пересчитываем доступность */
-    scr.querySelectorAll('.wa-x').forEach(el => el.remove());
-    if (!isOn()) return;
+    scr.querySelectorAll('.wa-x:not(.wa-snowcaps)').forEach(el => el.remove());
+    if (!isOn()) { scr.querySelectorAll('.wa-snowcaps').forEach(el => el.remove()); return; }
     st = st || (typeof Store !== 'undefined' ? Store.get() : {});
     iceDay();
     let n = 0;
@@ -278,8 +277,8 @@ window.WinterArc = (function () {
       const ds = c.querySelector('.home2-tile-desc'), m = ds && metric(ds.textContent);
       if (ds) ds.classList.toggle('wa-hide', !!m);
       if (m) ds.insertAdjacentHTML('afterend', '<div class="wa-x wa-met"><b>' + esc(m[0]) + '</b>' + (m[1] ? '<span>' + esc(m[1]) + '</span>' : '') + '</div>');
-      const row = (n - 1) % 4;
-      t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-snowcaps" aria-hidden="true"><i class="wa-snowcap wa-cap-top" style="--snow-row:' + (row * 100 / 3) + '%"></i><i class="wa-snowcap wa-cap-base" style="--snow-row:' + (((row + 1) % 4) * 100 / 3) + '%"></i></span>' + (key ? '<span class="wa-x wa-art">' + ART[key](st) + '</span>' : ''));
+      if (!t.querySelector('.wa-snowcaps')) t.insertAdjacentHTML('beforeend', snowCaps(t));
+      if (key) t.insertAdjacentHTML('beforeend', '<span class="wa-x wa-art">' + ART[key](st) + '</span>');
       tap(t);
     });
     /* у каждого слайда своя картинка: «Фокус дня» с FOCUS, цели с золотой вершиной, остальные горы по очереди */
@@ -297,19 +296,43 @@ window.WinterArc = (function () {
   const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   function metric(txt) { const t = String(txt || '').trim(), m = t.match(/^(\d[\d\s\u00a0.,]*(?:\/\s?\d+)?\s?(?:%|₽)?)(.*)$/);
     if (!m) return null; return [m[1].trim(), m[2].replace(/^[\s\/·]+/, '').trim()]; }
-  /* Снег осыпается без задержки перехода в раздел. */
+  /* Наносы держатся на кромке, их расположение не прыгает от обновления данных. */
+  const snowLayouts = new WeakMap();
+  const snowSeats = [.09330,.08852,.09809,.09809,.10447,.10447,.12520,.12998];
+  function snowCaps(tile) {
+    if (!snowLayouts.has(tile)) {
+      const count = 1 + Math.floor(Math.random() * 3);
+      snowLayouts.set(tile, Array.from({ length: count }, () => ({ variant: Math.floor(Math.random() * 8), anchor: .15 + Math.random() * .72, width: .12 + Math.random() * .14, opacity: .68 + Math.random() * .2, delay: Math.random() * .6, duration: 7 + Math.random() * 7 })));
+    }
+    return '<span class="wa-x wa-snowcaps" aria-hidden="true">' + snowLayouts.get(tile).map((patch, i) => '<span class="wa-snow-patch" data-patch="' + i + '" style="--snow-col:' + (patch.variant % 2 * 100) + '%;--snow-row:' + (Math.floor(patch.variant / 2) * 100 / 3) + '%;--snow-opacity:' + patch.opacity + ';--snow-delay:' + patch.delay + 's;--snow-duration:' + patch.duration + 's"></span>').join('') + '</span>';
+  }
+  function layoutSnow(scr) {
+    scr.querySelectorAll('.home2-tile').forEach(tile => {
+      const specs = snowLayouts.get(tile), width = tile.clientWidth; if (!specs) return;
+      tile.querySelectorAll('.wa-snow-patch').forEach((patch, i) => { const spec = specs[i]; if (!spec) return;
+        const size = Math.min(116, Math.max(28, width * spec.width));
+        patch.style.width = size + 'px'; patch.style.left = Math.max(9, Math.min(width - size - 9, (width - size) * spec.anchor)) + 'px';
+        patch.style.setProperty('--snow-seat', size * snowSeats[spec.variant] + 'px');
+      });
+    });
+  }
   function tap(t) {
-    if (t.dataset.waTap) return; t.dataset.waTap = '1';
-    let last = -Infinity;
+    if (t.dataset.waTap) return; t.dataset.waTap = '1'; let last = -Infinity;
     const shake = e => {
-      if (!isOn() || (e.type === 'pointerenter' && e.pointerType === 'touch') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-      const now = performance.now(); if (now - last < 1200) return; last = now;
-      t.classList.remove('wa-snowfall'); void t.offsetWidth; t.classList.add('wa-snowfall');
-      t.querySelectorAll('.wa-snowcrumb').forEach(el => el.remove());
+      if (!isOn() || e.type === 'pointerenter' && e.pointerType === 'touch' || window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const now = performance.now(); if (now - last < 3500) return;
       const caps = t.querySelector('.wa-snowcaps'); if (!caps) return;
-      for (let i = 0; i < 8; i++) { const flake = document.createElement('b'); flake.className = 'wa-snowcrumb';
-        flake.style.cssText = 'left:' + (62 + Math.random() * 30) + '%;--sx:' + (-24 + Math.random() * 48) + 'px;--sy:' + (32 + Math.random() * 62) + 'px;--sd:' + (i * 16) + 'ms;--ss:' + (2 + Math.random() * 2) + 'px;';
-        flake.addEventListener('animationend', () => flake.remove(), { once: true }); caps.appendChild(flake); }
+      const patches = [...caps.querySelectorAll('.wa-snow-patch')]; if (!patches.some(patch => +getComputedStyle(patch).opacity > .18)) return;
+      last = now; t.classList.remove('wa-snowfall'); void t.offsetWidth; t.classList.add('wa-snowfall');
+      caps.querySelectorAll('.wa-snow-grain').forEach(el => el.remove());
+      const base = t.getBoundingClientRect();
+      patches.forEach(patch => { const rect = patch.getBoundingClientRect();
+        const count = 5 + Math.floor(Math.random() * 6);
+        for (let i = 0; i < count; i++) { const grain = document.createElement('span'); grain.className = 'wa-snow-grain';
+          grain.style.cssText = 'left:' + (rect.left - base.left + rect.width * (.08 + Math.random() * .84)) + 'px;--grain-size:' + (.7 + Math.random() * 2.1) + 'px;--grain-x:' + (-26 + Math.random() * 52) + 'px;--grain-y:' + (24 + Math.random() * 65) + 'px;--grain-time:' + (.65 + Math.random() * .8) + 's;--grain-delay:' + (Math.random() * .12) + 's;--grain-round:' + (20 + Math.random() * 45) + '%;';
+          grain.addEventListener('animationend', () => grain.remove(), { once: true }); caps.appendChild(grain);
+        }
+      });
     };
     t.addEventListener('pointerenter', shake); t.addEventListener('pointerdown', shake);
   }
@@ -359,9 +382,9 @@ window.WinterArc = (function () {
       const dpr = Math.min(devicePixelRatio || 1, mobile ? 1.25 : 1.5);
       fps = mobile || low ? 24 : 30;
       c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = mobile ? (low ? 24 : 32) : (low ? 44 : 64);
-      P = Array.from({ length: count }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, r: i % 6 === 0 ? 2.5 : .7 + Math.random() * .9,
-        v: i % 6 === 0 ? 20 + Math.random() * 10 : 8 + Math.random() * 14, a: i % 6 === 0 ? .65 : .28 + Math.random() * .22, phase: Math.random() * Math.PI * 2, crystal: i % 6 === 0 }));
+      const count = mobile ? (low ? 18 : 25) : (low ? 32 : 46);
+      P = Array.from({ length: count }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, r: i % 11 === 0 ? 1.7 + Math.random() * .7 : .4 + Math.random() * .8,
+        v: 10 + Math.random() * 20, a: i % 11 === 0 ? .13 : .12 + Math.random() * .18, phase: Math.random() * Math.PI * 2 }));
     };
     const paused = () => document.hidden || pageHidden || !!reduced?.matches || !isOn();
     const frame = t => {
@@ -374,9 +397,7 @@ window.WinterArc = (function () {
           p.y += p.v * dt; p.phase += dt * .35; p.x += Math.sin(p.phase) * 3.5 * dt;
           if (p.y > H + 4) { p.y = -4; p.x = Math.random() * W; }
           g.globalAlpha = p.a; g.fillStyle = '#E0ECFA';
-          if (p.crystal) { g.strokeStyle = '#E0ECFA'; g.lineWidth = .65; g.beginPath();
-            for (let n = 0; n < 3; n++) { const a = n * Math.PI / 3, dx = Math.cos(a) * p.r, dy = Math.sin(a) * p.r; g.moveTo(p.x - dx, p.y - dy); g.lineTo(p.x + dx, p.y + dy); } g.stroke();
-          } else { g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill(); }
+          g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill();
         });
       }
       raf = requestAnimationFrame(frame);

@@ -603,3 +603,50 @@ html[data-design="wa"] .wa-fin-comparison.neutral { background:#1c2732;color:#ae
  html[data-design="wa"] .wa-ice-task-tint { transition:none; }
  html[data-design="wa"] .wa-fin-prism>span::after { animation:none;display:none; }
 }
+
+/* v315: целые исходные иллюстрации, отражения и осмысленный свет. */
+html[data-design="wa"] { --wa-snow-powder:url(../img/wa/snow-powder.webp); }
+html[data-design="wa"] .wa-ice-static { width:190px;right:6px;bottom:3px;--ice-ground:78%; }
+html[data-design="wa"] .wa-ice-goals { width:166px;right:7px;bottom:4px;--ice-ground:80%; }
+html[data-design="wa"] .wa-ice-tasks { width:188px;right:7px;bottom:4px; }
+html[data-design="wa"] .wa-ice-finance { width:196px;right:6px;bottom:4px;--ice-x:100%;--ice-y:0%;--ice-ground:74%; }
+html[data-design="wa"] .wa-ice-training { width:182px;aspect-ratio:462/402;bottom:4px;--ice-ground:80%; }
+html[data-design="wa"] .wa-ice-finance { width:220px;aspect-ratio:452/334;--ice-ground:80%; }
+html[data-design="wa"] .wa-ice-reflection { position:absolute;inset:0;background:var(--wa-ice-icons) var(--ice-x) var(--ice-y)/300% 200% no-repeat;clip-path:inset(0 0 calc(100% - var(--ice-ground)));transform-origin:50% var(--ice-ground);transform:scaleY(-.28);opacity:.16;filter:blur(.35px);-webkit-mask-image:linear-gradient(transparent 15%,#000 78%);mask-image:linear-gradient(transparent 15%,#000 78%);pointer-events:none; }
+html[data-design="wa"] .wa-ice-task-tint.wa-ice-reflection { filter:hue-rotate(var(--task-hue,0deg)) saturate(1.15) blur(.35px);opacity:.12; }
+html[data-design="wa"] .wa-ice-training :is(.wa-ice-base,.wa-ice-reflection) { background-size:332.467532% 254.726368%;background-position:3.724395% 12.540193%; }
+html[data-design="wa"] .wa-ice-finance :is(.wa-ice-base,.wa-ice-reflection,.wa-finance-signal) { background-size:339.823009% 306.586826%;background-position:97.785978% 15.652174%; }
+html[data-design="wa"] .wa-habit-sphere { transform:translateY(var(--sphere-rise,0px)) scale(var(--sphere-depth,1));transform-origin:50% 82%; }
+html[data-design="wa"] .wa-habit-sphere { height:calc(var(--sphere-size,28px) * 1.407407); }
+html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit) { background-size:1422.222222% 673.684211%;background-position:37.394958% 29.357798%;-webkit-mask-image:radial-gradient(ellipse 43% 30% at 48% 32%,#000 94%,transparent),linear-gradient(transparent 51%,#000 62%,#000 76%,transparent 99%);mask-image:radial-gradient(ellipse 43% 30% at 48% 32%,#000 94%,transparent),linear-gradient(transparent 51%,#000 62%,#000 76%,transparent 99%); }
+html[data-design="wa"] .wa-sphere-dim { filter:brightness(.62) saturate(.75);opacity:.56; }
+html[data-design="wa"] .wa-sphere-lit { animation:waSphereLight .7s ease-out both!important;animation-play-state:var(--wa-play)!important; }
+/* Рисунок финансов неизменен: состояние доходов передаёт только мягкий цветовой импульс. */
+html[data-design="wa"] .wa-finance-signal { position:absolute;inset:0;background:var(--wa-ice-icons) 100% 0%/300% 200% no-repeat;filter:sepia(.85) saturate(3.2) hue-rotate(var(--finance-hue,0deg));opacity:0;-webkit-mask-image:radial-gradient(ellipse at 50% 65%,#000 12%,transparent 38%);mask-image:radial-gradient(ellipse at 50% 65%,#000 12%,transparent 38%);-webkit-mask-size:270% 150%;mask-size:270% 150%;animation:waIncomeImpulse 8.7s ease-in-out infinite!important;animation-play-state:var(--wa-play)!important;pointer-events:none; }
+html[data-design="wa"] .wa-ice-finance:is([data-finance-state="unknown"],[data-finance-state="neutral"]) .wa-finance-signal { animation:none!important;opacity:0; }
+@keyframes waIncomeImpulse { 0%,42%{opacity:0;-webkit-mask-position:150% 50%;mask-position:150% 50%}49%{opacity:var(--finance-energy)}76%{opacity:var(--finance-energy)}88%,100%{opacity:0;-webkit-mask-position:-70% 50%;mask-position:-70% 50%} }
+/* Центр нарисованной мишени, короткий световой отклик с паузой. */
+html[data-design="wa"] .wa-goal-hit { position:absolute;left:53.7%;top:49%;width:7%;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none; }
+html[data-design="wa"] .wa-goal-hit::before { content:'';position:absolute;inset:-70%;border-radius:50%;background:radial-gradient(circle,#e4ffffbb,#9eeaf447 28%,transparent 65%);opacity:0;animation:waGoalCore 8.4s ease-out infinite;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-goal-hit>span { position:absolute;inset:0;border:1px solid #b9f6f0aa;border-radius:50%;opacity:0;animation:waGoalImpact 8.4s ease-out infinite!important;animation-play-state:var(--wa-play)!important; }
+@keyframes waGoalCore { 0%,9%,100%{opacity:0}2%{opacity:.85}6%{opacity:.15} }
+@keyframes waGoalImpact { 0%{opacity:0;transform:scale(.5)}2%{opacity:.65;transform:scale(.8)}12%{opacity:0;transform:scale(4.6)}100%{opacity:0;transform:scale(4.6)} }
+/* Разные низкие порошковые наносы точно сидят на кромке. */
+html[data-design="wa"] .wa-snow-patch { display:block;position:absolute;bottom:calc(100% - var(--snow-seat));aspect-ratio:2;background:var(--wa-snow-powder) var(--snow-col) var(--snow-row)/200% 400% no-repeat;opacity:var(--snow-opacity);animation:waPowderSettle 4.8s ease-out both;animation-play-state:var(--wa-play);pointer-events:none; }
+html[data-design="wa"] .wa-snowfall .wa-snow-patch { animation:waPowderRebuild var(--snow-duration) ease-out both;animation-play-state:var(--wa-play); }
+html[data-design="wa"] .wa-snow-grain { position:absolute;top:-1px;width:var(--grain-size);height:var(--grain-size);border-radius:var(--grain-round);background:#e9eef2;animation:waPowderFall var(--grain-time) var(--grain-delay) cubic-bezier(.35,.05,.7,.75) both;animation-play-state:var(--wa-play);pointer-events:none; }
+@keyframes waPowderSettle { from{opacity:calc(var(--snow-opacity) * .55)}to{opacity:var(--snow-opacity)} }
+@keyframes waPowderRebuild { 0%{opacity:var(--snow-opacity)}2%,14%{opacity:0}44%{opacity:calc(var(--snow-opacity) * .25)}100%{opacity:var(--snow-opacity)} }
+@keyframes waPowderFall { 0%{opacity:.85;transform:translate(0,0)}35%{opacity:.7;transform:translate(calc(var(--grain-x) * .45),calc(var(--grain-y) * .18)) rotate(30deg)}100%{opacity:0;transform:translate(var(--grain-x),var(--grain-y)) rotate(135deg)} }
+@media(max-width:600px){
+ html[data-design="wa"] .wa-ice-training { width:92px;right:-2px;bottom:23px; }
+ html[data-design="wa"] .wa-ice-goals { width:90px;right:-3px;bottom:22px; }
+ html[data-design="wa"] .wa-ice-tasks { width:145px;right:5px;bottom:3px; }
+ html[data-design="wa"] .wa-ice-finance { width:105px;right:2px;bottom:22px; }
+ html[data-design="wa"] .wa-ice-habits { bottom:13px;height:76px; }
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-design="wa"] .home2-tile :is(.wa-finance-signal,.wa-goal-hit>span,.wa-goal-hit::before,.wa-snow-patch,.wa-snow-grain) { animation:none!important; }
+ html[data-design="wa"] :is(.wa-finance-signal,.wa-goal-hit,.wa-snow-grain) { display:none; }
+ html[data-design="wa"] .wa-snow-patch { opacity:var(--snow-opacity); }
+}

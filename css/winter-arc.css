@@ -769,3 +769,18 @@ html[data-design="wa"] .hero-slide-sub { max-width:66%; }
 /* Второй расходящийся импульс остаётся на плоскости мишени. */
 html[data-design="wa"] .wa-goal-hit::after { content:'';position:absolute;inset:0;border:1px solid #d4ffffb3;border-radius:50%;box-shadow:0 0 7px #a7f7fa66;opacity:0;animation:waGoalImpact 4.2s ease-out infinite!important;animation-delay:calc(var(--wa-phase,0ms) + 220ms)!important;animation-play-state:var(--wa-play)!important; }
 html[data-design="wa"] .wa-frost-hero { opacity:.16; }
+
+/* Один контур солнца и луны, точное совпадение выбранной иконки с ползунком. */
+.home2-header .theme-toggle { --tt-size:32px; }
+.home2-header .theme-toggle :is(.tt-ico,.tt-knob) { top:50%;width:var(--tt-size);height:var(--tt-size);transform:translateY(-50%); }
+.home2-header .theme-toggle .tt-ico { z-index:1;color:#8191aa; }
+.home2-header .theme-toggle .tt-ico i { display:block;font-size:19px;line-height:1; }
+.home2-header .theme-toggle .tt-knob { left:3px;transition:left .2s ease; }
+.home2-header .theme-toggle[data-mode="dark"] .tt-knob { left:calc(100% - var(--tt-size) - 3px); }
+.home2-header .theme-toggle[data-mode="light"] .tt-sun { color:#f4c76e; }
+.home2-header .theme-toggle[data-mode="dark"] .tt-moon { color:#d5e4ff; }
+html[data-theme="light"] .home2-header .theme-toggle[data-mode="light"] .tt-sun { color:#9e6b15; }
+@media(max-width:440px){
+ .home2-header>.theme-toggle { width:56px;--tt-size:24px; }
+ .home2-header .theme-toggle .tt-ico i { font-size:16px; }
+}

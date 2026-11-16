@@ -259,10 +259,10 @@ window.WinterArc = (function () {
       const host=frame.querySelector('.wa-ice-habits');if(!host)return;
       host.style.inset='0';host.style.width='100%';host.style.height='100%';
       const count=+host.dataset.count;if(!count)return;
-      const columns=count<=12?count:Math.ceil(Math.sqrt(count*size/height)),rows=Math.ceil(count/columns),step=.86,rise=.38*Math.max(0,columns-1),unit=Math.min(size/(1+step*(columns-1)),height/(rows*1.55+rise));
+      const columns=count<=12?count:Math.ceil(Math.sqrt(count*size/height)),rows=Math.ceil(count/columns),step=.94,lift=.12,rise=lift*Math.max(0,columns-1),unit=Math.min(size/(1+step*(columns-1)),height/(rows*1.55+rise));
       const span=(1+step*(columns-1))*unit;host.style.setProperty('--sphere-size',unit+'px');
-      host.querySelectorAll('.wa-habit-sphere').forEach((sphere,i)=>{const col=i%columns,row=Math.floor(i/columns);sphere.style.left=((size-span)/2+col*unit*step)+'px';sphere.style.bottom=((rows-row-1)*unit*1.55+col*unit*.38)+'px';sphere.style.zIndex=String(columns-col);});
-      const floor=host.querySelector('.wa-hab-floor');if(floor){floor.style.left=((size-span)/2-unit*.15)+'px';floor.style.width=(span+unit*.3)+'px';floor.style.height=(unit*.9)+'px';floor.style.bottom=(unit*(.3+rise/2))+'px';floor.style.transform='rotate(-24deg)';}
+      host.querySelectorAll('.wa-habit-sphere').forEach((sphere,i)=>{const col=i%columns,row=Math.floor(i/columns);sphere.style.left=((size-span)/2+col*unit*step)+'px';sphere.style.bottom=((rows-row-1)*unit*1.55+col*unit*lift)+'px';sphere.style.zIndex=String(columns-col);});
+      const floor=host.querySelector('.wa-hab-floor');if(floor){floor.style.left=((size-span)/2-unit*.15)+'px';floor.style.width=(span+unit*.3)+'px';floor.style.height=(unit*.9)+'px';floor.style.bottom=(unit*(.3+rise/2))+'px';floor.style.transform='rotate('+(-Math.atan(lift/step)*180/Math.PI)+'deg)';}
     });
 
   }

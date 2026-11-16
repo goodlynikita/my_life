@@ -36,8 +36,10 @@
     if (homeButton) {
       homeButton.dataset.mode = current;
       var winter = window.WinterArc && WinterArc.isOn();
-      homeButton.title = winter ? 'Светлая / тёмная тема разделов' : 'Светлая / тёмная тема';
-      homeButton.setAttribute('aria-label', homeButton.title);
+      homeButton.setAttribute('role', 'switch');
+      homeButton.setAttribute('aria-checked', String(current === 'light'));
+      homeButton.setAttribute('aria-label', winter ? 'Светлая тема разделов' : 'Светлая тема');
+      homeButton.title = (current === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему') + (winter ? ' в разделах' : '');
     }
   }
   function mountControls(root) {
@@ -73,7 +75,7 @@
       current = mode === 'light' ? 'light' : 'dark';
       try { localStorage.setItem(KEY, current); } catch (e) {}
       apply(current);
-      if (!(opts && opts.silent) && window.Store && Store.get) {
+      if (!(opts && opts.silent) && typeof Store !== 'undefined' && Store.get) {
         try { if ((Store.get().home || {}).theme !== current) Store.set('home.theme', current); } catch (e) {}
       }
     },

@@ -726,7 +726,7 @@ function trPace(ex) {
 
 function trMetricFor(ex) {
   if (ex.kind === 'cardio') return ex.distance;
-  if (ex.kind === 'time_calorie') return ex.calories;
+  if (ex.kind === 'time_calorie') return trPlayLabel(ex.name) ? trPlayMinutes(ex) : ex.calories;
   if (ex.kind === 'steps') return ex.steps;
   return trTonnage(ex);
 }
@@ -962,8 +962,9 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
   const progress = trCalcProgress(plan, weekIndex, ex.name);
   const arrow = progress.dir === 'up' ? '▲' : progress.dir === 'down' ? '▼' : '';
   const sign = progress.pct > 0 ? '+' : '';
+  const metricUnit = ex.kind === 'time_calorie' ? (trPlayLabel(ex.name) ? 'мин' : 'ккал') : ex.kind === 'cardio' ? 'км' : ex.kind === 'steps' ? 'шагов' : 'кг';
   const diffStr = (progress.diff !== undefined && progress.diff !== 0)
-    ? ' ' + (progress.diff > 0 ? '+' : '') + String(Math.round(progress.diff * 10) / 10).replace('.', ',') + ' кг'
+    ? ' ' + (progress.diff > 0 ? '+' : '') + String(Math.round(progress.diff * 10) / 10).replace('.', ',') + ' ' + metricUnit
     : '';
   /* рост к первой неделе плана; без изменений бейдж не показываем, чтобы не висели «0%» */
   let progressBadge = progress.pct ? '<span class="tr-progress '+progress.dir+'" title="К первой неделе плана">'+(arrow ? arrow+' ' : '')+sign+progress.pct+'%'+diffStr+'</span>' : '';
@@ -1005,6 +1006,7 @@ function trRenderExercise(ex, plan, weekIndex, dayIdx, exIdx, sessionIdx) {
     return wrap(`${trEsc(String(ex.distance).replace('.', ','))} км`, `${trEsc(ex.duration)} мин${pace ? ' · ' + pace : ''}`);
   }
   if (ex.kind === 'time_calorie') {
+    if (trPlayLabel(ex.name)) return wrap(`${trEsc(trPlayMinutes(ex))} мин`, +ex.calories > 0 ? `${trEsc(ex.calories)} ккал` : '');
     return wrap(`${trEsc(ex.calories)} ккал`, `${trEsc(ex.duration)} мин`);
   }
   if (ex.kind === 'steps') {
@@ -1221,6 +1223,38 @@ function trPlayLabel(name) {
   return null;
 }
 
+function trPlayMinutes(ex) {
+  const play = +ex.play, duration = +ex.duration;
+  return trPlayLabel(ex.name) && Number.isFinite(play) && play > 0 ? play : Number.isFinite(duration) && duration > 0 ? duration : 0;
+}
+
+function trTimeCalorieFields(name, ex = {}) {
+  const minutes = trPlayLabel(name) ? trPlayMinutes({ ...ex, name }) : ex.duration;
+  return `<div class="tr-modal-row"><label style="flex:1 1 100%"><span class="tr-time-label">${trPlayLabel(name) || 'Время, мин'}</span><input type="number" id="m-duration" value="${trEsc(+minutes > 0 ? minutes : '')}" placeholder="0" min="0" max="1440" inputmode="numeric"></label></div>
+    <details class="tr-calories-option"${+ex.calories > 0 ? ' open' : ''}><summary>Калории (необязательно)<i class="ti ti-chevron-down" aria-hidden="true"></i></summary>
+      <div class="tr-modal-row"><label><span class="tr-calories-label">Калории</span><input type="number" id="m-calories" value="${trEsc(+ex.calories > 0 ? ex.calories : '')}" placeholder="Необязательно" min="0" max="20000" inputmode="numeric"></label></div>
+    </details>`;
+}
+
+function trBindTimeCalorieFields(root) {
+  root.addEventListener('change', e => {
+    if (e.target.id !== 'm-sport-name') return;
+    const label = root.querySelector('.tr-time-label');
+    if (label) label.textContent = trPlayLabel(e.target.value) || 'Время, мин';
+  });
+}
+
+function trReadTimeCalorieFields(root, name, previous) {
+  const minutes = trNum(root.querySelector('#m-duration').value, 1440);
+  const values = { duration: minutes, calories: trNum(root.querySelector('#m-calories').value, 20000) };
+  if (trPlayLabel(name)) {
+    values.play = minutes;
+    /* Старое общее время сохраняем, если пользователь не менял игровое время. */
+    if (previous && trPlayMinutes(previous) === minutes && +previous.duration > 0) values.duration = previous.duration;
+  }
+  return values;
+}
+
 /* место на экране до открытия окна: на айфоне клавиатура сдвигает страницу, и scrollY в момент сохранения уже не тот */
 function trHoldScroll(y) { try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {} window._trHoldY = y; }
 
@@ -1239,14 +1273,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
         <label>Время, мин<input type="number" id="m-duration" value="${trEsc(ex.duration)}" inputmode="numeric"></label>
       </div>`;
   } else if (ex.kind === 'time_calorie') {
-    fieldsHtml = `
-      <div class="tr-modal-row">
-        <label>Время, мин<input type="number" id="m-duration" value="${trEsc(ex.duration)}" inputmode="numeric"></label>
-        <label>Калории<input type="number" id="m-calories" value="${trEsc(ex.calories)}" inputmode="numeric"></label>
-      </div>${trPlayLabel(ex.name) ? `
-      <div class="tr-modal-row">
-        <label style="flex:1 1 100%">${trPlayLabel(ex.name)}<input type="number" id="m-play" value="${trEsc(ex.play || '')}" inputmode="numeric"></label>
-      </div>` : ''}`;
+    fieldsHtml = trTimeCalorieFields(ex.name, ex);
   } else if (ex.kind === 'steps') {
     fieldsHtml = `
       <div class="tr-modal-row">
@@ -1329,10 +1356,7 @@ function trOpenExerciseModal(plan, weekIndex, dayIdx, sessionIdx, exIdx, onSave)
       ex.distance = trNum(overlay.querySelector('#m-distance').value, 1000);
       ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
     } else if (ex.kind === 'time_calorie') {
-      ex.duration = trNum(overlay.querySelector('#m-duration').value, 1440);
-      ex.calories = trNum(overlay.querySelector('#m-calories').value, 20000);
-      const plEl = overlay.querySelector('#m-play');
-      if (plEl) ex.play = trNum(plEl.value, 1440);
+      Object.assign(ex, trReadTimeCalorieFields(overlay, ex.name, ex));
     } else if (ex.kind === 'steps') {
       ex.steps = trInt(overlay.querySelector('#m-steps').value, 200000);
     } else {
@@ -1529,18 +1553,17 @@ function trBuildFormFields(typeName, selectedGroups, plan) {
       </div>`;
   }
   if (trIsTimeCalorieType(typeName)) {
+    const sports = trNamesOf('Спорт', ['Теннис', 'Бокс', 'Баскетбол', 'Футбол', 'Волейбол', 'Борьба', 'Лыжи', 'Сноуборд', 'Коньки']);
+    const selected = sports.includes(typeName) ? typeName : sports[0] || typeName;
     return `
       <div class="tr-modal-row">
         <label style="flex:1 1 100%">Вид спорта
           <select id="m-sport-name" style="width:100%;margin-top:6px;padding:10px 12px;background:#22252F;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#E8E5DC;font-size:14px;font-family:Montserrat,sans-serif;">
-            ${trOpts(trNamesOf('Спорт', ['Теннис', 'Бокс', 'Баскетбол', 'Футбол', 'Волейбол', 'Борьба', 'Лыжи', 'Сноуборд', 'Коньки']))}
+            ${sports.map(name => `<option value="${trEsc(name)}"${name === selected ? ' selected' : ''}>${trEsc(name)}</option>`).join('')}
           </select>
         </label>
       </div>
-      <div class="tr-modal-row">
-        <label>Время, мин<input type="number" id="m-duration" placeholder="0" inputmode="numeric"></label>
-        <label>Калории<input type="number" id="m-calories" placeholder="0" inputmode="numeric"></label>
-      </div>`;
+      ${trTimeCalorieFields(selected)}`;
   }
   if (trIsStepsType(typeName)) {
     return `
@@ -1586,6 +1609,7 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  trBindTimeCalorieFields(overlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
 
@@ -1666,10 +1690,10 @@ function trOpenAddExerciseToSessionModal(plan, weekIndex, dayIdx, sessionIdx, on
         duration: trNum(overlay.querySelector('#m-duration').value, 1440)
       });
     } else if (trIsTimeCalorieType(type)) {
+      const name = overlay.querySelector('#m-sport-name')?.value || type;
       session.exercises.push({
-        kind: 'time_calorie', name: type,
-        duration: trNum(overlay.querySelector('#m-duration').value, 1440),
-        calories: trNum(overlay.querySelector('#m-calories').value, 20000)
+        kind: 'time_calorie', name,
+        ...trReadTimeCalorieFields(overlay, name)
       });
     } else if (trIsStepsType(type)) {
       session.exercises.push({
@@ -1702,6 +1726,7 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  trBindTimeCalorieFields(overlay);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
 
@@ -1810,11 +1835,9 @@ function trOpenAddModal(plan, weekIndex, dayIdx, onSave) {
     }
 
     if (trIsTimeCalorieType(type)) {
-      const duration = trNum(overlay.querySelector('#m-duration').value, 1440);
-      const calories = trNum(overlay.querySelector('#m-calories').value, 20000);
       /* «Спорт»: название берём из выбранного вида (Бокс, Теннис…), а не просто «Спорт» */
       const sp = overlay.querySelector('#m-sport-name'), spName = sp && sp.value ? sp.value : type;
-      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: spName, duration, calories }] });
+      day.sessions.push({ type, groups: [], exercises: [{ kind: 'time_calorie', name: spName, ...trReadTimeCalorieFields(overlay, spName) }] });
       overlay.remove();
       onSave();
       return;
@@ -2774,7 +2797,7 @@ function trExLogged(ex) {
   if (!ex) return false;
   if (ex.kind === 'strength') return (+ex.weight || 0) > 0 || (+ex.reps || 0) > 0;
   if (ex.kind === 'cardio') return (+ex.distance || 0) > 0 || (+ex.duration || 0) > 0;
-  if (ex.kind === 'time_calorie') return (+ex.calories || 0) > 0 || (+ex.duration || 0) > 0;
+  if (ex.kind === 'time_calorie') return (+ex.calories || 0) > 0 || trPlayMinutes(ex) > 0;
   if (ex.kind === 'steps') return (+ex.steps || 0) > 0;
   return true;
 }
@@ -3356,7 +3379,7 @@ function trCollectExerciseHistory(plan, exerciseName) {
 
 function trWasNowLabel(ex, metricLabelFn) {
   if (ex.kind === 'cardio') return `${trEsc(ex.distance)} км`;
-  if (ex.kind === 'time_calorie') return `${trEsc(ex.calories)} ккал`;
+  if (ex.kind === 'time_calorie') return trPlayLabel(ex.name) ? `${trEsc(trPlayMinutes(ex))} мин` : `${trEsc(ex.calories)} ккал`;
   if (ex.kind === 'steps') return `${(+ex.steps || 0).toLocaleString('ru-RU')} шагов`;
   return `${trTonnage(ex).toLocaleString('ru-RU')} кг`;
 }
@@ -3369,7 +3392,7 @@ function trSumMetricAcrossPlan(plan, exerciseName, kind) {
     week.days.forEach(day => {
       trDayAllExercises(day).forEach(({ ex, sessionIdx }) => {
         if (trFamKey(ex.name) !== trFamKey(exerciseName) || !trExLogged(ex) || !trSessionDone(plan, day, day.sessions[sessionIdx])) return;
-        if (kind === 'time_calorie') { sum += ex.calories || 0; play += (+ex.play || +ex.duration || 0); }
+        if (kind === 'time_calorie') { sum += +ex.calories || 0; play += trPlayMinutes(ex); }
         if (kind === 'steps') sum += ex.steps || 0;
         count++;
       });

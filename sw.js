@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v320';
+const CACHE = 'nik-system-v321';
 const HERO_MEDIA_CACHE = 'nik-hero-media-v1';
 
 const STATIC = [
@@ -161,10 +161,10 @@ function putCache(req, res) {
 self.addEventListener('fetch', e => {
   const req = e.request, url = req.url;
   if (req.method !== 'GET' || LIVE.test(url) || !/^https?:/.test(url)) return;
-  /* Новые версии графики персонажа грузятся после открытия экрана, не задерживая установку.
+  /* Новые версии графики персонажа и ледяных шаров грузятся после открытия экрана, не задерживая установку.
      Их отдельный кэш переживает обновления приложения и остаётся доступен без сети. */
   const parsed = new URL(url);
-  if (parsed.origin === self.location.origin && /\/img\/hero\/(?:looks|props|scenes)-v\d+\.webp$/.test(parsed.pathname)) {
+  if (parsed.origin === self.location.origin && /\/img\/(?:hero\/(?:looks|props|scenes)|wa\/habit-orbs)-v\d+\.webp$/.test(parsed.pathname)) {
     e.respondWith(caches.open(HERO_MEDIA_CACHE).then(async cache => {
       const hit = await cache.match(req, { ignoreSearch: true }); if (hit) return hit;
       const response = await fetch(req); if (response.ok) await cache.put(req, response.clone()); return response;

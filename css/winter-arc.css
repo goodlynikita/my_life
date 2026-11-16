@@ -672,7 +672,7 @@ html[data-design="wa"] :is(.wa-snowcaps,.wa-rime) { display:none!important; }
 html[data-design="wa"] .wa-ice-reflection { display:none; }
 html[data-design="wa"] .wa-ice-static { bottom:0;right:4px; }
 html[data-design="wa"] .wa-ice-training { width:190px;aspect-ratio:492/428; }
-html[data-design="wa"] .wa-ice-finance { width:190px;aspect-ratio:492/412; }
+html[data-design="wa"] .wa-ice-finance { width:166px;aspect-ratio:492/412; }
 html[data-design="wa"] .wa-ice-goals { width:166px;aspect-ratio:492/496; }
 html[data-design="wa"] .wa-ice-tasks { width:182px;aspect-ratio:492/456; }
 html[data-design="wa"] .wa-ice-floor { position:absolute;inset:0;background:var(--wa-ice-icons) var(--ice-x) var(--ice-y)/300% 200% no-repeat;mask-image:linear-gradient(transparent 70%,#000 88%);-webkit-mask-image:linear-gradient(transparent 70%,#000 88%);filter:brightness(1.25);opacity:.8;pointer-events:none; }
@@ -685,20 +685,22 @@ html[data-design="wa"] .wa-ice-tasks :is(.wa-ice-base,.wa-ice-task-tint,.wa-ice-
 html[data-design="wa"] .wa-training-light { position:absolute;inset:0;z-index:2;background:var(--wa-ice-icons) no-repeat;filter:brightness(1.9) saturate(1.15);mask-image:linear-gradient(115deg,transparent 25%,#000 47%,transparent 65%);-webkit-mask-image:linear-gradient(115deg,transparent 25%,#000 47%,transparent 65%);mask-size:280% 100%;-webkit-mask-size:280% 100%;animation:waCrystalSweep 4.6s ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
 @keyframes waCrystalSweep { 0%,10%{mask-position:100% 0;-webkit-mask-position:100% 0;opacity:0}22%{opacity:.8}68%{opacity:.8}85%,100%{mask-position:0% 0;-webkit-mask-position:0% 0;opacity:0} }
 html[data-design="wa"] .wa-ice-habits { display:block;height:116px;width:46%;right:10px;bottom:3px; }
-html[data-design="wa"] .wa-habit-sphere { position:absolute;height:calc(var(--sphere-size,28px) * 1.35);transform:none; }
-/* Из атласа берётся только сам шар: пол не размножается прямоугольными кусками. */
-html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe) { position:absolute;inset:0;background:none;mask-image:none;-webkit-mask-image:none;filter:none; }
-html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe)::before { content:'';position:absolute;left:0;top:0;width:100%;aspect-ratio:1;background:var(--wa-ice-icons) 37.5% 27.586207%/1600% 1066.666667% no-repeat;mask-image:radial-gradient(circle at 50% 50%,#000 63%,transparent 69%);-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 63%,transparent 69%); }
-html[data-design="wa"] .wa-sphere-dim { opacity:.65; }
-html[data-design="wa"] .wa-sphere-dim::before { background-size:2953.846154% 1969.230769%;background-position:63.005391% 20.781893%;filter:brightness(.78) saturate(.5); }
-html[data-design="wa"] .wa-sphere-dim::after { content:'';position:absolute;left:0;top:71.111111%;width:100%;height:28.888889%;background:var(--wa-ice-icons) 63.072776% 25.895599%/2953.846154% 2178.723404% no-repeat;opacity:.28;filter:brightness(.6) saturate(.35);mask-image:radial-gradient(ellipse 49% 90% at 50% 0%,#000 25%,transparent 85%);-webkit-mask-image:radial-gradient(ellipse 49% 90% at 50% 0%,#000 25%,transparent 85%); }
-html[data-design="wa"] :is(.wa-sphere-lit,.wa-sphere-breathe)::after { content:'';position:absolute;left:0;top:71.111111%;width:100%;height:28.888889%;background:var(--wa-ice-icons) 37.5% 36.864407%/1600% 1280% no-repeat;opacity:.85;mask-image:radial-gradient(ellipse 49% 90% at 50% 0%,#000 25%,transparent 85%);-webkit-mask-image:radial-gradient(ellipse 49% 90% at 50% 0%,#000 25%,transparent 85%); }
+/* Два состояния одного шара: одинаковые контур, камера и рисунок трещин. */
+html[data-design="wa"] { --wa-orb-source:var(--wa-ice-icons);--wa-orb-size:1600% 1066.666667%;--wa-orb-off:37.5%;--wa-orb-on:37.5%;--wa-orb-y:27.586207%; }
+html[data-design="wa"].wa-orbs-ready { --wa-orb-source:url(../img/wa/habit-orbs-v1.webp);--wa-orb-size:240% 120%;--wa-orb-off:7.142857%;--wa-orb-on:92.857143%;--wa-orb-y:50%; }
+html[data-design="wa"] .wa-habit-sphere { position:absolute;height:calc(var(--sphere-size,28px) * 1.55);transform:none; }
+html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe) { position:absolute;inset:0;background:none;mask-image:none;-webkit-mask-image:none;filter:none;--orb-x:var(--wa-orb-on); }
+html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe)::before { content:'';position:absolute;left:0;top:0;width:100%;aspect-ratio:1;background:var(--wa-orb-source) var(--orb-x) var(--wa-orb-y)/var(--wa-orb-size) no-repeat;mask-image:radial-gradient(circle closest-side,#000 97%,transparent);-webkit-mask-image:radial-gradient(circle closest-side,#000 97%,transparent); }
+/* В отражении тот же шар, сжатый по глубине и плавно растворённый в общей поверхности. */
+html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe)::after { content:'';position:absolute;left:0;top:63.870968%;width:100%;height:64.516129%;background:var(--wa-orb-source) var(--orb-x) var(--wa-orb-y)/var(--wa-orb-size) no-repeat;transform:scaleY(-1);filter:blur(calc(var(--sphere-size,28px) * .025));opacity:.62;mask-image:linear-gradient(0deg,#000b,#0004 16%,transparent 48%);-webkit-mask-image:linear-gradient(0deg,#000b,#0004 16%,transparent 48%); }
+html[data-design="wa"] .wa-sphere-dim { --orb-x:var(--wa-orb-off);opacity:1;filter:brightness(.48) saturate(.65); }
+html[data-design="wa"] .wa-sphere-dim::after { opacity:.3; }
 html[data-design="wa"] .wa-sphere-lit { opacity:var(--to-lit);animation:waSphereLight 1.05s ease-out both!important;animation-delay:var(--lit-delay,0s)!important;animation-play-state:var(--wa-play)!important; }
-html[data-design="wa"] .wa-sphere-breathe { opacity:0;filter:brightness(1.65); }
+html[data-design="wa"] .wa-sphere-breathe { opacity:0;filter:brightness(1.15); }
 html[data-design="wa"] .wa-habit-sphere.on .wa-sphere-breathe { animation:waHabitBreath 3.4s var(--sphere-phase) ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
-html[data-design="wa"] .wa-hab-floor { display:none; }
+html[data-design="wa"] .wa-hab-floor { display:block;position:absolute;background:radial-gradient(ellipse,#a8c7ce1f,transparent 72%);transform:rotate(-6deg);pointer-events:none; }
 html[data-design="wa"] .home2-tile-habits .wa-met { position:absolute;top:18px;right:22px;margin:0;align-items:center;gap:6px; }
-@keyframes waHabitBreath { 0%,100%{opacity:.04}45%,60%{opacity:.62} }
+@keyframes waHabitBreath { 0%,100%{opacity:.02}45%,60%{opacity:.28} }
 html[data-design="wa"] .wa-ice-finance .wa-ice-base { animation:waIncomeTone 6s ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
 html[data-design="wa"] .wa-ice-finance:is([data-finance-state="unknown"],[data-finance-state="neutral"]) .wa-ice-base { animation:none!important; }
 @keyframes waIncomeTone { 0%,20%,100%{filter:none}48%,58%{filter:hue-rotate(var(--finance-hue)) saturate(1.25)} }
@@ -728,7 +730,7 @@ html[data-design="wa"] .tkl .tk-hdr,html[data-design="wa"] .tkl .tk-hb { color:v
 @media(max-width:600px){
  html[data-design="wa"] .wa-ice-training { width:94px;right:-1px;bottom:20px; }
  html[data-design="wa"] .wa-ice-goals { width:92px;right:-1px;bottom:20px; }
- html[data-design="wa"] .wa-ice-finance { width:98px;right:1px;bottom:20px; }
+ html[data-design="wa"] .wa-ice-finance { width:88px;right:1px;bottom:20px; }
  html[data-design="wa"] .wa-ice-tasks { width:145px;right:4px;bottom:1px; }
  html[data-design="wa"] .wa-ice-habits { width:83%;height:61px;right:2px;bottom:28px; }
  html[data-design="wa"] .home2-tile-habits .wa-met { top:12px;right:14px; }

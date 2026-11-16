@@ -191,6 +191,15 @@ window.WinterArc = (function () {
     }
     return { habits, finance, tasks, iso };
   })();
+  let orbLoading = false, orbRetryAt = 0;
+  function loadOrbMedia() {
+    if (orbLoading || document.documentElement.classList.contains('wa-orbs-ready') || performance.now() < orbRetryAt) return;
+    orbLoading = true;
+    const img = new Image(); img.decoding = 'async';
+    img.onload = () => { orbLoading = false; document.documentElement.classList.add('wa-orbs-ready'); };
+    img.onerror = () => { orbLoading = false; orbRetryAt = performance.now() + 30000; };
+    img.src = 'img/wa/habit-orbs-v1.webp';
+  }
   const iceMemory = { day: '', habits: new Map() };
   function iceDay() {
     const day = today(); if (iceMemory.day === day) return;
@@ -246,6 +255,24 @@ window.WinterArc = (function () {
       while (width > 4 && !fits(width)) width *= .97;
       art.style.width = Math.max(1, width) + 'px'; art.style.right = right + 'px'; art.style.bottom = '4px';
     });
+    const scenes = {
+      finance: { ratio: 492 / 412, cap: 166, fraction: .54, boxes: [[.04,.48,.24,.68],[.22,.39,.42,.67],[.40,.28,.60,.65],[.58,.14,.78,.63],[.76,.02,.96,.61]] },
+      goals: { ratio: 492 / 496, cap: 166, fraction: .6, points: [[.465,.486,.325],...Array.from({ length: 7 }, (_, i) => [.52 + i * .06,.47 - i * .07,.025])] },
+      tasks: { ratio: 492 / 456, cap: 182, fraction: .6, points: [[.33,.48,.27],[.65,.24,.24]] },
+    };
+    Object.entries(scenes).forEach(([key, scene]) => scr.querySelectorAll('.home2-tile-' + key).forEach(tile => {
+      const art = tile.querySelector('.wa-ice-' + key); if (!art) return;
+      const box = tile.getBoundingClientRect(), right = 4, bottom = tile.clientWidth < 220 ? 20 : 4;
+      const rects = [...tile.querySelectorAll('.home2-tile-name,.home2-tile-desc:not(.wa-hide),.wa-met,.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
+      const fits = size => {
+        const left = box.right - right - size, top = box.top + tile.clientHeight - bottom - size / scene.ratio;
+        if (scene.points) return scene.points.every(([x,y,r]) => clearOfText(left + x * size, top + y * size / scene.ratio, r * size, rects));
+        return scene.boxes.every(([x1,y1,x2,y2]) => rects.every(rect => left + x2 * size < rect.left - 5 || left + x1 * size > rect.right + 5 || top + y2 * size / scene.ratio < rect.top - 5 || top + y1 * size / scene.ratio > rect.bottom + 5));
+      };
+      let width = Math.min(scene.cap, tile.clientWidth * scene.fraction, (tile.clientHeight - bottom - 4) * scene.ratio);
+      while (width > 4 && !fits(width)) width *= .97;
+      art.style.width = Math.max(1, width) + 'px'; art.style.right = right + 'px'; art.style.bottom = bottom + 'px';
+    }));
     scr.querySelectorAll('.wa-ice-habits').forEach(host => {
       const count = +host.dataset.count; if (!count) return;
       const tile = host.closest('.home2-tile'), box = tile.getBoundingClientRect();
@@ -253,7 +280,7 @@ window.WinterArc = (function () {
       const top = 12, bottom = 3;
       host.style.left = padding + 'px'; host.style.right = padding + 'px'; host.style.width = 'auto';
       host.style.bottom = bottom + 'px'; host.style.height = Math.max(1, tile.clientHeight - top - bottom) + 'px';
-      const width = host.clientWidth, height = host.clientHeight, ratio = 1.35, step = .94, rise = .45;
+      const width = host.clientWidth, height = host.clientHeight, ratio = 1.55, step = 1.02, rise = .65;
       const columns = count <= 12 ? count : Math.ceil(Math.sqrt(count * width / height * 1.3));
       const rows = Math.ceil(count / columns), span = step * Math.max(0, columns - 1) + 1;
       const obstacles = [...tile.querySelectorAll('.home2-tile-name,.wa-met,.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
@@ -268,6 +295,8 @@ window.WinterArc = (function () {
       let unit = Math.min(width / span, height / (rows * ratio + rise), 96);
       while (unit > 4 && !fits(unit)) unit *= .97;
       host.style.setProperty('--sphere-size', Math.max(1, unit) + 'px');
+      const floor = host.querySelector('.wa-hab-floor');
+      if (floor) { floor.style.left = ((width - span * unit) / 2 - unit * .2) + 'px'; floor.style.width = (span * unit + unit * .4) + 'px'; floor.style.height = (unit * .9) + 'px'; floor.style.bottom = (unit * .3) + 'px'; }
       host.querySelectorAll('.wa-habit-sphere').forEach((sphere, i) => {
         const col = i % columns, row = Math.floor(i / columns);
         sphere.style.left = ((width - span * unit) / 2 + col * unit * step) + 'px';
@@ -290,6 +319,7 @@ window.WinterArc = (function () {
     applyAttr(); keepDark(); /* владелец известен только после входа: пересчитываем доступность */
     scr.querySelectorAll('.wa-x').forEach(el => el.remove());
     if (!isOn()) return;
+    loadOrbMedia();
     st = st || (typeof Store !== 'undefined' ? Store.get() : {});
     iceDay();
     let n = 0;
@@ -383,7 +413,7 @@ window.WinterArc = (function () {
     cards.forEach(card => { if (visible) visible.observe(card); else card.classList.add('wa-inview'); });
     let disposed = false, pageHidden = false;
     const sizing = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { if (!disposed && scr.isConnected) layoutIce(scr); }) : null;
-    cards.filter(card => card.matches('.home2-tile-training,.home2-tile-habits')).forEach(card => { sizing?.observe(card); const title = card.querySelector('.home2-tile-name'); if (title) sizing?.observe(title); });
+    cards.forEach(card => { sizing?.observe(card); const title = card.querySelector('.home2-tile-name'); if (title) sizing?.observe(title); });
     const reconcile = () => {
       if (disposed) return;
       if (!scr.isConnected) { cleanup(); return; }

@@ -797,3 +797,13 @@ html[data-design="wa"] .wa-task-aura { animation:waTaskAura 4.8s ease-in-out inf
 .home2-header #gm-bar.gm-home-avatar .gm-hero.sm { width:34px;height:34px; }
 .home2-header #gm-bar.gm-home-avatar .gm-fr { box-shadow:0 0 9px color-mix(in srgb,var(--hero-accent) 24%,transparent)!important; }
 .home2-header #gm-bar.gm-home-avatar:focus-visible { outline:2px solid #8ebcff;outline-offset:3px; }
+
+/* Дорожка и в обычном блоке целей, и в выбранном виде «Полоска». */
+html[data-design="wa"] .hero-slide.wa-has-goals :is(.hs-body,.hero-slide-main,.hero-slide-main .skv-bar,.hero-slide-main .skv-track) { width:100%;max-width:none; }
+html[data-design="wa"] .hero-slide.is-cur :is(.hero-goals-fill,.hero-slide-main .skv-track>i) { transform-origin:left;animation:waProgressReveal 1.1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes waProgressReveal { from{transform:scaleX(0)}to{transform:scaleX(1)} }
+/* Прежние короткие индикаторы расположены по центру слайдера. */
+html[data-design="wa"] .hero-slider .hero-dots { left:50%!important;right:auto!important;width:auto!important;transform:translateX(-50%)!important; }
+html[data-design="wa"] .hero-slider .hero-dot { flex:0 0 26px!important;width:26px!important;background:rgba(200,215,240,.2)!important;box-shadow:none!important; }
+@media(max-width:600px){html[data-design="wa"] .hero-slider .hero-dot { flex-basis:20px!important;width:20px!important; }}
+@media(prefers-reduced-motion:reduce){html[data-design="wa"] .hero-slide.is-cur :is(.hero-goals-fill,.hero-slide-main .skv-track>i){animation:none!important}}

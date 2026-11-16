@@ -572,7 +572,7 @@ window.Screens.home = function(mount) {
     function goTo(idx, quiet){
       cur=((idx%n)+n)%n; window.__ui = Object.assign(window.__ui || {}, { slide: cur });
       slidesEl.style.transform = winterBlend ? 'none' : 'translateX(-'+(cur*(100/n))+'%)';
-      dotsEls.forEach(function(d,i){d.classList.toggle('active',i===cur);});
+      dotsEls.forEach(function(d,i){if(winterBlend&&!quiet&&i===cur&&d.classList.contains('active')){d.classList.remove('active');void d.offsetWidth;}d.classList.toggle('active',i===cur);});
       slideEls.forEach(function(s,i){s.classList.toggle('is-cur',i===cur);if(winterBlend){s.inert=i!==cur;s.setAttribute('aria-hidden',i===cur?'false':'true');}});
       if(winterBlend && sliderEl)sliderEl.classList.toggle('wa-quiet',!!quiet);
       if (!quiet && sliderEl) sliderEl.classList.add('wa-moved');

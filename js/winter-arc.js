@@ -1,15 +1,15 @@
 /* ============================================================
    ПЕРЕКЛЮЧАТЕЛЬ ДИЗАЙНА: Минимализм / Winter Arc
-   Winter Arc пока в разработке. По нажатию:
+   Winter Arc доступен всем с 16 ноября 2026. По первому нажатию:
    1) главный экран «сдувает» ветром со снегом,
    2) чёрный экран и видео со звуком,
-   3) после видео плашка «в разработке», всё возвращается обратно.
+   3) после видео включается выбранный дизайн.
    ============================================================ */
 window.WinterArc = (function () {
   const SRC = 'img/winterarc.mp4';
   let busy = false;
-  /* выбранный дизайн хранится на устройстве; Winter Arc пока только владельцу (Ник отложил выход), остальным заставка «в разработке» */
-  const RELEASE = '2099-01-01';
+  /* Выбранный дизайн хранится на устройстве. Общий запуск согласован владельцем. */
+  const RELEASE = '2026-11-16';
   const isOwner = () => { try { const u = window.FirebaseSync && FirebaseSync.currentUser && FirebaseSync.currentUser(); const o = (window.AUTH_CONFIG || {}).ownerEmail; return !!(u && o && (u.email || '').toLowerCase() === o.toLowerCase()); } catch (e) { return false; } };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const available = () => isOwner() || today() >= RELEASE;
@@ -257,8 +257,8 @@ window.WinterArc = (function () {
       tile.style.setProperty('--wa-icon-size',size+'px');
       Object.entries(aspect).forEach(([key,ar])=>{const art=frame.querySelector('.wa-ice-'+key);if(!art)return;const lift=height*({goals:.065,finance:.06,tasks:.035}[key]||0),width=Math.min(size,height*ar)*(key==='goals'?1.14:1),fitted=key==='goals'?Math.min(width,(tile.clientHeight-bottom-lift-6)*ar):width;art.style.width=fitted+'px';art.style.height=(fitted/ar)+'px';art.style.right=((size-fitted)/2)+'px';art.style.bottom=lift+'px';});
       const host=frame.querySelector('.wa-ice-habits');if(!host)return;
-      const padding=parseFloat(getComputedStyle(tile.querySelector('.home2-tile-content')).paddingLeft)||16,sceneWidth=Math.min(size*1.4,tile.clientWidth-padding*2);
-      host.style.inset='0 0 0 auto';host.style.width=sceneWidth+'px';host.style.height='100%';
+      const padding=parseFloat(getComputedStyle(tile.querySelector('.home2-tile-content')).paddingLeft)||16,sceneRight=8,sceneWidth=Math.min(size*1.4,tile.clientWidth-padding*2-sceneRight);
+      host.style.inset='0 '+sceneRight+'px 0 auto';host.style.width=sceneWidth+'px';host.style.height='100%';
       const count=+host.dataset.count;if(!count)return;
       const columns=count<=12?count:Math.ceil(Math.sqrt(count*sceneWidth/height)),rows=Math.ceil(count/columns),step=.94,lift=.12,rise=lift*Math.max(0,columns-1),unit=Math.min(sceneWidth/(1+step*(columns-1)),height/(rows*1.55+rise));
       const span=(1+step*(columns-1))*unit,base=(height-unit*(rows*1.55+rise))/2;host.style.setProperty('--sphere-size',unit+'px');
@@ -302,7 +302,7 @@ window.WinterArc = (function () {
     if (hs) { hs.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-frost wa-frost-hero" aria-hidden="true"></span>');
       let k = 0; hs.querySelectorAll('.hero-slide').forEach(sl => { const lb = (sl.querySelector('.hero-slide-label') || {}).textContent || '';
         const img = /фокус/i.test(lb) ? 'focus' : /цел/i.test(lb) ? 'peak3' : ['peak1', 'peak2', 'peak3'][k++ % 3];
-        sl.classList.toggle('wa-has-goals', !!sl.querySelector('.hero-goals-bar'));
+        sl.classList.toggle('wa-has-goals', !!sl.querySelector('.hero-goals-bar,.hero-slide-main .skv-track'));
         sl.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-sbg wa-sbg-' + img + '" style="--wa-slide-image:url(' + new URL('img/wa/' + img + '.webp', document.baseURI).href + ')" aria-hidden="true"><span class="wa-slide-soft"></span><span class="wa-slide-photo"></span></span>'); }); }
     /* полоса челленджа: день N из 92 (1 ноября – 31 января) */
     const grid = scr.querySelector('.home2-grid'); if (grid) grid.insertAdjacentHTML('beforebegin', arcHtml());

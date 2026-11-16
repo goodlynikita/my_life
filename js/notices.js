@@ -2,6 +2,7 @@
    ОБЪЯВЛЕНИЯ И ЛИЧНЫЕ СООБЩЕНИЯ ОТ КОМАНДЫ
    Личное: userIndex/{uid}/notice (из админки) → показываем один раз.
    Общее: settings/announcement {active, text, at} → один раз на устройстве.
+   Запуск Winter Arc: один раз для аккаунта на устройстве после публикации дизайна.
    ============================================================ */
 window.Notices = (function () {
   let shownThisSession = false;
@@ -28,12 +29,24 @@ window.Notices = (function () {
     const user = FirebaseSync.currentUser();
     if (!user || (FirebaseSync.isCoach && FirebaseSync.isCoach())) return;
     const personal = FirebaseSync.getNotice ? await FirebaseSync.getNotice(user) : null;
+    if (shownThisSession) return;
     if (personal) {
       shownThisSession = true;
       modal('Сообщение для тебя', personal.text, () => FirebaseSync.markNoticeSeen(user, personal.at));
       return;
     }
+    const releaseKey = 'nt_release_winter_arc_20261116:' + user.uid;
+    let releaseSeen = false;
+    try { releaseSeen = localStorage.getItem(releaseKey) === '1'; } catch (e) {}
+    if (!releaseSeen && window.WinterArc && WinterArc.available()) {
+      shownThisSession = true;
+      modal('Встречай Winter Arc', 'Второй дизайн YOU теперь доступен всем: ледяные иллюстрации, живые анимации и зимняя атмосфера.\n\nЧтобы включить, нажми снежинку вверху главного экрана. Вернуться к «Минималу» можно там же.', () => {
+        try { localStorage.setItem(releaseKey, '1'); } catch (e) {}
+      });
+      return;
+    }
     if (FirebaseSync.loadSettings) await FirebaseSync.loadSettings();
+    if (shownThisSession) return;
     const a = FirebaseSync.getAnnouncement ? FirebaseSync.getAnnouncement() : null;
     let seen = ''; try { seen = localStorage.getItem('nt_seen') || ''; } catch (e) {}
     /* кому показывать: всем, клиентам тренеров, без тренера, новичкам, по метке */

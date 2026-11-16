@@ -224,17 +224,54 @@ window.WinterArc = (function () {
     'home2-tile-tasks': taskArt,
   };
   function layoutIce(scr) {
+    const clearOfText = (x, y, radius, rects) => rects.every(rect => {
+      const dx = x - Math.max(rect.left - 5, Math.min(x, rect.right + 5));
+      const dy = y - Math.max(rect.top - 5, Math.min(y, rect.bottom + 5));
+      return dx * dx + dy * dy >= radius * radius;
+    });
+    scr.querySelectorAll('.home2-tile-training').forEach(tile => {
+      const art = tile.querySelector('.wa-ice-training'), title = tile.querySelector('.home2-tile-name');
+      if (!art || !title) return;
+      const box = tile.getBoundingClientRect();
+      const padding = parseFloat(getComputedStyle(tile.querySelector('.home2-tile-content')).paddingRight) || 14;
+      const ratio = 492 / 428, right = Math.max(4, padding * .35);
+      const rects = [...tile.querySelectorAll('.home2-tile-name,.home2-tile-desc:not(.wa-hide),.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
+      /* Два кристалла и рукоять вписываются в свободное место, сохраняя исходный рисунок. */
+      const fits = size => {
+        const left = box.right - right - size, top = box.top + tile.clientHeight - 4 - size / ratio;
+        const points = [[.31,.50,.24],[.74,.23,.21],...Array.from({ length: 6 }, (_, i) => [.33 + i * .078,.48 - i * .05,.04])];
+        return points.every(([x,y,r]) => clearOfText(left + x * size, top + y * size / ratio, r * size, rects));
+      };
+      let width = Math.min(220, tile.clientWidth * .6, (tile.clientHeight - 8) * ratio);
+      while (width > 4 && !fits(width)) width *= .97;
+      art.style.width = Math.max(1, width) + 'px'; art.style.right = right + 'px'; art.style.bottom = '4px';
+    });
     scr.querySelectorAll('.wa-ice-habits').forEach(host => {
       const count = +host.dataset.count; if (!count) return;
-      const width = host.clientWidth, height = host.clientHeight, ratio = 1.55;
+      const tile = host.closest('.home2-tile'), box = tile.getBoundingClientRect();
+      const padding = parseFloat(getComputedStyle(tile.querySelector('.home2-tile-content')).paddingLeft) || 14;
+      const top = 12, bottom = 3;
+      host.style.left = padding + 'px'; host.style.right = padding + 'px'; host.style.width = 'auto';
+      host.style.bottom = bottom + 'px'; host.style.height = Math.max(1, tile.clientHeight - top - bottom) + 'px';
+      const width = host.clientWidth, height = host.clientHeight, ratio = 1.35, step = .94, rise = .45;
       const columns = count <= 12 ? count : Math.ceil(Math.sqrt(count * width / height * 1.3));
-      const rows = Math.ceil(count / columns), span = 1.12 * Math.max(0, columns - 1) + 1;
-      const unit = Math.min(width / span, height / (rows * ratio + .32), 72);
+      const rows = Math.ceil(count / columns), span = step * Math.max(0, columns - 1) + 1;
+      const obstacles = [...tile.querySelectorAll('.home2-tile-name,.wa-met,.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
+      const ground = box.top + tile.clientHeight - bottom;
+      /* Диагональ может занять свободный угол над рядом, но сами шары не касаются текста. */
+      const fits = size => Array.from({ length: count }, (_, i) => {
+        const col = i % columns, row = Math.floor(i / columns);
+        const x = box.left + padding + (width - span * size) / 2 + col * size * step + size / 2;
+        const y = ground - (rows - row) * size * ratio - col / Math.max(1, columns - 1) * size * rise + size / 2;
+        return clearOfText(x, y, size * .46, obstacles);
+      }).every(Boolean);
+      let unit = Math.min(width / span, height / (rows * ratio + rise), 96);
+      while (unit > 4 && !fits(unit)) unit *= .97;
       host.style.setProperty('--sphere-size', Math.max(1, unit) + 'px');
       host.querySelectorAll('.wa-habit-sphere').forEach((sphere, i) => {
         const col = i % columns, row = Math.floor(i / columns);
-        sphere.style.left = ((width - span * unit) / 2 + col * unit * 1.12) + 'px';
-        sphere.style.bottom = ((rows - row - 1) * unit * ratio + col / Math.max(1, columns - 1) * unit * .32) + 'px';
+        sphere.style.left = ((width - span * unit) / 2 + col * unit * step) + 'px';
+        sphere.style.bottom = ((rows - row - 1) * unit * ratio + col / Math.max(1, columns - 1) * unit * rise) + 'px';
         sphere.style.zIndex = String(columns - col);
         sphere.style.setProperty('--sphere-phase', (-col * .38) + 's');
       });
@@ -345,6 +382,8 @@ window.WinterArc = (function () {
     const visible = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entries => entries.forEach(e => e.target.classList.toggle('wa-inview', e.isIntersecting)), { threshold: .1 }) : null;
     cards.forEach(card => { if (visible) visible.observe(card); else card.classList.add('wa-inview'); });
     let disposed = false, pageHidden = false;
+    const sizing = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { if (!disposed && scr.isConnected) layoutIce(scr); }) : null;
+    cards.filter(card => card.matches('.home2-tile-training,.home2-tile-habits')).forEach(card => { sizing?.observe(card); const title = card.querySelector('.home2-tile-name'); if (title) sizing?.observe(title); });
     const reconcile = () => {
       if (disposed) return;
       if (!scr.isConnected) { cleanup(); return; }
@@ -362,7 +401,7 @@ window.WinterArc = (function () {
       removeEventListener('resize', resize); removeEventListener('pagehide', hide); removeEventListener('pageshow', show);
       document.removeEventListener('visibilitychange', reconcile);
       if (reduced?.removeEventListener) reduced.removeEventListener('change', reconcile); else reduced?.removeListener(reconcile);
-      clearInterval(iceClock); visible?.disconnect(); removed.disconnect();
+      clearInterval(iceClock); visible?.disconnect(); sizing?.disconnect(); removed.disconnect();
       cancelAnimationFrame(frame); frame = 0; canvas.remove();
       cards.forEach(card => card.classList.remove('wa-inview')); scr.classList.remove('wa-motion-paused');
       if (_motionCleanup === cleanup) _motionCleanup = null;

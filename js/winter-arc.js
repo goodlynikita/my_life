@@ -216,12 +216,12 @@ window.WinterArc = (function () {
     'home2-tile-goals': () => iceStatic('goals', '<span class="wa-goal-hit"><span></span></span>'),
     'home2-tile-habits': st => {
       const list = ICE_DATA.habits(st, new Date());
-      return '<span class="wa-ice-habits" data-count="' + list.length + '"><span class="wa-hab-floor"></span>' + list.map(item => {
+      return '<span class="wa-ice-habits" data-count="' + list.length + '"><span class="wa-hab-floor"></span>' + list.map((item, index) => {
         const target = item.done ? 1 : 0, old = iceMemory.habits.get(item.id), now = performance.now();
-        const state = old && old.value === target ? old : { value: target, from: old ? old.value : 0, at: now };
+        const state = iceMemory.replay && target ? { value:target, from:0, at:now+Math.min(index,6)*110 } : old && old.value === target ? old : { value:target, from:old?old.value:0, at:now };
         iceMemory.habits.set(item.id, state);
-        const elapsed = Math.min(1050, now - state.at), from = elapsed < 1050 ? state.from : target;
-        return '<span class="wa-habit-sphere' + (item.done ? ' on' : '') + '" data-habit-id="' + esc(item.id) + '" style="--from-lit:' + from + ';--to-lit:' + target + ';--lit-delay:-' + Math.round(elapsed) + 'ms"><span class="wa-sphere-dim"></span><span class="wa-sphere-lit"></span><span class="wa-sphere-breathe"></span></span>';
+        const age = now - state.at, elapsed = Math.min(1050, age), from = elapsed < 1050 ? state.from : target;
+        return '<span class="wa-habit-sphere' + (item.done ? ' on' : '') + '" data-habit-id="' + esc(item.id) + '" style="--from-lit:' + from + ';--to-lit:' + target + ';--lit-delay:' + Math.round(-elapsed) + 'ms;--breathe-delay:' + Math.round(1050-age) + 'ms"><span class="wa-sphere-dim"></span><span class="wa-sphere-lit"></span><span class="wa-sphere-breathe"></span></span>';
       }).join('') + '</span>';
     },
     'home2-tile-finance': st => {
@@ -232,79 +232,39 @@ window.WinterArc = (function () {
     },
     'home2-tile-tasks': taskArt,
   };
+  /* Одна область и один масштаб для всех пяти иллюстраций. */
   function layoutIce(scr) {
-    const clearOfText = (x, y, radius, rects) => rects.every(rect => {
-      const dx = x - Math.max(rect.left - 5, Math.min(x, rect.right + 5));
-      const dy = y - Math.max(rect.top - 5, Math.min(y, rect.bottom + 5));
-      return dx * dx + dy * dy >= radius * radius;
-    });
-    scr.querySelectorAll('.home2-tile-training').forEach(tile => {
-      const art = tile.querySelector('.wa-ice-training'), title = tile.querySelector('.home2-tile-name');
-      if (!art || !title) return;
-      const box = tile.getBoundingClientRect();
-      const padding = parseFloat(getComputedStyle(tile.querySelector('.home2-tile-content')).paddingRight) || 14;
-      const ratio = 492 / 428, right = Math.max(4, padding * .35);
-      const rects = [...tile.querySelectorAll('.home2-tile-name,.home2-tile-desc:not(.wa-hide),.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
-      /* Два кристалла и рукоять вписываются в свободное место, сохраняя исходный рисунок. */
-      const fits = size => {
-        const left = box.right - right - size, top = box.top + tile.clientHeight - 4 - size / ratio;
-        const points = [[.31,.50,.24],[.74,.23,.21],...Array.from({ length: 6 }, (_, i) => [.33 + i * .078,.48 - i * .05,.04])];
-        return points.every(([x,y,r]) => clearOfText(left + x * size, top + y * size / ratio, r * size, rects));
-      };
-      let width = Math.min(220, tile.clientWidth * .6, (tile.clientHeight - 8) * ratio);
-      while (width > 4 && !fits(width)) width *= .97;
-      art.style.width = Math.max(1, width) + 'px'; art.style.right = right + 'px'; art.style.bottom = '4px';
-    });
-    const scenes = {
-      finance: { ratio: 492 / 412, cap: 166, fraction: .54, boxes: [[.04,.48,.24,.68],[.22,.39,.42,.67],[.40,.28,.60,.65],[.58,.14,.78,.63],[.76,.02,.96,.61]] },
-      goals: { ratio: 492 / 496, cap: 166, fraction: .6, points: [[.465,.486,.325],...Array.from({ length: 7 }, (_, i) => [.52 + i * .06,.47 - i * .07,.025])] },
-      tasks: { ratio: 492 / 456, cap: 182, fraction: .6, points: [[.33,.48,.27],[.65,.24,.24]] },
+    const cards = [...scr.querySelectorAll('.home2-grid .home2-tile:not(.tile-hidden)')].filter(t => t.clientWidth && t.querySelector('.wa-art'));
+    if (!cards.length) return;
+    const minWidth = Math.min(...cards.map(t => t.clientWidth)), minHeight = Math.min(...cards.map(t => t.clientHeight));
+    const ratio = 492 / 428, right = 4, bottom = minWidth < 220 ? 16 : 4;
+    cards.forEach(tile => { const desc=tile.querySelector('.home2-tile-desc');if(desc)desc.style.maxWidth='';const metric=tile.querySelector('.wa-met');if(metric){metric.style.maxWidth='';const b=metric.querySelector('b');if(b)b.style.fontSize='';} });
+    const training = cards.find(t => t.classList.contains('home2-tile-training')) || cards.reduce((a,b) => a.clientWidth < b.clientWidth ? a : b);
+    const bounds = training.getBoundingClientRect();
+    const text = [...training.querySelectorAll('.home2-tile-name,.home2-tile-desc:not(.wa-hide),.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
+    const fits = size => {
+      const x0 = bounds.right - right - size, y0 = bounds.top + training.clientHeight - bottom - size / ratio;
+      return [[.31,.5,.24],[.74,.23,.21],...Array.from({length:6},(_,i)=>[.33+i*.078,.48-i*.05,.04])].every(([x,y,r]) => text.every(rect => {
+        const cx=x0+x*size,cy=y0+y*size/ratio,dx=cx-Math.max(rect.left-5,Math.min(cx,rect.right+5)),dy=cy-Math.max(rect.top-5,Math.min(cy,rect.bottom+5));
+        return dx*dx+dy*dy >= (r*size)**2;
+      }));
     };
-    Object.entries(scenes).forEach(([key, scene]) => scr.querySelectorAll('.home2-tile-' + key).forEach(tile => {
-      const art = tile.querySelector('.wa-ice-' + key); if (!art) return;
-      const box = tile.getBoundingClientRect(), right = 4, bottom = tile.clientWidth < 220 ? 20 : 4;
-      const rects = [...tile.querySelectorAll('.home2-tile-name,.home2-tile-desc:not(.wa-hide),.wa-met,.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
-      const fits = size => {
-        const left = box.right - right - size, top = box.top + tile.clientHeight - bottom - size / scene.ratio;
-        if (scene.points) return scene.points.every(([x,y,r]) => clearOfText(left + x * size, top + y * size / scene.ratio, r * size, rects));
-        return scene.boxes.every(([x1,y1,x2,y2]) => rects.every(rect => left + x2 * size < rect.left - 5 || left + x1 * size > rect.right + 5 || top + y2 * size / scene.ratio < rect.top - 5 || top + y1 * size / scene.ratio > rect.bottom + 5));
-      };
-      let width = Math.min(scene.cap, tile.clientWidth * scene.fraction, (tile.clientHeight - bottom - 4) * scene.ratio);
-      while (width > 4 && !fits(width)) width *= .97;
-      art.style.width = Math.max(1, width) + 'px'; art.style.right = right + 'px'; art.style.bottom = bottom + 'px';
-    }));
-    scr.querySelectorAll('.wa-ice-habits').forEach(host => {
-      const count = +host.dataset.count; if (!count) return;
-      const tile = host.closest('.home2-tile'), box = tile.getBoundingClientRect();
-      const padding = parseFloat(getComputedStyle(tile.querySelector('.home2-tile-content')).paddingLeft) || 14;
-      const top = 12, bottom = 3;
-      host.style.left = padding + 'px'; host.style.right = padding + 'px'; host.style.width = 'auto';
-      host.style.bottom = bottom + 'px'; host.style.height = Math.max(1, tile.clientHeight - top - bottom) + 'px';
-      const width = host.clientWidth, height = host.clientHeight, ratio = 1.55, step = 1.02, rise = .65;
-      const columns = count <= 12 ? count : Math.ceil(Math.sqrt(count * width / height * 1.3));
-      const rows = Math.ceil(count / columns), span = step * Math.max(0, columns - 1) + 1;
-      const obstacles = [...tile.querySelectorAll('.home2-tile-name,.wa-met,.wa-n,.wa-rule')].map(el => el.getBoundingClientRect());
-      const ground = box.top + tile.clientHeight - bottom;
-      /* Диагональ может занять свободный угол над рядом, но сами шары не касаются текста. */
-      const fits = size => Array.from({ length: count }, (_, i) => {
-        const col = i % columns, row = Math.floor(i / columns);
-        const x = box.left + padding + (width - span * size) / 2 + col * size * step + size / 2;
-        const y = ground - (rows - row) * size * ratio - col / Math.max(1, columns - 1) * size * rise + size / 2;
-        return clearOfText(x, y, size * .46, obstacles);
-      }).every(Boolean);
-      let unit = Math.min(width / span, height / (rows * ratio + rise), 96);
-      while (unit > 4 && !fits(unit)) unit *= .97;
-      host.style.setProperty('--sphere-size', Math.max(1, unit) + 'px');
-      const floor = host.querySelector('.wa-hab-floor');
-      if (floor) { floor.style.left = ((width - span * unit) / 2 - unit * .2) + 'px'; floor.style.width = (span * unit + unit * .4) + 'px'; floor.style.height = (unit * .9) + 'px'; floor.style.bottom = (unit * .3) + 'px'; }
-      host.querySelectorAll('.wa-habit-sphere').forEach((sphere, i) => {
-        const col = i % columns, row = Math.floor(i / columns);
-        sphere.style.left = ((width - span * unit) / 2 + col * unit * step) + 'px';
-        sphere.style.bottom = ((rows - row - 1) * unit * ratio + col / Math.max(1, columns - 1) * unit * rise) + 'px';
-        sphere.style.zIndex = String(columns - col);
-        sphere.style.setProperty('--sphere-phase', (-col * .38) + 's');
-      });
+    let size = Math.min(166, minWidth * .6, (minHeight - 8) * ratio);
+    while (size > 4 && !fits(size)) size *= .97;
+    const height = size / ratio, aspect = {training:492/428,finance:492/412,goals:492/496,tasks:492/456};
+    cards.forEach(tile => {
+      const frame=tile.querySelector('.wa-art'); frame.style.inset='auto '+right+'px '+bottom+'px auto';frame.style.width=size+'px';frame.style.height=height+'px';
+      tile.style.setProperty('--wa-icon-size',size+'px');
+      Object.entries(aspect).forEach(([key,ar])=>{const art=frame.querySelector('.wa-ice-'+key);if(!art)return;const width=Math.min(size,height*ar);art.style.width=width+'px';art.style.height=(width/ar)+'px';art.style.right=((size-width)/2)+'px';art.style.bottom='0';});
+      const host=frame.querySelector('.wa-ice-habits');if(!host)return;
+      host.style.inset='0';host.style.width='100%';host.style.height='100%';
+      const count=+host.dataset.count;if(!count)return;
+      const columns=count<=12?count:Math.ceil(Math.sqrt(count*size/height)),rows=Math.ceil(count/columns),step=.94,lift=.12,rise=lift*Math.max(0,columns-1),unit=Math.min(size/(1+step*(columns-1)),height/(rows*1.55+rise));
+      const span=(1+step*(columns-1))*unit;host.style.setProperty('--sphere-size',unit+'px');
+      host.querySelectorAll('.wa-habit-sphere').forEach((sphere,i)=>{const col=i%columns,row=Math.floor(i/columns);sphere.style.left=((size-span)/2+col*unit*step)+'px';sphere.style.bottom=((rows-row-1)*unit*1.55+col*unit*lift)+'px';sphere.style.zIndex=String(columns-col);});
+      const floor=host.querySelector('.wa-hab-floor');if(floor){floor.style.left=((size-span)/2-unit*.15)+'px';floor.style.width=(span+unit*.3)+'px';floor.style.height=(unit*.9)+'px';floor.style.bottom=(unit*(.3+rise/2))+'px';floor.style.transform='rotate('+(-Math.atan(lift/step)*180/Math.PI)+'deg)';}
     });
+
   }
   function refreshIceClock(scr) {
     if (iceMemory.day !== today() && typeof Router !== 'undefined') { window.__keepUi = true; try { Router.render({ keepScroll: true }); } finally { window.__keepUi = false; } return false; }
@@ -314,6 +274,7 @@ window.WinterArc = (function () {
   }
 
   function decorate(mount, st) {
+    const replay = !_motionCleanup;
     stopMotion();
     const scr = mount && mount.querySelector('.home2-screen'); if (!scr) return;
     applyAttr(); keepDark(); /* владелец известен только после входа: пересчитываем доступность */
@@ -321,7 +282,7 @@ window.WinterArc = (function () {
     if (!isOn()) return;
     loadOrbMedia();
     st = st || (typeof Store !== 'undefined' ? Store.get() : {});
-    iceDay();
+    iceDay(); iceMemory.replay = replay;
     let n = 0;
     scr.querySelectorAll('.home2-grid .home2-tile').forEach(t => {
       if (t.classList.contains('tile-hidden')) return; n++;
@@ -341,7 +302,7 @@ window.WinterArc = (function () {
       let k = 0; hs.querySelectorAll('.hero-slide').forEach(sl => { const lb = (sl.querySelector('.hero-slide-label') || {}).textContent || '';
         const img = /фокус/i.test(lb) ? 'focus' : /цел/i.test(lb) ? 'peak3' : ['peak1', 'peak2', 'peak3'][k++ % 3];
         sl.classList.toggle('wa-has-goals', !!sl.querySelector('.hero-goals-bar'));
-        sl.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-sbg wa-sbg-' + img + '" style="background-image:url(img/wa/' + img + '.webp)" aria-hidden="true"></span>'); }); }
+        sl.insertAdjacentHTML('afterbegin', '<span class="wa-x wa-sbg wa-sbg-' + img + '" style="--wa-slide-image:url(' + new URL('img/wa/' + img + '.webp', document.baseURI).href + ')" aria-hidden="true"><span class="wa-slide-soft"></span><span class="wa-slide-photo"></span></span>'); }); }
     /* полоса челленджа: день N из 92 (1 ноября – 31 января) */
     const grid = scr.querySelector('.home2-grid'); if (grid) grid.insertAdjacentHTML('beforebegin', arcHtml());
     layoutIce(scr);
@@ -413,7 +374,7 @@ window.WinterArc = (function () {
     cards.forEach(card => { if (visible) visible.observe(card); else card.classList.add('wa-inview'); });
     let disposed = false, pageHidden = false;
     const sizing = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { if (!disposed && scr.isConnected) layoutIce(scr); }) : null;
-    cards.forEach(card => { sizing?.observe(card); const title = card.querySelector('.home2-tile-name'); if (title) sizing?.observe(title); });
+    cards.forEach(card => { sizing?.observe(card); card.querySelectorAll('.home2-tile-name,.home2-tile-desc,.wa-met').forEach(el=>sizing?.observe(el)); });
     const reconcile = () => {
       if (disposed) return;
       if (!scr.isConnected) { cleanup(); return; }

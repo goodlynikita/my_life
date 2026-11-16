@@ -61,8 +61,8 @@ window.Screens.home = function(mount) {
     + '<div class="home2-header">'
     + (window.Feedback ? Feedback.buttonHtml('fb-envelope-home') : '')
     + (window.WinterArc ? WinterArc.html() : '')
-    + '<button id="home-theme-btn" class="theme-toggle" data-mode="'+(isLight?'light':'dark')+'" aria-label="Тема: светлая / тёмная" title="Светлая / тёмная тема">'
-    +   '<span class="tt-ico tt-sun">☀️</span><span class="tt-ico tt-moon">🌙</span><span class="tt-knob"></span>'
+    + '<button id="home-theme-btn" type="button" class="theme-toggle" role="switch" aria-checked="'+isLight+'" data-mode="'+(isLight?'light':'dark')+'" aria-label="Светлая тема" title="Светлая / тёмная тема">'
+    +   '<span class="tt-ico tt-sun" aria-hidden="true"><i class="ti ti-sun"></i></span><span class="tt-ico tt-moon" aria-hidden="true"><i class="ti ti-moon"></i></span><span class="tt-knob" aria-hidden="true"></span>'
     + '</button>'
     + '<button id="home-menu-btn" class="home-menu-btn" aria-label="Меню"><span></span><span></span><span></span></button>'
     + '</div>'
@@ -102,8 +102,7 @@ window.Screens.home = function(mount) {
   var themeBtn = document.getElementById('home-theme-btn');
   if (themeBtn) themeBtn.addEventListener('click', function() {
     var next = (window.Theme && window.Theme.get() === 'light') ? 'dark' : 'light';
-    themeBtn.dataset.mode = next;
-    setTimeout(function(){ window.Theme && window.Theme.set(next); }, 180);
+    if (window.Theme) window.Theme.set(next);
   });
 
   // Единое меню

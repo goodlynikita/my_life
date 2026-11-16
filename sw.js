@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v321';
+const CACHE = 'nik-system-v322';
 const HERO_MEDIA_CACHE = 'nik-hero-media-v1';
 
 const STATIC = [

@@ -693,13 +693,12 @@ html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe) { p
 html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe)::before { content:'';position:absolute;left:0;top:0;width:100%;aspect-ratio:1;background:var(--wa-orb-source) var(--orb-x) var(--wa-orb-y)/var(--wa-orb-size) no-repeat;mask-image:radial-gradient(circle closest-side,#000 97%,transparent);-webkit-mask-image:radial-gradient(circle closest-side,#000 97%,transparent); }
 /* В отражении тот же шар, сжатый по глубине и плавно растворённый в общей поверхности. */
 html[data-design="wa"] :is(.wa-sphere-dim,.wa-sphere-lit,.wa-sphere-breathe)::after { content:'';position:absolute;left:0;top:63.870968%;width:100%;height:64.516129%;background:var(--wa-orb-source) var(--orb-x) var(--wa-orb-y)/var(--wa-orb-size) no-repeat;transform:scaleY(-1);filter:blur(calc(var(--sphere-size,28px) * .025));opacity:.62;mask-image:linear-gradient(0deg,#000b,#0004 16%,transparent 48%);-webkit-mask-image:linear-gradient(0deg,#000b,#0004 16%,transparent 48%); }
-html[data-design="wa"] .wa-sphere-dim { --orb-x:var(--wa-orb-off);opacity:1;filter:brightness(.48) saturate(.65); }
-html[data-design="wa"] .wa-sphere-dim::after { opacity:.3; }
+html[data-design="wa"] .wa-sphere-dim { --orb-x:var(--wa-orb-off);opacity:1;filter:brightness(.44) saturate(.25); }
+html[data-design="wa"] .wa-sphere-dim::after { opacity:0; }
 html[data-design="wa"] .wa-sphere-lit { opacity:var(--to-lit);animation:waSphereLight 1.05s ease-out both!important;animation-delay:var(--lit-delay,0s)!important;animation-play-state:var(--wa-play)!important; }
 html[data-design="wa"] .wa-sphere-breathe { opacity:0;filter:brightness(1.15); }
-html[data-design="wa"] .wa-habit-sphere.on .wa-sphere-breathe { animation:waHabitBreath 3.4s var(--sphere-phase) ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
-html[data-design="wa"] .wa-hab-floor { display:block;position:absolute;background:radial-gradient(ellipse,#a8c7ce1f,transparent 72%);transform:rotate(-6deg);pointer-events:none; }
-html[data-design="wa"] .home2-tile-habits .wa-met { position:absolute;top:18px;right:22px;margin:0;align-items:center;gap:6px; }
+html[data-design="wa"] .wa-habit-sphere.on .wa-sphere-breathe { animation:waHabitBreath 3.4s ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
+html[data-design="wa"] .wa-hab-floor { display:block;position:absolute;background:radial-gradient(ellipse,#a8b5be0e,transparent 72%);transform:rotate(-6deg);pointer-events:none; }
 @keyframes waHabitBreath { 0%,100%{opacity:.02}45%,60%{opacity:.28} }
 html[data-design="wa"] .wa-ice-finance .wa-ice-base { animation:waIncomeTone 6s ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
 html[data-design="wa"] .wa-ice-finance:is([data-finance-state="unknown"],[data-finance-state="neutral"]) .wa-ice-base { animation:none!important; }
@@ -733,9 +732,6 @@ html[data-design="wa"] .tkl .tk-hdr,html[data-design="wa"] .tkl .tk-hb { color:v
  html[data-design="wa"] .wa-ice-finance { width:88px;right:1px;bottom:20px; }
  html[data-design="wa"] .wa-ice-tasks { width:145px;right:4px;bottom:1px; }
  html[data-design="wa"] .wa-ice-habits { width:83%;height:61px;right:2px;bottom:28px; }
- html[data-design="wa"] .home2-tile-habits .wa-met { top:12px;right:14px; }
- html[data-design="wa"] .home2-tile-habits .wa-met b { font-size:min(22px,12cqw); }
- html[data-design="wa"] .home2-tile-habits .wa-met span { font-size:8px; }
  html[data-design="wa"] .hero-dots { right:auto!important; }
  html[data-design="wa"] .hero-dot { flex-basis:20px;width:20px!important; }
  .tr-header>div:last-child { gap:4px!important; }
@@ -750,11 +746,26 @@ html[data-design="wa"] .tkl .tk-hdr,html[data-design="wa"] .tkl .tk-hb { color:v
 @media(prefers-reduced-motion:reduce){html[data-design="wa"] .home2-tile .wa-art :is(.wa-ice-base,.wa-training-light,.wa-sphere-lit,.wa-sphere-breathe,.wa-goal-hit,.wa-goal-hit>span){animation:none!important}}
 
 html[data-design="wa"] :is(.wa-training-light,.wa-goal-hit>span,.wa-goal-hit::before),html[data-design="wa"] .wa-ice-finance .wa-ice-base { animation-delay:var(--wa-phase,0s)!important; }
-html[data-design="wa"] .wa-habit-sphere.on .wa-sphere-breathe { animation-delay:calc(var(--wa-phase,0s) + var(--sphere-phase,0s))!important; }
-html[data-design="wa"] .hero-slide .wa-sbg { opacity:1!important;mask-image:linear-gradient(90deg,transparent,#0009 24%,#000 48%);-webkit-mask-image:linear-gradient(90deg,transparent,#0009 24%,#000 48%); }
+html[data-design="wa"] .wa-habit-sphere.on .wa-sphere-breathe { animation-delay:var(--breathe-delay,0ms)!important; }
+/* У всех иллюстраций общий размер и общая нижняя линия. */
+html[data-design="wa"] .home2-grid .wa-art { inset:auto 4px 4px auto; }
+html[data-design="wa"] .home2-grid .wa-met { position:relative;top:auto;right:auto;margin-top:auto;align-items:baseline;gap:6px; }
+/* Мягкий слой уходит за край резкого изображения, поэтому вертикального стыка нет. */
+html[data-design="wa"] .hero-slide .wa-sbg,html[data-design="wa"] .hero-slide .wa-sbg-focus { inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;background:none;opacity:1!important;mask-image:none;-webkit-mask-image:none;filter:none; }
+html[data-design="wa"] .wa-sbg>span { position:absolute;top:0;right:0;height:100%;background-image:var(--wa-slide-image);background-repeat:no-repeat;pointer-events:none; }
+html[data-design="wa"] .wa-slide-photo { width:72%;background-size:100% auto;background-position:center 12%;mask-image:linear-gradient(90deg,transparent,#0000 5%,#0003 24%,#0009 48%,#000f 76%);-webkit-mask-image:linear-gradient(90deg,transparent,#0000 5%,#0003 24%,#0009 48%,#000f 76%); }
+html[data-design="wa"] .wa-slide-soft { width:86%;right:-3%!important;top:-12%!important;height:124%!important;background-size:cover;background-position:center 25%;filter:blur(24px);opacity:.62;mask-image:linear-gradient(90deg,transparent,#0004 28%,#000 72%);-webkit-mask-image:linear-gradient(90deg,transparent,#0004 28%,#000 72%); }
+html[data-design="wa"] .wa-sbg-focus .wa-slide-photo { background-size:cover;background-position:center 38%; }
+html[data-design="wa"] .hero-goals-bar { display:block;width:100%;max-width:none;background:#c7d7ed40!important;box-shadow:0 1px 4px #0008,inset 0 0 0 1px #e0edff10; }
+html[data-design="wa"] #gm-bar .gm-bar-line { background:#637a9b55; }
 html[data-design="wa"] .hero-slide-sub { max-width:66%; }
 @media(max-width:600px){
- html[data-design="wa"] .wa-sbg:not(.wa-sbg-focus){width:82%;height:100%;max-width:none;background-size:auto 100%;background-position:right top;}
- html[data-design="wa"] .hero-slide .wa-sbg { mask-image:linear-gradient(90deg,transparent,#0005 27%,#000 62%);-webkit-mask-image:linear-gradient(90deg,transparent,#0005 27%,#000 62%); }
+ html[data-design="wa"] .wa-slide-photo { width:90%;background-size:100% auto;background-position:center top; }
+ html[data-design="wa"] .wa-slide-soft { width:100%;filter:blur(18px); }
+ html[data-design="wa"] .wa-sbg-focus .wa-slide-photo { background-size:cover;background-position:center; }
  html[data-design="wa"] .hero-slide-sub { max-width:100%; }
 }
+
+/* Второй расходящийся импульс остаётся на плоскости мишени. */
+html[data-design="wa"] .wa-goal-hit::after { content:'';position:absolute;inset:0;border:1px solid #d4ffffb3;border-radius:50%;box-shadow:0 0 7px #a7f7fa66;opacity:0;animation:waGoalImpact 4.2s ease-out infinite!important;animation-delay:calc(var(--wa-phase,0ms) + 220ms)!important;animation-play-state:var(--wa-play)!important; }
+html[data-design="wa"] .wa-frost-hero { opacity:.16; }

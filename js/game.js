@@ -619,7 +619,7 @@ window.Game = (function () {
   }
 
   const BGS = [
-    { id:'base',n:'Студия',scene:0 },{ id:'dawn',n:'Рассвет',a:'hab30',scene:1 },{ id:'ice',n:'Горный воздух',l:20,scene:2 },{ id:'night',n:'Ночной город',a:'tr50',scene:3 },{ id:'aurora',n:'Сияние',a:'st30',scene:4 },{ id:'gold',n:'Золотой час',a:'goal1',scene:5 },
+    { id:'base',n:'Минимал' },{ id:'winter',n:'Winter Arc' },{ id:'dawn',n:'Рассвет',a:'hab30',scene:1 },{ id:'ice',n:'Горный воздух',l:20,scene:2 },{ id:'night',n:'Ночной город',a:'tr50',scene:3 },{ id:'aurora',n:'Сияние',a:'st30',scene:4 },{ id:'gold',n:'Золотой час',a:'goal1',scene:5 },
     { id:'gym',n:'Тренировочная база',a:'tr10',scene:6 },{ id:'library',n:'Библиотека',a:'task10',scene:7 },{ id:'workshop',n:'Мастерская',a:'money7',scene:8 },{ id:'harbor',n:'Тихая гавань',scene:9 },{ id:'garden',n:'Оранжерея',a:'hab7',scene:10 },{ id:'summit',n:'Вершина',a:'goal3',scene:11 }
   ];
   const FRS = [
@@ -648,6 +648,8 @@ window.Game = (function () {
     return `<svg class="gm-pod2" viewBox="0 0 160 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c[0]}"/><stop offset=".5" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></linearGradient></defs><ellipse cx="80" cy="16" rx="76" ry="12" fill="none" stroke="url(#${id})" stroke-width="3"/></svg>`; }
   const frameWrap = (html, fr) => `<span class="gm-fr fr-${fr}">${html}</span>`;
   function fxHtml(bg,thumb) {
+    if(bg==='base') return '';
+    if(bg==='winter') return '<span class="gm-winter-scene" aria-hidden="true"><i></i></span>';
     const scene=(BGS.find(b=>b.id===bg)||BGS[0]).scene;
     return `<span class="gm-scene" style="--scene-x:${scene%3*50}%;--scene-y:${Math.floor(scene/3)*100/3}%"></span>${thumb?'':`<div class="gm-fx gm-atmosphere" data-atmo="${bg}"><i></i><i></i><i></i></div>`}`;
   }
@@ -803,19 +805,8 @@ window.Game = (function () {
     /* календарь месяца */
     const y = now.getFullYear(), m = now.getMonth(), first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, dim = new Date(y, m + 1, 0).getDate();
     let cal = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'].map(d => `<span class="h">${d}</span>`).join('') + '<span class="e"></span>'.repeat(lead);
-    let okN = 0;
     for (let d = 1; d <= dim; d++) { const k = y + '-' + p2(m + 1) + '-' + p2(d), st = S.s.st[k] || '';
-      if (st === 'ok') okN++;
-      cal += `<span class="${st}${st === 'ok' ? heat(dayXp[k]) : ''}${k === today ? ' td' : ''}${k > today ? ' fu' : ''}">${d}</span>`; }
-    /* неделя */
-    const wk = []; for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setDate(d.getDate() - i); wk.push(d); }
-    const wSum = wk.reduce((a, d) => a + (dayXp[ymd(d)] || 0), 0);
-    let pSum = 0; for (let i = 7; i <= 13; i++) { const d = new Date(now); d.setDate(d.getDate() - i); pSum += dayXp[ymd(d)] || 0; }
-    const wMax = Math.max(100, ...wk.map(d => dayXp[ymd(d)] || 0));
-    const wDiff = pSum ? Math.round((wSum - pSum) / pSum * 100) : 0;
-    const weekHtml = wk.map(d => { const k = ymd(d), t = dayXp[k] || 0, sk = daySk[k] || {};
-      const seg = SKO.filter(x => sk[x]).map(x => `<i style="height:${(sk[x] / wMax * 100).toFixed(1)}%;background:${SK[x].color}"></i>`).join('');
-      return `<div class="gm-wd${k === today ? ' td' : ''}"><b>${t ? num(t) : ''}</b><div class="gm-wb">${seg}</div><span>${DOW[d.getDay()]}</span></div>`; }).join('');
+      cal += `<button data-rhythm-day="${k}" aria-label="${d} ${MON[m]}, ${dayXp[k] || 0} XP" aria-expanded="false" class="${st}${st === 'ok' ? heat(dayXp[k]) : ''}${k === today ? ' td' : ''}${k > today ? ' fu' : ''}"${k > today ? ' disabled' : ''}>${d}</button>`; }
     /* путь обликов */
     const pathHtml = TITLES.map((t, i) => { const st = i < S.stage ? 'past' : i === S.stage ? 'cur' : 'lock';
       return `<div class="gm-pst ${st}${i === lookOf(S) ? ' worn' : ''}" style="--gc:${GLOW[i]}"${st === 'lock' ? '' : ` data-look="${i}"`}>${heroImg(c.sex, i, 'tn')}${st === 'lock' ? '<span class="gm-lk"><i class="ti ti-lock"></i></span>' : ''}<b>${t[1]}</b><small>${st === 'lock' ? 'с ' + t[0] + ' ур.' : st === 'cur' ? 'сейчас' : 'пройден'}</small></div>`; }).join('');
@@ -850,7 +841,6 @@ window.Game = (function () {
       ${nItems.length ? `<button class="gm-nw" id="gm-nitems" style="--c:#EAB308"><span class="gm-nwi"><i class="ti ti-hanger"></i></span><span class="gm-nwm"><b>Новое в шкафчике: ${nItems.length}</b><small>${esc(nItems.slice(-3).reverse().map(n => { const it = wrItems(S).find(i => i.key === n.item); return it ? it.name : ''; }).filter(Boolean).join(', '))}</small></span><i class="ti ti-chevron-right"></i></button>` : ''}
       ${nRest.slice().reverse().map(n => { const v = (NEWS[n.kind] || (() => null))(n); return v ? `<button class="gm-nw" data-news="${esc(n.key)}" style="--c:${v.c}"><span class="gm-nwi"><i class="ti ${v.ico}"></i></span><span class="gm-nwm"><b>${esc(v.t)}</b><small>${esc(v.s)}</small></span><i class="ti ti-chevron-right"></i></button>` : ''; }).join('')}</div>` : '';
     const repairHtml = repair ? `<div class="gm-card gm-repair"><span class="gm-rpi"><i class="ti ti-flame"></i></span><div><b>Верни серию ${repair} ${pl(repair, 'день', 'дня', 'дней')}</b><small>закрой все квесты сегодня</small></div></div>` : '';
-    const perfectWk = wk.every(d => S.s.st[ymd(d)] === 'ok');
     const nextLv = S.L.lvl + 1;
     const ak = auraSk(S);
     const lk = lookOf(S), bg = bgOf(S), fr = frOf(S), wi = wrItems(S), wNew = wi.filter(i => i.ok && !i.base && !c.seenItems.includes(i.key)).length;
@@ -884,16 +874,29 @@ window.Game = (function () {
           <div class="gm-card"><div class="gm-h"><b>Путь</b><span>${S.stage + 1} из 5</span></div>
             <div class="gm-path"><div class="gm-pline"><i style="width:${pathPct}%"></i></div>${pathHtml}</div></div>
           ${wrHtml}
-          <div class="gm-card gm-rhythm"><div class="gm-h"><b>Ритм${perfectWk ? ' <u class="gm-pw"><i class="ti ti-crown"></i>идеальная</u>' : ''}</b><span>+${num(wSum)} XP${pSum ? ` · <em class="${wDiff >= 0 ? 'up' : 'dn'}">${wDiff >= 0 ? '+' : ''}${wDiff}%</em>` : ''}</span></div>
-            <div class="gm-week">${weekHtml}</div><details class="gm-rhythm-month"><summary>Серия · ${MON[m]}<i class="ti ti-chevron-down"></i></summary><div class="gm-h"><b>${S.s.cur} ${pl(S.s.cur,'день','дня','дней')} подряд</b><span>${okN} ${pl(okN, 'день', 'дня', 'дней')} · рекорд ${S.s.best}</span></div>
+          <div class="gm-card gm-rhythm"><div class="gm-h"><b>Серия · ${MON[m]}</b><span>${S.s.cur} ${pl(S.s.cur,'день','дня','дней')} · рекорд ${S.s.best}</span></div>
             <div class="gm-cal">${cal}</div>
-            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span>${Object.values(S.s.st).includes('rep') ? '<span><i class="rep"></i>вернул</span>' : ''}</div></details></div>
+            <div class="gm-leg"><span><i class="ok x1"></i><i class="ok x4"></i>было дело</span><span><i class="sh"></i>спас щит</span><span><i class="rest"></i>отдых</span>${Object.values(S.s.st).includes('rep') ? '<span><i class="rep"></i>вернул</span>' : ''}</div>
+            <div class="gm-rhythm-week" id="gm-rhythm-week" hidden></div></div>
           ${S.todayEv.length ? `<div class="gm-card"><div class="gm-h"><b>Сегодня</b><span>+${num(S.todayXp)} XP</span></div>${S.todayEv.slice(-8).reverse().map(e => `<div class="gm-ev" style="--c:${SK[e.sk].color}"><span class="gm-evi"><i class="ti ${SK[e.sk].ico}"></i></span><span>${esc(e.t)}</span><b>+${e.xp}</b></div>`).join('')}</div>` : ''}
         </div>
         <div class="gm-card gm-wide"><div class="gm-h"><b>Достижения</b><span>${achN} из ${ach.length}</span></div>
           <div class="gm-ach-filter"><button data-ach-view="all" class="on">Все</button><button data-ach-view="ok">Получено</button><button data-ach-view="next">Впереди</button></div><div class="gm-ach">${achHtml}</div></div>
       </div></div>`;
     const $ = (q) => mount.querySelector(q);
+    const selectRhythmDay = key => {
+      const panel=$('#gm-rhythm-week'), close=!panel.hidden && panel.dataset.day===key;
+      mount.querySelectorAll('[data-rhythm-day]').forEach(b => { const on=!close && b.dataset.rhythmDay===key; b.classList.toggle('selected',on); b.setAttribute('aria-expanded',String(on)); });
+      panel.hidden=close; if(close)return; panel.dataset.day=key;
+      const [yy,mm,dd]=key.split('-').map(Number), start=new Date(yy,mm-1,dd);
+      start.setDate(start.getDate()-(start.getDay()+6)%7);
+      const days=Array.from({length:7},(_,i)=>new Date(start.getFullYear(),start.getMonth(),start.getDate()+i));
+      const sum=days.reduce((n,d)=>n+(dayXp[ymd(d)]||0),0), max=Math.max(100,...days.map(d=>dayXp[ymd(d)]||0));
+      const prev=days.reduce((n,d)=>{const p=new Date(d);p.setDate(p.getDate()-7);return n+(dayXp[ymd(p)]||0)},0), diff=prev?Math.round((sum-prev)/prev*100):null;
+      const label=d=>d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+      panel.innerHTML=`<div class="gm-h"><b>${label(days[0])} · ${label(days[6])}</b><span>+${num(sum)} XP${diff===null?'':` · <em class="${diff>=0?'up':'dn'}">${diff>=0?'+':''}${diff}%</em>`}</span></div><div class="gm-week">${days.map(d=>{const k=ymd(d),t=dayXp[k]||0,sk=daySk[k]||{};return `<div class="gm-wd${k===key?' td':''}"><b>${t?num(t):''}</b><div class="gm-wb">${SKO.filter(x=>sk[x]).map(x=>`<i style="height:${(sk[x]/max*100).toFixed(1)}%;background:${SK[x].color}"></i>`).join('')}</div><span>${DOW[d.getDay()]} ${d.getDate()}</span></div>`}).join('')}</div>`;
+    };
+    mount.querySelectorAll('[data-rhythm-day]').forEach(b=>b.onclick=()=>selectRhythmDay(b.dataset.rhythmDay));
     mount.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>achievementDetail(b.dataset.ach));
     mount.querySelectorAll('[data-ach-view]').forEach(b=>b.onclick=()=>{mount.querySelectorAll('[data-ach-view]').forEach(x=>x.classList.toggle('on',x===b));mount.querySelectorAll('.gm-ach .gm-a').forEach(x=>{x.hidden=b.dataset.achView==='ok'?!x.classList.contains('ok'):b.dataset.achView==='next'?x.classList.contains('ok'):false;});});
     $('#gm-back').onclick = () => Router.go('/home');

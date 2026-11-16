@@ -203,13 +203,16 @@ window.WinterArc = (function () {
     return '<span class="wa-ice-static wa-ice-tasks" data-task-state="' + state.state + '" data-overdue="' + state.overdue + '" style="--task-hue:' + state.hue + 'deg" aria-label="' + state.label + '">' + iceLayers + '<span class="wa-ice-task-tint"></span><span class="wa-task-aura"></span></span>';
   }
   const ART = {
-    'home2-tile-training': () => iceStatic('training', '<span class="wa-training-light"></span><i class="wa-ice-spark wa-ice-spark-a"></i><i class="wa-ice-spark wa-ice-spark-b"></i>'),
+    'home2-tile-training': () => iceStatic('training', '<span class="wa-training-light"></span>'),
     'home2-tile-goals': () => iceStatic('goals', '<span class="wa-goal-hit"><span></span></span>'),
     'home2-tile-habits': st => {
       const list = ICE_DATA.habits(st, new Date());
       return '<span class="wa-ice-habits" data-count="' + list.length + '"><span class="wa-hab-floor"></span>' + list.map(item => {
-        const previous = iceMemory.habits.get(item.id) || 0, target = item.done ? 1 : 0; iceMemory.habits.set(item.id, target);
-        return '<span class="wa-habit-sphere' + (item.done ? ' on' : '') + '" data-habit-id="' + esc(item.id) + '" style="--from-lit:' + previous + ';--to-lit:' + target + '"><span class="wa-sphere-dim"></span><span class="wa-sphere-lit"></span><span class="wa-sphere-breathe"></span></span>';
+        const target = item.done ? 1 : 0, old = iceMemory.habits.get(item.id), now = performance.now();
+        const state = old && old.value === target ? old : { value: target, from: old ? old.value : 0, at: now };
+        iceMemory.habits.set(item.id, state);
+        const elapsed = Math.min(1050, now - state.at), from = elapsed < 1050 ? state.from : target;
+        return '<span class="wa-habit-sphere' + (item.done ? ' on' : '') + '" data-habit-id="' + esc(item.id) + '" style="--from-lit:' + from + ';--to-lit:' + target + ';--lit-delay:-' + Math.round(elapsed) + 'ms"><span class="wa-sphere-dim"></span><span class="wa-sphere-lit"></span><span class="wa-sphere-breathe"></span></span>';
       }).join('') + '</span>';
     },
     'home2-tile-finance': st => {
@@ -223,17 +226,16 @@ window.WinterArc = (function () {
   function layoutIce(scr) {
     scr.querySelectorAll('.wa-ice-habits').forEach(host => {
       const count = +host.dataset.count; if (!count) return;
-      const width = host.clientWidth, height = host.clientHeight, ratio = 152 / 108;
-      const columns = count <= 12 ? count : Math.ceil(Math.sqrt(count * width / height * 1.15));
-      const rows = Math.ceil(count / columns), span = .78 * Math.max(0, columns - 1) + 1;
-      const unit = Math.min(width / span, height / (rows * ratio + .55));
+      const width = host.clientWidth, height = host.clientHeight, ratio = 1.55;
+      const columns = count <= 12 ? count : Math.ceil(Math.sqrt(count * width / height * 1.3));
+      const rows = Math.ceil(count / columns), span = 1.12 * Math.max(0, columns - 1) + 1;
+      const unit = Math.min(width / span, height / (rows * ratio + .32), 72);
       host.style.setProperty('--sphere-size', Math.max(1, unit) + 'px');
       host.querySelectorAll('.wa-habit-sphere').forEach((sphere, i) => {
-        const col = i % columns, row = Math.floor(i / columns), depth = columns > 1 ? col / (columns - 1) : 0;
-        sphere.style.left = (col * unit * .78) + 'px';
-        sphere.style.bottom = ((rows - row - 1) * unit * ratio + depth * unit * .65) + 'px';
+        const col = i % columns, row = Math.floor(i / columns);
+        sphere.style.left = ((width - span * unit) / 2 + col * unit * 1.12) + 'px';
+        sphere.style.bottom = ((rows - row - 1) * unit * ratio + col / Math.max(1, columns - 1) * unit * .32) + 'px';
         sphere.style.zIndex = String(columns - col);
-        sphere.style.setProperty('--sphere-depth', 1 - depth * .32);
         sphere.style.setProperty('--sphere-phase', (-col * .38) + 's');
       });
     });
@@ -307,13 +309,39 @@ window.WinterArc = (function () {
     f.addEventListener('click', () => f.remove()); setTimeout(() => f.remove(), 2600); }
   setTimeout(watch, 0);
 
-  /* CSS-эффекты только у видимых плиток; снег и постоянная отрисовка удалены. */
+  /* Один лёгкий слой снега за плитками. Пауза в фоне и при уменьшении движения. */
   let _motionCleanup = null;
   function stopMotion() { if (_motionCleanup) _motionCleanup(); }
   function motion(scr) {
     stopMotion();
     const reduced = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
     const cards = [...scr.querySelectorAll('.home2-tile')];
+    const canvas = document.createElement('canvas'); canvas.className = 'wa-x wa-snow'; canvas.setAttribute('aria-hidden', 'true'); scr.prepend(canvas);
+    const ctx = canvas.getContext('2d', { alpha: true });
+    let flakes = [], frame = 0, last = 0, snowTime = 0, snowWidth = 0, snowHeight = 0;
+    const sizeSnow = () => {
+      snowWidth = innerWidth; snowHeight = innerHeight;
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(snowWidth * dpr); canvas.height = Math.round(snowHeight * dpr);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+      flakes = Array.from({ length: Math.min(150, Math.round(snowWidth * snowHeight / 8500) + 42) }, () => {
+        const depth = Math.random();
+        return { x: Math.random() * snowWidth, y: Math.random() * snowHeight, r: .55 + depth * 1.65, speed: 8 + depth * 25, alpha: .2 + depth * .48, phase: Math.random() * Math.PI * 2, sway: 3 + Math.random() * 12 };
+      });
+    };
+    const drawSnow = time => {
+      frame = 0; if (disposed || scr.classList.contains('wa-motion-paused') || !ctx) return;
+      frame = requestAnimationFrame(drawSnow);
+      if (time - last < 1000 / 30) return;
+      const dt = last ? Math.min((time - last) / 1000, .08) : 0; last = time; snowTime += dt;
+      ctx.clearRect(0, 0, snowWidth, snowHeight);
+      flakes.forEach(f => {
+        f.y += f.speed * dt; f.x += (5 + Math.sin(snowTime * .24 + f.phase) * f.sway) * dt;
+        if (f.y > snowHeight + 5) { f.y = -5; f.x = Math.random() * snowWidth; }
+        if (f.x > snowWidth + 5) f.x = -5; else if (f.x < -5) f.x = snowWidth + 5;
+        ctx.globalAlpha = f.alpha; ctx.fillStyle = '#deecf5'; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+      });
+    };
     const visible = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entries => entries.forEach(e => e.target.classList.toggle('wa-inview', e.isIntersecting)), { threshold: .1 }) : null;
     cards.forEach(card => { if (visible) visible.observe(card); else card.classList.add('wa-inview'); });
     let disposed = false, pageHidden = false;
@@ -322,8 +350,10 @@ window.WinterArc = (function () {
       if (!scr.isConnected) { cleanup(); return; }
       if (!document.hidden && !pageHidden && isOn() && !refreshIceClock(scr)) return;
       scr.classList.toggle('wa-motion-paused', document.hidden || pageHidden || !!reduced?.matches || !isOn());
+      if (scr.classList.contains('wa-motion-paused')) { cancelAnimationFrame(frame); frame = 0; last = 0; ctx?.clearRect(0, 0, snowWidth, snowHeight); }
+      else if (!frame && ctx) frame = requestAnimationFrame(drawSnow);
     };
-    const resize = () => { layoutIce(scr); reconcile(); };
+    const resize = () => { layoutIce(scr); sizeSnow(); reconcile(); };
     const hide = () => { pageHidden = true; reconcile(); };
     const show = () => { pageHidden = false; reconcile(); };
     const removed = new MutationObserver(() => { if (!scr.isConnected) cleanup(); });
@@ -333,6 +363,7 @@ window.WinterArc = (function () {
       document.removeEventListener('visibilitychange', reconcile);
       if (reduced?.removeEventListener) reduced.removeEventListener('change', reconcile); else reduced?.removeListener(reconcile);
       clearInterval(iceClock); visible?.disconnect(); removed.disconnect();
+      cancelAnimationFrame(frame); frame = 0; canvas.remove();
       cards.forEach(card => card.classList.remove('wa-inview')); scr.classList.remove('wa-motion-paused');
       if (_motionCleanup === cleanup) _motionCleanup = null;
     }
@@ -342,7 +373,7 @@ window.WinterArc = (function () {
     document.addEventListener('visibilitychange', reconcile);
     if (reduced?.addEventListener) reduced.addEventListener('change', reconcile); else reduced?.addListener(reconcile);
     removed.observe(document.getElementById('app') || document.body, { childList: true, subtree: true });
-    layoutIce(scr); reconcile();
+    layoutIce(scr); sizeSnow(); reconcile();
   }
 
   return { html, bind, decorate, refresh: () => { applyAttr(); keepDark(); if (!isOn()) stopMotion(); }, isOn, available, set: setDesign, start: (sw) => start(sw || document.getElementById('ds-sw')) };

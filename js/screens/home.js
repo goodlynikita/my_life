@@ -91,6 +91,16 @@ window.Screens.home = function(mount) {
   /* Slide widths */
   mount.querySelectorAll('.hero-slide').forEach(function(s){ s.style.width=(100/n)+'%'; s.style.flex='0 0 '+(100/n)+'%'; s.style.minWidth=(100/n)+'%'; });
 
+  var heroButton = mount.querySelector('#gm-bar'), header = mount.querySelector('.home2-header');
+  if (heroButton && header) {
+    heroButton.classList.add('gm-home-avatar');
+    var heroTitle = heroButton.querySelector('.gm-bar-t');
+    var heroLabel = 'Персонаж' + (heroTitle ? ': ' + Array.from(heroTitle.children).map(function(el){return el.textContent.trim();}).join(', ') : '');
+    heroButton.setAttribute('aria-label', heroLabel); heroButton.title = heroLabel;
+    header.classList.add('home-has-avatar');
+    header.insertBefore(heroButton, header.querySelector('.ds-sw') || header.querySelector('#home-theme-btn'));
+  }
+
   mount.querySelectorAll('[data-route]').forEach(function(el){
     el.addEventListener('click', function(){ Router.go(el.dataset.route); });
   });

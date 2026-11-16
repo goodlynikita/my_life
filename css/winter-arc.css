@@ -784,3 +784,16 @@ html[data-theme="light"] .home2-header .theme-toggle[data-mode="light"] .tt-sun 
  .home2-header>.theme-toggle { width:56px;--tt-size:24px; }
  .home2-header .theme-toggle .tt-ico i { font-size:16px; }
 }
+
+/* Оптическое выравнивание самих объектов внутри общей области. */
+html[data-design="wa"] .home2-grid .home2-tile .wa-art { overflow:visible;border-radius:0; }
+html[data-design="wa"] .wa-ice-task-tint { animation:waTaskLight 4.8s ease-in-out infinite!important;animation-play-state:var(--wa-play)!important; }
+html[data-design="wa"] .wa-task-aura { animation:waTaskAura 4.8s ease-in-out infinite;animation-play-state:var(--wa-play); }
+@keyframes waTaskLight { 0%,18%,100%{filter:hue-rotate(var(--task-hue)) saturate(1.8) brightness(1.1)}46%,58%{filter:hue-rotate(var(--task-hue)) saturate(1.9) brightness(1.55)} }
+@keyframes waTaskAura { 0%,18%,100%{opacity:.25}46%,58%{opacity:.75} }
+.home2-header.home-has-avatar>.fb-envelope-home { margin-right:0; }
+.home2-header #gm-bar.gm-home-avatar { flex:0 0 40px;display:grid;place-items:center;width:40px;height:40px;margin:0 auto 0 0;padding:0;border:0;border-radius:50%;background:none;box-shadow:none;overflow:visible;isolation:auto;animation:none; }
+.home2-header #gm-bar.gm-home-avatar::before,.home2-header #gm-bar.gm-home-avatar::after,.gm-home-avatar :is(.gm-bar-m,.gm-bar-r,.gm-bar-line) { display:none; }
+.home2-header #gm-bar.gm-home-avatar .gm-hero.sm { width:34px;height:34px; }
+.home2-header #gm-bar.gm-home-avatar .gm-fr { box-shadow:0 0 9px color-mix(in srgb,var(--hero-accent) 24%,transparent)!important; }
+.home2-header #gm-bar.gm-home-avatar:focus-visible { outline:2px solid #8ebcff;outline-offset:3px; }

@@ -1,0 +1,65 @@
+/* Витрина второго оформления на публичном сайте. */
+.hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.hero-badges .pill{margin:0}
+.winter-link{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #91d5ec38;border-radius:30px;background:#5ba1c70b;color:#bfe9f6;font-size:12px;font-weight:700;transition:border-color .2s,background .2s}
+.winter-link:hover{background:#77bdd316;border-color:#91d5ec80}
+.winter-link:focus-visible,.winter-switch button:focus-visible,.winter-open:focus-visible{outline:2px solid #a5e6f4;outline-offset:4px}
+.winter-showcase{isolation:isolate;scroll-margin-top:90px}
+.winter-showcase::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 45% 70% at 76% 48%,#377a9d1f,transparent 80%);pointer-events:none}
+.winter-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:64px;align-items:center}
+.winter-eyebrow{color:#a8e0ee}
+.winter-eyebrow::before{background:linear-gradient(90deg,#72bed5,#d5f5fd)}
+.winter-accent{background:linear-gradient(110deg,#e6f8ff,#a3daed 65%,#7eabdf);-webkit-background-clip:text;background-clip:text;color:transparent}
+.winter-features{display:grid;gap:20px;padding:0;margin:28px 0;list-style:none}
+.winter-features li{display:grid;grid-template-columns:24px 1fr;gap:13px;align-items:start}
+.winter-features li>i{font-size:22px;color:#a7ddeb;line-height:1.4}
+.winter-features b{display:block;font-size:14px;font-weight:700;margin-bottom:4px}
+.winter-features span{display:block;max-width:410px;font-size:13px;line-height:1.65;color:var(--soft)}
+.winter-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px}
+.winter-actions>span{flex-basis:100%;font-size:12px;color:var(--faint)}
+.winter-open{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#afc8e2}
+.winter-open:hover{color:#e2f7ff}
+.winter-preview{position:relative;isolation:isolate;min-width:0;padding:20px 0}
+.winter-preview::before{content:'';position:absolute;inset:8% -10% 2%;z-index:-1;border-radius:50%;background:radial-gradient(ellipse,#699eb924,transparent 66%);transition:background .3s;pointer-events:none}
+.winter-showcase[data-preview="min"] .winter-preview::before{background:radial-gradient(ellipse,#7969b924,transparent 66%)}
+.winter-switch{display:flex;gap:4px;width:270px;max-width:100%;margin:0 auto 22px;padding:5px;border:1px solid #9bbfd52b;border-radius:18px;background:#101725d9;position:relative;z-index:2}
+.winter-switch button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;padding:10px 8px;border:1px solid transparent;border-radius:13px;background:none;color:#8293aa;font:600 12px Montserrat,sans-serif;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
+.winter-switch button[aria-selected="true"]{color:#e5f7ff;background:linear-gradient(145deg,#263f53,#162533);border-color:#9ad8ea66;box-shadow:0 0 17px #79c6e51a,inset 0 1px #ddf9ff12}
+.winter-switch button i{font-size:16px}
+.winter-preview .winter-phone{position:relative;width:270px;margin:0 auto;animation:winterFloat 8s ease-in-out infinite;animation-play-state:var(--winter-play,paused);box-shadow:0 30px 65px #0008,0 0 0 1px #bfe9f62b,0 0 70px #70a9cd12}
+.winter-screen{position:absolute;inset:0}
+.winter-screen[hidden]{display:none}
+.winter-screen img{width:100%;height:100%;object-fit:cover;object-position:top}
+.winter-caption{position:relative;z-index:2;margin:20px auto 0;text-align:center;font-size:11px;letter-spacing:.03em;color:#778da4}
+.winter-snow{position:absolute;inset:0 -6%;z-index:-1;overflow:hidden;pointer-events:none;transition:opacity .3s}
+.winter-snow i{position:absolute;top:-8px;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:#dff8ff;opacity:.45;animation:winterSnow var(--d) var(--a) linear infinite;animation-play-state:var(--winter-play,paused)}
+.winter-snow i:nth-child(3n){opacity:.25}
+.winter-snow i:nth-child(2n){animation-name:winterSnowLeft}
+.winter-showcase[data-preview="min"] .winter-snow{opacity:0}
+.winter-showcase[data-preview="min"] .winter-snow i{animation-play-state:paused}
+.winter-showcase.winter-visible{--winter-play:running}
+.winter-showcase.winter-paused{--winter-play:paused}
+@keyframes winterSnow{0%{transform:translate3d(-14px,0,0)}50%{transform:translate3d(12px,340px,0)}100%{transform:translate3d(24px,720px,0)}}
+@keyframes winterSnowLeft{0%{transform:translate3d(20px,0,0)}50%{transform:translate3d(2px,340px,0)}100%{transform:translate3d(-24px,720px,0)}}
+@keyframes winterFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media(max-width:980px){.winter-grid{gap:32px}.winter-preview .winter-phone{width:250px}.winter-switch{width:250px}}
+@media(max-width:760px){
+ #top .hero-badges{order:1;align-self:flex-start;margin-bottom:18px}
+ #top .hero-badges .pill{order:0}
+ .winter-grid{display:flex;flex-direction:column;gap:0;align-items:stretch}
+ .winter-copy{display:contents}
+ .winter-eyebrow{order:1;align-self:flex-start}
+ .winter-copy h2{order:2}
+ .winter-copy .sec-lead{order:3}
+ .winter-preview{order:4;align-self:flex-start;width:100%;margin:22px 0;padding:0}
+ .winter-preview .winter-phone{width:min(260px,72vw);margin:0}
+ .winter-switch{width:min(260px,72vw);margin:0 0 22px}
+ .winter-caption{width:min(260px,72vw);margin:18px 0 0;text-align:center}
+ .winter-preview::before{inset:0 0 0 -18%}
+ .winter-snow{inset:0 -6% 0 -12%}
+ .winter-features{order:5;gap:18px;margin:0 0 24px}
+ .winter-actions{order:6;gap:14px}
+ .winter-actions>.btn{width:100%;justify-content:center}
+}
+@media(max-width:400px){.hero-badges{gap:8px}.hero-badges .pill{font-size:11px;gap:7px;padding:7px 10px 7px 8px}.winter-link{font-size:11px;padding:7px 10px;gap:5px}}
+@media(prefers-reduced-motion:reduce){.winter-snow{display:none}.winter-preview .winter-phone{animation:none}.winter-switch button,.winter-preview::before{transition:none}}

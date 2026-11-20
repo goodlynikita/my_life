@@ -3,13 +3,26 @@
    Грузится в <head> до отрисовки, чтобы не было «вспышки».
    Светлая тема строится поверх тёмной (инверсия с сохранением
    оттенков), картинки и эмодзи возвращаются к исходным цветам.
-   Выбор хранится на устройстве + в Firebase (home.theme).
+   Минимал: home.theme. Winter Arc: home.waThemes по разделам.
    ============================================================ */
 (function () {
   var KEY = 'nik_theme';
+  var SECTIONS = ['training', 'habits', 'finance', 'goals', 'tasks', 'hero'];
+  var winterChoices = {};
   function read() { try { return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark'; } catch (e) { return 'dark'; } }
+  function isMode(value) { return value === 'light' || value === 'dark'; }
+  function isWinter() { return !!(window.WinterArc && WinterArc.isOn()); }
+  function section() { return document.documentElement.dataset.sec || 'home'; }
+  function winterKey() { var sec = section(); return SECTIONS.indexOf(sec) >= 0 ? sec : 'default'; }
+  function winterMode() {
+    var choices = winterChoices;
+    try { if (typeof Store !== 'undefined' && Store.get) choices = (Store.get().home || {}).waThemes || {}; } catch (e) {}
+    var choice = choices[winterKey()];
+    return isMode(choice) ? choice : isMode(choices.default) ? choices.default : 'dark';
+  }
+  function selected() { return isWinter() ? winterMode() : current; }
   function apply(mode) {
-    var winter = window.WinterArc && WinterArc.isOn();
+    var winter = isWinter();
     var home = !document.documentElement.dataset.sec || document.documentElement.dataset.sec === 'home';
     if (winter && home) mode = 'dark';
     document.documentElement.setAttribute('data-theme', mode);
@@ -26,24 +39,25 @@
     paintButtons();
   }
   function paintButtons() {
+    var mode = selected();
     document.querySelectorAll('.section-theme-toggle').forEach(function(button) {
-      button.innerHTML = '<i class="ti ti-' + (current === 'light' ? 'moon' : 'sun') + '"></i>';
-      button.setAttribute('aria-label', current === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему');
+      button.innerHTML = '<i class="ti ti-' + (mode === 'light' ? 'moon' : 'sun') + '"></i>';
+      button.setAttribute('aria-label', mode === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему');
       button.title = button.getAttribute('aria-label');
-      button.setAttribute('aria-pressed', String(current === 'light'));
+      button.setAttribute('aria-pressed', String(mode === 'light'));
     });
     var homeButton = document.getElementById('home-theme-btn');
     if (homeButton) {
-      homeButton.dataset.mode = current;
-      var winter = window.WinterArc && WinterArc.isOn();
+      homeButton.dataset.mode = mode;
+      var winter = isWinter();
       homeButton.setAttribute('role', 'switch');
-      homeButton.setAttribute('aria-checked', String(current === 'light'));
-      homeButton.setAttribute('aria-label', winter ? 'Светлая тема разделов' : 'Светлая тема');
-      homeButton.title = (current === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему') + (winter ? ' в разделах' : '');
+      homeButton.setAttribute('aria-checked', String(mode === 'light'));
+      homeButton.setAttribute('aria-label', winter ? 'Светлая тема разделов по умолчанию' : 'Светлая тема');
+      homeButton.title = (mode === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему') + (winter ? ' разделов по умолчанию' : '');
     }
   }
   function mountControls(root) {
-    var winter = window.WinterArc && WinterArc.isOn();
+    var winter = isWinter();
     var header = root.querySelector('.tr-header,.hab-header,.tochka-header,.goals-header,.tk-hdr,.gm-nav');
     if (header && !header.querySelector('.section-theme-toggle')) {
       var nativeButton = header.querySelector('#fin-theme,#tk-theme');
@@ -51,7 +65,7 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'section-theme-toggle';
-        button.onclick = function() { window.Theme.set(current === 'light' ? 'dark' : 'light'); };
+        button.onclick = function() { window.Theme.set(selected() === 'light' ? 'dark' : 'light'); };
         if (nativeButton) nativeButton.replaceWith(button);
         else {
           var last = header.lastElementChild;
@@ -64,14 +78,23 @@
         }
       }
     }
-    apply(current);
+    apply(selected());
   }
   var current = read();
   apply(current);
   window.Theme = {
-    get: function () { return current; },
+    get: selected,
     mountControls: mountControls,
     set: function (mode, opts) {
+      if (isWinter()) {
+        var key = winterKey(), value = mode === 'light' ? 'light' : 'dark';
+        winterChoices[key] = value;
+        try {
+          if (typeof Store !== 'undefined' && Store.get && ((Store.get().home || {}).waThemes || {})[key] !== value) Store.set('home.waThemes.' + key, value);
+        } catch (e) {}
+        apply(value);
+        return;
+      }
       current = mode === 'light' ? 'light' : 'dark';
       try { localStorage.setItem(KEY, current); } catch (e) {}
       apply(current);
@@ -81,7 +104,15 @@
     },
     /* После загрузки данных — подхватить тему, выбранную на другом устройстве */
     syncFromStore: function () {
-      try { var t = (Store.get().home || {}).theme; if (t && t !== current) this.set(t, { silent: true }); } catch (e) {}
+      winterChoices = {};
+      try {
+        var t = (Store.get().home || {}).theme;
+        if (isMode(t) && t !== current) {
+          current = t;
+          try { localStorage.setItem(KEY, current); } catch (e) {}
+        }
+      } catch (e) {}
+      apply(selected());
     }
   };
 })();

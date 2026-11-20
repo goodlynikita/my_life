@@ -1,7 +1,7 @@
 /* ============================================================
    SERVICE WORKER — офлайн кеш
    ============================================================ */
-const CACHE = 'nik-system-v327';
+const CACHE = 'nik-system-v328';
 const HERO_MEDIA_CACHE = 'nik-hero-media-v1';
 
 const STATIC = [
@@ -12,6 +12,24 @@ const STATIC = [
   './favicon.ico',
   './img/fav/tab-32.png',
   './img/fav/icon-192.png',
+  './css/app-fonts.css',
+  './css/winter-fonts.css',
+  './css/vendor/tabler-icons-3.48.0.css',
+  './fonts/montserrat/cyrillic-ext.woff2',
+  './fonts/montserrat/cyrillic.woff2',
+  './fonts/montserrat/vietnamese.woff2',
+  './fonts/montserrat/latin-ext.woff2',
+  './fonts/montserrat/latin.woff2',
+  './fonts/unbounded/cyrillic-ext.woff2',
+  './fonts/unbounded/cyrillic.woff2',
+  './fonts/unbounded/vietnamese.woff2',
+  './fonts/unbounded/latin-ext.woff2',
+  './fonts/unbounded/latin.woff2',
+  './fonts/tabler-3.48.0/app-icons.woff2',
+  './fonts/tabler-3.48.0/tabler-icons.woff2',
+  './js/vendor/firebase-10.12.0/firebase-app.js',
+  './js/vendor/firebase-10.12.0/firebase-auth.js',
+  './js/vendor/firebase-10.12.0/firebase-database.js',
   './css/winter-arc.css',
   './css/tokens.css',
   './css/home.css',
@@ -33,6 +51,7 @@ const STATIC = [
   './js/palette.js',
   './js/config.js',
   './js/store.js',
+  './js/startup-network.js',
   './js/auth.js',
   './js/router.js',
   './js/firebase-sync.js',
@@ -88,15 +107,9 @@ const STATIC = [
 /* Сборка подставляет SHA-256 готовых файлов после сжатия кода, до gzip. */
 const STATIC_HASHES = null;
 
-/* Библиотеки с CDN: без них приложение не стартует, поэтому тоже кешируем заранее (версии зафиксированы) */
-/* библиотеки и шрифты с чужих адресов живут в отдельном кеше, который не сбрасывается при каждом обновлении (версии в адресах зафиксированы) */
+/* Старые страницы и кабинет по-прежнему могут обращаться к CDN.
+   Их уже загруженные библиотеки сохраняем; запуск YOU использует локальные версии из STATIC. */
 const CDN_CACHE = 'nik-cdn-v1';
-const CDN = [
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js',
-  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.48.0/dist/tabler-icons.min.css',
-];
 
 async function matchesHash(response, expected) {
   if (!response || !response.ok || !expected) return false;
@@ -130,11 +143,10 @@ async function installStatic() {
   await Promise.all(Array.from({ length: Math.min(4, STATIC.length) }, fill));
 }
 
-/* CDN уже живёт в отдельном кеше; его сбой не ломает установку приложения. */
+/* Установка больше не ждёт внешние CDN. Все необходимые YOU ресурсы уже в STATIC. */
 self.addEventListener('install', e => {
   e.waitUntil(
-    installStatic().then(() => caches.open(CDN_CACHE)).then(c => Promise.all(CDN.map(u => c.match(u).then(h => h || c.add(new Request(u, { mode: 'cors' }))).catch(() => {}))))
-      .then(() => self.skipWaiting())
+    installStatic().then(() => self.skipWaiting())
   );
 });
 

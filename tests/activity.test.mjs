@@ -37,7 +37,7 @@ function page(server = initial(), options = {}) {
     runTransaction: async (p, fn) => { calls.push({ kind: 'transaction', path: p }); if (options.gate) await options.gate; if (options.fail) throw Error('offline'); const v = fn(clone(read(server, p) ?? null)); if (v === undefined) return { committed: false }; write(server, p, v); return { committed: true }; },
   });
   context.window = context;
-  const source = readFileSync(new URL('../js/firebase-sync.js', import.meta.url), 'utf8').replace(/^import\s[\s\S]*?from\s+"https:[^"]+";\s*/gm, '');
+  const source = readFileSync(new URL('../js/firebase-sync.js', import.meta.url), 'utf8').replace(/^import\s[\s\S]*?from\s+"[^"]+";\s*/gm, '');
   vm.runInContext(source, context);
   return { context, auth, calls, storage, intervals, server, options, advance: n => { now += n; }, now: () => now,
     async emit(target, name) { for (const fn of handlers.get(target + ':' + name) || []) fn({ type: name }); await settle(); },

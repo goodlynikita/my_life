@@ -55,7 +55,7 @@ function client(server, storage = new Map(), uid = 'client-a', control = {}) {
   });
   context.window = context;
   vm.runInContext(readFileSync(new URL('../js/store.js', import.meta.url), 'utf8') + '\nglobalThis.Store = Store;', context);
-  let source = readFileSync(new URL('../js/firebase-sync.js', import.meta.url), 'utf8').replace(/^import\s[\s\S]*?from\s+"https:[^"]+";\s*/gm, '');
+  let source = readFileSync(new URL('../js/firebase-sync.js', import.meta.url), 'utf8').replace(/^import\s[\s\S]*?from\s+"[^"]+";\s*/gm, '');
   source = source.replace('  return {\n    shareTemplate,', '  globalThis.testFlush = _flushQueue;\n  globalThis.testRetry = _retryPull;\n  globalThis.testTrainer = v => { _myTrainer = v; };\n  return {\n    shareTemplate,');
   vm.runInContext(source, context);
   return { context, storage, async load() { await context.FirebaseSync.pullIntoStore(); }, async flush() { await context.testFlush(); }, async advance(ms) { for (const [id, t] of timers) if (t.ms === ms) { timers.delete(id); t.fn(); } await new Promise(r => setImmediate(r)); } };

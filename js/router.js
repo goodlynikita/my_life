@@ -46,6 +46,19 @@ const Router = (() => {
       if (!he || !te || getComputedStyle(te).position !== 'sticky') return;
       te.style.setProperty('top', Math.round(he.getBoundingClientRect().height) + 'px', 'important');
     });
+    const header = document.querySelector('.goals-header'), tabs = document.querySelector('.goals-season-tabs'), months = document.getElementById('goals-month-bar');
+    if (header && tabs && months) {
+      months.style.setProperty('top', Math.ceil(header.getBoundingClientRect().height + tabs.getBoundingClientRect().height) + 'px', 'important');
+    }
+  }
+  let tabsObserver = null;
+  function watchTabs() {
+    if (tabsObserver) tabsObserver.disconnect();
+    pinTabs();
+    if (typeof ResizeObserver !== 'undefined') {
+      tabsObserver = new ResizeObserver(pinTabs);
+      document.querySelectorAll('.tr-header,.tr-tabs,.tochka-header,.tochka-tabs,.goals-header,.goals-season-tabs,.hab-header,.hab-tabs').forEach(el => tabsObserver.observe(el));
+    }
   }
   window.addEventListener('resize', () => pinTabs());
   function render(opts) {
@@ -95,7 +108,8 @@ const Router = (() => {
     try {
       handler();
       if (window.Theme && Theme.mountControls) Theme.mountControls(mount());
-      pinTabs(); setTimeout(pinTabs, 300); setTimeout(pinTabs, 1200);
+      watchTabs();
+      if (!tabsObserver) { setTimeout(pinTabs, 300); setTimeout(pinTabs, 1200); }
       let tplPend = null; try { tplPend = localStorage.getItem('you_tpl'); } catch (e) {}
       if (window.Tour && !keepScroll && !tplPend) Tour.onScreen(path); /* по ссылке на план сначала превью, без тура поверх */
       if (window.TrainerLink && loggedIn) {

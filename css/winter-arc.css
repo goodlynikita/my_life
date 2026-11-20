@@ -543,6 +543,7 @@ html[data-design="wa"] :is(.tr-header,.hab-header,.tochka-header,.goals-header,.
 html[data-design="wa"] :is(.tr-header,.hab-header,.tochka-header,.goals-header,.tk-hdr)::after { animation:none!important;height:1px;background:linear-gradient(90deg,rgba(var(--wa-room,91,141,255),.8),rgba(223,240,255,.35),transparent); }
 html[data-design="wa"] :is(.tr-title,.hab-screen-title,.tochka-screen-title,.goals-screen-title,.tk-hdr p) { font-family:Montserrat,sans-serif!important;font-size:17px!important;font-weight:600!important;letter-spacing:.01em!important;text-transform:none; }
 html[data-design="wa"] :is(.tr-tabs,.hab-tabs,.tochka-tabs,.goals-season-tabs,.tk-side) { background:rgba(10,18,31,.96)!important;border-bottom-color:rgba(159,192,229,.13)!important; }
+html[data-design="wa"] .goals-season-tabs { background:#0A121F!important; }
 html[data-design="wa"] :is(.hab-body,.goals-body,.tochka-body) { background:transparent!important; }
 html[data-design="wa"] :is(.hab-body .sec-card,.goals-cat-v3,.fin2-card,.fin2-hero,.tochka-list,.bal-hero,.bal-reserve-card) { background:linear-gradient(145deg,rgba(var(--wa-room,91,141,255),.06),transparent 55%),#0F1928!important;border-color:rgba(154,190,228,.15)!important;box-shadow:inset 0 1px rgba(228,242,255,.05),0 9px 24px rgba(0,0,0,.12)!important; }
 html[data-design="wa"] .goals-cat-v3 { border-top-color:var(--cat-color)!important; }

@@ -17,7 +17,7 @@ window.WinterArc = (function () {
   const isOn = () => ls('you_design') === 'wa' && available();
   /* шрифт для заголовков и цифр Winter Arc: грузим только когда дизайн включён */
   function loadFont() { if (document.getElementById('wa-font')) return; const l = document.createElement('link'); l.id = 'wa-font'; l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700;800&display=swap'; document.head.appendChild(l); }
+    l.href = 'css/winter-fonts.css'; document.head.appendChild(l); }
   function applyAttr() { if (isOn()) { document.documentElement.dataset.design = 'wa'; loadFont(); } else delete document.documentElement.dataset.design; }
   applyAttr();
   /* Главная Winter Arc тёмная; разделы используют выбранную тему. */

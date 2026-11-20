@@ -31,7 +31,7 @@ for (const raw of ['{broken', '[1,2]']) test('an invalid backup is not eligible 
 
 async function boot({ owner = 'same-user', result = 'error', blocked = false, coach = false } = {}) {
   const events = {}, items = new Map([['nik_backup_uid', owner], ['nik_local_backup', JSON.stringify(snapshot)]]);
-  let authCallback, reads = 0, offlineBase = null;
+  let authCallback, reads = 0, offlineBase = null, blockWait, pullOptions;
   const user = { uid: 'same-user', email: coach ? 'legacy@coach.you-app' : 'same@test.invalid' };
   const context = vm.createContext({ console, setTimeout, clearTimeout, URLSearchParams, navigator: { onLine: true },
     location: { search: '', pathname: '/', hash: '#/training' },
@@ -41,13 +41,13 @@ async function boot({ owner = 'same-user', result = 'error', blocked = false, co
   }); context.window = context;
   vm.runInContext(readFileSync(new URL('../js/store.js', import.meta.url), 'utf8') + ';globalThis.Store=Store;', context);
   context.FirebaseSync = { isCoach: () => coach, onAuth: callback => { authCallback = callback; return () => {}; },
-    isBlocked: async () => blocked, pullIntoStore: async () => { reads++; return result; },
+    isBlocked: async (_user, wait) => { blockWait = wait; return blocked; }, pullIntoStore: async options => { pullOptions = options; reads++; return result; },
     markBase: () => { offlineBase = JSON.parse(JSON.stringify(context.Store.get())); }, logout: async () => {},
   };
   vm.runInContext(readFileSync(new URL('../js/app.js', import.meta.url), 'utf8'), context);
   const starting = events.DOMContentLoaded(); await new Promise(resolve => setImmediate(resolve));
   await authCallback(user); await starting;
-  return { data: context.Store.get(), reads, offlineBase, blocked: context._accountBlocked, ready: context._appReady };
+  return { data: context.Store.get(), reads, offlineBase, blocked: context._accountBlocked, ready: context._appReady, blockWait, pullOptions };
 }
 test('a failed network startup opens its own backup and marks that exact copy as the offline merge base', async () => {
   const app = await boot(); assert.equal(app.ready, true); assert.equal(app.data.training.plans[0].id, 'saved-plan');
@@ -105,4 +105,12 @@ test('database and authentication requests are never served from the application
   assert.equal(await sw.request('https://demo.firebaseio.com/users/test.json', 'cors'), undefined);
   assert.equal(await sw.request('https://identitytoolkit.googleapis.com/v1/accounts:lookup', 'cors'), undefined);
   assert.equal(sw.opened.length, 0);
+});
+
+// A short fallback is safe only when the signed-in account owns the local copy.
+test('weak-network startup uses the shorter wait only for its own verified backup', async () => {
+  const own = await boot(); assert.equal(own.blockWait, 300); assert.equal(own.pullOptions.timeoutMs, 450);
+  for (const options of [{ owner: 'someone-else' }, { owner: null }, { coach: true }]) {
+    const other = await boot(options); assert.equal(other.blockWait, 3000); assert.equal(other.pullOptions.timeoutMs, 6000);
+  }
 });

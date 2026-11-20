@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, runTransaction, onValue, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeApp } from "./vendor/firebase-10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, push, update, runTransaction, onValue, increment } from "./vendor/firebase-10.12.0/firebase-database.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -13,7 +13,7 @@ import {
   verifyBeforeUpdateEmail,
   reauthenticateWithCredential,
   EmailAuthProvider
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+} from "./vendor/firebase-10.12.0/firebase-auth.js";
 
 const _fbApp = initializeApp(window.FIREBASE_CONFIG);
 const _db    = getDatabase(_fbApp);

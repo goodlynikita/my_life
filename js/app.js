@@ -46,16 +46,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         unsubscribe();
         const isCoach = FirebaseSync.isCoach && FirebaseSync.isCoach();
         const hasOwnBackup = !!(user && !isCoach && Store.hasLocalBackup && Store.hasLocalBackup(user.uid));
-        /* Быстрый старт без ожидания сети: есть копия данных этого же аккаунта на телефоне, значит показываем сразу,
-           а сервер (и проверку блокировки) подтягиваем фоном. Тренеру так нельзя: у него чужие данные */
-        let lastUid = ''; try { lastUid = localStorage.getItem('nik_backup_uid') || ''; } catch (e) {}
-        if (false && user && lastUid === user.uid && !(FirebaseSync.isCoach && FirebaseSync.isCoach()) && Store.loadFromLocalBackup && Store.loadFromLocalBackup() && FirebaseSync.startLocal && FirebaseSync.startLocal()) {
-          window.__fastStart = true;
-          if (FirebaseSync.touchUserIndex) FirebaseSync.touchUserIndex(user);
-          if (FirebaseSync.isBlocked) FirebaseSync.isBlocked(user).then(b => { if (b) { window._accountBlocked = true; FirebaseSync.logout().then(() => location.reload()); } }).catch(() => {});
-          resolve(); return;
-        }
-        if (user && FirebaseSync.isBlocked && await FirebaseSync.isBlocked(user, hasOwnBackup ? 600 : 3000)) {
+        /* С копией этого аккаунта быстрее переходим в штатный офлайн-путь.
+           Сервер всё равно проверяем первым, очередь ждёт сверки и слияния. */
+        if (user && FirebaseSync.isBlocked && await FirebaseSync.isBlocked(user, hasOwnBackup ? 300 : 3000)) {
           /* Доступ закрыт из админки */
           window._accountBlocked = true;
           await FirebaseSync.logout();
@@ -67,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           try {
             /* При слабой сети быстро переходим в прежний офлайн-путь с копией этого аккаунта.
                До сверки с сервером очередь не отправляется, слияние выполняет _retryPull. */
-            const result = await FirebaseSync.pullIntoStore({ timeoutMs: hasOwnBackup ? 1200 : 6000 });
+            const result = await FirebaseSync.pullIntoStore({ timeoutMs: hasOwnBackup ? 450 : 6000 });
             if (result === true && !isCoach) try { localStorage.setItem('nik_backup_uid', user.uid); } catch (e) {}
             if (result === false) {
               /* Сервер ответил пустыми данными: старую локальную копию не возвращаем. */

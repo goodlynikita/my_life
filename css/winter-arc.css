@@ -535,6 +535,7 @@ html[data-design="wa"] .theme-dark { --tr-void:#080F1B;--tr-void-card:#0F1A2A;--
 html[data-design="wa"] .hab-screen { --wa-room:61,220,132; }
 html[data-design="wa"] .tochka-screen { --wa-room:150,110,255;--tk-bg:#090F1C;--tk-card:#111A2B;--tk-raised:#1A243A;--tk-input:#1B293E;--tk-line:rgba(173,188,228,.13); }
 html[data-design="wa"] .goals-screen { --wa-room:245,158,60; }
+html[data-design="wa"] .tk-app { --wa-room:240,100,90; }
 html[data-design="wa"] :is(.tk-app,.tk-ov,.tk-toast):not(.tkl) { --wa-room:240,100,90;--t-bg:#080F1B;--t-side:#101A2A;--t-card:#101B2B;--t-line:rgba(150,180,220,.18);--t-line2:rgba(150,180,220,.1);--t-text:#E5EDF8;--t-text2:#A8B7CB;--t-muted:#8898AE;--t-faint:#5E708A;--t-hover:#172337;--t-scheme:dark; }
 html[data-design="wa"].tk-on:not(.tk-on-light) body { background:#080F1B!important; }
 
@@ -724,8 +725,7 @@ html[data-design="wa"] .hero-dot { flex:0 0 26px;min-width:0;width:26px!importan
 .section-header-actions { display:flex;align-items:center;gap:6px; }
 html[data-design="wa"] .tk-app.tkl { background:var(--t-bg)!important; }
 html[data-design="wa"].tk-on.tk-on-light body { background:#fff!important; }
-html[data-design="wa"] .tkl :is(.tk-hdr,.tk-side) { background:var(--t-side)!important;border-color:var(--t-line)!important; }
-html[data-design="wa"] .tkl .tk-hdr,html[data-design="wa"] .tkl .tk-hb { color:var(--t-text); }
+html[data-design="wa"] .tkl .tk-side { background:var(--t-side)!important;border-color:var(--t-line)!important; }
 @media(max-width:600px){
  html[data-design="wa"] .wa-ice-training { width:94px;right:-1px;bottom:20px; }
  html[data-design="wa"] .wa-ice-goals { width:92px;right:-1px;bottom:20px; }

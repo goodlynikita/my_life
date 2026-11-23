@@ -56,9 +56,9 @@ html[data-theme="light"] .wa-wind { filter: invert(1) hue-rotate(180deg); }
 /* ═══════════ WINTER ARC: главная ═══════════
    Ночь, иней и снег + из макета Ника: номера 01-05, тонкие заголовки капсом, светящаяся кромка, иллюстрации, подпись внизу */
 html[data-design="wa"] body { background: #04060B; }
-html[data-design="wa"] .home2-screen { position: relative; min-height: 100vh; isolation: isolate;
+html[data-design="wa"] .home2-screen { position: relative; min-height: 100vh; min-height: 100dvh; isolation: isolate;
   background: radial-gradient(120% 60% at 50% -10%, rgba(56,110,190,.28), transparent 60%), radial-gradient(80% 40% at 100% 0%, rgba(120,200,255,.10), transparent 60%), linear-gradient(180deg, #070B14 0%, #04060B 60%) !important; }
-.wa-snow { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
+.wa-snow { position: fixed; inset: 0; width: 100vw; height: 100vh; width:100dvw; height:100dvh; pointer-events: none; z-index: 0; }
 html[data-design="wa"] .home2-screen > :not(.wa-snow) { position: relative; z-index: 1; }
 
 
@@ -798,6 +798,20 @@ html[data-design="wa"] .wa-task-aura { animation:waTaskAura 4.8s ease-in-out inf
 .home2-header #gm-bar.gm-home-avatar .gm-hero.sm { width:34px;height:34px; }
 .home2-header #gm-bar.gm-home-avatar .gm-fr { box-shadow:0 0 9px color-mix(in srgb,var(--hero-accent) 24%,transparent)!important; }
 .home2-header #gm-bar.gm-home-avatar:focus-visible { outline:2px solid #8ebcff;outline-offset:3px; }
+
+/* Дата помещается в строку показателей; разделители не съедают ширину. */
+html[data-design="wa"] .hero-stat-row:has([data-block="date_today"]) { gap:clamp(8px,2vw,18px)!important; }
+html[data-design="wa"] .hero-stat-row:has([data-block="date_today"])>.sb-block { flex:1 1 0!important;min-width:0; }
+html[data-design="wa"] .hero-stat-row:has([data-block="date_today"])>.hero-stat-sep { flex:0 0 1px;margin:0!important; }
+html[data-design="wa"] .hero-stat-row:has([data-block="date_today"])>[data-block="habits_today"] { flex-grow:2.2!important; }
+html[data-design="wa"] .hero-stat-row:has([data-block="date_today"])>[data-block="date_today"] { flex:0 0 auto!important; }
+html[data-design="wa"] [data-block="date_today"] .hero-stat-lbl { max-width:none;white-space:nowrap;overflow:visible; }
+html[data-design="wa"] .hero-stat-row .skv-ring-c { width:40px!important;height:40px!important; }
+html[data-design="wa"] .hero-stat-row .skv-ring-c b { font-size:10px!important;line-height:1; }
+html[data-design="wa"] .hero-stat-row .skv-ring-c b.sm { font-size:8px!important; }
+@media(max-width:600px){
+ html[data-design="wa"] .hero-slide:has([data-block="date_today"]) .hero-slide-sub { width:100%;max-width:none; }
+}
 
 /* Дорожка и в обычном блоке целей, и в выбранном виде «Полоска». */
 html[data-design="wa"] .hero-slide.wa-has-goals :is(.hs-body,.hero-slide-main,.hero-slide-main .skv-bar,.hero-slide-main .skv-track) { width:100%;max-width:none; }

@@ -259,8 +259,9 @@ html, body {
 /* ── Home v2 ─────────────────────────────────────── */
 .home2-screen {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #0F1117;
-  padding: 0 0 40px;
+  padding: 0 0 max(16px, env(safe-area-inset-bottom, 0px));
   font-family: 'Montserrat', sans-serif;
 }
 .home2-header {

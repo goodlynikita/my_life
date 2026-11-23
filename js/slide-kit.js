@@ -34,21 +34,22 @@ window.SlideKit = (() => {
     return null;
   }
 
-  /* шапка и тело слайда по раскладке; rendered = [{ name, html }] */
+  /* шапка и тело слайда по раскладке; rendered = [{ bid, name, html }] */
   function headHtml(cfg) {
     return `<div class="hero-slide-label">${iconHtml(cfg.icon)}${esc(cfg.label || '')}</div>${cfg.motto ? `<div class="hero-slide-motto">${esc(cfg.motto)}</div>` : ''}`;
   }
   function bodyHtml(cfg, rendered) {
     const layout = cfg.layout || 'auto';
+    const blockAttr = (b) => b.bid ? ` data-block="${esc(b.bid)}"` : '';
     let h = '';
-    if (layout === 'cols') h = `<div class="hero-slide-sub"><div class="hs-cols">${rendered.map(b => `<div class="sb-block">${b.html}</div>`).join('')}</div></div>`;
+    if (layout === 'cols') h = `<div class="hero-slide-sub"><div class="hs-cols">${rendered.map(b => `<div class="sb-block"${blockAttr(b)}>${b.html}</div>`).join('')}</div></div>`;
     else if (layout === 'list') h = `<div class="hero-slide-sub"><div class="hs-list">${rendered.map(b => `<div class="hs-li"><span class="hs-li-n">${esc(b.name)}</span><div class="hs-li-v">${b.html}</div></div>`).join('')}</div></div>`;
     else if (layout === 'center') { const rest = rendered.slice(1);
       h = (rendered[0] ? `<div class="hero-slide-main hs-center">${rendered[0].html}</div>` : '')
-        + (rest.length ? `<div class="hero-slide-sub"><div class="hero-stat-row hs-center-row stats-${Math.min(rest.length, 4)}">${rest.map(b => `<div class="sb-block">${b.html}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : ''); }
+        + (rest.length ? `<div class="hero-slide-sub"><div class="hero-stat-row hs-center-row stats-${Math.min(rest.length, 4)}">${rest.map(b => `<div class="sb-block"${blockAttr(b)}>${b.html}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : ''); }
     else { const stats = rendered.slice(1);
       h = (rendered[0] ? `<div class="hero-slide-main">${rendered[0].html}</div>` : '')
-        + (stats.length ? `<div class="hero-slide-sub"><div class="hero-stat-row stats-${Math.min(stats.length, 4)}${stats.length >= 4 ? ' stats-grid' : ''}">${stats.map(b => `<div class="sb-block">${b.html}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : ''); }
+        + (stats.length ? `<div class="hero-slide-sub"><div class="hero-stat-row stats-${Math.min(stats.length, 4)}${stats.length >= 4 ? ' stats-grid' : ''}">${stats.map(b => `<div class="sb-block"${blockAttr(b)}>${b.html}</div>`).join('<div class="hero-stat-sep"></div>')}</div></div>` : ''); }
     return `<div class="hs-body hs-lay-${layout}">${h}</div>`;
   }
 

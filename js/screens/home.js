@@ -82,10 +82,6 @@ window.Screens.home = function(mount) {
     + '<button class="home2-tile home2-tile-goals" data-route="/goals"><div class="home2-tile-content"><i class="ti ti-target-arrow home2-tile-icon"></i><div class="home2-tile-name">\u0426\u0435\u043b\u0438</div><div class="home2-tile-desc">'+goalsPct+'% \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e</div></div></button>'
     + (window.Tasks && Tasks.isOwner() ? (function(){ var tc = Tasks.todayCount(); return '<button class="home2-tile home2-tile-tasks" data-route="/tasks"><div class="home2-tile-content"><i class="ti ti-list-check home2-tile-icon"></i><div class="home2-tile-name">Задачи</div><div class="home2-tile-desc">' + (tc ? tc + ' на сегодня' : 'На сегодня пусто') + '</div></div></button>'; })() : '')
     + '</div>'
-    + '<div class="home2-footer"><div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;">'
-
-    + ''
-    + '</div></div>'
     + '</div>';
 
   /* Slide widths */
